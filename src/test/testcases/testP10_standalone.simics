@@ -118,10 +118,6 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
 
-        echo "*******************Run testPSUSetFFDCAddr.xml*******************"
-
-        run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
-
         echo "*******************Run testPSUGetCapabilities.py*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
@@ -129,10 +125,6 @@ foreach $proc in (get-component-list -all proc_p10) {
         echo "*******************Run testSuspendIO.xml*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testSuspendIO.py
-
-        echo "*******************Run testPutGetMem.xml*******************"
-
-        run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
 
         echo "*******************Run StopInstruction******************"
 
@@ -196,9 +188,26 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         run-python-file targets/p10_standalone/sbeTest/testPutGetHWReg.py
 
+        echo "*******************Run testPSUGetHwReg.py****************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPSUGetHwReg.py
+
+
+        echo "*******************Run testPSUSetFFDCAddr.xml*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
+
+        echo "*******************Run testPsuHostPassThrough.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+
+
+        # note after testQuesce the SBE will be in the quiesce state
+
         echo "*******************Run testQuiesce.xml*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+
     }
 }
 #TODO: Remove exit

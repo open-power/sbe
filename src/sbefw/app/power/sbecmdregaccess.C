@@ -41,6 +41,10 @@
 #include "plat_i2c_access.H"
 #include "sbe_sp_intf.H"
 
+// PSU ops
+#include "sbeHostUtils.H"
+#include "sbeglobals.H"
+
 using namespace fapi2;
 
 Enum_RegType getRegType( const sbeRegAccessMsgHdr_t &regReq)
@@ -185,7 +189,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
 
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-        
+
         if( false == regReqMsg.isValidRequest() )
         {
             SBE_ERROR(SBE_FUNC" Invalid request. coreId 0x%02x threadNr:0x%x"
@@ -479,5 +483,86 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
+}
+
+uint32_t sbePsuGetHWReg(uint8_t *i_pArg)
+{
+#define SBE_FUNC " sbePsuGetHWReg "
+    SBE_ENTER(SBE_FUNC);
+#if HOST_INTERFACE_AVAILABLE
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    sbeGetHWRegReqMsg_t req = {};
+    uint32_t fapiRc;
+    do
+    {
+        // Extract the request
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                 ((sizeof(req) + sizeof(uint64_t) - 1) /sizeof(uint64_t)),
+                                 (uint64_t*)&req,
+                                 true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to extract SBE_HOST_PSU_MBOX_REG1 and "
+                    "SBE_HOST_PSU_MBOX_REG2");
+            break;
+        }
+        uint64_t addr = req.getScomAddr();
+        uint64_t register_data = 0;
+        SBE_INFO(SBE_FUNC " getHwReg Addr[0x%08X %08X]",
+            req.hiAddr, req.lowAddr);
+
+        //Fetch Target type.
+        if(req.targetType == TARGET_OCMB_CHIP)
+        {
+            Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
+                  <fapi2::TARGET_TYPE_OCMB_CHIP>(req.targetInstance);
+            SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",req.targetInstance, l_hndl.get());
+            fapiRc = i2cGetScom(&l_hndl, addr, &register_data);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                // Primary/Secondary response / FFDC will be set in sbePSUSendResponse
+                SBE_ERROR(SBE_FUNC"i2cGetScom failed with RC 0x%8x , scomAddr[0x%08X %08X]",
+                    fapiRc, req.hiAddr, req.lowAddr);
+                break;
+            }
+            SBE_DEBUG("data returned is 0x%08x_%08x ",
+                     (uint32_t)((register_data) >> 32 ),
+                     (uint32_t)(register_data));
+        }
+        else
+        {
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+                      (uint32_t)req.targetType, (uint32_t)req.targetInstance);
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_DATA,
+                                                    SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+            break;
+        }
+
+        // get hw reigster operation failed
+        if (SBE_GLOBAL->sbeSbe2PsuRespHdr.secStatus() != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC"get hw reigster operation failed, hwRegAddr[0x%08X %08X]",
+                req.hiAddr, req.lowAddr);
+            break;
+        }
+        else // successful scom
+        {
+            rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG5,
+                                      &register_data,
+                                      sizeof(register_data)/sizeof(uint64_t));
+
+            if (rc)
+            {
+                // will let command processor routine handle the failure
+                break;
+            }
+        }
+    }while(0);
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+#endif
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
 }
 

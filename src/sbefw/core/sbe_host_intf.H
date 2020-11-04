@@ -52,6 +52,7 @@ enum sbePsuCommandClass
     SBE_PSU_CMD_CLASS_CORE_STATE            = 0xD1,
     SBE_PSU_CMD_CLASS_RING_ACCESS           = 0xD3,
     SBE_PSU_CMD_CLASS_CNTRL_TIMER           = 0xD4,
+    SBE_PSU_CMD_CLASS_REGISTER_ACCESS       = 0xD5,
     SBE_PSU_CMD_CLASS_SECURITY_CONTROL_MSG  = 0xD6,
     SBE_PSU_CMD_CLASS_GENERIC               = 0xD7,
  };
@@ -64,6 +65,16 @@ enum sbePsuCoreStateControlCommands
     SBE_PSU_CMD_CONTROL_DEADMAN       = 0x01,
     SBE_PSU_EXIT_CACHE_CONTAINED_MODE = 0x02,
     SBE_PSU_CMD_UNKNOWN               = 0xFF,
+};
+
+/**
+ * @brief enums for GPR/SPR/FPR Access Messages
+ *
+*/
+enum sbePsuRegisterAccessCommands
+{
+    SBE_PSU_CMD_GETHWREG                 = 0x03, /* Get HW Register (Scoms, OCMB Scoms) */
+    SBE_PSU_CMD_REG_ACCESS_UNKNOWN       = 0xFF,
 };
 
 /**

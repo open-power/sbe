@@ -72,4 +72,13 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg);
   */
 uint32_t sbePutHWReg(uint8_t *i_pArg);
 
+/**
+  * @brief sbePsuGetHWReg : Get the scom data from proc, proc chiplet and ocmb scoms.
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the PSU access utility
+  */
+uint32_t sbePsuGetHWReg(uint8_t *i_pArg);
+
 #endif /* __SBEFW_SBECMDREGACCESS_H */
