@@ -150,6 +150,8 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
                       static_cast<uint16_t>(req.hdr.targetType),
                       static_cast<uint8_t>(req.hdr.chipletId),
                       static_cast<uint32_t>(req.hdr.control_set));
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               SBE_SEC_HWP_FAILURE);
             ffdc.setRc(fapiRc);
         }
 
