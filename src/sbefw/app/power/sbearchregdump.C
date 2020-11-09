@@ -337,6 +337,9 @@ ReturnCode sbeDumpArchRegs()
     static const uint16_t SPR_GPR_TIMA_list[] = {
         // List for TIMA 0-7 to be collected in MPIPL path
         0, 1, 2, 3, 4, 5, 6, 7,
+        // List for GPRs to be collected in MPIPL path
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+        18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
         // List for SPRs to be collected in MPIPL path
         1 ,3 ,8 ,9 ,13 ,17 ,18 ,19 ,22 ,26 ,27 ,28 ,29 ,48 ,61 ,128 ,129 ,
         130 ,131 ,136 ,152 ,153 ,157 ,158 ,159 ,176 ,180 ,181 ,186 ,187 ,
@@ -348,10 +351,7 @@ ReturnCode sbeDumpArchRegs()
         791 ,792 ,795 ,796 ,797 ,798 ,799 ,800 ,801 ,802 ,803 ,804 ,805 ,
         806 ,812 ,815 ,816 ,823 ,828 ,848 ,849 ,850 ,851 ,853 ,855 ,861 ,
         880 ,881 ,882 ,884 ,885 ,895 ,896 ,898 ,921 ,922 ,1006,1008,1023,
-        2000,2001,2002,2003,2004,2005,2006,2007,
-        // List for GPRs to be collected in MPIPL path
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-        18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+        2000,2001,2002,2003,2004,2005,2006,2007
     };
 
     do
@@ -486,16 +486,16 @@ ReturnCode sbeDumpArchRegs()
                         dumpRegData.regType = TIMA_REG_TYPE;
                     }
                     else if((regIdx >= TIMA_LIST_SIZE) &&
-                           (regIdx < (TIMA_LIST_SIZE+SPR_LIST_SIZE)))
-                    {
-                        type = REG_SPR;
-                        dumpRegData.regType = SPR_REG_TYPE;
-                    }
-                    // Switch to GPRs once SPRs are over in the list
-                    else
+                           (regIdx < (TIMA_LIST_SIZE+GPR_LIST_SIZE)))
                     {
                         type = REG_GPR;
                         dumpRegData.regType = GPR_REG_TYPE;
+                    }
+                    // Switch to SPRs once GPRs are over in the list
+                    else
+                    {
+                        type = REG_SPR;
+                        dumpRegData.regType = SPR_REG_TYPE;
                     }
 
                     dumpRegData.regNum = SPR_GPR_TIMA_list[regIdx];
