@@ -2603,8 +2603,8 @@ fapi_try_exit:
 }
 //<< GET_[EC_PC_COMMON_SPR_V2_HMER_SPARE_6]
 
-//>> SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline fapi2::buffer<uint64_t>& SET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+//>> SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline fapi2::buffer<uint64_t>& SET_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
     fapi2::buffer<uint64_t>& i_data,
     fapi2::buffer<uint64_t>& o_data)
 {
@@ -2612,74 +2612,75 @@ static inline fapi2::buffer<uint64_t>& SET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPUR
     FAPI_TRY(scomt::failOn(0xa, 0x10));
     FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
 #endif
-    return o_data.insertFromRight<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
+    return o_data.insertFromRight<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
            1>(i_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("0:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+    FAPI_ERR("0:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
              scomt::chip, scomt::ec);
     return o_data;
 #endif
 }
-//<< SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+//<< SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
 
-//>> SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline fapi2::buffer<uint64_t>& SET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(const uint64_t i_data,
-        fapi2::buffer<uint64_t>& o_data)
-{
-#ifdef SCOM_CHECKING
-    FAPI_TRY(scomt::failOn(0xa, 0x10));
-    FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
-#endif
-    return o_data.insertFromRight<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
-           1>(i_data);
-#ifdef SCOM_CHECKING
-fapi_try_exit:
-    FAPI_ERR("1:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
-             scomt::chip, scomt::ec);
-    return o_data;
-#endif
-}
-//<< SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-
-//>> SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline fapi2::buffer<uint64_t>& SET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+//>> SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline fapi2::buffer<uint64_t>& SET_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+    const uint64_t i_data,
     fapi2::buffer<uint64_t>& o_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::failOn(0xa, 0x10));
     FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
 #endif
-    return o_data.setBit<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
+    return o_data.insertFromRight<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
+           1>(i_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("2:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+    FAPI_ERR("1:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
              scomt::chip, scomt::ec);
     return o_data;
 #endif
 }
-//<< SET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+//<< SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
 
-//>> CLEAR_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline fapi2::buffer<uint64_t>& CLEAR_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+//>> SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline fapi2::buffer<uint64_t>& SET_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
     fapi2::buffer<uint64_t>& o_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::failOn(0xa, 0x10));
     FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
 #endif
-    return o_data.clearBit<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
+    return o_data.setBit<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("3:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+    FAPI_ERR("2:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
              scomt::chip, scomt::ec);
     return o_data;
 #endif
 }
-//<< CLEAR_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+//<< SET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
 
-//>> GET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline fapi2::buffer<uint64_t>& GET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+//>> CLEAR_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline fapi2::buffer<uint64_t>& CLEAR_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
+    fapi2::buffer<uint64_t>& o_data)
+{
+#ifdef SCOM_CHECKING
+    FAPI_TRY(scomt::failOn(0xa, 0x10));
+    FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
+#endif
+    return o_data.clearBit<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
+#ifdef SCOM_CHECKING
+fapi_try_exit:
+    FAPI_ERR("3:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+             scomt::chip, scomt::ec);
+    return o_data;
+#endif
+}
+//<< CLEAR_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+
+//>> GET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline fapi2::buffer<uint64_t>& GET_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(
     fapi2::buffer<uint64_t>& i_data,
     uint64_t& o_data)
 {
@@ -2687,33 +2688,33 @@ static inline fapi2::buffer<uint64_t>& GET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPUR
     FAPI_TRY(scomt::failOn(0xa, 0x10));
     FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
 #endif
-    return i_data.extractToRight<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
+    return i_data.extractToRight<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT,
            1>(o_data);
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("4:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+    FAPI_ERR("4:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
              scomt::chip, scomt::ec);
     return i_data;
 #endif
 }
-//<< GET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+//<< GET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
 
-//>> GET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
-static inline bool GET_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(fapi2::buffer<uint64_t>& i_data)
+//>> GET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+static inline bool GET_P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT(fapi2::buffer<uint64_t>& i_data)
 {
 #ifdef SCOM_CHECKING
     FAPI_TRY(scomt::failOn(0xa, 0x10));
     FAPI_TRY(scomt::chkReg(EC_PC_COMMON_SPR_V2_HMER_RW_WAND, EC_PC_COMMON_SPR_V2_HMER_WO_OR));
 #endif
-    return i_data.getBit<EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
+    return i_data.getBit<P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT>();
 #ifdef SCOM_CHECKING
 fapi_try_exit:
-    FAPI_ERR("5:scom_c Invalid dial access EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
+    FAPI_ERR("5:scom_c Invalid dial access P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT chip: %x, ec: %x",
              scomt::chip, scomt::ec);
     return i_data;
 #endif
 }
-//<< GET_[EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
+//<< GET_[P10_20_EC_PC_COMMON_SPR_V2_HMER_V2_HMER_SPURR_SCALE_LIMIT]
 
 //>> SET_[EC_PC_COMMON_SPR_V2_HMER_SPARE_7]
 static inline fapi2::buffer<uint64_t>& SET_EC_PC_COMMON_SPR_V2_HMER_SPARE_7(fapi2::buffer<uint64_t>& i_data,
