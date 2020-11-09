@@ -47,10 +47,10 @@ static const uint32_t QME_CRCR = 0xc0003000ull;
 
 static const uint32_t QME_CRCR_COMPARE_VALUE = 0;
 static const uint32_t QME_CRCR_COMPARE_VALUE_LEN = 8;
-static const uint32_t QME_CRCR_OMPARE_VALUE = 0; // p10:20,
-static const uint32_t QME_CRCR_OMPARE_VALUE_LEN = 8;
-static const uint32_t QME_CRCR_R_TOGGLE_STEP = 8; // p10:20,
-static const uint32_t QME_CRCR_R_TOGGLE_SYNC = 9; // p10:20,
+static const uint32_t P10_20_QME_CRCR_OMPARE_VALUE = 0; // p10:20,
+static const uint32_t P10_20_QME_CRCR_OMPARE_VALUE_LEN = 8;
+static const uint32_t P10_20_QME_CRCR_R_TOGGLE_STEP = 8; // p10:20,
+static const uint32_t P10_20_QME_CRCR_R_TOGGLE_SYNC = 9; // p10:20,
 //<< [QME_CRCR]
 // ppe_eq/reg00014.H
 
@@ -107,7 +107,7 @@ static const uint32_t QME_LFIR_SPECIAL_WKUP_DONE_WINDOW = 18;
 static const uint32_t QME_LFIR_DISABLED_INTR = 19;
 static const uint32_t QME_LFIR_DECONFIGURED_INTR = 20;
 static const uint32_t QME_LFIR_RS4_TIMEOUT = 21;
-static const uint32_t QME_LFIR_MIXED_LPAR_ERROR = 21; // p10:20,
+static const uint32_t P10_20_QME_LFIR_MIXED_LPAR_ERROR = 21; // p10:20,
 static const uint32_t QME_LFIR_PB_DATA_HANG = 22;
 static const uint32_t QME_LFIR_WRITE_PROTECT_FAIL = 23;
 static const uint32_t QME_LFIR_DTC_ERROR = 24;
@@ -122,8 +122,8 @@ static const uint32_t QME_LFIR_PB_SSA_CE = 32;
 static const uint32_t QME_LFIR_PB_SSA_UE = 33;
 static const uint32_t QME_LFIR_SPARE1 = 34;
 static const uint32_t QME_LFIR_SPARE1_LEN = 2;
-static const uint32_t QME_LFIR_RESCLK_CCFG_PAR_ERR = 34; // p10:20,
-// ERROR Duplicate Dial         static const uint32_t QME_LFIR_SPARE1 = 35; // p10:20,
+static const uint32_t P10_20_QME_LFIR_RESCLK_CCFG_PAR_ERR = 34; // p10:20,
+static const uint32_t P10_20_QME_LFIR_SPARE1 = 35; // p10:20,
 //<< [QME_LFIR]
 // ppe_eq/reg00014.H
 

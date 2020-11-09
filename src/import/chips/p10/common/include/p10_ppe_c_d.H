@@ -64,7 +64,7 @@ static const uint32_t CPMS_MMA_PFETSTAT = 0xc000e340ull;
 
 static const uint32_t CPMS_MMA_PFETSTAT_S_ENABLED_SENSE = 0;
 static const uint32_t CPMS_MMA_PFETSTAT_S_DISABLED_SENSE = 1;
-static const uint32_t CPMS_MMA_PFETSTAT_S_FINGER0_SENSE = 2; // p10:20,
+static const uint32_t P10_20_CPMS_MMA_PFETSTAT_S_FINGER0_SENSE = 2; // p10:20,
 static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL = 16;
 static const uint32_t CPMS_MMA_PFETSTAT_ENABLE_ACTUAL_LEN = 8;
 //<< [CPMS_MMA_PFETSTAT]
