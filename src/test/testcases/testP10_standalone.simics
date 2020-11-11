@@ -99,8 +99,7 @@ foreach $proc in (get-component-list -all proc_p10) {
         sbe-istep 5.2 5.3
 
         echo "*******************Run testGetDump.py*******************"
-        # TODO: Enable testGetDump.py along with all DUMP util scripts
-        #run-python-file targets/p10_standalone/sbeTest/testGetDump.py
+        run-python-file targets/p10_standalone/sbeTest/testGetDump.py
 
         echo "*******************Run testSram.py *******************"
 
