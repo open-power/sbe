@@ -323,7 +323,9 @@ uint32_t sbePutRing(uint8_t *i_pArg)
     ReturnCode fapiRc;
     sbePutRingMsgHdr_t hdr;
     uint32_t len = 0;
-
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+    sbefifo_hwp_data_istream istream(type);
     do
     {
         // Get the length of payload
@@ -340,17 +342,17 @@ uint32_t sbePutRing(uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             // flush the fifo
-            rc = sbeUpFifoDeq_mult(len, NULL,true, true);
+            rc = istream.get(len, NULL,true, true);
             break;
         }
 
         len = sizeof(sbePutRingMsgHdr_t)/sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&hdr, false);
+        rc = istream.get(len, (uint32_t *)&hdr, false);
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         len = rs4FifoEntries;
-        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&reqMsg);
+        rc = istream.get(len, (uint32_t *)&reqMsg);
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
@@ -438,7 +440,7 @@ uint32_t sbePutRing(uint8_t *i_pArg)
     // instead give the control back to the command processor thread
     if ( SBE_SEC_OPERATION_SUCCESSFUL == rc )
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc, istream.getFifoType());
     }
     SBE_EXIT(SBE_FUNC);
     return rc;
