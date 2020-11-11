@@ -88,9 +88,10 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
 
         //Call collectAllEntries.
         rc = dumpObj.collectAllHDCTEntries();
-
         if(rc)
         {
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP chipOp 
             SBE_ERROR(SBE_FUNC" Dump collection failed for dumpType 0x%08X",
                     (uint8_t)msg.dumpType);
             respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,

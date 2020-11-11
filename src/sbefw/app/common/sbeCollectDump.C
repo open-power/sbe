@@ -38,7 +38,7 @@ inline bool sbeCollectDump::dumpTypeCheck()
 bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
 {
     fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(i_target);
-    uint32_t chipUnitNum = dumpRowTgt.get().getTargetInstance();
+    uint32_t chipUnitNum = dumpRowTgt.getChipletNumber();
     //  Verify check as per -c0..31 values dump data
     return ( (!iv_hdctRow->genericHdr.chipletStart) ||
              ( (chipUnitNum-1 >= iv_hdctRow->genericHdr.chipletStart) &&
@@ -57,6 +57,8 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
+        //TODO: Verify and modify all error rc to handle all primary/secondary
+        //error in DUMP chipOp
         rc = SBE_SEC_INVALID_ADDRESS_PASSED;
     }
     else
@@ -252,7 +254,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         // write dump row header contents using FIFO
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
-        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
+        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.getChipletNumber();
 
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
         iv_oStream.put(len, (uint32_t*)&iv_tocRow);
@@ -314,6 +316,8 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         while(sbeCollectDump::parserSingleHDCTEntry())
         {
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP chipOp
             rc = writeDumpPacketRowToFifo();
             if(rc)
             {

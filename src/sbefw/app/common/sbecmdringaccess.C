@@ -277,7 +277,7 @@ uint32_t sbeGetRingWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
     {
         l_rc  = i_putStream.put(l_bitSentCnt);
         if( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) &&
-            (i_putStream.doStreamRespHeader()) )
+            (i_putStream.isStreamRespHeader()) )
         {
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc,
                                      i_getStream.getFifoType() );

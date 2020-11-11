@@ -133,7 +133,7 @@ namespace fapi2
         sbefifo_hwp_data_ostream( sbeFifoType type = SBE_FIFO,
                                   bool doRespHeader = true ):
                                   iv_words_written(0),
-                                  iv_doResponseHeader(doRespHeader),
+                                  iv_isResponseHeader(doRespHeader),
                                   iv_fifoType(type){};
 
         /**
@@ -175,9 +175,9 @@ namespace fapi2
          *
          * @return return Response Header
          */
-        bool doStreamRespHeader()
+        bool isStreamRespHeader()
         {
-            return iv_doResponseHeader;
+            return iv_isResponseHeader;
         }
 
         /**
@@ -191,7 +191,7 @@ namespace fapi2
         }
     private:
         uint32_t iv_words_written;
-        bool iv_doResponseHeader;
+        bool iv_isResponseHeader;
         const sbeFifoType iv_fifoType;
     };
 
