@@ -165,7 +165,7 @@ const uint32_t OPCODE_MTSPR_TAR     = OPCODE_MTSPR | ENCODE_SPR_NUM_OPCODE(SPR_N
 
 // poll count for check ram status
 const uint32_t RAM_CORE_STAT_POLL_CNT = 10;
-// poll count for check ram ready.  This can take about 3000 core clock cycles in P10.
+// poll count for check ram ready and thread action.  This can take about 3000 core clock cycles in P10.
 const uint32_t RAM_CORE_READY_POLL_CNT = 100;
 
 // register SPR_COMMON.SCOMC , definition for field MODE_CX_SCOMC
@@ -233,21 +233,44 @@ RamCore::~RamCore()
 }
 
 // See doxygen comments in header file
+fapi2::ReturnCode RamCore::ram_get_thread_info(
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+    fapi2::buffer<uint64_t>& o_thread_info)
+{
+    FAPI_DBG("Start ram_get_thread_info");
+    bool l_thread_action_in_progress = true;
+    uint32_t l_poll_count = RAM_CORE_READY_POLL_CNT;
+
+    // Wait until thread_action is false before considering THREAD_INFO contents to be valid.
+    // The HW can change the VTID_V bits while thread_action is true.
+    while (l_thread_action_in_progress && l_poll_count > 0)
+    {
+        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(i_target, o_thread_info));
+        l_thread_action_in_progress = GET_EC_PC_PMC_THREAD_INFO_THREAD_ACTION_IN_PROGRESS(o_thread_info);
+        l_poll_count--;
+    }
+
+    FAPI_ASSERT(!l_thread_action_in_progress,
+                fapi2::P10_RAM_THREAD_ACTION_POLL_THRESHOLD_ERR()
+                .set_CORE_TARGET(i_target),
+                "Timeout for thread action to complete, poll count expired."
+                "EC_PC_PMC_THREAD_INFO reg 0x%.16llX", o_thread_info);
+
+fapi_try_exit:
+    FAPI_DBG("Exiting ram_get_thread_info");
+    return fapi2::current_err;
+}
+
+
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_ready(bool& o_ready, fapi2::buffer<uint64_t>& o_thread_info)
 {
     FAPI_DBG("Start ram_ready");
-    bool l_thread_active = false;
-    bool l_thread_action_in_progress = false;
 
-    FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, o_thread_info));
-    FAPI_DBG("EC_PC_PMC_THREAD_INFO: 0x%.16llX", o_thread_info());
+    FAPI_TRY(ram_get_thread_info(iv_target, o_thread_info));
 
-    FAPI_TRY(o_thread_info.extractToRight(l_thread_active,
+    FAPI_TRY(o_thread_info.extractToRight(o_ready,
                                           EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V + iv_thread, 1));
-
-    l_thread_action_in_progress = GET_EC_PC_PMC_THREAD_INFO_THREAD_ACTION_IN_PROGRESS(o_thread_info);
-
-    o_ready = l_thread_active && !l_thread_action_in_progress;
 
 fapi_try_exit:
     FAPI_DBG("Exiting ram_ready");
@@ -322,7 +345,7 @@ fapi2::ReturnCode RamCore::ram_setup()
         // determine recovery requirements for normal core which is the target
         // of the ram operation -- if no virtual thread mappings are present,
         // we'll skip forcing recovery
-        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        FAPI_TRY(ram_get_thread_info(iv_target, l_data));
 
         if (!GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V(l_data) &&
             !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID1_V(l_data) &&
@@ -493,7 +516,7 @@ fapi2::ReturnCode RamCore::ram_initiate_recovery()
 
         // determine if fused peer has any valid virtual thread mappings
         // if not, we'll need to block recovery from occuring on the peer core
-        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(l_target_fused_peer, l_data));
+        FAPI_TRY(ram_get_thread_info(l_target_fused_peer, l_data));
 
         if (!GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID0_V(l_data) &&
             !GET_EC_PC_PMC_THREAD_INFO_THREAD_INFO_VTID1_V(l_data) &&
@@ -858,7 +881,7 @@ fapi2::ReturnCode RamCore::ram_cleanup_internal()
         // FIXME: Values written into the GPRs/VSRs/STF-mapped SPRs (CTR, LR, TAR, etc.) via
         // RAMing can potentially be erased by the P10 hardware if the thread is made inactive here.
         // Should the HWP return an error or warning in that scenario?
-        FAPI_TRY(GET_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
+        FAPI_TRY(ram_get_thread_info(iv_target, l_data));
         FAPI_TRY(l_data.clearBit(EC_PC_PMC_THREAD_INFO_RAM_THREAD_ACTIVE + iv_thread));
         FAPI_TRY(PUT_EC_PC_PMC_THREAD_INFO(iv_target, l_data));
         iv_thread_activated = false;

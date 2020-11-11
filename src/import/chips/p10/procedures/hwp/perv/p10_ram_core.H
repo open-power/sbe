@@ -185,6 +185,14 @@ class RamCore
         //
         fapi2::ReturnCode ram_ready_activate();
 
+        /// @brief Return the RAM THREAD_INFO register contents
+        /// @param[in] i_target        => core target
+        /// @param[out] o_thread_info  => contents of THREAD_INFO register
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        fapi2::ReturnCode ram_get_thread_info(
+            const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+            fapi2::buffer<uint64_t>& o_thread_info);
+
         //-----------------------------------------------------------------------------------
         /// @brief Initiate HW recovery as workaround for HW533775
         /// @return FAPI2_RC_SUCCESS if success, else error code.
