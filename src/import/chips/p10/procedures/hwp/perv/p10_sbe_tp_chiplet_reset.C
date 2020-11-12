@@ -258,32 +258,31 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
         uint32_t l_chipletID = targ.getChipletNumber();
         bool pfet_val1 = 1, pfet_val2 = 1;
 
-        // TODO: change to dial names for MC and PCIE
         // bit1,3,5,7 = MC3..0 cplts
         if(l_chipletID == 0xC)
         {
-            pfet_val1 = l_data64.getBit<7>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_EMO0_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         else  if(l_chipletID == 0xD)
         {
-            pfet_val1 = l_data64.getBit<5>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_EMO1_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         else  if(l_chipletID == 0xE)
         {
-            pfet_val1 = l_data64.getBit<3>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_EMO2_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         else  if(l_chipletID == 0xF)
         {
-            pfet_val1 = l_data64.getBit<1>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_EMO3_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         // bit21,23 = PCI1..0 cplts
         else if(l_chipletID == 0x8)
         {
-            pfet_val1 = l_data64.getBit<23>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_PCIE0_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         else if(l_chipletID == 0x9)
         {
-            pfet_val1 = l_data64.getBit<21>();
+            pfet_val1 = l_data64.getBit<perv::P10_20_DPLL_CNTL_MISC_REGS_PFET_PCIE1_VDD_PFETS_ENABLED_SENSE_OUT_DC>();
         }
         else // PAU
         {
