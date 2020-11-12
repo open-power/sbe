@@ -45,15 +45,86 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
 }
 
+uint32_t sbeCollectDump::writePutScomPacketToFifo()
+{
+    #define SBE_FUNC "writePutScomPacketToFifo"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint64_t dumpData = 0;
+    do
+    {
+        // Update address, length and stream header data vai FIFO
+        iv_tocRow.tocHeader.address = iv_hdctRow->cmdPutScom.addr;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        
+        uint32_t addr = iv_tocRow.tocHeader.address;
+        uint32_t maskType = iv_hdctRow->cmdPutScom.extGenericHdr.bitModifier;
+        fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
+        seeprom_hwp_data_istream stream((uint32_t*)&iv_hdctRow->cmdPutScom.value,
+                                         sizeof(uint64_t));
+        uint32_t msbValue, lsbValue;
+        stream.get(msbValue), stream.get(lsbValue);
+        uint64_t mask = (((uint64_t)msbValue << 32 ) | ((uint64_t)lsbValue));
+        dumpData = mask; // maskType is nnone then putScom data is mask value.
+
+        SBE_INFO("putscom address:[0x%08X] mask:[0x%08X%08X]", addr,
+                  SBE::higher32BWord(mask), SBE::lower32BWord(mask));
+
+        if( B_NONE != maskType )
+        {
+            uint64_t readData = 0;
+            fapiRc = getscom_abs_wrap(&dumpRowTgt, addr, &readData);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                // TODO: Verify and modify all error rc to handle all
+                // primary/secondary error in DUMP
+                rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+                break;
+            }
+            SBE_DEBUG(SBE_FUNC " putscom scom value: 0x%.8X%.8X ",
+                      SBE::higher32BWord(readData),SBE::lower32BWord(readData));
+            if( B_OR == maskType )
+            {
+                dumpData = (readData | mask);
+            }
+            if( B_AND != maskType )
+            {
+                dumpData = (readData & mask);
+            }
+        }
+        SBE_DEBUG(SBE_FUNC " maskType[0x%02X], data [0x%08X %08X] ", maskType,
+                  SBE::higher32BWord(dumpData),SBE::lower32BWord(dumpData));
+        fapiRc = putscom_abs_wrap(&dumpRowTgt, addr, dumpData);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP
+            rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+            break;
+        }
+    }
+    while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
 uint32_t sbeCollectDump::writeGetScomPacketToFifo()
 {
     #define SBE_FUNC "writeGetScomPacketToFifo"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    uint64_t dumpData;
-    fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
 
+    // Update address, length and stream header data vai FIFO
+    iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetScom.addr;
+    iv_tocRow.tocHeader.dataLength = 0x40; // 64 bits -or- 2 words
+    uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+    iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+    uint64_t dumpData; 
+    fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
     fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
@@ -240,7 +311,9 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     iv_tocRow.tocHeaderInit(iv_hdctRow);
 
     // TODO: Clean-Up once other chip-op ennabled.
-    if(iv_tocRow.tocHeader.cmdType != CMD_GETSCOM) return rc;
+    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM) ) )
+        return rc;
 
     // Map Dump target id with plat target list
     std::vector<plat_target_handle_t> targetList;
@@ -256,14 +329,16 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         iv_tocRow.tgtHndl = target;
         iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.getChipletNumber();
 
-        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
-        iv_oStream.put(len, (uint32_t*)&iv_tocRow);
-
         switch(iv_tocRow.tocHeader.cmdType)
         {
             case CMD_GETSCOM:
             {
                 rc = writeGetScomPacketToFifo();
+                break;
+            }
+            case CMD_PUTSCOM:
+            {
+                rc = writePutScomPacketToFifo();
                 break;
             }
             default:

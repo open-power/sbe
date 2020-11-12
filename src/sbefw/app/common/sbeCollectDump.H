@@ -158,27 +158,7 @@ typedef struct
         tocHeader.reserved = 0x0;
         tocHeader.cmdType = (uint8_t) genericHdctRow->genericHdr.command;
         tocHeader.chipUnitType = (uint8_t) genericHdctRow->genericHdr.chipUnitType;
-
-        //TODO:Update for remaining command typei
-        switch((uint8_t)genericHdctRow->genericHdr.command)
-        {
-            case CMD_PUTSCOM:
-                tocHeader.address = genericHdctRow->cmdPutScom.addr;
-                tocHeader.dataLength = 0x00;
-                break;
-            case CMD_GETSCOM:
-                tocHeader.address = genericHdctRow->cmdGetScom.addr;
-                tocHeader.dataLength = 0x40;
-                break;
-            case CMD_GETRING:
-                tocHeader.address = genericHdctRow->cmdGetRing.strEqvHash32;
-                tocHeader.dataLength = genericHdctRow->cmdGetRing.ringLen;
-                break;
-            default:
-                break;
-        };
     }
-
 }genericRowTOC_t;
 
 class sbeCollectDump
@@ -276,6 +256,14 @@ class sbeCollectDump
          *         ERROR,    Incase of failure.
          */
         uint32_t populateHDCTRowTOC();
+
+       /**
+        * @brief Write put scom updated data to the FIFO
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writePutScomPacketToFifo();
 
        /**
         * @brief Write get scom data to the FIFO.
