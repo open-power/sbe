@@ -367,6 +367,19 @@ fapi2::ReturnCode p10_sbe_fastarray(
     uint32_t l_header, l_care_bits[MAX_CARE_WORDS];
     bool l_ignore_abist_done;
 
+
+#ifndef __PPE__
+    // For Cronus platform, clear dynamic init feature vector to help ensure that runtime
+    // specific features (marked coming into this code) do not collide with the IPL time
+    // features ORd in by the putRing triggered call to p10_ipl_customize below
+    {
+        fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type l_attr_vec = { 0 };
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC,
+                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_attr_vec));
+    }
+#endif
+
     // Open new scope so we can FAPI_TRY() across initializers at leisure
     {
         // Load the ring address from the stream and translate it
