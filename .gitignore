@@ -1,1 +1,11 @@
 customrc
+tags
+
+#Ignore images, obj, simics dir
+images/**
+obj/**
+simics/**
+
+# Ignore Python cache
+__pycache__
+*.pyc
