@@ -59,6 +59,7 @@ enum pll_wa_type
     LAST_LOCKING_BANDSEL_M1,    // force calibration to last locking bandsel-1
     LAST_LOCKING_BANDSEL,       // force calibration to last locking bandsel
     FIRST_LOCKING_BANDSEL_P1,   // force calibration to first locking bandsel+1
+    STATIC_BANDSEL,             // force calibration to static (override) bandsel value
 };
 
 // Structure for reading/writing calibration status/settings
@@ -452,6 +453,7 @@ fapi2::ReturnCode apply_workaround(
         fapi2::ReturnCode l_rc;
         pll_cal l_bands[MAX_PLLS];
         uint32_t l_chiplet_id = l_chiplet_tgt.getChipletNumber();
+        bool l_force_calibration = false;
 
         for (int i = 0; i < i_settings.nplls; i++)
         {
@@ -466,6 +468,8 @@ fapi2::ReturnCode apply_workaround(
         {
             uint32_t l_idx = (l_chiplet_id - 0xC);
             fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket;
+
+            fapi2::ATTR_PROC_FORCE_MC_PLL_BANDSEL_Type l_force_mc_pll_bandsel;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, l_chip_target, l_mc_pll_bucket),
                      "Error from FAPI_ATTR_GET (ATTR_MC_PLL_BUCKET)");
 
@@ -478,11 +482,34 @@ fapi2::ReturnCode apply_workaround(
             {
                 l_wa_type = FIRST_LOCKING_BANDSEL_P1;
             }
+
+            // allow for static override of PLL setpoint
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FORCE_MC_PLL_BANDSEL, l_chip_target, l_force_mc_pll_bandsel));
+
+            if (l_force_mc_pll_bandsel == fapi2::ENUM_ATTR_PROC_FORCE_MC_PLL_BANDSEL_TRUE)
+            {
+                fapi2::ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE_Type l_mc_pll_bandsel_override;
+                FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE, l_chip_target, l_mc_pll_bandsel_override));
+
+                l_force_calibration = true;
+                l_wa_type = STATIC_BANDSEL;
+
+                for (int i = 0; i < i_settings.nplls; i++)
+                {
+                    l_bands[i].calibrated = true;
+                    l_bands[i].load = true;
+                    l_bands[i].locked = true;
+                    l_bands[i].bandsel = l_mc_pll_bandsel_override[(2 * l_idx) + i];
+                }
+            }
         }
 
-        // confirm that PLL calibrates, return band selected by HW calibration
-        FAPI_TRY(confirm_calibration(l_chiplet_tgt, i_settings, l_bands),
-                 "Error from confirm_calibration");
+        if (!l_force_calibration)
+        {
+            // confirm that PLL calibrates, return band selected by HW calibration
+            FAPI_TRY(confirm_calibration(l_chiplet_tgt, i_settings, l_bands),
+                     "Error from confirm_calibration");
+        }
 
         FAPI_DBG("Base calibration (BANDSEL):");
 
@@ -495,6 +522,19 @@ fapi2::ReturnCode apply_workaround(
         {
             case NO_WORKAROUND:
                 FAPI_DBG("Skipping all workarounds");
+                break;
+
+            case STATIC_BANDSEL:
+                FAPI_DBG("Executing STATIC_BANDSEL workaround");
+                l_rc = force_band(l_chiplet_tgt, i_settings, l_bands);
+
+                FAPI_ASSERT(l_rc == fapi2::FAPI2_RC_SUCCESS,
+                            fapi2::P10_HW540133_SB_WA_ERR()
+                            .set_TARGET(l_chiplet_tgt)
+                            .set_LOCK_ERR(l_rc == fapi2::FAPI2_RC_FALSE),
+                            "Error from force_band (STATIC_BANDSEL, chiplet: %02d)",
+                            l_chiplet_tgt.getChipletNumber());
+
                 break;
 
             case CALIBRATED_BANDSEL_M1:
@@ -726,6 +766,22 @@ fapi2::ReturnCode apply_workaround(
                             .set_TARGET(l_chiplet_tgt)
                             .set_WORKAROUND_TYPE(l_wa_type),
                             "Unsupported HW540133 workaround selection!");
+        }
+
+        // write back MC attribute value for this chiplet
+        if ((l_chiplet_id >= 0xC) && (l_chiplet_id <= 0xF))
+        {
+            uint32_t l_idx = (l_chiplet_id - 0xC);
+
+            fapi2::ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE_Type l_mc_pll_bandsel_override;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE, l_chip_target, l_mc_pll_bandsel_override));
+
+            for (int i = 0; i < i_settings.nplls; i++)
+            {
+                l_mc_pll_bandsel_override[(2 * l_idx) + i] = l_bands[i].bandsel;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE, l_chip_target, l_mc_pll_bandsel_override));
         }
     }
 
