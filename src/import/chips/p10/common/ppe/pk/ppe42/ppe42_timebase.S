@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -109,26 +109,34 @@ pk_timebase_get:
 //enable this once we have a local timebase register in the model
 #else
 
-// use the local timebase register to keep more accurate time with just 6 instructions
-// in the common case and 7 otherwise.
+// use the local timebase register to keep more accurate time.
         .align 5
 pk_timebase_get:
 
+        // Save context and Disable interrupts
+        mfmsr       %r6
+        wrteei      0
+
         //load the 64bit timebase accumulator
-        lvd         r3, ppe42_64bit_timebase@sda21(0)
+        lvd         %d3, ppe42_64bit_timebase@sda21(0)
 
         //read the local timebase register (2 instructions)
-        _pk_timebase32_get r5, r5
+        _pk_timebase32_get %r5, %r5
 
         //increment the upper 32 bits if the lower 32 bits have flipped
-        cmplwbge r5, r4, update_lower_32
+        cmplwbge %r5, %r4, update_lower_32
 
         //increment the upper 32 bits
-        addi        r3, r3, 1
+        addi        %r3, %r3, 1
 
 update_lower_32:
         //replace the lower 32bits with what we read from the local timebase register
-        mr          r4, r5
+        mr          %r4, %r5
+
+        // update 64 bit timebase accumulator
+        stvd        %d3, ppe42_64bit_timebase@sda21(0)
+
+        mtmsr       %r6
 
         blr
 #endif /* APPCFG_USE_EXT_TIMEBASE */
