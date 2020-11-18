@@ -30,6 +30,7 @@
 // *HWP HW Maintainer   : Anusha Reddy (anusrang@in.ibm.com)
 // *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
 // *HWP Consumed by     : SBE
+// EKB-Mirror-To: hw/ppe
 //------------------------------------------------------------------------------
 
 #ifndef _P10_SBE_TP_DPLL_BYPASS_H_
