@@ -30,7 +30,7 @@
 #include "fapi2_mem_access.H"
 #include "p10_getmempba.H"
 #include "p10_sbe_apply_xscom_inits.H"
-
+#include "p10_scom_proc_9.H"
 using namespace fapi2;
 
 #define ALIGN_SIZE 128
@@ -121,6 +121,20 @@ uint32_t sbePsuExitCacheContainedMode(uint8_t *i_pArg)
     if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
     {
         SBE_ERROR( SBE_FUNC" Failed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]", rc);
+        //Not breaking here
+    }
+
+    //Force a system checkstop only for HWP failures.
+    if( (fapiRc != FAPI2_RC_SUCCESS) && (rc == SBE_SEC_OPERATION_SUCCESSFUL) )
+    {
+        fapi2::buffer<uint64_t> data(0);
+        data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN59>();
+        fapiRc =putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed to force system checkstop to indicate failure in"
+            " exit cache contained mode:fapiRc=0x%.8x",fapiRc);
+        }
     }
     SBE_EXIT(SBE_FUNC);
     return rc;
