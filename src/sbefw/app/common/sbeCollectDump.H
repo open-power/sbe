@@ -188,6 +188,8 @@ class sbeCollectDump
         uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
         sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
         uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
+        //Unset the below flag once we find the 1st clock HDCT entry for Clock OFF state. Flag needs to be unset if clock ON state(Done in constructor).
+        bool iv_clockOffEntryFlag = true;
 
         genericHdctRow_t *iv_hdctRow;
         genericRowTOC_t iv_tocRow;
@@ -208,6 +210,10 @@ class sbeCollectDump
                          sbeFifoType i_type ):iv_oStream(i_type, false),
                          iv_clockState(i_clockState), iv_fifoType(i_type)
          {
+             iv_clockState = i_clockState;
+             if (iv_clockState == SBE_DUMP_CLOCK_ON)
+                 iv_clockOffEntryFlag = false;
+
              //Parse the HDCT Xip section header
              iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
 
@@ -224,10 +230,10 @@ class sbeCollectDump
 
         /**
          * @brief Collect the data for all the entries present in HDCT.
-         *        It will be called from sbeGetDump() func. 
+         *        It will be called from sbeGetDump() func.
          *
          * @return SUCCESS, Incase of no error.
-         *         error,   Incase of failure. 
+         *         error,   Incase of failure.
          */
          uint32_t collectAllHDCTEntries();
 

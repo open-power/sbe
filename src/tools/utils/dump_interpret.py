@@ -201,7 +201,7 @@ class scomData():
 
         self.ffdcData = ""
         #FFDC data - length as per ffdc length
-        numberOfWords = int(self.dataLen / 4)
+        numberOfWords = int(self.ffdcLen / 4)
         for i in range(0,numberOfWords):
             tempFfdcData = int.from_bytes(ffdcData[(4*i):((4*i)+4)], "big")
             tempFfdcData = str(format(tempFfdcData,'08X'))

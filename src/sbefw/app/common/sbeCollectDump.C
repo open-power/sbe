@@ -51,7 +51,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
-    uint64_t dumpData; 
+    uint64_t dumpData;
     fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
 
     fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
@@ -63,7 +63,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     }
     else
     {
-        SBE_INFO("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ", 
+        SBE_INFO("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ",
                   iv_tocRow.tocHeader.address, (dumpData >> 32),
                   static_cast<uint32_t>(dumpData & 0xFFFFFFFF));
     }
@@ -71,12 +71,12 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
-}    
+}
 
 void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetList)
 {
     #define SBE_FUNC "getTargetList"
-    SBE_ENTER(SBE_FUNC);   
+    SBE_ENTER(SBE_FUNC);
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> procTgt =  plat_getChipTarget();
     switch(iv_tocRow.tocHeader.chipUnitType)
     {
@@ -291,7 +291,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&ffdcData);
             rc = SBE_SEC_OPERATION_SUCCESSFUL;
         }
-        // FIFO the cpuCycles value 
+        // FIFO the cpuCycles value
         iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
         iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
 
@@ -341,30 +341,52 @@ uint32_t sbeCollectDump::parserSingleHDCTEntry()
     #define SBE_FUNC " parserSingleHDCTEntry "
     SBE_ENTER(SBE_FUNC);
 
+    //Return status
+    bool status = true;
+
     do
     {
-        if(iv_hdctXipSecDetails.currAddr < iv_hdctXipSecDetails.endAddr)
+        //Check if all HDCT entries are parsed
+        if(!(iv_hdctXipSecDetails.currAddr < iv_hdctXipSecDetails.endAddr))
         {
-            //Parse single HDCT row and populate genericHdctRow_t struct
-            iv_hdctRow = (genericHdctRow_t*)iv_hdctXipSecDetails.currAddr;
-            if(genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)] == CMD_TYPE_NOT_USED)
-            {
-                SBE_ERROR("Unknown command type: %X",(uint8_t) iv_hdctRow->genericHdr.command);
-                SBE_ERROR("Error in parsing HDCT.bin");
-                return false;
-            }
-            //Increament the current address to point to the next HDCT row
-            iv_hdctXipSecDetails.currAddr = iv_hdctXipSecDetails.currAddr + genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)];
+            SBE_INFO("All HDCT entries parsed for Clock State: %d", iv_clockState);
+            status = false;
+            break;
         }
-        else
+
+        //Parse single HDCT row and populate genericHdctRow_t struct
+        iv_hdctRow = (genericHdctRow_t*)iv_hdctXipSecDetails.currAddr;
+
+        //Increament the current address to point to the next HDCT row
+        iv_hdctXipSecDetails.currAddr = iv_hdctXipSecDetails.currAddr + genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)];
+
+        //Error Check
+        if(genericHdctRowSize_table[(uint8_t)(iv_hdctRow->genericHdr.command)] == CMD_TYPE_NOT_USED)
         {
-            SBE_INFO("All HDCT entries parsed");
-            return false;
+            SBE_ERROR("Unknown command type: %X",(uint8_t) iv_hdctRow->genericHdr.command);
+            SBE_ERROR("Error in parsing HDCT.bin");
+            status = false;
+            break;
         }
-    }while(!(sbeCollectDump::dumpTypeCheck()));
+
+        //Clock off state filter
+        if (iv_clockState == SBE_DUMP_CLOCK_OFF && iv_clockOffEntryFlag == true && iv_hdctRow->genericHdr.command == CMD_STOPCLOCKS)
+        {
+            iv_clockOffEntryFlag = false;
+        }
+
+        //Clock On state filter
+        if (iv_clockState == SBE_DUMP_CLOCK_ON && iv_hdctRow->genericHdr.command == CMD_STOPCLOCKS)
+        {
+            SBE_INFO("All HDCT entries parsed for Clock State: %d", iv_clockState);
+            status = false;
+            break;
+        }
+
+    }while(iv_clockOffEntryFlag ? true : (!(sbeCollectDump::dumpTypeCheck())));
 
     SBE_EXIT(SBE_FUNC);
-    return true;
+    return status;
     #undef SBE_FUNC
 }
 
