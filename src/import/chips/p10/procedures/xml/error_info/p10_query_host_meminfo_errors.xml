@@ -1,0 +1,77 @@
+<!-- IBM_PROLOG_BEGIN_TAG                                                   -->
+<!-- This is an automatically generated prolog.                             -->
+<!--                                                                        -->
+<!-- $Source: src/import/chips/p10/procedures/xml/error_info/p10_query_host_meminfo_errors.xml $ -->
+<!--                                                                        -->
+<!-- OpenPOWER sbe Project                                                  -->
+<!--                                                                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2020                             -->
+<!-- [+] International Business Machines Corp.                              -->
+<!--                                                                        -->
+<!--                                                                        -->
+<!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
+<!-- you may not use this file except in compliance with the License.       -->
+<!-- You may obtain a copy of the License at                                -->
+<!--                                                                        -->
+<!--     http://www.apache.org/licenses/LICENSE-2.0                         -->
+<!--                                                                        -->
+<!-- Unless required by applicable law or agreed to in writing, software    -->
+<!-- distributed under the License is distributed on an "AS IS" BASIS,      -->
+<!-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or        -->
+<!-- implied. See the License for the specific language governing           -->
+<!-- permissions and limitations under the License.                         -->
+<!--                                                                        -->
+<!-- IBM_PROLOG_END_TAG                                                     -->
+<!-- $Id: proc_query_host_meminfo_errors.xml,v 1.4 2014/10/08 22:24:19 jmcgill Exp $ -->
+<!-- Error definitions for proc_query_host_meminfo -->
+<!-- EKB-Mirror-To: hw/ppe -->
+<hwpErrors>
+  <!-- *********************************************************************** -->
+  <hwpError>
+    <rc>RC_P10_QUERY_HOST_MEMINFO_STATE_DETERMINATION_ERR</rc>
+    <ffdc>MASTER_CORE</ffdc>
+    <description>Unable to determine state of master core.</description>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- *********************************************************************** -->
+  <hwpError>
+    <rc>RC_P10_QUERY_HOST_MEMINFO_CORE_SCOM_ERROR</rc>
+    <ffdc>MASTER_CORE</ffdc>
+    <description>
+        Unable to read the core scratch register 1 which tells us what addresses
+        host memory starts at and how long it is.
+    </description>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- *********************************************************************** -->
+  <hwpError>
+    <rc>RC_P10_QUERY_HOST_MEMINFO_INVALID_SIZE</rc>
+    <ffdc>MASTER_CORE</ffdc>
+    <description>
+        Core scratch register 1 told us Host memory size is 0, which is wrong
+    </description>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- *********************************************************************** -->
+  <hwpError>
+    <rc>RC_P10_QUERY_HOST_MEMINFO_INVALID_HRMOR</rc>
+    <ffdc>MASTER_CORE</ffdc>
+    <description>
+        Core scratch register 1 told us HRMOR addr is 0, which is wrong
+    </description>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- *********************************************************************** -->
+</hwpErrors>

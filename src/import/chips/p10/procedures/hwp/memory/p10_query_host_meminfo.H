@@ -32,7 +32,8 @@
 // *HWP Level           : 3
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
-
+// EKB-Mirror-To: hw/ppe
+//
 #ifndef P10_QUERY_HOST_MEMINFO_H_
 #define P10_QUERY_HOST_MEMINFO_H_
 
@@ -52,11 +53,7 @@ const uint64_t P10_QUERY_HOST_MEMINFO_MB = 1024ULL * P10_QUERY_HOST_MEMINFO_KB;
 // NO_MEM:
 // No memory has been initialized so we can only dump our static
 // code load up to 904KB.
-const uint8_t P10_QUERY_HOST_MEMINFO_NO_MEM_RANGE_COUNT = 0x1;
-const std::pair<uint64_t, uint64_t> P10_QUERY_HOST_MEMINFO_NO_MEM_RANGES[P10_QUERY_HOST_MEMINFO_NO_MEM_RANGE_COUNT] =
-{
-    std::make_pair(0, (904 * P10_QUERY_HOST_MEMINFO_KB))
-};
+const uint64_t P10_QUERY_HOST_MEMINFO_NO_MEM_RANGE = 904 * P10_QUERY_HOST_MEMINFO_KB;
 
 //------------------------------------------------------------------------------
 // Structure definitions
@@ -65,9 +62,9 @@ const std::pair<uint64_t, uint64_t> P10_QUERY_HOST_MEMINFO_NO_MEM_RANGES[P10_QUE
 // function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode
 (*p10_query_host_meminfo_FP_t)(
-    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
+    const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_bootCore,
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& o_target,
-    std::vector< std::pair<uint64_t, uint64_t> >& o_ranges,
+    uint32_t& o_hostMemSize, uint64_t& o_hrmor,
     const uint32_t i_mode);
 
 extern "C" {
@@ -79,18 +76,20 @@ extern "C" {
     /**
      * @brief HWP which returns target/list of hostboot memory ranges to dump
      *
-     * @param[in]  i_target Reference to multicast core chiplet targets
-     * @param[out] o_target Reference to chip target which should be
-     *                      used to extract dump content
-     * @param[out] o_ranges Vector of ranges (base address/size) to dump
+     * @param[in]  i_bootCore Reference to boot core target
+     * @param[out] o_target   Reference to chip target which should be
+     *                        used to extract dump content
+     * @param[out] o_hostMemSize hostboot memory size
+     * @param[out] o_hrmor    hrmor address
+     * @param[out] o_ranges   Vector of ranges (base address/size) to dump
      *
      * @return ReturnCode
      */
 
     fapi2::ReturnCode p10_query_host_meminfo(
-        const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target,
-        fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP | fapi2::TARGET_TYPE_MULTICAST > & o_target,
-        std::vector< std::pair<uint64_t, uint64_t> >& o_ranges);
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE >& i_bootCore,
+        fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP >& o_target,
+        uint32_t& o_hostMemSize, uint64_t& o_hrmor, const uint32_t i_mode);
 
 } // extern "C"
 
