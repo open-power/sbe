@@ -42,7 +42,7 @@
 
 #include "p9_misc_scom_addresses.H"
 #include "p10_scom_perv_9.H"
-
+#include "p10_scom_proc_9.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p10_sbe_attr_setup.H>
 #include <p10_sbe_tp_chiplet_reset.H>
@@ -1094,21 +1094,18 @@ ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp)
         SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce failed,"
             "Either System Quiesce Achieved not true or procedure "
             "failed RC=[0x%08X]",l_rc);
-    #if 0
-        //TODO: Enable once register information is confirmed.
-        // check stop the system
-        // TODO RTC 164425 this needs to be replicated on any MPIPL Hwp failure
+        
+        //Force System Checkstop
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
-        l_rc = putscom_abs_wrap(&l_proc, PERV_N3_LOCAL_FIR_OR,
-                                ((uint64_t)1 << N3_FIR_SYSTEM_CHECKSTOP_BIT));
+        fapi2::buffer<uint64_t> data(0);
+        data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
+        l_rc = putscom_abs_wrap(&l_proc,scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR,
+                                data());
         if(l_rc != FAPI2_RC_SUCCESS)
         {
-            // Scom failed
-            SBE_ERROR(SBE_FUNC "PutScom failed for REG PERV_N3_LOCAL_FIR");
-            // TODO - Store the response in Async Response
-            // RTC:149074
+            SBE_ERROR("Failed to force system checkstop to indicate failure in"
+            "p10_sbe_sync_quiesce_states HWP");
         }
-   #endif     
     }
 fapi_try_exit:
     if(fapi2::current_err)
