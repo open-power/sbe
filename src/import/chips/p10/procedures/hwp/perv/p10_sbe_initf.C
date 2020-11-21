@@ -79,6 +79,7 @@ static const ring_setup_t ISTEP3_FUNC_RINGS_UNICAST[] =
 static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST[] =
 {
     { eq_func,        0},
+    { eq_inex,        0},
     { eq_mode,        0},
     { eq_clkadj_func, 1},
 };
@@ -86,6 +87,7 @@ static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST[] =
 static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST_NO_CLKADJ[] =
 {
     { eq_func,        0},
+    { eq_inex,        0},
     { eq_mode,        1},
     { eq_clkadj_func, 0},
 };
