@@ -258,6 +258,14 @@ class sbeCollectDump
         uint32_t populateHDCTRowTOC();
 
        /**
+        * @brief Write get sram data to the FIFO
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writeGetSramPacketToFifo();
+
+       /**
         * @brief Write put scom updated data to the FIFO
         *
         * @return SUCCESS,  If chip-op is successful.

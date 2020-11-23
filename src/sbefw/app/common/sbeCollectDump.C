@@ -27,6 +27,7 @@
 #include "fapi2.H"
 #include <hwp_data_stream.H>
 #include <plat_hwp_data_stream.H>
+#include <sbecmdsram.H>
 
 using namespace fapi2;
 
@@ -43,6 +44,60 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
     return ( (!iv_hdctRow->genericHdr.chipletStart) ||
              ( (chipUnitNum-1 >= iv_hdctRow->genericHdr.chipletStart) &&
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
+}
+
+uint32_t sbeCollectDump::writeGetSramPacketToFifo()
+{
+    #define SBE_FUNC "writeGetSramPacketToFifo"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    do
+    {
+        // Update address, length and stream header data vai FIFO
+        iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetSram.addr;
+        iv_tocRow.tocHeader.dataLength = 0x2000; // Length in bits (1024 bytes)
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+        uint32_t addr = iv_hdctRow->cmdGetSram.addr;
+        uint32_t mode = iv_hdctRow->cmdGetSram.extGenericHdr.mode;
+
+        seeprom_hwp_data_istream stream((uint32_t*)&iv_hdctRow->cmdGetSram.value,
+                                         sizeof(uint64_t));
+        uint32_t msbValue, lsbValue;
+        stream.get(msbValue), stream.get(lsbValue);
+        uint64_t value = (((uint64_t)msbValue << 32 ) | ((uint64_t)lsbValue));
+
+        // Create the req struct for the SRAM Chip-op
+        sbeSramAccessReqMsgHdr_t dumpSramReq = {0};
+        len  = sizeof(sbeSramAccessReqMsgHdr_t)/sizeof(uint32_t);
+        dumpSramReq.chipletId = iv_tocRow.tocHeader.chipUnitNum; 
+        dumpSramReq.multicastAccess = 0x00;
+        dumpSramReq.reserved = 0x00;
+        if( iv_hdctRow->cmdGetSram.extGenericHdr.mode )
+        {
+            dumpSramReq.mode = 0b01000000;
+        }
+        else
+        {
+            dumpSramReq.mode = 0b10000000;
+        }
+        dumpSramReq.addressWord0 = 0x00;
+        dumpSramReq.addressWord1 = addr;
+        dumpSramReq.length = (uint32_t) value;
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                          (uint32_t*)&dumpSramReq, false );
+
+        rc = sbeSramAccess_Wrap( istream, iv_oStream, true );
+
+        SBE_INFO("getSram value:[0x%08X%08X]",
+                  SBE::higher32BWord(value), SBE::lower32BWord(value));
+        SBE_INFO("getSram address:[0x%08X] mode:[0x%08X]", addr, mode);
+    }
+    while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
 }
 
 uint32_t sbeCollectDump::writePutScomPacketToFifo()
@@ -84,8 +139,8 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
                 rc = SBE_SEC_INVALID_ADDRESS_PASSED;
                 break;
             }
-            SBE_DEBUG(SBE_FUNC " putscom scom value: 0x%.8X%.8X ",
-                      SBE::higher32BWord(readData),SBE::lower32BWord(readData));
+            SBE_INFO(SBE_FUNC " putscom scom value: 0x%.8X%.8X ",
+                     SBE::higher32BWord(readData),SBE::lower32BWord(readData));
             if( B_OR == maskType )
             {
                 dumpData = (readData | mask);
@@ -95,8 +150,8 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
                 dumpData = (readData & mask);
             }
         }
-        SBE_DEBUG(SBE_FUNC " maskType[0x%02X], data [0x%08X %08X] ", maskType,
-                  SBE::higher32BWord(dumpData),SBE::lower32BWord(dumpData));
+        SBE_INFO(SBE_FUNC " maskType[0x%02X], data [0x%08X %08X] ", maskType,
+                      SBE::higher32BWord(dumpData),SBE::lower32BWord(dumpData));
         fapiRc = putscom_abs_wrap(&dumpRowTgt, addr, dumpData);
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
@@ -312,7 +367,8 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
 
     // TODO: Clean-Up once other chip-op ennabled.
     if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM) ) )
+           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM) ) )
         return rc;
 
     // Map Dump target id with plat target list
@@ -339,6 +395,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_PUTSCOM:
             {
                 rc = writePutScomPacketToFifo();
+                break;
+            }
+            case CMD_GETSRAM:
+            {
+                rc = writeGetSramPacketToFifo();
                 break;
             }
             default:
