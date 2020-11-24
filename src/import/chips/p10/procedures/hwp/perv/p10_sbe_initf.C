@@ -76,10 +76,14 @@ static const ring_setup_t ISTEP3_FUNC_RINGS_UNICAST[] =
     { pau3_pau7_func, 0x6,       TARGET_CHIP,    0x13, 0x13, 1},
 };
 
+static const mc_ring_setup_t ISTEP3_EQ_INEX_RINGS_MULTICAST[] =
+{
+    { eq_inex,        1},
+};
+
 static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST[] =
 {
     { eq_func,        0},
-    { eq_inex,        0},
     { eq_mode,        0},
     { eq_clkadj_func, 1},
 };
@@ -87,7 +91,6 @@ static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST[] =
 static const mc_ring_setup_t ISTEP3_EQ_FUNC_RINGS_MULTICAST_NO_CLKADJ[] =
 {
     { eq_func,        0},
-    { eq_inex,        0},
     { eq_mode,        1},
     { eq_clkadj_func, 0},
 };
@@ -116,14 +119,15 @@ fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
 
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYS;
     const auto* l_eq_func_rings_mc = &ISTEP3_EQ_FUNC_RINGS_MULTICAST;
+    const auto* l_eq_inex_rings_mc = &ISTEP3_EQ_INEX_RINGS_MULTICAST;
 
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+    fapi2::ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX_Type l_scan_eq_inex;
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYS,
-                           ipl_type));
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYS,
-                           ipl_phase));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYS, ipl_type));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYS, ipl_phase));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX, i_target_chip, l_scan_eq_inex));
 
     if (ipl_type != fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE &&
         ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL)
@@ -134,18 +138,28 @@ fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_TP_FUNC_RINGS_UNICAST, true));
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_FUNC_RINGS_UNICAST));
 
-    FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
+    FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip,
+             fapi2::MCGROUP_ALL_EQ,
              *l_eq_func_rings_mc));
+
+    if (l_scan_eq_inex)
+    {
+        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip,
+                 fapi2::MCGROUP_ALL_EQ,
+                 *l_eq_inex_rings_mc));
+    }
 
     if (l_mc.size())
     {
-        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_MC,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip,
+                 fapi2::MCGROUP_GOOD_MC,
                  ISTEP3_MC_FUNC_RINGS_MULTICAST));
     }
 
     if (l_pci.size())
     {
-        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_GOOD_PCI,
+        FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip,
+                 fapi2::MCGROUP_GOOD_PCI,
                  ISTEP3_PCI_FUNC_RINGS_MULTICAST));
     }
 
