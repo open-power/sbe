@@ -258,6 +258,15 @@ class sbeCollectDump
         uint32_t populateHDCTRowTOC();
 
        /**
+        * @brief As per p10_query_host_meminfo HWP to determine address and size
+        *        of HB memory and then write data to the FIFO
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writeGetMemPBAPacketToFifo();
+
+       /**
         * @brief Write get sram data to the FIFO
         *
         * @return SUCCESS,  If chip-op is successful.

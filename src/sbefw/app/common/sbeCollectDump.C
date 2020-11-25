@@ -28,8 +28,12 @@
 #include <hwp_data_stream.H>
 #include <plat_hwp_data_stream.H>
 #include <sbecmdsram.H>
+#include <sbecmdmemaccess.H>
+#include <p10_query_host_meminfo.H>
 
 using namespace fapi2;
+
+p10_query_host_meminfo_FP_t p10_query_host_meminfo_hwp = &p10_query_host_meminfo;
 
 inline bool sbeCollectDump::dumpTypeCheck()
 {
@@ -46,6 +50,90 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
 }
 
+uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
+{
+    #define SBE_FUNC "writeGetMemPBAPacketToFifo"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {
+        fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
+        Target<TARGET_TYPE_CORE> core(plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(0));
+
+        // size of host memory in MB
+        uint32_t sizeHostMem = 0x0;
+        uint64_t hrmor = 0x00;
+        uint32_t mode  = 0x00;
+        fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP > procTgt;
+        SBE_EXEC_HWP(fapiRc, p10_query_host_meminfo_hwp, core,
+                     procTgt, sizeHostMem, hrmor, mode);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+
+            // Handle NO_MEM case: No HB memory has been initialized so we can
+            // only dump our static code load up to 1024 Bits.
+            SBE_ERROR(SBE_FUNC " Core Scratch 1 says HRMOR/HB SIZE is 0 ");
+            // Handle default FFDC as per DUMP pibmem lenght
+            iv_tocRow.tocHeader.address = hrmor;
+            // Length of data in bits (128 byte aligned.)
+            iv_tocRow.tocHeader.dataLength = 1024;
+            uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+            // Update Getmempba(FFDC) with Invalid Data
+            uint32_t dummyData = 0x00;
+            for(uint8_t i=0;i<32;i++)
+                iv_oStream.put(dummyData);
+
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP
+            rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+            break;
+        }
+        SBE_INFO("sizeHostMem:[0x%08X], hrmor:[0x%08X%08X]", sizeHostMem,
+                  SBE::higher32BWord(hrmor), SBE::lower32BWord(hrmor));
+
+        // sizeHostMem = Number of MBs of memory to dump (hex format)
+        for (uint8_t i = 0; i < sizeHostMem; i++)
+        {
+            uint64_t hrmorAddr = hrmor + (i * P10_QUERY_HOST_MEMINFO_MB);
+            // Default Master Core Target
+            sbeMemAccessReqMsgHdr_t dumpPbaReq = {0};
+            dumpPbaReq.coreId = 0;
+            dumpPbaReq.eccByte = 0;
+            dumpPbaReq.flags = 0x02;
+            dumpPbaReq.addrHi = SBE::higher32BWord(hrmorAddr);
+            dumpPbaReq.addrLo = SBE::lower32BWord(hrmorAddr);
+            dumpPbaReq.len = P10_QUERY_HOST_MEMINFO_MB;
+            uint32_t len  = sizeof(sbeMemAccessReqMsgHdr_t)/sizeof(uint32_t);
+            sbefifo_hwp_data_istream istream(iv_fifoType, len,
+                                            (uint32_t*)&dumpPbaReq, false);
+            // Update address, length and stream header data vai FIFO
+            iv_tocRow.tocHeader.address = hrmorAddr;
+            // Dump ChipOp need length of data in bits
+            iv_tocRow.tocHeader.dataLength = P10_QUERY_HOST_MEMINFO_MB * 8;
+            len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+            SBE_INFO("GetMemPBA:hostboot memory[0x%08X%08X] and Length[0x%08X]",
+                      dumpPbaReq.addrHi, dumpPbaReq.addrLo, dumpPbaReq.len);
+
+            rc = sbeMemAccess_Wrap( istream, iv_oStream, true );
+            if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                // TODO: Verify and modify all error rc to handle all
+                // primary/secondary error in DUMP
+                rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+                break;
+            }
+        }
+    }
+    while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
 uint32_t sbeCollectDump::writeGetSramPacketToFifo()
 {
     #define SBE_FUNC "writeGetSramPacketToFifo"
@@ -366,8 +454,9 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     iv_tocRow.tocHeaderInit(iv_hdctRow);
 
     // TODO: Clean-Up once other chip-op ennabled.
-    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM) ||
+    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)   ||
+           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)   ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM) ) )
         return rc;
 
@@ -400,6 +489,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_GETSRAM:
             {
                 rc = writeGetSramPacketToFifo();
+                break;
+            }
+            case CMD_GETMEMPBA:
+            {
+                rc = writeGetMemPBAPacketToFifo();
                 break;
             }
             default:
