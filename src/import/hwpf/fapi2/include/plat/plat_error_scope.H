@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,9 +64,8 @@
 /// @brief Create an error log based on __conditional__,
 /// the FFDC gathering function is called and the
 /// trace is output as a FAPI error trace. An error log
-/// is created and returned to the caller via the platform
-/// log pointer of the fapi2::current_err return code object
-/// The caller is responsible for handling the error object.
+/// is created, committed, and also returned to the caller via the
+/// platform log pointer of the fapi2::current_err return code object
 ///
 /// @param[in] __conditional__ the condition to assert
 /// @param[in] __ffdc__ the FFDC gathering function
