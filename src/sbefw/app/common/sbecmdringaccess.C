@@ -302,7 +302,7 @@ uint32_t sbeGetRing(uint8_t *i_pArg)
     sbefifo_hwp_data_ostream ostream(type);
     sbefifo_hwp_data_istream istream(type);
 
-    l_rc = sbeGetRingWrap( istream, ostream )
+    l_rc = sbeGetRingWrap( istream, ostream );
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;
