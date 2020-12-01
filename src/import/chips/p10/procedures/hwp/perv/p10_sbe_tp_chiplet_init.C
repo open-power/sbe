@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,6 +65,7 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     LFIR_MASK_SBE_UPDATE = 0b1111111111111111111111111111111110111111111111111111111111111111,
 
     START_CMD = 0x1,
+    REGIONS_PERV = 0x4000,
     REGIONS_PERV_PSI = 0x4100,
     CLOCK_TYPES_ALL = 0x7,
     REGIONS_PLL = 0x0010,
@@ -92,11 +93,15 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz, l_pau_multiplier, l_real_pau_frequency;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
             (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
 
     FAPI_INF("p10_sbe_tp_chiplet_init: Entering ...");
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_pau_freq_mhz));
 
@@ -112,12 +117,31 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     l_data64.flush<0>();
     FAPI_TRY(proc::PREP_TP_TPCHIP_TPC_CPLT_CTRL0_WO_CLEAR(i_target_chip));
     proc::SET_TP_TPCHIP_TPC_CPLT_CTRL0_CTRL_CC_ABSTCLK_MUXSEL_DC(l_data64);
-    proc::SET_TP_TPCHIP_TPC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC(l_data64);
+
+    if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
+    {
+        proc::SET_TP_TPCHIP_TPC_CPLT_CTRL0_TC_UNIT_SYNCCLK_MUXSEL_DC(l_data64);
+    }
+    else
+    {
+        FAPI_DBG("Skip clearing syncclk_muxsel for contained IPL");
+    }
+
     FAPI_TRY(proc::PUT_TP_TPCHIP_TPC_CPLT_CTRL0_WO_CLEAR(i_target_chip, l_data64));
 
     FAPI_DBG("Start clocks for all regions except Pib, Net and Pll ");
-    FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_PSI,
-             CLOCK_TYPES_ALL));
+
+    if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE)
+    {
+        FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV_PSI,
+                 CLOCK_TYPES_ALL));
+    }
+    else
+    {
+        FAPI_DBG("Skip setting PSI clocks for contained ipl");
+        FAPI_TRY(p10_perv_sbe_cmn_clock_start_stop(l_tpchiplet, START_CMD, 0, 0, REGIONS_PERV,
+                 CLOCK_TYPES_ALL));
+    }
 
     FAPI_DBG("Clear flush_inhibit to go in to flush mode");
     l_data64.flush<0>()
