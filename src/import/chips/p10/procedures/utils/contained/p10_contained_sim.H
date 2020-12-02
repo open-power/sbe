@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -108,7 +108,10 @@ fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, const bool
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-fapi2::ReturnCode checkpoint(const std::string& i_suffix);
+#ifndef __PPE__
+    // No std::string on PPE
+    fapi2::ReturnCode checkpoint(const std::string& i_suffix);
+#endif
 
 ///
 /// @brief Set the PC decrementer to 64 cycles via dial.
@@ -142,10 +145,13 @@ inline fapi2::ReturnCode apply_selective_skip_arrayinit(const array i_array, con
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }
+#ifndef __PPE__
+// no std::string for ppe
 inline fapi2::ReturnCode checkpoint(const std::string& i_suffix)
 {
     return fapi2::FAPI2_RC_SUCCESS;
 }
+#endif
 inline fapi2::ReturnCode set_pc_decrementer()
 {
     return fapi2::FAPI2_RC_SUCCESS;

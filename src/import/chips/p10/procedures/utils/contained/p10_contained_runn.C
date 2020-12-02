@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,7 +29,7 @@
 #include <p10_scom_perv.H>
 #include <p10_scom_eq.H>
 #include <multicast_group_defs.H>
-#include <queue>
+
 
 enum opcg_capt_region
 {
@@ -265,17 +265,17 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYPE_PERV |
-        fapi2::TARGET_TYPE_MULTICAST > & i_perv,
+static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYPE_EQ |
+        fapi2::TARGET_TYPE_MULTICAST > & i_quad,
         bool i_set_hld_dly_en, bool i_stop_on_xstop, uint64_t i_runn_cnt)
 {
     FAPI_INF(">> %s", __func__);
 
-    using namespace scomt::perv;
+    using namespace scomt::eq;
 
     fapi2::buffer<uint64_t> data = 0;
 
-    FAPI_TRY(PREP_OPCG_REG0(i_perv));
+    FAPI_TRY(PREP_OPCG_REG0(i_quad));
     SET_OPCG_REG0_RUNN_MODE(data);
     SET_OPCG_REG0_OPCG_GO(data);
 
@@ -300,7 +300,7 @@ static fapi2::ReturnCode runn_opcg_start(const fapi2::Target < fapi2::TARGET_TYP
         SET_OPCG_REG0_STOP_RUNN_ON_XSTOP(data);
     }
 
-    FAPI_TRY(PUT_OPCG_REG0(i_perv, data));
+    FAPI_TRY(PUT_OPCG_REG0(i_quad, data));
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
@@ -311,13 +311,13 @@ fapi_try_exit:
 /// @brief Setup OPCG HLD_DLY functionality if required due to an odd number of
 ///        "core" RUNN cycles or explicit per-core HLD_DLY offset.
 ///
-/// @param[in]  i_perv_eq        Reference to perv EQ target
+/// @param[in]  i_quad           Reference to EQ target
 /// @param[in]  i_runn_cnt       RUNN cycle count
 /// @param[out] o_set_hld_dly_en OPCG is setup to use HLD_DLY functionality
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_perv_eq,
+static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_EQ>& i_quad,
         const uint64_t i_runn_cnt,
         bool& o_set_hld_dly_en)
 {
@@ -325,10 +325,9 @@ static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_
 
     using namespace scomt::eq;
 
-    const auto quad = i_perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
     opcg_capt_regs regs = {0, 0, 0};
 
-    for (auto const& core : quad.getChildren<fapi2::TARGET_TYPE_CORE>())
+    for (auto const& core : i_quad.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         if (i_runn_cnt % 2 == 1)
         {
@@ -344,12 +343,12 @@ static fapi2::ReturnCode runn_opcg_setup(const fapi2::Target<fapi2::TARGET_TYPE_
     }
 
     // Program per-core offsets
-    FAPI_TRY(PREP_OPCG_CAPT1(quad));
-    FAPI_TRY(PUT_OPCG_CAPT1(quad, regs.capt1));
-    FAPI_TRY(PREP_OPCG_CAPT2(quad));
-    FAPI_TRY(PUT_OPCG_CAPT2(quad, regs.capt2));
-    FAPI_TRY(PREP_OPCG_CAPT3(quad));
-    FAPI_TRY(PUT_OPCG_CAPT3(quad, regs.capt3));
+    FAPI_TRY(PREP_OPCG_CAPT1(i_quad));
+    FAPI_TRY(PUT_OPCG_CAPT1(i_quad, regs.capt1));
+    FAPI_TRY(PREP_OPCG_CAPT2(i_quad));
+    FAPI_TRY(PUT_OPCG_CAPT2(i_quad, regs.capt2));
+    FAPI_TRY(PREP_OPCG_CAPT3(i_quad));
+    FAPI_TRY(PUT_OPCG_CAPT3(i_quad, regs.capt3));
 
     o_set_hld_dly_en = regs.capt1 != 0 || regs.capt2 != 0 || regs.capt3 != 0;
 
@@ -391,7 +390,9 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     FAPI_TRY(fapi2::putScom(all, OPCG_CAPT2, data));
     FAPI_TRY(fapi2::putScom(all, OPCG_CAPT3, data));
 
-    data = CONTAINED_EQ_REGIONS;
+    //Setting fences for regions - perv, el20, el21, el22, el23, l30, l31, l32, l33,
+    //qme, mma0 mma1, mma2, mma3
+    data = 0x0FFDE0000000E000;
 
     if (i_chc)
     {
@@ -405,7 +406,9 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     SET_CLK_REGION_SEL_THOLD_ARY(data);
     FAPI_TRY(PUT_CLK_REGION(all, data));
 
-    data = CONTAINED_EQ_REGIONS;
+    //Setting fences for regions - perv, el20, el21, el22, el23, l30, l31, l32, l33,
+    //qme, mma0 mma1, mma2, mma3
+    data = 0x0FFDE0000000E000;
 
     if (i_chc)
     {
@@ -466,31 +469,35 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
     // Only want EQs with actively-configured cores - the obvious way to get
     // there is to convert the multicast group containing all "good" EQs
     // down to individual EQ targets.
-    auto quads = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
+    auto quads = i_chip.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
     uint64_t base_runn_cnt = 0;
     fapi2::buffer<uint64_t> data;
     fapi2::ATTR_RUNN_DO_CONFIG_CHECKS_Type do_checks;
+    fapi2::ATTR_RUNN_STAGGER_DELAY_Type stagger_delay_us;
+
+    static const uint64_t STAGGER_DELAY_SIM_CYCLES = 0x1;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_DO_CONFIG_CHECKS, SYS, do_checks));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STAGGER_DELAY, SYS, stagger_delay_us));
     FAPI_TRY(init_runn_cnt(i_chip, base_runn_cnt));
 
+    // Cache contained
     if (!i_chc)
     {
         // We need to track which EQ clock-controllers are supposed to enable
         // the per core offset delay after the initial RUNN count expires.
-        std::queue<bool> set_hld_dly_en;
+        bool set_hld_dly_en[NUM_QUADS] = {false};
 
         // Program any per-core HLD_DLY offsets
-        for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
+        for (auto const& quad : quads.getChildren<fapi2::TARGET_TYPE_EQ>())
         {
-            const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
             uint64_t runn_cnt = 0;
             bool tmp;
 
             FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
-            FAPI_TRY(runn_opcg_setup(perv_eq, runn_cnt, tmp));
+            FAPI_TRY(runn_opcg_setup(quad, runn_cnt, tmp));
 
-            set_hld_dly_en.push(tmp);
+            set_hld_dly_en[quad.getChipletNumber() - 0x20] = tmp;
         }
 
         // Program the OPCG to start the RUNN. Do *not* merge this loop with
@@ -498,30 +505,35 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
         // OPCG_REG0 to be written at this point - no other registers need to
         // be configured. This means we can take checkpoints before the RUNN
         // start per EQ in simulation and only a single SCOM is required to go.
-        for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
+        for (auto const& quad : quads.getChildren<fapi2::TARGET_TYPE_EQ>())
         {
             using namespace scomt::eq;
 
-            const auto quad = perv_eq.getChildren<fapi2::TARGET_TYPE_EQ>()[0];
             uint64_t runn_cnt = 0;
             fapi2::ATTR_RUNN_STOP_ON_XSTOP_Type use_stop_on_xstop;
 
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, perv_eq,
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, quad,
                                    use_stop_on_xstop));
             FAPI_TRY(quad_runn_cnt(quad, base_runn_cnt, runn_cnt));
 
             {
                 fapi2::ATTR_CHIP_UNIT_POS_Type quad_num;
                 FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, quad, quad_num));
+#ifndef __PPE__
                 std::string tmp = "before_opcg_start_eq" + std::to_string(quad_num);
                 FAPI_TRY(sim::checkpoint(tmp));
+#endif
             }
 
+            // Delay to allow staggering EQ start to avoid di/dt voltage droops
+            FAPI_DBG("Delaying %d nanoseconds to stagger EQ start", stagger_delay_us);
+            FAPI_TRY(fapi2::delay(stagger_delay_us, STAGGER_DELAY_SIM_CYCLES));
+
             // Start RUNN
-            FAPI_TRY(runn_opcg_start(perv_eq, set_hld_dly_en.front(),
+            FAPI_DBG("Starting OPCG on quad %X", quad.getChipletNumber() - 0x20);
+            FAPI_TRY(runn_opcg_start(quad, set_hld_dly_en[quad.getChipletNumber() - 0x20],
                                      use_stop_on_xstop == fapi2::ENUM_ATTR_RUNN_STOP_ON_XSTOP_ON,
                                      runn_cnt));
-            set_hld_dly_en.pop();
         }
     }
     else
@@ -529,19 +541,21 @@ fapi2::ReturnCode runn_start(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
         bool set_hld_dly_en;
         bool stop_on_xstop = false; //-Werror=maybe-uninitialized
 
-        for (auto const& perv_eq : quads.getChildren<fapi2::TARGET_TYPE_PERV>())
+        for (auto const& quad : quads.getChildren<fapi2::TARGET_TYPE_EQ>())
         {
             fapi2::ATTR_RUNN_STOP_ON_XSTOP_Type use_stop_on_xstop;
 
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, perv_eq,
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_STOP_ON_XSTOP, quad,
                                    use_stop_on_xstop));
-            FAPI_TRY(runn_opcg_setup(perv_eq, base_runn_cnt, set_hld_dly_en));
+            FAPI_TRY(runn_opcg_setup(quad, base_runn_cnt, set_hld_dly_en));
 
             stop_on_xstop = stop_on_xstop ||
                             use_stop_on_xstop == fapi2::ENUM_ATTR_RUNN_STOP_ON_XSTOP_ON;
         }
 
+#ifndef __PPE__
         FAPI_TRY(sim::checkpoint(std::string("before_opcg_start")));
+#endif
         FAPI_TRY(runn_opcg_start(all, set_hld_dly_en, stop_on_xstop, base_runn_cnt));
     }
 

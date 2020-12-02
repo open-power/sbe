@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -26,10 +26,14 @@
 #ifndef _P10_CONTAINED_H_
 #define _P10_CONTAINED_H_
 
-#include <map>
+#ifndef __PPE__
+    #include <map>
+#endif
+
 #include <fapi2.H>
 #include <p10_scom_perv.H>
 
+const uint8_t NUM_QUADS = 8;
 const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> SYS;
 const fapi2::buffer<uint64_t> CONTAINED_N0_REGIONS = (fapi2::buffer<uint64_t>(0)
         .setBit<scomt::perv::CPLT_CTRL1_REGION0_FENCE_DC>()
@@ -169,5 +173,4 @@ constexpr bool getenvvar(const char* i_envvar, std::string& o_val)
 }
 
 #endif // P10_CONTAINED_ENVVARS_ALLOWED
-
 #endif

@@ -625,6 +625,10 @@
     <name>ATTR_CHIP_EC_FEATURE_HW545231</name>
     <virtual/>
   </entry>    
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX</name>
+    <virtual/>
+  </entry>
   <!-- contained attributes -->
   <entry>
     <name>ATTR_CONTAINED_L3_CONFIG</name>
@@ -697,5 +701,16 @@
   <entry>
     <name>ATTR_DYNAMIC_INIT_FEATURE_VEC</name>
     <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_RUNN_STAGGER_DELAY</name>
+    <value>0x00000000FFFF0000</value>
+  </entry>
+  <entry>
+    <name>ATTR_GLOBAL_THREAD_SEEDS</name>
+    <value>0x0</value>
+    <value>0x0</value>
+    <value>0x0</value>
+    <value>0x0</value>
   </entry>
 </entries>

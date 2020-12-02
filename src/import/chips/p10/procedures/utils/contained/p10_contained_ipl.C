@@ -35,7 +35,9 @@
 #include <p10_hang_pulse_mc_setup_tables.H>
 #include <p10_hcd_core_stopclocks.H>
 #include <p10_hcd_cache_stopclocks.H>
-#include <p10_dyninit_bitvec_utils.H>
+#ifndef DFT
+    #include <p10_dyninit_bitvec_utils.H>
+#endif
 #include <p10_dynamic.H>
 
 ///
@@ -163,6 +165,7 @@ fapi_try_exit:
 static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
         const bool i_is_dump_ipl)
 {
+#ifndef DFT
     using namespace p10_dyninit_bitvec_utils;
 
     fapi2::ATTR_RUNN_SRESET_THREADS_BVEC_Type sthreads;
@@ -223,6 +226,9 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
 
 fapi_try_exit:
     return fapi2::current_err;
+#else
+    return fapi2::FAPI2_RC_SUCCESS;
+#endif
 }
 
 ///
@@ -347,6 +353,7 @@ fapi_try_exit:
 
 static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
 {
+#ifndef __PPE__ // No such thing as an environment variable on a PPE
     FAPI_INF(">> %s", __func__);
 
     using namespace scomt::c;
@@ -419,6 +426,10 @@ static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TAR
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
+#else //ifdef __PPE__
+    FAPI_INF("SKIPPING connect_single_ec_to_fbc on PPE plat");
+    return fapi2::FAPI2_RC_SUCCESS;
+#endif
 }
 
 extern "C" {

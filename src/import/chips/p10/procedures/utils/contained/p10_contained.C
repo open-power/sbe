@@ -409,6 +409,7 @@ fapi_try_exit:
 
 #ifdef P10_CONTAINED_ENABLE_SEEDING
 
+#ifndef __PPE__
 #include <random>
 
 static std::mt19937_64 seed_rng;
@@ -502,10 +503,67 @@ fapi_try_exit:
     FAPI_INF("<< %s", __func__);
     return fapi2::current_err;
 }
+#else //__PPE__
+// We dont' have <random> for PPE so instead of generate thread seeds from a master seed, simply
+// read ATTR_RUNN_THREAD_SEEDS
+//
+// Beware: when correlating x86 to PPE results (i.e. system to tester using MAT), ensure that
+// ATTR_RUNN_THREAD_SEEDS is the same between the two. You cannot rely on MASTER_SEED, as it is
+// wholly irrelevant to PPE and therefore MAT.
+fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+{
+    FAPI_INF(">> Entering seed_exer_threads");
+    FAPI_INF("Because this is a PPE build, read ATTR_GLOBAL_THREAD_SEEDS instead of randomizing");
+
+    using namespace scomt::perv;
+
+    fapi2::ATTR_EC_Type ec;
+    fapi2::ATTR_GLOBAL_THREAD_SEEDS_Type thread_seeds;
+    fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    // ec_cl2_func
+    const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
+    fapi2::buffer<uint64_t> scan_region_type;
+
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_chip, active_bvec));
+
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_GLOBAL_THREAD_SEEDS, SYS,
+                           thread_seeds));
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        FAPI_DBG("Creating a pervasive target for a core");
+        perv = core.getParent<fapi2::TARGET_TYPE_PERV>();
+
+        switch (ec)
+        {
+            // *INDENT-OFF*
+            FAPI_INF("Entering ringspin");
+            RINGSPIN_EC_SWITCH_CASE(10, ec_cl2_func_set_runn_seed,
+                                    perv, scan_region_type,
+                                    thread_seeds[0], thread_seeds[1],
+                                    thread_seeds[2], thread_seeds[3])
+            default:
+                FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                         " PROCEDURE=ec_cl2_func_set_runn_seed", ec);
+                return fapi2::FAPI2_RC_FALSE;
+            // *INDENT-ON*
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+#endif //__PPE__
 
 #endif // P10_CONTAINED_ENABLE_SEEDING
 
 #ifdef P10_CONTAINED_ENVVARS_ALLOWED
+// *INDENT-OFF*
 
 bool getenvvar(const char* i_envvar, std::string & o_val)
 {
@@ -522,4 +580,5 @@ bool getenvvar(const char* i_envvar, std::string & o_val)
     }
 }
 
+// *INDENT-OFF*
 #endif // P10_CONTAINED_ENVVARS_ALLOWED

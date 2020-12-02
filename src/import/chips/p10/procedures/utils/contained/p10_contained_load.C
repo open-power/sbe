@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,8 +33,10 @@
 #include <p10_l3_flush.H>
 #include <p10_l2_flush.H>
 #include <p10_pm_utils.H>
-#include <p10_hcode_image_defines.H>
-#include <p10_hcd_memmap_qme_sram.H>
+#ifndef DFT
+    #include <p10_hcode_image_defines.H>
+    #include <p10_hcd_memmap_qme_sram.H>
+#endif
 
 // L3 caches are 4MiB
 const uint64_t L3_CACHE_SIZE = (1ull << 20) * 4;
@@ -120,6 +122,7 @@ static inline fapi2::ReturnCode purgel2(const fapi2::Target<fapi2::TARGET_TYPE_C
 }
 
 
+#ifndef DFT
 ///
 /// @brief Load QME SRAM with content from HOMER image
 ///
@@ -177,6 +180,7 @@ static inline fapi2::ReturnCode load_qme_sram(const fapi2::Target<fapi2::TARGET_
 fapi_try_exit:
     return fapi2::current_err;
 }
+#endif
 
 ///
 /// @brief Validate arguments and configuration for cache-/chip-contained IPL
@@ -268,11 +272,15 @@ extern "C" {
         FAPI_INF("nactive[%02d] nbacking[%02d] active[x%08x]", nactive, nbacking,
                  active_bvec);
 
+#ifndef DFT
+
         if (chc && (i_homer_img != NULL && i_homer_img_bytes > 0))
         {
             FAPI_INF("Loading QME image(s)");
             FAPI_TRY(load_qme_sram(i_chip, i_homer_img_bytes, i_homer_img));
         }
+
+#endif
 
         if (i_cache_img == NULL && i_cache_img_bytes == 0 &&
             (load_path == fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_PBA))
