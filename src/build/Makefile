@@ -192,7 +192,7 @@ output_sbe_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_NAME).out"
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_NAME).map \
 		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
-	    --start-group $(LLIBS) --end-group --gc-sections
+		--start-group $(LLIBS) --end-group --gc-sections
 ifeq ($(project), $(filter $(project), power_dft))
 	$(C1)./parsAndCutElfDFT.py $(IMG_DIR) $(IMAGE_NAME)
 else
@@ -226,7 +226,7 @@ output_measure_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out"
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_MEASUREMENT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).map \
   -Bstatic -o $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_MEASUREMENT_OBJECTS)) \
-     $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASUREMENT_LIB_DIRS) \
+	 $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_MEASUREMENT_HEADER).o $(MEASUREMENT_LIB_DIRS) \
 					   --start-group $(MEASUREMENT_LLIBS) --end-group --gc-sections
 	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) measurement_seeprom
 	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).dis
@@ -386,6 +386,10 @@ ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_runn_attributes.xml
 # Support for additional attributes for DFT, without affecting mainline collection
 ifeq ($(project), $(filter $(project), power_dft))
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_dft_attributes.xml
+ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_contained_attributes.xml
+SBEATTRFILE = $(IMPORT_XML_DIR)/attribute_info/p10_dft_sbe_attributes.xml
+else
+SBEATTRFILE = $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml
 endif
 
 $(OBJDIR):
@@ -395,15 +399,15 @@ $(OBJDIR):
 	mkdir -p $(IMPORT_OBJDIR)
 
 attribute_parse:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl $(GENFILES_DIR) $(SBEATTRFILE) $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(GENFILES_DIR) $(SBEATTRFILE) $(ATTRFILES)
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
 
 topfixedheaders:
-	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseProcSbeFixed.pl . $(SBEATTRFILE) $(ATTRFILES)
 
 attrids:
-	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeParseAttributeInfo.pl $(PLAT_FAPI2_DIR) $(SBEATTRFILE) $(ATTRFILES)
 
 platattr:
 	$(TOOLS_ATTR_DIR)/ppeCreateAttrGetSetMacros.pl --path $(PLAT_FAPI2_DIR) --inc $(GENFILES_DIR) --src $(GENFILES_DIR)
@@ -427,7 +431,6 @@ $(IPL_IMAGE_TOOL):
 	$(MAKE) -I $(INCLUDES) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 #$(MAKE) -I $(IMAGEPROCS_TOOL_DIR) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 	cp -f $(IPL_IMAGE_TOOL) $(IMG_DIR)/
-	cp -f $(P10_SBE_DEBUG_TOOL) $(IMG_DIR)/
 
 normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
@@ -436,7 +439,7 @@ compress: $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
 
 defaultset:
-	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(IMPORT_XML_DIR)/attribute_info/p10_sbe_attributes.xml $(ATTRFILES)
+	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(SBEATTRFILE) $(ATTRFILES)
 
 # Build the trace utilities
 ppe_trace_bin:
