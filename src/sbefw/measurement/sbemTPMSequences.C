@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -35,6 +36,7 @@
 #include "sbe_link.H"
 #include "sbeXipUtils.H"
 #include "sbestates.H"
+#include "sbemTPMaccess.H"
 
 using namespace fapi2;
 
@@ -79,7 +81,7 @@ fapi2::ReturnCode tpmReadandWriteSequence()
         uint8_t  rbuf[8];
         uint32_t readBytes = 2;
 
-        // Read TPM through SPI.
+        // Read TPM_DID_VID_0 (Vendor and device ID offset xF00) 
         SBEM_INFO(SBEM_FUNC "Read TPM through SPI.");
         rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&rbuf);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
@@ -92,11 +94,11 @@ fapi2::ReturnCode tpmReadandWriteSequence()
             SBEM_INFO(SBEM_FUNC "TPM read data is 0x%02X", rbuf[i]);
         }
 
-        //Write TPM through SPI.
+        // Write 002h to TPM_ACCESS_0 (0000h) to request access to locality 0
         SBEM_INFO(SBEM_FUNC "Write TPM through SPI");
         offsetAddr = 0x0;
         readBytes = 1;
-        uint8_t tpmData = 0x80;
+        uint8_t tpmData = 0x02;
         uint8_t *buf = &tpmData;
         rc = spi_tpm_write_with_wait(handle, tpmLocality, offsetAddr, readBytes, buf);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
@@ -105,18 +107,108 @@ fapi2::ReturnCode tpmReadandWriteSequence()
             break;
         }
 
-        //Read TPM through SPI.
-        SBEM_INFO(SBEM_FUNC "Now Read TPM through SPI.");
-        rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&rbuf);
+        // TPM2_Startup Command(TPM_SU_CLEAR)
+        SBEM_INFO(SBEM_FUNC "Send the startup command to TPM.");
+        uint8_t tpmStartCommand[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x01, 0x44, 0x00, 0x00};
+        uint32_t buflen = 64;
+        uint32_t cmdLen = 12;
+        rc = tpmTransmit(handle, (void *)tpmStartCommand, buflen, cmdLen);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
-            SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed with rc 08%08X", rc);
+            SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
             break;
         }
-        for(uint32_t i = 0; i < readBytes; i++)
+        for(uint32_t i = 0; i < buflen; i++)
         {
-            SBEM_INFO(SBEM_FUNC "TPM read data is 0x%02X", rbuf[i]);
+            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", tpmStartCommand[i]);
         }
+        uint32_t tpmRc = (tpmStartCommand[6] << 24) | (tpmStartCommand[7] << 16) |  (tpmStartCommand[8] << 8) | tpmStartCommand[9];
+        SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
+        if(tpmRc)
+        {
+            SBEM_ERROR(SBEM_FUNC "TPM startup command failed.");
+            break;
+        }
+    }while(0);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
+fapi2::ReturnCode tpmPosionPCR()
+{
+    #define SBEM_FUNC " tpmPosionPCR "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        uint8_t spi_engine  = 4;
+        Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
+        SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
+
+        SBEM_INFO(SBEM_FUNC "Call PM2_GetRandom ");
+        uint8_t tpmGetRN[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x0C,
+                                0x00, 0x00, 0x01, 0x7B, 0x00, 0x20};
+        uint8_t * seqBytes = tpmGetRN;
+        uint32_t buflen = 64;
+        uint32_t cmdLen = 12;
+        rc = tpmTransmit(handle, (void *)seqBytes, buflen, cmdLen);
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            break;
+        }
+        for(uint32_t i = 0; i < buflen; i++)
+        {
+            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
+        }
+        // Get the command response code.
+        uint32_t tpmRc = (tpmGetRN[6] << 24) | (tpmGetRN[7] << 16) |  (tpmGetRN[8] << 8) | tpmGetRN[9];
+        SBEM_INFO(SBEM_FUNC "TPM2_GetRandom response code is 0x%08X", tpmRc);
+        if(tpmRc)
+        {
+            SBEM_ERROR(SBEM_FUNC "TPM2_GetRandom response code is non zero.");
+            break;
+        }
+        for(uint32_t i = 0; i < 8; i++)
+        {
+            uint32_t rnOffset = 12;
+            // PM2_PCR_Extend
+            uint8_t tpmExtendPCR[72] = {0x80, 0x02, 0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0x01, 0x82, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x40, 0x00, 0x00, 0x09, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x0B};
+            // Add 32 byte random number to the tpmExtendPCR after offset 33. 33-64 ---> Random number
+            uint32_t offset = 33;
+            uint32_t pcrOffset = 13;
+            for(uint32_t i = 0; i < 32; i ++)
+            {
+                tpmExtendPCR[offset + i] = tpmGetRN[rnOffset + i];
+            }
+            buflen = 72;
+            cmdLen = 65;
+            SBEM_INFO(SBEM_FUNC "Extend PCR %d", i);
+            tpmExtendPCR[pcrOffset] = i;
+            seqBytes = tpmExtendPCR;
+            rc = tpmTransmit(handle, (void *)seqBytes, buflen, cmdLen);
+            if( rc != fapi2::FAPI2_RC_SUCCESS )
+            {
+                SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+                break;
+            }
+            for(uint32_t i = 0; i < buflen; i++)
+            {
+                SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
+            }
+            // Get the command response code.
+            tpmRc = (tpmExtendPCR[6] << 24) | (tpmExtendPCR[7] << 16) |  (tpmExtendPCR[8] << 8) | tpmExtendPCR[9];
+            SBEM_INFO(SBEM_FUNC "TPM2_Extend PCR response code is 0x%08X", tpmRc);
+            if(tpmRc)
+            {
+                SBEM_ERROR(SBEM_FUNC "TPM2_Extend PCR response code is non zero for PCR %d.", i);
+                break;
+            }
+        }
+
     }while(0);
     SBEM_EXIT(SBEM_FUNC);
     return rc;
@@ -187,30 +279,34 @@ fapi2::ReturnCode performTPMSequences()
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
     do
     {
-        // TPM access is only on master not on slave and alt master.
-        // Skip TPM read and Write on proc other than master.
+        SBEM_INFO(SBEM_FUNC "Perform Sequence of Read, Write and Startup TPM");
+
         uint32_t sbeRole = checkSbeRole();
         if(sbeRole == SBE_ROLE_SLAVE)
         {
             SBEM_INFO(SBE_FUNC "Current Proc is slave. Do not access TPM");
             break;
         }
-        else if(sbeRole == SBE_ROLE_ALT_MASTER)
-        {
-            SBEM_INFO(SBE_FUNC "Current Proc is alt master. Poison TPM");
-            break;
-        }
-        else
-        {
-            SBEM_INFO(SBE_FUNC "Current Proc is master. Access TPM");
-        }
+
+        // Perform TPM operatiions.
         l_rc = tpmReadandWriteSequence();
         if (l_rc)
         {
-            SBEM_ERROR(SBEM_FUNC "tpmReadandWriteVerify failed with rc 0x%08X", l_rc);
+            SBEM_ERROR(SBEM_FUNC "tpmReadandWriteSequence failed with rc 0x%08X", l_rc);
             break;
         }
-        SBEM_INFO(SBEM_FUNC "Completed tpmReadandWriteVerify");
+        SBEM_INFO(SBEM_FUNC "Completed tpmReadandWriteSequence");
+
+        // Poison TPM incase of ALT master.
+        if(sbeRole == SBE_ROLE_ALT_MASTER)
+        {
+            l_rc = tpmPosionPCR();
+            if (l_rc)
+            {
+                SBEM_ERROR(SBEM_FUNC "tpmPosionPCR failed with rc 0x%08X", l_rc);
+                break;
+            }
+        }
     }while(0);
     SBEM_EXIT(SBEM_FUNC);
     return l_rc;

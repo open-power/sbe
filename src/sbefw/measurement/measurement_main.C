@@ -179,6 +179,7 @@ int  main(int argc, char **argv)
             break;
         }
         SBEM_INFO("Completed PK initialization for Measurement");
+#if 0
         l_rc = initializeTPM();
         if (l_rc)
         {
@@ -193,6 +194,7 @@ int  main(int argc, char **argv)
             break;
         }
         SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+#endif
     }while(0);
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
