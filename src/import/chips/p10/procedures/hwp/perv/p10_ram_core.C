@@ -205,6 +205,7 @@ RamCore::RamCore(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
     iv_backup_gpr1   = 0;
     iv_thread_activated = false;
     iv_fake_ramming  = false;
+    iv_gpr01_trashed = false;
 }
 
 // Sequence of operations in put_reg and get_reg
@@ -1133,6 +1134,15 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
                 "Reg type: %u, Reg num: %u, Allow Mult: %u",
                 i_type, i_reg_num, i_allow_mult);
 
+    if (i_allow_mult && iv_ram_setup && iv_gpr01_trashed && i_type == REG_GPR)
+    {
+        // GPR0 and possibly GPR1 were trashed by a previous RAMing routine.
+        // Force a ram_cleanup/setup cycle in order to restore GPR0/1.
+        FAPI_TRY(ram_cleanup());
+        FAPI_TRY(ram_setup());
+        iv_gpr01_trashed = false;
+    }
+
     if (!iv_fake_ramming)
     {
         FAPI_TRY(get_reg_internal(i_type, i_reg_num, o_buffer, i_allow_mult));
@@ -1383,6 +1393,13 @@ fapi2::ReturnCode RamCore::get_reg_internal(const Enum_RegType i_type,
     if(!i_allow_mult)
     {
         FAPI_TRY(ram_cleanup());
+    }
+
+    if (i_allow_mult && i_type != REG_GPR)
+    {
+        // GPR0 and possibly GPR1 were left trashed by this routine.
+        // ram_cleanup would ordinarily restore the GPR0/1
+        iv_gpr01_trashed = true;
     }
 
 fapi_try_exit:
@@ -1692,6 +1709,13 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     if(!i_allow_mult)
     {
         FAPI_TRY(ram_cleanup());
+    }
+
+    if (i_allow_mult && i_type != REG_GPR)
+    {
+        // GPR0 and possibly GPR1 were left trashed by this routine.
+        // ram_cleanup would ordinarily restore the GPR0/1
+        iv_gpr01_trashed = true;
     }
 
 fapi_try_exit:

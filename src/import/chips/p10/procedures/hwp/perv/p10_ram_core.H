@@ -153,6 +153,7 @@ class RamCore
         bool iv_write_gpr1;    // putGPR1 operation is executed
         bool iv_thread_activated;   // iv_thread was activated
         bool iv_fake_ramming;   // Using fake RAMing to avoid HW542214
+        bool iv_gpr01_trashed;     // GPR0 or GPR1 was trashed
         fapi2::buffer<uint64_t> iv_backup_scr0;  // SCR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr0;  // GPR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr1;  // GPR1 register backup data
