@@ -259,8 +259,10 @@ uint32_t sbeDownFifoEnq_mult (uint32_t        &io_len,
 
         l_data.fifo_data   = *(i_pData+l_len);
 
+#ifndef DFT
         SBE_DEBUG(SBE_FUNC"Downstream fifo data entry[0x%08X]"
             "Fifo Type is:[%02X]", l_data.fifo_data, i_type);
+#endif
 
         // Write the data into the downstream FIFO
         uint64_t * tp = reinterpret_cast<uint64_t*>(&l_data);

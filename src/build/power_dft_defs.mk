@@ -7,6 +7,7 @@
 #
 # Contributors Listed Below - COPYRIGHT 2017,2020
 # [+] International Business Machines Corp.
+# [+] Justin.Ginn@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,10 +53,14 @@ export PIBMEM_REPAIR_SCOM_P9 = 0
 ifndef CONTAINED_SRCDIR
 export CONTAINED_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/procedures/utils/contained
 endif
+ifndef CUSTOMIZE_SRCDIR
+export CUSTOMIZE_SRCDIR = $(IMPORT_SRCDIR)/chips/p10/procedures/hwp/customize
+endif
 
 ATTRFILES += $(IMPORT_XML_DIR)/attribute_info/p10_ipl_customize_attributes.xml
 
 ifndef DFT_INCLUDES
+#export DFT_INCLUDES += -I$(CORECACHE_SRCDIR) -I$(UTILS_SRCDIR) -I$(CONTAINED_SRCDIR)  -I$(CUSTOMIZE_SRCDIR)
 export DFT_INCLUDES += -I$(CORECACHE_SRCDIR) -I$(UTILS_SRCDIR) -I$(CONTAINED_SRCDIR)
 endif
 
@@ -65,6 +70,7 @@ ISTEP4_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep4
 ISTEP5_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep5
 ISTEP14_16_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istep14_16
 ISTEPCONTAINED_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcontained
+ISTEPCUSTOMIZE_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcustomize
 ISTEPMPIPL_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepmpipl
 ISTEPCOMMON_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/istepcommon
 ARRAYACCESS_INFRA_DIR = $(IMPORT_HWP_MK_DIR)/arrayaccess
@@ -76,6 +82,7 @@ OBJDIR-ISTEP4 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep4
 OBJDIR-ISTEP5 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep5
 OBJDIR-ISTEP14_16 = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istep14_16
 OBJDIR-ISTEPCONTAINED = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcontained
+OBJDIR-ISTEPCUSTOMIZE = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcustomize
 OBJDIR-ISTEPMPIPL = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepmpipl
 OBJDIR-ISTEPCOMMON = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/istepcommon
 OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/arrayaccess
