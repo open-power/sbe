@@ -309,6 +309,18 @@ for my $attribute (sort keys %{$enums{AttributeId}}) {
                   $targetImplementation .= "\n" . $targetFunction . "\n{\n   for( $type iCount = 0; iCount < $index; iCount++)\n   {\n       o_pvalue[iCount] = object->fapi2attr::${macroTarget}::${attribute}[iCount];\n   }\n}\n";
               }
 
+          } elsif($targetMacro eq "TARGET_TYPE_EQ") {
+
+              $targetImplementation .= "\n" . $targetFunction .
+"\n{
+    *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[getEqAttrIndex(i_ptarget)];
+}\n";
+          } elsif($targetMacro eq "TARGET_TYPE_CORE") {
+
+              $targetImplementation .= "\n" . $targetFunction .
+"\n{
+    *o_pvalue = object->fapi2attr::${macroTarget}::${attribute}[getCoreAttrIndex(i_ptarget)];
+}\n";
           } elsif($targetMacro eq "TARGET_TYPE_PERV") {
 
               $targetImplementation .= "\n" . $targetFunction .
@@ -348,7 +360,11 @@ $targetImplementation .= "\n" . $targetFunction . "\n{\n   uint32_t index = stat
               else{
                   $targetImplementation = "\n" . $targetFunction . "\n{\n  for( $type iCount = 0; iCount < $index; iCount++)\n   {\n      const $type *temp = &i_pvalue;\n      object->fapi2attr::${macroTarget}::${attribute}[iCount] = temp[iCount];;\n   }\n}\n";
               }
-          } else {
+          } elsif($targetMacro eq "TARGET_TYPE_EQ"){
+              $targetImplementation = "\n" . $targetFunction . "\n{\n   object->fapi2attr::${macroTarget}::${attribute}[getEqAttrIndex(i_ptarget)] = i_pvalue;\n}\n";
+          } elsif($targetMacro eq "TARGET_TYPE_CORE"){
+              $targetImplementation = "\n" . $targetFunction . "\n{\n   object->fapi2attr::${macroTarget}::${attribute}[getCoreAttrIndex(i_ptarget)] = i_pvalue;\n}\n";
+          } else{
               $targetImplementation = "\n" . $targetFunction . "\n{\n   object->fapi2attr::${macroTarget}::${attribute}[getPervAttrIndex(i_ptarget)] = i_pvalue;\n}\n";
           }
 
@@ -393,6 +409,18 @@ if (@newAttributeDefines != 0) {
         __attribute__((always_inline)) inline uint32_t getPervAttrIndex(const fapi2::Target<TARGET_TYPE_PERV> &i_target)
         {
             return i_target.getChipletNumber();
+        }
+        ";
+        print OUTFILE "
+        __attribute__((always_inline)) inline uint32_t getEqAttrIndex(const fapi2::Target<TARGET_TYPE_EQ> &i_target)
+        {
+			return i_target.get().getTargetInstance() - EQ_TARGET_OFFSET;
+        }
+        ";
+        print OUTFILE "
+        __attribute__((always_inline)) inline uint32_t getCoreAttrIndex(const fapi2::Target<TARGET_TYPE_CORE> &i_target)
+        {
+			return i_target.get().getTargetInstance() - CORE_TARGET_OFFSET;
         }
         ";
 
