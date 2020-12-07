@@ -41,6 +41,9 @@
 // *HWP Level       :  2
 // *HWP Consumed by :  HB:HYP
 
+// EKB-Mirror-To: hostboot
+// EKB-Mirror-To: hw/ppe
+
 #ifdef __cplusplus
 namespace stopImageSection
 {
