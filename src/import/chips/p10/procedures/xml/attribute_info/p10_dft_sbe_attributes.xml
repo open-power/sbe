@@ -647,10 +647,6 @@
     <value>0x00</value>
   </entry>
   <entry>
-	<name>ATTR_SEEPROM_STARTING_ADDR</name>
-    <value>0x00</value>
-  </entry>
-  <entry>
     <name>ATTR_AVP_IMG_SIZE</name>
     <value>0x00</value>
   </entry>
@@ -712,5 +708,9 @@
     <value>0x0</value>
     <value>0x0</value>
     <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_CONTAINED_FENCE_HANGPULSE</name>
+    <value>0x00</value>
   </entry>
 </entries>

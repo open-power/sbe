@@ -249,6 +249,9 @@ static fapi2::ReturnCode contained_setup(const fapi2::Target<fapi2::TARGET_TYPE_
 
     fapi2::buffer<uint64_t> data;
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > all;
+    fapi2::ATTR_CONTAINED_FENCE_HANGPULSE_Type fence_hangpulse;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_FENCE_HANGPULSE, i_chip, fence_hangpulse));
 
     if (i_chc)
     {
@@ -274,20 +277,23 @@ static fapi2::ReturnCode contained_setup(const fapi2::Target<fapi2::TARGET_TYPE_
         FAPI_TRY(PUT_NET_CTRL0_RW_WOR(all, data));
     }
 
-    // Disable all hang pulses except heartbeat
-    data = 0;
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_0_REG, data));
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_1_REG, data));
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_2_REG, data));
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_3_REG, data));
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_4_REG, data));
-    FAPI_TRY(fapi2::putScom(all, HANG_PULSE_5_REG, data));
+    if (fence_hangpulse)
+    {
+        // Disable all hang pulses except heartbeat
+        data = 0;
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_0_REG, data));
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_1_REG, data));
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_2_REG, data));
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_3_REG, data));
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_4_REG, data));
+        FAPI_TRY(fapi2::putScom(all, HANG_PULSE_5_REG, data));
 
-    // Disable all constant hang pulses
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0071, data));
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0073, data));
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0075, data));
-    FAPI_TRY(fapi2::putScom(i_chip, 0xd0077, data));
+        // Disable all constant hang pulses
+        FAPI_TRY(fapi2::putScom(i_chip, 0xd0071, data));
+        FAPI_TRY(fapi2::putScom(i_chip, 0xd0073, data));
+        FAPI_TRY(fapi2::putScom(i_chip, 0xd0075, data));
+        FAPI_TRY(fapi2::putScom(i_chip, 0xd0077, data));
+    }
 
 fapi_try_exit:
     FAPI_INF("<< %s", __func__);

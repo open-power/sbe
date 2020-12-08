@@ -69,5 +69,23 @@
   </default>
   <writeable/>
 </attribute>
+<attribute>
+  <id>ATTR_CONTAINED_FENCE_HANGPULSE</id>
+  <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+    By default, the contained IPL fences off hang pulses because they are
+    asynchronous to the core and will compromise cycle reproducibility if not
+    fenced.
+    Some DFT applications require hang pulse to be enabled during contained
+    IPL (DTS sampling during TDP workloads in mfg).
+  </description>
+  <valueType>uint8</valueType>
+  <enum>
+    OFF = 0x0,
+    ON = 0x1
+  </enum>
+  <default>ON</default>
+  <writeable/>
+</attribute>
 <!-- ********************************************************************** -->
 </attributes>
