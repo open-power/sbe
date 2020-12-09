@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2020
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,15 +25,18 @@
 APPPOWERPIBMEM-CPP-SOURCES  = chipop_table.C
 APPPOWERPIBMEM-CPP-SOURCES += ipl_table.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdiplcontrol.C
-#APPPOWERPIBMEM-CPP-SOURCES += sbecmdmemaccess.C
-#APPPOWERPIBMEM-CPP-SOURCES += sbecmdregaccess.C
-#APPPOWERPIBMEM-CPP-SOURCES += sbecmdmpipl.C
+APPPOWERPIBMEM-CPP-SOURCES += sbecmdmemaccess.C
+APPPOWERPIBMEM-CPP-SOURCES += sbecmdregaccess.C
+APPPOWERPIBMEM-CPP-SOURCES += sbecmdmpipl.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdcntrldmt.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdsram.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdgeneric.C
 APPPOWERPIBMEM-CPP-SOURCES += istep.C
-#APPPOWERPIBMEM-CPP-SOURCES += sbecmdflushnvdimm.C
+APPPOWERPIBMEM-CPP-SOURCES += sbecmdflushnvdimm.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdexitcachecontained.C
+
+APPPOWERPIBMEM-CPP-SOURCES += sbecmddft.C
+APPPOWERPIBMEM-CPP-SOURCES += sbe_spi_cmd.C
 
 APPPOWERPIBMEM-C-SOURCES =
 APPPOWERPIBMEM-S-SOURCES =

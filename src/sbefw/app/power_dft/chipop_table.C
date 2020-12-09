@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -45,6 +46,9 @@
 #include "sbecmdexitcachecontained.H"
 #include "chipop_handler.H"
 #include "sbecmdgeneric.H"
+
+#include "sbecmddft.H"
+
 #include "istep.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
@@ -56,29 +60,29 @@ static const uint16_t PUT_HARDWARE_FENCED_STATE =
 ////////////////////////////////////////////////////////////////
 // @brief g_sbeScomCmdArray
 ////////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    A2,
-//    {SBE_COMMON::sbeGetScom,
-//     SBE_CMD_GETSCOM,
-//     HARDWARE_FENCED_STATE,
-//    },
-//    {SBE_COMMON::sbePutScom,
-//     SBE_CMD_PUTSCOM,
-//     HARDWARE_FENCED_STATE,
-//    },
-//    {SBE_COMMON::sbeModifyScom,
-//     SBE_CMD_MODIFYSCOM,
-//     HARDWARE_FENCED_STATE,
-//    },
-//    {SBE_COMMON::sbePutScomUnderMask,
-//     SBE_CMD_PUTSCOM_MASK,
-//     HARDWARE_FENCED_STATE,
-//    },
-//    {SBE_COMMON::sbeMultiScom,
-//     SBE_CMD_MULTISCOM,
-//     HARDWARE_FENCED_STATE,
-//    }
-//)
+CMD_ARR(
+    A2,
+    {SBE_COMMON::sbeGetScom,
+     SBE_CMD_GETSCOM,
+     HARDWARE_FENCED_STATE,
+    },
+    {SBE_COMMON::sbePutScom,
+     SBE_CMD_PUTSCOM,
+     HARDWARE_FENCED_STATE,
+    },
+    {SBE_COMMON::sbeModifyScom,
+     SBE_CMD_MODIFYSCOM,
+     HARDWARE_FENCED_STATE,
+    },
+    {SBE_COMMON::sbePutScomUnderMask,
+     SBE_CMD_PUTSCOM_MASK,
+     HARDWARE_FENCED_STATE,
+    },
+    {SBE_COMMON::sbeMultiScom,
+     SBE_CMD_MULTISCOM,
+     HARDWARE_FENCED_STATE,
+    }
+)
 
 ////////////////////////////////////////////////////////////////
 // @brief g_sbeIplControlCmdArray
@@ -104,50 +108,50 @@ CMD_ARR(
 // @brief g_sbeGenericCmdArray
 //
 ////////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    A8,
-//    {sbeGetCapabilities,
-//     SBE_CMD_GET_SBE_CAPABILITIES,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeGetFfdc,
-//     SBE_CMD_GET_SBE_FFDC,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeFifoQuiesce,
-//     SBE_CMD_QUIESCE,
-//     SBE_NO_FENCE,
-//    }
-//)
+CMD_ARR(
+    A8,
+    {sbeGetCapabilities,
+     SBE_CMD_GET_SBE_CAPABILITIES,
+     SBE_NO_FENCE,
+    },
+
+    {sbeGetFfdc,
+     SBE_CMD_GET_SBE_FFDC,
+     SBE_NO_FENCE,
+    },
+
+    {sbeFifoQuiesce,
+     SBE_CMD_QUIESCE,
+     SBE_NO_FENCE,
+    }
+)
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeMemoryAccessCmdArray
 //
 //////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    A4,
-//    {sbeGetMem,
-//     SBE_CMD_GETMEM,
-//     SBE_FENCE_AT_CONTINUOUS_IPL,
-//    },
-//
-//    {sbePutMem,
-//     SBE_CMD_PUTMEM,
-//     PUT_HARDWARE_FENCED_STATE,
-//    },
-//
-//    {sbeGetOccSram,
-//     SBE_CMD_GETSRAM_OCC,
-//     HARDWARE_FENCED_STATE,
-//    },
-//
-//    {sbePutOccSram,
-//     SBE_CMD_PUTSRAM_OCC,
-//     PUT_HARDWARE_FENCED_STATE,
-//    }
-//)
+CMD_ARR(
+    A4,
+    {sbeGetMem,
+     SBE_CMD_GETMEM,
+     SBE_FENCE_AT_CONTINUOUS_IPL,
+    },
+
+    {sbePutMem,
+     SBE_CMD_PUTMEM,
+     PUT_HARDWARE_FENCED_STATE,
+    },
+
+    {sbeGetSram,
+     SBE_CMD_GETSRAM,
+     HARDWARE_FENCED_STATE,
+    },
+
+    {sbePutSram,
+     SBE_CMD_PUTSRAM,
+     PUT_HARDWARE_FENCED_STATE,
+    }
+)
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeInstructionCntlCmdArray
@@ -165,17 +169,17 @@ CMD_ARR(
 // @brief g_sbeRegAccessCmdArray
 //
 //////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    A5,
-//    {sbeGetReg,
-//     SBE_CMD_GETREG,
-//     HARDWARE_FENCED_STATE,
-//    },
-//    {sbePutReg,
-//     SBE_CMD_PUTREG,
-//     PUT_HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
-//    }
-//)
+CMD_ARR(
+    A5,
+    {sbeGetReg,
+     SBE_CMD_GETREG,
+     HARDWARE_FENCED_STATE,
+    },
+    {sbePutReg,
+     SBE_CMD_PUTREG,
+     PUT_HARDWARE_FENCED_STATE | SBE_FENCE_AT_SECURE_MODE,
+    }
+)
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeMpiplCmdArray
@@ -183,24 +187,29 @@ CMD_ARR(
 //////////////////////////////////////////////////////////////
 CMD_ARR(
     A9,
-//    {sbeEnterMpipl,
-//     SBE_CMD_MPIPL_ENTER,
-//     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
-//     SBE_FENCE_AT_DUMPING,
-//     // Allow Fspless system to enter MPIPL
-//     // Issue 157287
-//    },
-//
-//    {sbeContinueMpipl,
-//     SBE_CMD_MPIPL_CONTINUE,
-//     HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
-//     SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING,
-//     // Only allowed State is MPIPL
-//    },
+    {sbeEnterMpipl,
+     SBE_CMD_MPIPL_ENTER,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING,
+     // Allow Fspless system to enter MPIPL
+     // Issue 157287
+    },
+
+    {sbeContinueMpipl,
+     SBE_CMD_MPIPL_CONTINUE,
+     HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_RUNTIME|SBE_FENCE_AT_DUMPING,
+     // Only allowed State is MPIPL
+    },
 
     {sbeStopClocks,
      SBE_CMD_MPIPL_STOPCLOCKS,
      HARDWARE_FENCED_STATE|SBE_FENCE_AT_DUMPING,
+    },
+
+    {sbeGetTIInfo,
+     SBE_CMD_GET_TI_INFO,
+     PUT_HARDWARE_FENCED_STATE,
     }
 )
 
@@ -225,17 +234,17 @@ CMD_ARR(
 // @brief g_sbeArrayAccessCmdArray[]
 //
 ////////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    A6,
-//    {sbeControlFastArray,
-//     SBE_CMD_CONTROL_FAST_ARRAY,
-//     SBE_FENCE_AT_QUIESCE,
-//    },
-//    {sbeControlTraceArray,
-//     SBE_CMD_CONTROL_TRACE_ARRAY,
-//     SBE_FENCE_AT_QUIESCE,
-//    }
-//)
+CMD_ARR(
+    A6,
+    {sbeControlFastArray,
+     SBE_CMD_CONTROL_FAST_ARRAY,
+     SBE_FENCE_AT_QUIESCE,
+    },
+    {sbeControlTraceArray,
+     SBE_CMD_CONTROL_TRACE_ARRAY,
+     SBE_FENCE_AT_QUIESCE,
+    }
+)
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray
@@ -287,55 +296,75 @@ CMD_ARR(
 // @brief g_sbePsuGenericCmdArray
 //
 //////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    D6,
-//   {sbeUpdateMemAccessRegion,
-//     SBE_PSU_MSG_UPDATE_MEM_REGION,
-//     SBE_FENCE_AT_QUIESCE,
-//    }
-//)
+CMD_ARR(
+    D6,
+   {sbeUpdateMemAccessRegion,
+     SBE_PSU_MSG_UPDATE_MEM_REGION,
+     SBE_FENCE_AT_QUIESCE,
+    }
+)
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbePsuGenericCmdArray
 //
 //////////////////////////////////////////////////////////////
-//CMD_ARR(
-//    D7,
-//    {sbePsuGetCapabilities,
-//     SBE_PSU_GENERIC_MSG_GET_CAPABILITIES,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeReadMem,
-//     SBE_PSU_GENERIC_MSG_READ_SBE_MEM,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeSetFFDCAddr,
-//     SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbePsuQuiesce,
-//     SBE_PSU_GENERIC_MSG_QUIESCE,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeSetSystemFabricMap,
-//     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeStashKeyAddrPair,
-//     SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG,
-//     SBE_NO_FENCE,
-//    },
-//
-//    {sbeSecurityListBinDump,
-//     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP,
-//     SBE_NO_FENCE,
-//    }
-//)
+CMD_ARR(
+    D7,
+    {sbePsuGetCapabilities,
+     SBE_PSU_GENERIC_MSG_GET_CAPABILITIES,
+     SBE_NO_FENCE,
+    },
+
+    {sbeReadMem,
+     SBE_PSU_GENERIC_MSG_READ_SBE_MEM,
+     SBE_NO_FENCE,
+    },
+
+    {sbeSetFFDCAddr,
+     SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR,
+     SBE_NO_FENCE,
+    },
+
+    {sbePsuQuiesce,
+     SBE_PSU_GENERIC_MSG_QUIESCE,
+     SBE_NO_FENCE,
+    },
+
+    {sbeSetSystemFabricMap,
+     SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP,
+     SBE_NO_FENCE,
+    },
+
+    {sbeStashKeyAddrPair,
+     SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG,
+     SBE_NO_FENCE,
+    },
+
+    {sbeSecurityListBinDump,
+     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP,
+     SBE_NO_FENCE,
+    }
+)
+
+////////////////////////////////////////////////////////////////
+// @brief g_sbeDFTCmdArray
+////////////////////////////////////////////////////////////////
+CMD_ARR(
+	D8,
+	{SBEAPP_DFT::sbeHandleRangeIpl,
+	 DFT_CMD_RANGE_IPL,
+	 HARDWARE_FENCED_STATE,
+	},
+	{SBEAPP_DFT::sbeSeepromLoad,
+	 DFT_CMD_LOAD_SEEPROM_FROM_SBE,
+	 HARDWARE_FENCED_STATE,
+	},
+	{SBEAPP_DFT::gpeStartDDS,
+	 DFT_CMD_START_DDS_FROM_GPE,
+	 HARDWARE_FENCED_STATE,
+	}
+)
+
 
 // Mandatory macro inclusion
 CMD_CLASS_DEFAULT_INTIALISATION

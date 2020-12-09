@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -193,6 +193,44 @@ struct cmdStructP_t
 // Keep this hash updated with the cmdClassArr
 #define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0A))
 
+#ifdef DFT
+#define CMD_CLASS_DEFAULT_INTIALISATION \
+constexpr cmdClass_t cmdClassArr[] = { \
+    CMD_CLASS(A1), \
+    CMD_CLASS(A2), \
+    CMD_CLASS(A3), \
+    CMD_CLASS(A4), \
+    CMD_CLASS(A5), \
+    CMD_CLASS(A6), \
+    CMD_CLASS(A7), \
+    CMD_CLASS(A8), \
+    CMD_CLASS(A9), \
+    CMD_CLASS(AA), \
+    CMD_CLASS(D1), \
+    CMD_CLASS(D2), \
+    CMD_CLASS(D3), \
+    CMD_CLASS(D4), \
+    CMD_CLASS(D5), \
+    CMD_CLASS(D6), \
+    CMD_CLASS(D7), \
+    CMD_CLASS(D8), \
+}; \
+\
+cmdClassTable_t cmdClassTable = { \
+    const_cast<cmdClass_t*>(cmdClassArr), \
+    sizeof(cmdClassArr)/sizeof(cmdClassArr[0]) \
+}; \
+\
+constexpr bool validateCmdClassHash(uint8_t index) { \
+    return (index >= sizeof(cmdClassArr)/sizeof(cmdClassArr[0])) || \
+            ((HASH_KEY(cmdClassArr[index].cmdClass)) == index && \
+             validateCmdClassHash(index + 1)); \
+} \
+\
+static_assert(validateCmdClassHash(0), "Bad chipop_table, check cmdclass hashes");
+
+#else //DFT
+
 #define CMD_CLASS_DEFAULT_INTIALISATION \
 constexpr cmdClass_t cmdClassArr[] = { \
     CMD_CLASS(A1), \
@@ -227,3 +265,4 @@ constexpr bool validateCmdClassHash(uint8_t index) { \
 \
 static_assert(validateCmdClassHash(0), "Bad chipop_table, check cmdclass hashes");
 
+#endif //DFT

@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/sbecmdmemaccess.H $                       */
+/* $Source: src/sbefw/app/power_dft/sbecmdmemaccess.H $                   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -32,6 +33,7 @@
 #define __SBEFW_SBECMDMEMACCESS_H
 
 #include <stdint.h>
+#include "plat_hwp_data_stream.H"
 
 typedef struct
 {
@@ -39,6 +41,23 @@ typedef struct
     uint64_t size:32;
     uint64_t startAddress:64;
 } sbeMemRegionReq_t;
+
+/**
+ * @brief sbeMemAccess_Wrap Memory Access Wrapper function
+ *
+ * @param[in]  i_getStream      up-stream fifo for chip-op /
+ *                              memory interface for dump
+ * @param[in]  i_putStream      down-stream fifo for chip-op /
+ *                              memory interface for dump
+ * @param [in] i_isFlagRead     flag to indicate the memory Access Type
+ *                              true  : GetMem ChipOp
+ *                              false : PutMem ChipOp
+ *
+ * @return    Rc from the FIFO access utility
+ */
+uint32_t sbeMemAccess_Wrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream,
+                            const bool i_isFlagRead );
 
 /**
  * @brief sbeUpdateMemAccessRegion - manage the unsecure memory regions

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -186,7 +186,6 @@ typedef struct
     uint32_t reserved2:8;
     uint32_t minor:8;
 }sbeIstepReqMsg_t;
-
 
 /**
   * @brief structure for GetScom Chipop (0xA201) contents.
@@ -804,5 +803,44 @@ typedef struct
          return data;
      }
 }sbePutHWRegReqMsg_t;
+
+#ifdef DFT
+/**
+  * @brief structure for execute ipl by range chipop (0xD801) contents.
+  *
+  */
+typedef struct
+{
+    uint32_t startMajor:8;
+    uint32_t startMinor:8;
+    uint32_t endMajor:8;
+    uint32_t endMinor:8;
+}sbeIplRangeReqMsg_t;
+
+/**
+  * @brief structure for sbe seeprom load to choose which engine to load and brd.
+  *
+  */
+typedef struct
+{
+    uint32_t reserved1:8;
+    uint32_t reserved2:8;
+    uint32_t engine:8;
+    uint32_t brd:8;
+}sbeSeepromEngine_t;
+
+/**
+  * @brief structure to tell the gpe to start dds code
+  *
+  */
+typedef struct
+{
+    uint32_t reserved1:8;
+    uint32_t reserved2:8;
+    uint32_t reserved3:8;
+    uint32_t reserved4:8;
+}gpeStartDDS_t;
+#endif //DFT
+
 
 #endif // __SBEFW_SBESP_MSG_H
