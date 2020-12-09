@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -269,7 +269,7 @@ popcount64(uint64_t x)
 #ifdef DFT
 
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
-    (MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+    (MSR_UIE | MSR_EE | MSR_ME |MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
 
 #else /* DFT */
 
@@ -439,7 +439,7 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 
 #ifndef PPE42_DBCR_INITIAL
 #ifdef DFT
-#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_ZACE)
+#define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE | DBCR_ZACE)
 #else
 #define PPE42_DBCR_INITIAL (DBCR_TRAP | DBCR_IACE | DBCR_ZACE)
 #endif /* DFT */
@@ -460,7 +460,7 @@ uint32_t __pk_panic_dbcr = DBCR_RST_HALT;
 
 #ifndef PPE42_MSR_INITIAL
 #ifdef DFT
-#define PPE42_MSR_INITIAL (MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
+#define PPE42_MSR_INITIAL (MSR_UIE | MSR_EE | MSR_ME |MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
 #else /* DFT */
 #if defined(USE_PPE_IMPRECISE_MODE)
 #define PPE42_MSR_INITIAL (MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)

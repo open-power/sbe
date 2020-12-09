@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2020                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2020,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -54,6 +54,17 @@
       <targetType>TARGET_TYPE_PROC_CHIP</targetType>
   <description>
 	Size of seeprom image SBE will write
+  </description>
+  <valueType>uint32</valueType>
+  <platInit/>
+  <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_SEEPROM_STARTING_ADDR</id>
+      <targetType>TARGET_TYPE_PROC_CHIP</targetType>
+  <description>
+	Starting address seeprom image will be written too
   </description>
   <valueType>uint32</valueType>
   <platInit/>
@@ -117,6 +128,17 @@
   <writeable/>
   <platInit/>
   <default>0x0</default>
+</attribute>
+<!-- ********************************************************************** -->
+<attribute>
+  <id>ATTR_GLOBAL_THREAD_SEEDS</id>
+  <targetType>TARGET_TYPE_SYSTEM</targetType>
+  <description>
+    Actual exerciser seed values for each thread, applied to all cores.
+  </description>
+  <valueType>uint64</valueType>
+  <array>4</array>
+  <writeable/>
 </attribute>
 <!-- ********************************************************************** -->
 </attributes>
