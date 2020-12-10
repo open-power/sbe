@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -92,7 +92,7 @@ p10_hcd_mma_startclocks(
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
 
     FAPI_DBG("Assert MMA_AVAILABLE via CPMS_MMAR[0]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_MMAR_WO_OR, MMIO_1BIT(0) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_MMAR_WO_OR, BIT64(0) ) );
 
 fapi_try_exit:
     FAPI_INF("<<p10_hcd_mma_startclocks");

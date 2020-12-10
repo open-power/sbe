@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -74,6 +74,7 @@ p10_hcd_cache_stopgrid(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
     fapi2::buffer<buffer_t> l_mmioData = 0;
+    fapi2::buffer<uint64_t> l_scomData = 0;
 #ifndef EQ_SKEW_ADJUST_DISABLE
     uint32_t                l_timeout  = 0;
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
@@ -84,7 +85,7 @@ p10_hcd_cache_stopgrid(
     FAPI_INF(">>p10_hcd_cache_stopgrid");
 
     FAPI_DBG("Disable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_ENABLE]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(0) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(0) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
 
@@ -94,11 +95,11 @@ p10_hcd_cache_stopgrid(
 
     do
     {
-        FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
+        FAPI_TRY( HCD_GETMMIO_S( i_target, CPMS_CGCSR, l_scomData ) );
 
         // use multicastOR to check 0
         if( ( !l_attr_runn_mode ) &&
-            ( MMIO_GET(MMIO_LOWBIT(32)) == 0 ) )
+            ( SCOM_GET(32) == 0 ) )
         {
             break;
         }
@@ -108,17 +109,17 @@ p10_hcd_cache_stopgrid(
     }
     while( (--l_timeout) != 0 );
 
-    FAPI_ASSERT( ( l_attr_runn_mode ? ( MMIO_GET(MMIO_LOWBIT(32)) == 0 ) : (l_timeout != 0) ),
+    FAPI_ASSERT( ( l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) : (l_timeout != 0) ),
                  fapi2::L3_CLK_SYNC_DROP_TIMEOUT()
                  .set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS(HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS)
-                 .set_CPMS_CGCSR(l_mmioData)
+                 .set_CPMS_CGCSR(l_scomData)
                  .set_CORE_TARGET(i_target),
                  "ERROR: L3 Clock Sync Drop Timeout");
 
 #endif
 
     FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[7]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(7) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(7) ) );
 
 fapi_try_exit:
 

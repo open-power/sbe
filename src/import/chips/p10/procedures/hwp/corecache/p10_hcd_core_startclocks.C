@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -117,7 +117,7 @@ p10_hcd_core_startclocks(
     FAPI_INF(">>p10_hcd_core_startclocks");
 
     FAPI_DBG("Enable ECL2 Skewadjust via CPMS_CGCSR[1:CL2_CLK_SYNC_ENABLE]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(1) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(1) ) );
 
 #ifndef EQ_SKEW_ADJUST_DISABLE
 
@@ -127,11 +127,11 @@ p10_hcd_core_startclocks(
 
     do
     {
-        FAPI_TRY( HCD_GETMMIO_C( i_target, MMIO_LOWADDR(CPMS_CGCSR), l_mmioData ) );
+        FAPI_TRY( HCD_GETMMIO_S( i_target, CPMS_CGCSR, l_scomData ) );
 
         // use multicastAND to check 1
         if( ( !l_attr_runn_mode ) &&
-            ( MMIO_GET(MMIO_LOWBIT(33)) == 1 ) )
+            ( SCOM_GET(33) == 1 ) )
         {
             break;
         }
@@ -141,10 +141,10 @@ p10_hcd_core_startclocks(
     }
     while( (--l_timeout) != 0 );
 
-    FAPI_ASSERT( ( l_attr_runn_mode ? ( MMIO_GET(MMIO_LOWBIT(33)) == 1 ) : (l_timeout != 0) ),
+    FAPI_ASSERT( ( l_attr_runn_mode ? ( SCOM_GET(33) == 1 ) : (l_timeout != 0) ),
                  fapi2::ECL2_CLK_SYNC_DONE_TIMEOUT()
                  .set_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS(HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS)
-                 .set_CPMS_CGCSR(l_mmioData)
+                 .set_CPMS_CGCSR(l_scomData)
                  .set_CORE_TARGET(i_target),
                  "ERROR: ECL2 Clock Sync Done Timeout");
 

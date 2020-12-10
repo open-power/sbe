@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -85,15 +85,15 @@ p10_hcd_core_reset(
     FAPI_INF(">>p10_hcd_core_reset");
 
     FAPI_DBG("Switch ECL2 Glsmux to DPLL via CPMS_CGCSR[11:CL2_CLKGLM_SEL]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(11) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(11) ) );
 
     FAPI_DBG("ECL2 sector buffer strength is left as default 0");
 
     FAPI_DBG("Drop ECL2 Glsmux Reset via CPMS_CGCSR[8:CL2_CLKGLM_ASYNC_RESET]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_CLEAR, MMIO_1BIT(8) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(8) ) );
 
     FAPI_DBG("Assert sram_enable via CPMS_CL2_PFETCNTL[63:SRAM_ENABLE]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, MMIO_LOWADDR(CPMS_CL2_PFETCNTL_WO_OR), MMIO_1BIT( MMIO_LOWBIT(63) ) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CL2_PFETCNTL_WO_OR, BIT64(63) ) );
 
     FAPI_DBG("Drop TC_REGION0_DFT_FENCE_DC via CPLT_CTRL5[5-8:ECL2_FENCES,15:18:MMA_FENCES] to regions 0x%08X", l_regions);
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL5_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );

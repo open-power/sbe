@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -83,7 +83,7 @@ p10_hcd_cache_poweron(
     FAPI_INF(">>p10_hcd_cache_poweron");
 
     FAPI_DBG("Assert L3 Glsmux Reset via CPMS_CGCSR[4:L3_CLKGLM_ASYNC_RESET]");
-    FAPI_TRY( HCD_PUTMMIO_C( i_target, CPMS_CGCSR_WO_OR, MMIO_1BIT(4) ) );
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(4) ) );
 
     FAPI_DBG("Enable L3 Regional Fences via CPLT_CTRL1[9-12:L3_FENCES] to regions 0x%08X", l_regions);
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H(l_regions) ) );
