@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -390,6 +390,27 @@ static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TAR
             tmp.flush<0>()
             .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_LCO_DIS_CFG>()
             .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_RCMD_DIS_CFG>();
+            PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
+            FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+        }
+        else
+        {
+            // Inits change sometimes so make sure these are clear for the dump core
+            fapi2::buffer<uint64_t> tmp;
+
+            tmp.flush<0>()
+            .setBit<QME_SCSR_HBUS_DISABLE>()
+            .setBit<QME_SCSR_L2RCMD_INTF_QUIESCE>()
+            .setBit<QME_SCSR_NCU_TLBIE_QUIESCE>()
+            .setBit<QME_SCSR_PB_PURGE_REQ>();
+            PREP_QME_SCSR_WO_CLEAR(core);
+            FAPI_TRY(PUT_QME_SCSR_WO_CLEAR(core, tmp));
+
+            tmp.flush<0>();
+            PREP_NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG(core);
+            FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG(core, tmp));
+
+            tmp.flush<0>();
             PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
             FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
         }
