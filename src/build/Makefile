@@ -52,6 +52,14 @@ else
 IMAGE_NAME = $(IMAGE_SEEPROM_NAME)
 endif
 
+#Mesurement SEEPROM version: Any change in measurement seeprom code the below version field 
+#needs to be updated.
+#Example: 3.4 = \x00\03\x00\x04
+#Version = 4Bytes = 1.0 = "\x00\01\x00\x00"
+MEASUREMENT_SEEPROM_VER="\x00\x01\x00\x00"
+#4bytes reserved to keep the xip section 8 byte alligned
+MEASUREMENT_SEEPROM_RESERVED="\x00\x00\x00\x00"
+
 SUBDIRS := $(PK_BASELIB_SRCDIR)
 LIB_DIRS += -L$(OBJDIR)/pkbaselib
 #PKLIB := $(OBJDIR)/p/libpk.a
@@ -237,6 +245,9 @@ output_measure_image:
 
 measure_normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin normalize
+	echo -n -e $(MEASUREMENT_SEEPROM_VER)$(MEASUREMENT_SEEPROM_RESERVED) > $(IMG_DIR)/temp_version.bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).bin append .sb_settings $(IMG_DIR)/temp_version.bin
+	rm -f $(IMG_DIR)/temp_version.bin
 
 measure_symbols:
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_MEASUREMENT_NAME).out > $(IMG_DIR)/$(MEASUREMENT_SYMBOLS_NAME)
