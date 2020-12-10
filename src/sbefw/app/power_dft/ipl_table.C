@@ -445,7 +445,12 @@ ReturnCode istepSelectEx( voidfuncptr_t i_hwp)
     // TODO via RTC 135345
     // Once multicast targets are supported, we may need to pass
     // p9selectex::ALL as input.
-    SBE_EXEC_HWP(rc, reinterpret_cast<p10_sbe_select_ex_FP_t>(i_hwp), proc, selectex::SINGLE)
+    if ( proc.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL).size() == 0 )
+    {
+        FAPI_DBG("Skipping proc since no cores are configured");
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+	SBE_EXEC_HWP(rc, reinterpret_cast<p10_sbe_select_ex_FP_t>(i_hwp), proc, selectex::SINGLE)
     return rc;
 }
 
@@ -598,7 +603,12 @@ ReturnCode istepWithGoodEqMCCore( voidfuncptr_t i_hwp)
     #define SBE_FUNC "istepWithGoodEqMCCore"
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
+    if ( proc.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL).size() == 0 )
+    {
+        FAPI_DBG("Skipping proc since no cores are configured");
+        return fapi2::FAPI2_RC_SUCCESS;
+    }
+	fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,
                      fapi2::MULTICAST_AND > l_mc_cores;
     l_mc_cores = proc.getMulticast<fapi2::MULTICAST_AND>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
     FAPI_DBG("MultiCast Code target for group MCGROUP_GOOD_EQ Created=0x%.8x",l_mc_cores.get());
