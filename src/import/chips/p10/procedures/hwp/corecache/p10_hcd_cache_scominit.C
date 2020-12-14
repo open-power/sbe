@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -46,6 +46,7 @@
     #include "p10_ppe_c_7.H"
 #else
     #include <p10_scom_c.H>
+    #include "p10_fbc_core_topo.H"
 #endif
 
 //------------------------------------------------------------------------------
@@ -91,45 +92,7 @@ inline int fastlog2(unsigned n)
 {
     return (n == 0) ? 0 : __builtin_ctz(n);
 }
-///
-/// @brief Initialize the L3 and NCU topology id table entries
-/// @param[in] c                Reference to core target
-/// @param[in] topo_scoms       Vector where each element is the content to write
-///                             into the topology id table SCOM register.
-///                             topo_scoms[0] contains reg value for entries  0.. 7
-///                             topo_scoms[1] contains reg value for entries  8..15
-///                             topo_scoms[2] contains reg value for entries 16..23
-///                             topo_scoms[3] contains reg value for entries 24..31
-///                             assert(topo_scoms.size() == 4)
-/// @return fapi::ReturnCode    FAPI2_RC_SUCCESS on success, error otherwise
-///
-fapi2::ReturnCode init_topo_id_tables(const fapi2::Target < fapi2::TARGET_TYPE_CORE
-                                      | fapi2::TARGET_TYPE_MULTICAST > & c,
-                                      const std::vector<uint64_t>& topo_scoms)
-{
-    using namespace scomt::c;
 
-    PREP_L3_MISC_L3CERRS_TOPOLOGY_TBL0_SCOM_RD(c);
-    FAPI_TRY(PUT_L3_MISC_L3CERRS_TOPOLOGY_TBL0_SCOM_RD(c, topo_scoms[0]));
-    PREP_L3_MISC_L3CERRS_TOPOLOGY_TBL1_SCOM_RD(c);
-    FAPI_TRY(PUT_L3_MISC_L3CERRS_TOPOLOGY_TBL1_SCOM_RD(c, topo_scoms[1]));
-    PREP_L3_MISC_L3CERRS_TOPOLOGY_TBL2_SCOM_RD(c);
-    FAPI_TRY(PUT_L3_MISC_L3CERRS_TOPOLOGY_TBL2_SCOM_RD(c, topo_scoms[2]));
-    PREP_L3_MISC_L3CERRS_TOPOLOGY_TBL3_SCOM_RD(c);
-    FAPI_TRY(PUT_L3_MISC_L3CERRS_TOPOLOGY_TBL3_SCOM_RD(c, topo_scoms[3]));
-
-    PREP_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG0(c);
-    FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG0(c, topo_scoms[0]));
-    PREP_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG1(c);
-    FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG1(c, topo_scoms[1]));
-    PREP_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG2(c);
-    FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG2(c, topo_scoms[2]));
-    PREP_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG3(c);
-    FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_TOPOTABLE_REG3(c, topo_scoms[3]));
-
-fapi_try_exit:
-    return fapi2::current_err;
-}
 };
 
 static inline fapi2::ReturnCode p10_hcd_cache_scominit_sbe(
@@ -180,7 +143,11 @@ static inline fapi2::ReturnCode p10_hcd_cache_scominit_sbe(
     for (const auto& c : l_active)
     {
         // 0. setup the the L3 and NCU topology id tables
-        FAPI_TRY(init_topo_id_tables(c, l_topo_scoms));
+        FAPI_TRY(p10_fbc_core_topo( c,
+                                    l_topo_scoms,
+                                    nullptr,   // HOMER pointer not needed for HW mode
+                                    stopImageSection::PROC_STOP_SECTION_CACHE,
+                                    rt_topo::RT_TOPO_MODE_HW));
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_BACKING_CTL_REG(c, l_data));
         // 1. enable castout to backing caches
@@ -216,7 +183,12 @@ static inline fapi2::ReturnCode p10_hcd_cache_scominit_sbe(
     for (const auto& c : l_backing)
     {
         // 0. setup the the L3 and NCU topology id tables
-        FAPI_TRY(init_topo_id_tables(c, l_topo_scoms));
+        FAPI_TRY(p10_fbc_core_topo( c,
+                                    l_topo_scoms,
+                                    nullptr,   // HOMER pointer not needed for HW mode
+                                    stopImageSection::PROC_STOP_SECTION_CACHE,
+                                    rt_topo::RT_TOPO_MODE_HW));
+
 
         FAPI_TRY(GET_L3_MISC_L3CERRS_MODE_REG0(c, l_data));
         // 1. enable direct-mapped mode

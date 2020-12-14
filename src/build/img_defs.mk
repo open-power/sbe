@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -486,6 +486,7 @@ export LD_LIBRARY_PATH+=:$(CROSS_COMPILER_PATH)/lib
 
 INCLUDES += $(IMG_INCLUDES)
 INCLUDES += -I$(HWPLIB_SRCDIR)
+INCLUDES += -I$(HWPLIB_SRCDIR)/../../utils/stopreg/
 INCLUDES += -I$(GENFILES_DIR)
 INCLUDES += -I$(PLAT_FAPI2_DIR)
 INCLUDES += -I$(BASE_FAPI2_DIR)/include
