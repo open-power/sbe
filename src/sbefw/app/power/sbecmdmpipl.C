@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -57,16 +57,6 @@ using namespace fapi2;
 // Defines for stop clock
 #define SBE_IS_EX0(chipletId) \
     (!(((chipletId - CORE_CHIPLET_OFFSET) & 0x0002) >> 1))
-
-/* @brief Bitmapped enumeration to identify the stop clock HWP call
- */
-enum stopClockHWPType
-{
-    SC_NONE     = 0x00,
-    SC_PROC     = 0x01, // Call p10_stopclocks
-    SC_CACHE    = 0x02, // Call p10_hcd_cache_stopclocks
-    SC_CORE     = 0x04, // Call p10_hcd_core_stopclocks
-};
 
 #ifdef __SBEFW_SEEPROM__
 
@@ -474,13 +464,17 @@ static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType,
 }
 
 ///////////////////////////////////////////////////////////////////////
-// @brief sbeStopClocks Sbe Stop Clocks function
-//
+// @brief sbeStopClocks_Wrap Sbe Stop Clocks function
+// @param[in]  i_getStream      up-stream fifo for chip-op /
+//                              memory interface for dump
+// @param[in]  i_putStream      down-stream fifo for chip-op /
+//                              memory interface for dump
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-uint32_t sbeStopClocks(uint8_t *i_pArg)
+uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream )
 {
-    #define SBE_FUNC " sbeStopClocks"
+    #define SBE_FUNC " sbeStopClocks_Wrap"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
@@ -494,7 +488,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     {
         // Get the TargetType and ChipletId from the command message
         len  = sizeof(sbeStopClocksReqMsgHdr_t)/sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&reqMsg); // EOT fetch
+        rc = i_getStream.get(len, (uint32_t *)&reqMsg); // EOT fetch
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
@@ -523,12 +517,12 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // All Eq/All Cache/All & Perv & Proc are handled here
         if(hwpType & SC_PROC)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_stopclocks HWP");
+            SBE_INFO(SBE_FUNC "Calling p10_stopclocks HWP with Proc Target FLag ALL");
             p10_stopclocks_flags flags = getStopClocksFlags(reqMsg.targetType, reqMsg.chipletId);
             SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp, proc, flags);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR("Failed in p10_stopclocks(), fapiRc=0x%.8x",fapiRc);
+                SBE_ERROR("Failed in p10_stopclocks(), Proc, Flag ALL, fapiRc=0x%.8x",fapiRc);
                 break;
             }
         }
@@ -537,7 +531,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // and MMA.
         if(hwpType & SC_CORE)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_core_stopclocks");
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_core_stopclocks, Core");
             if(reqMsg.chipletId == SMT4_ALL_CORES)
             {
                 //Request is for All cores , create a multicast target and call
@@ -563,7 +557,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // p10_hcd_eq_stopclocks: CORE+L2,L3 and MMA clocks are stopped.
         if(hwpType & SC_CACHE)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_eq_stopclocks");
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_eq_stopclocks, Cache");
             if(reqMsg.chipletId == EQ_ALL_CHIPLETS)
             {
                 //Request is for All EQs , create a multicast target and call
@@ -601,10 +595,36 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+    if(i_putStream.isStreamRespHeader())
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+        {
+            rc = sbeDsSendRespHdr( respHdr, &ffdc, i_getStream.getFifoType());
+        }
     }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+///////////////////////////////////////////////////////////////////////
+// @brief sbeStopClocks Sbe Stop Clocks function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+uint32_t sbeStopClocks(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeStopClocks"
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+    rc = sbeStopClocks_Wrap (istream,ostream);
+
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
