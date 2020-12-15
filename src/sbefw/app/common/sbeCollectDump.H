@@ -257,6 +257,13 @@ class sbeCollectDump
          */
         uint32_t populateHDCTRowTOC();
 
+       /** @brief stop clocks off as per HDCT row data.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *          ERROR,    Incase of failure.
+        */
+        uint32_t stopClocksOff();
+
        /**
         * @brief As per p10_query_host_meminfo HWP to determine address and size
         *        of HB memory and then write data to the FIFO

@@ -30,6 +30,7 @@
 #include <sbecmdsram.H>
 #include <sbecmdmemaccess.H>
 #include <sbecmdringaccess.H>
+#include <sbecmdmpipl.H>
 #include <p10_query_host_meminfo.H>
 
 #include "sbecmdringaccess.H"
@@ -53,6 +54,69 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
 }
 
+uint32_t sbeCollectDump::stopClocksOff()
+{
+    #define SBE_FUNC " stopClocksOff "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do
+    {
+        // Update address, length and stream header data vai FIFO
+        iv_tocRow.tocHeader.address = iv_hdctRow->cmdStopClocks.strEqvHash32;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+        // Create the req struct for the sbeStopClocks Chip-op
+        sbeStopClocksReqMsgHdr_t dumpStopClockReq = {0};
+        len = sizeof(dumpStopClockReq)/sizeof(uint32_t);
+        dumpStopClockReq.reserved = 0x00;
+        uint32_t clockType = iv_hdctRow->cmdStopClocks.strEqvHash32;
+        if( TYPE_ALL == clockType )
+        {
+            dumpStopClockReq.targetType = TARGET_PROC_CHIP;
+            //For TARGET_PROC_CHIP chiplet ID is N/A. lets keep it 0x00.
+            dumpStopClockReq.chipletId = 0x00;
+        }
+        //TODO:Stop clocks on Cache is not supported by SBE.Beow code is wrong
+        //and needs to be updated. MPIPL clock OFF will not work without this
+        //support.
+        else if( TYPE_CACHE == clockType )
+        {
+            dumpStopClockReq.targetType = TARGET_EQ;
+            dumpStopClockReq.chipletId  = EQ_ALL_CHIPLETS;
+        }
+        else if( TYPE_CORE == clockType )
+        {
+            dumpStopClockReq.targetType = TARGET_CORE;
+            dumpStopClockReq.chipletId  = SMT4_ALL_CORES;
+        }
+        else if( TYPE_EQ == clockType )
+        {
+            dumpStopClockReq.targetType = TARGET_EQ;
+            dumpStopClockReq.chipletId  = EQ_ALL_CHIPLETS;
+        }
+        else
+        {
+            SBE_ERROR("Failed in dumpStopClocks clockType[0x%08X], chipUnitNum",
+                      "[0x%08X]",clockType, iv_tocRow.tocHeader.chipUnitNum);
+            break;
+        }
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                          (uint32_t*)&dumpStopClockReq, false );
+        rc = sbeStopClocks_Wrap( istream, iv_oStream );
+
+        SBE_INFO("dumpStopClocks: dumpStopClocks clockType[0x%08X],chipUnitNum",
+                  "[0x%08X]",clockType, iv_tocRow.tocHeader.chipUnitNum);
+    }
+    while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeCollectDump::writeGetRingPacketToFifo()
 {
     #define SBE_FUNC " writeGetRingPacketToFifo "
@@ -62,8 +126,14 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetRing.strEqvHash32;
     uint32_t bitlength = iv_hdctRow->cmdGetRing.ringLen;
-    iv_tocRow.tocHeader.dataLength =
+    //Stream out the actual ring length.
+    iv_tocRow.tocHeader.dataLength = bitlength;
+    //Dummy data length to be streamed out in case of FFDC.Keep it 8byte
+    //alligned based on ring length as ring chip-op streams out data 8byte
+    //aligned.
+    uint32_t dummyDataLengthInBits =
                 64 * (((uint32_t)(bitlength / 64)) + ((uint32_t)(bitlength % 64) ? 1:0 ));
+
     uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
@@ -80,7 +150,7 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
 
     // Verify ring data length in FIFO as per length size
     uint32_t startCount = iv_oStream.words_written();
-    uint32_t totalCountInBytes = iv_tocRow.tocHeader.dataLength / 8;
+    uint32_t totalCountInBytes = dummyDataLengthInBits / 8;
     uint32_t totalCount = totalCountInBytes / (sizeof(uint32_t));
     uint32_t dummyData = 0x00;
 
@@ -224,7 +294,7 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
         // Create the req struct for the SRAM Chip-op
         sbeSramAccessReqMsgHdr_t dumpSramReq = {0};
         len  = sizeof(sbeSramAccessReqMsgHdr_t)/sizeof(uint32_t);
-        dumpSramReq.chipletId = iv_tocRow.tocHeader.chipUnitNum; 
+        dumpSramReq.chipletId = iv_tocRow.tocHeader.chipUnitNum;
         dumpSramReq.multicastAccess = 0x00;
         dumpSramReq.reserved = 0x00;
         if( iv_hdctRow->cmdGetSram.extGenericHdr.mode )
@@ -267,7 +337,7 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         iv_tocRow.tocHeader.dataLength = 0x00;
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-        
+
         uint32_t addr = iv_tocRow.tocHeader.address;
         uint32_t maskType = iv_hdctRow->cmdPutScom.extGenericHdr.bitModifier;
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
@@ -331,7 +401,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     iv_tocRow.tocHeader.dataLength = 0x40; // 64 bits -or- 2 words
     uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-    uint64_t dumpData; 
+    uint64_t dumpData;
     fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
     fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
     if(fapiRc != FAPI2_RC_SUCCESS)
@@ -519,11 +589,12 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     iv_tocRow.tocHeaderInit(iv_hdctRow);
 
     // TODO: Clean-Up once other chip-op ennabled.
-    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)   ||
-           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)   ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETRING)   ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM) ) )
+    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)    ||
+           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)    ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)  ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
+           (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         return rc;
 
     // Map Dump target id with plat target list
@@ -549,6 +620,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_PUTSCOM:
             {
                 rc = writePutScomPacketToFifo();
+                break;
             }
             case CMD_GETRING:
             {
@@ -558,6 +630,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_GETSRAM:
             {
                 rc = writeGetSramPacketToFifo();
+                break;
+            }
+            case CMD_STOPCLOCKS:
+            {
+                rc = stopClocksOff();
                 break;
             }
             case CMD_GETMEMPBA:

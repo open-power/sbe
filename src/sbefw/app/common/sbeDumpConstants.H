@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -129,6 +129,16 @@ enum bitModifier
     B_NONE = 0x00,
     B_OR  = 0x01,
     B_AND = 0x02,
+};
+
+// Clock HWP Type for stopClock
+// No: of bits used in HDCT.bin - 32bits
+enum clockType
+{
+    TYPE_ALL = 0x62E649F3,
+    TYPE_CACHE = 0x7C914A69,
+    TYPE_CORE = 0xC3F1DA81,
+    TYPE_EQ = 0xE9088340,
 };
 
 // Generic Structre for each HDCT row.
