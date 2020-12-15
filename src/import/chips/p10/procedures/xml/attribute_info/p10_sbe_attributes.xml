@@ -561,6 +561,10 @@
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>
     <value>0x00</value>
   </entry>
+    <entry>
+    <name>ATTR_ZERO_CORE_CHIP</name>
+    <value>0x00</value>
+  </entry>
   <!-- virtual attributes -->
   <entry>
     <name>ATTR_CHIP_UNIT_POS</name>

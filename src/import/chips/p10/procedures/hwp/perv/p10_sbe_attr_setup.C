@@ -66,6 +66,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
     FAPI_DBG("Start");
 
     uint32_t l_core_gard = 0;
+    bool l_good_core_chip_detected = false;
 
     // EQ - apply core GARD information to partial good vector
     i_scratch1_reg.extract<CORE_GARD_STARTBIT, CORE_GARD_LENGTH>(l_core_gard);
@@ -78,17 +79,56 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
         uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_EQ);
         uint32_t l_gard_mask = (l_core_gard >>
                                 (NUM_CORES_PER_EQ * ((NUM_EQS_PER_CHIP - 1) - l_unit_num))) & CORE_GARD_EQ_MASK;
-        FAPI_DBG("EQ%d, core gard mask: 0x%X", l_unit_num, l_gard_mask);
+        FAPI_DBG("EQ%d, core gard mask: 0x%08X", l_unit_num, l_gard_mask);
 
         // shift into position in partial good attribute
         fapi2::ATTR_PG_Type l_pg;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
-        FAPI_DBG("  PG before: 0x%08X", l_pg);
-        l_pg |= ((l_gard_mask << EQ_PG_MMA_SHIFT)    |  // MMA0..3
-                 (l_gard_mask << EQ_PG_L3_SHIFT)     |  // L30..3
-                 (l_gard_mask << EQ_PG_ECL2_SHIFT));    // ECL20..3
+        FAPI_DBG("  PG via ATTR_PG_MVPD: 0x%08X  Inverse:  0x%08X", l_pg, ~l_pg);
+
+#ifdef __PPE__
+
+        // For IOSCM, no elements in the EQ MVPD record will be marked good
+        // However, we only care about cores, L3s, and MMAs
+        if ((l_pg & 0xFFE7F9FF) != 0xFFE7F9FF)
+        {
+            l_good_core_chip_detected = true;
+            FAPI_DBG("  SBE Good core chip detected");
+        }
+
+#endif
+        l_pg |= ((l_gard_mask << (EQ_PG_MMA_SHIFT))    |  // MMA0..3
+                 (l_gard_mask << (EQ_PG_L3_SHIFT))     |  // L30..3
+                 (l_gard_mask << (EQ_PG_ECL2_SHIFT)));    // ECL20..3
         FAPI_DBG("  PG after: 0x%08X", l_pg);
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+
+#ifndef __PPE__
+        // For Cronus, detect if there is at least 1 core good in this quad.
+        // This is done post-gard as this is how Cronus communicates desired
+        // configuration.
+
+        if ((l_pg & 0xFFE7F9FF) != 0xFFE7F9FF)
+        {
+            l_good_core_chip_detected = true;
+            FAPI_DBG("  Cronus Good core chip detected");
+        }
+
+//         // CoreL2/L3/MMA bit bask
+//         if ( ~l_pg & (CORE_GARD_EQ_MASK << (EQ_PG_ECL2_SHIFT)))
+//         {
+//             l_good_core_chip_detected = true;
+//             FAPI_DBG("  Cronus good core chip detected");
+//         }
+
+#endif
+    }
+
+    if (!l_good_core_chip_detected)
+    {
+        FAPI_INF("  Chip with no good cores detected");
+        fapi2::ATTR_ZERO_CORE_CHIP_Type l_all_zero_core_chip = fapi2::ENUM_ATTR_ZERO_CORE_CHIP_TRUE;
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_ZERO_CORE_CHIP, i_target_chip, l_all_zero_core_chip));
     }
 
 fapi_try_exit:
@@ -177,6 +217,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG before: 0x%08X", l_pg);
 
+
         if (i_scratch2_reg.getBit(static_cast<uint32_t>(MC_GARD_STARTBIT) + l_unit_num))
         {
             l_pg = 0xFFFFFFFF;
@@ -215,7 +256,6 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
                      l_unit_num,
                      i_scratch2_reg.getBit(static_cast<uint32_t>(PAUC_GARD_STARTBIT) + l_unit_num),
                      l_gard_mask);
-
 
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
             FAPI_DBG("  PG before: 0x%08X", l_pg);

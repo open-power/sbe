@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -419,10 +419,25 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC_Type l_attr_chip_contained_active_cores_vec;
     fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC_Type l_attr_chip_contained_backing_caches_vec;
     fapi2::ATTR_SBE_SELECT_EX_POLICY_Type l_attr_sbe_select_ex_policy;
+    fapi2::ATTR_ZERO_CORE_CHIP_Type l_zero_core_chip;
 
     uint8_t l_functional_cores_num = i_core_functional_vector.size();
     o_active_cores_num = 0;
     o_backing_caches_num = 0;
+
+    // In order to support IOSCMs ( which have no good cores on 1 chip), exit as there aren't
+    // any active/backing cache requirements for them.
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ZERO_CORE_CHIP, i_target, l_zero_core_chip));
+
+    if (l_zero_core_chip)
+    {
+        FAPI_DBG("  select_ex_calc_active_backing_nums: Zero good cores detected.  Assuming IOSCM chip.");
+        FAPI_DBG("  Setting OCC Flag 3[XGPE_ZERO_CORE_CHIP](20)");
+        fapi2::buffer<uint64_t> l_occ_flag3;
+        l_occ_flag3.setBit<20, 1>();
+        FAPI_TRY(fapi2::putScom(i_target, scomt::proc::TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_OR, l_occ_flag3));
+        goto fapi_try_exit;
+    }
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");

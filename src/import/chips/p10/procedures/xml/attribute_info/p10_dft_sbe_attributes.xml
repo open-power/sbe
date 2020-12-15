@@ -562,6 +562,10 @@
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>
     <value>0x00</value>
   </entry>
+  <entry>
+    <name>ATTR_ZERO_CORE_CHIP</name>
+    <value>0x00</value>
+  </entry>
   <!-- virtual attributes -->
   <entry>
     <name>ATTR_CHIP_UNIT_POS</name>
@@ -620,11 +624,11 @@
   <entry>
     <name>ATTR_CHIP_EC_FEATURE_HW546482_QME_TOPO_FIR</name>
     <virtual/>
-  </entry>    
+  </entry>
   <entry>
     <name>ATTR_CHIP_EC_FEATURE_HW545231</name>
     <virtual/>
-  </entry>    
+  </entry>
   <entry>
     <name>ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL</name>
     <virtual/>
