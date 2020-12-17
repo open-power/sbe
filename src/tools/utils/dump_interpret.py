@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020
+# Contributors Listed Below - COPYRIGHT 2020,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -45,7 +45,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path
 import createHdctTxtUtils as txtUtils
 
 #Tool version
-toolVersion = 1.0
+toolVersion = 1.1
 
 #Dump Footer
 dumpFooter = "DONE"
@@ -153,8 +153,11 @@ class scomData():
 
         #4bytes of data length in bits
         tempdataLen = int.from_bytes(dataHdr[12:], "big")
+        #All data that is streamed out is 8byte aligned. If unaligned length is
+        #present in case of rings etc align it to 8 bytes.
+        self.dataLen = 64 * ((int(tempdataLen / 64)) + (1 if int(tempdataLen % 64) else 0) )
         #Length is in bits, lets convert to bytes
-        self.dataLen = int(tempdataLen / 8)
+        self.dataLen = int(self.dataLen / 8)
 
         #For internal use. Not a part of header
         self.hdctEntry = 0
@@ -180,18 +183,37 @@ class scomData():
 
     def parseChipOpData(self, scomData):
 
+        #Lets skip data collection for getmempba as data is huge in MB. We will
+        #extract out getmempba data into a seperate file.
         self.chipOpData = ""
         #Scom output - length as per data length
         numberOfDoubleWords = int(self.dataLen / 8)
-        for i in range(0,numberOfDoubleWords):
-            tempChipOpData = int.from_bytes(scomData[(8*i):((8*i)+8)], "big")
-            tempChipOpData = str(format(tempChipOpData,'016X'))
-            self.chipOpData = self.chipOpData + tempChipOpData
+        if self.cmdType != "getmempba":
+            for i in range(0,numberOfDoubleWords):
+                tempChipOpData = int.from_bytes(scomData[(8*i):((8*i)+8)], "big")
+                tempChipOpData = str(format(tempChipOpData,'016X'))
+                self.chipOpData = self.chipOpData + tempChipOpData
+
+        #Extract the HB memory dump (getmempba).
+        #Will be extracted if dump type is HB and clock state is ON.
+        if(self.cmdType == "getmempba" and HBMemDump == "true" and dumpType == "HB" and clockState == "ON"):
+            filenames["HBMemDump"] = os.path.join(outputPath, "HBMemDump" + ".bin")
+            out.print("Extracting HB Mem Dump into %s " % filenames["HBMemDump"])
+            file = open(filenames["HBMemDump"], "wb")
+            for i in range(0,numberOfDoubleWords):
+                file.write(scomData[(8*i):((8*i)+8)])
+            file.close()
 
     def parseFfdcLength(self, ffdcLen):
 
         #4 bytes of ffdc length - if 0 => no ffdc
         self.ffdcLen = int.from_bytes(ffdcLen, "big")
+
+        #Delete the HB mem dump collected if FFDC is generated.
+        if(self.cmdType == "getmempba" and HBMemDump == "true" and dumpType == "HB" and clockState == "ON"):
+            if self.ffdcLen != 0x00:
+                out.critical("FFDC generated for getmempba. Deleting HB mem dump collected")
+                os.system("rm -f %s" % filenames["HBMemDump"])
 
     def parseFfdcData(self, ffdcData):
 
@@ -488,6 +510,7 @@ optgroup = argparser.add_argument_group('Optional Arguments')
 optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 optgroup.add_argument('-o', '--output', help="Directory to place output")
 optgroup.add_argument('-f', '--parserPrints', help="Print the Parsed output on to consol", choices=["on","off"],default = "off" )
+optgroup.add_argument('-m', '--HBMemDump', help="Extract the HB memory dump into a .bin file(getmempba). Applicable only for HB dump in clock ON state", choices=["true","false"],default = "false" )
 optgroup.add_argument('-l', '--log-level', default=out.levels.INFO, type=out.levels.argparse, choices=list(out.levels),
                       help="The output level to send to the log.  INFO is the default")
 optgroup.add_argument('-c', '--console-level', default=out.levels.BASE, type=out.levels.argparse, choices=list(out.levels),
@@ -511,20 +534,23 @@ hdctBinFile = args.hdctBinFile
 #Grab the debug prints on or off
 debugPrints = args.parserPrints
 
+#Grabe the host boot mem dump option
+HBMemDump = args.HBMemDump
+
 # Grab your output location and level args right away so we can setup output and logging
 # Setup our output directory
 # If the user gave us one, use that
-# If not, create one in current dir
+# If not, create one in tmp dir
 if (args.output == None):
     # If we don't have one, use the default
-    outputPath = os.path.join("./")
+    outputPath = os.path.join("/tmp/")
 else:
     outputPath = args.output
 
 # Create the filename.
 filenameBase = "verifyDumpFifoOut"
 filenames = dict()
-outputPath = outputPath + "/" + filenameBase
+outputPath = outputPath + "/" + filenameBase + "_" + dumpType + "_" + clockState
 # Make sure the path exists
 if (not os.path.exists(outputPath)):
     # Create the output dir

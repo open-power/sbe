@@ -127,8 +127,8 @@ enum commandTypes
 enum bitModifier
 {
     B_NONE = 0x00,
-    B_OR  = 0x01,
-    B_AND = 0x02,
+    B_AND = 0x01,
+    B_OR  = 0x02,
 };
 
 // Clock HWP Type for stopClock
