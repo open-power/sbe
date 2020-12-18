@@ -43,6 +43,7 @@
 #include "p10_thread_control.H"
 #include "p10_scom_c.H"
 #include "p10_scom_eq_3.H"
+#include "p10_scom_eq_1.H"
 #include "p10_query_corecachemma_access_state.H"
 using namespace fapi2;
 
@@ -107,6 +108,48 @@ static uint32_t specialWakeUpCoreAssert(
             SBE_ERROR(SBE_FUNC " special wakeup putscom failed");
             rc = SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE;
             break;
+        }
+
+        //Check if the QME is halted 
+        //TODO: This check is only for DD1
+        fapi2::buffer<uint64_t> l_qmeIar;
+        auto l_parentEq  =  i_target.getParent< fapi2::TARGET_TYPE_EQ >();
+        o_fapiRc = getscom_abs_wrap(&l_parentEq, scomt::eq::QME_SCOM_XIDBGPRO, &l_qmeIar());
+        if(o_fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC " EQ:0x%.8x ,Failed to read scomt::eq::QME_SCOM_XIDBGPRO to detect if QME is halted",
+                      l_parentEq.get());
+            rc = SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE;
+            break;
+        }
+        if( l_qmeIar.getBit( scomt::eq::QME_SCOM_XIDBGPRO_XSR_HS ) )
+        {
+            SBE_INFO("QME assocaited with the core=0x%.8x is HALTED",i_target.get());
+            fapi2::buffer<uint64_t> l_scrData;
+            uint32_t l_pmState = 0;
+            o_fapiRc = getscom_abs_wrap(&i_target, scomt::c::QME_SCSR, &l_scrData());
+            if(o_fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " Core:0x%.8x ,Failed to read QME_SCSR to determine stop state",
+                          i_target.get());
+                rc = SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE;
+                break;
+            }
+            l_scrData.extractToRight< 60, 4 >( l_pmState );
+            if( ( l_scrData.getBit( scomt::c::QME_SCSR_PM_STATE_ACTIVE )) && ( ( l_pmState == 0 ) || ( l_pmState == 1 ) ) )
+            {
+                SBE_INFO("Core:0x%.8x  is  in STOP 0/1:0x%.8x",i_target.get(),l_pmState);
+                l_scrData.setBit( scomt::c::QME_SCSR_ASSERT_PM_EXIT ); // Enable exit from core STOP state
+                l_scrData.clearBit( scomt::c::QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE ); // Enable auto-special wakeup
+                o_fapiRc = putscom_abs_wrap(&i_target, scomt::c::QME_SCSR, l_scrData);
+                if(o_fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Core=0x%.8x , Failed to update QME_SCSR",i_target.get());
+                    rc = SBE_SEC_SPECIAL_WAKEUP_SCOM_FAILURE;
+                    break;
+                }
+            }
+
         }
 
         do
