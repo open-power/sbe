@@ -109,12 +109,20 @@ skip_pibmem_init_memory_in_mpipl:
         // Reset the TPM using SBE local register 0xC0002020
         // 0xC0002030 is the W_OR Register, 0xC0002038 is W_CLR Register,
         // Set the Bit0 to 1 then to 0
+         
         lis     r6, 0xc000
         ori     r6, r6, 0x2030
         lis     r0, 0x8000
         ori     r0, r0, 0x0
         li      r1, 0x0
         stvd    d0, 0(r6)   // putscom 0xc0002030 0x8000000000000000
+        
+        // Setup loop counter to delay the transition [2nsec * 0x50 = 160nsec]
+        _liw    %r5, 0x50
+        mtctr   r5
+delay_loop:
+        bdnz    delay_loop
+        
         stvd    d0, 0x8(r6) // putscom 0xc0002038 0x8000000000000000
 
         ############################################################
