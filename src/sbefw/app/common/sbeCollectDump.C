@@ -472,7 +472,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         // write dump row header contents using FIFO
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
-        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.getChipletNumber();
+        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
 
         switch(iv_tocRow.tocHeader.cmdType)
         {
