@@ -1,0 +1,181 @@
+#!/bin/sh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+# $Source: src/tools/scripts/getSbeTrace $
+#
+# OpenPOWER sbe Project
+#
+# Contributors Listed Below - COPYRIGHT 2016,2021
+# [+] International Business Machines Corp.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# IBM_PROLOG_END_TAG
+
+#Akhilesh S - created 03/01/2021
+# Script to extract SBE traces.
+
+# Exit if any command fails
+set -e
+
+TOOL_VERSION=1
+
+# @brief Print the help/usage info to the console
+usage()
+{
+    echo "TOOL VERSION : $TOOL_VERSION"
+    echo "Usage"
+    echo "!!!RUN ON A LCB MACHINE!!!"
+    echo "Script to extract SBE Traces "
+    echo "getSbeTrace -t <Build Type> -l <Build Level> [-h -i <SBE Image Path>]"
+    echo ""
+    echo "Required Options:"
+    echo "  -t: Build Type - OP/FIPS/SBE"
+    echo "  -l: OP/FIPS Build Level.(Optional argument in case if Build Type is SBE)"
+    echo "Optional Options:"
+    echo "  -h: print this message."
+    echo "  -o: Operation to be carried out.All operations that are supported by
+    sbeDebug.py tool can be passed as an argument.
+    Example: 'trace', 'forced-trace', 'attr', 'stack', 'ppestate', 'sbestate' etc"
+    echo "  -i: Required option if Build Type is SBE. SBE Image Absolute Path(To fetch symbol files etc). This is for
+                SBE internal use only. Required tools will be fetched from op build latest
+                master. OP/FIPS Build Level option is optional."
+    echo "Example:"
+    echo "Fetch SBE Traces:"
+    echo "./getSbeTrace -t <Build_type> -l <Build_level>"
+    echo "Fetch SBE State:"
+    echo "./getSbeTrace -t <Build_type> -l <Build_level> -o stack"
+}
+
+while getopts "h?l:i:t:o:" opt;
+do
+    case $opt in
+
+        h)
+            usage
+            exit 0
+        ;;
+
+        t)
+            BUILD_TYPE=$OPTARG
+        ;;
+
+        l)
+            BUILD_LEVEL=$OPTARG
+        ;;
+
+        i)
+            SBE_IMAGE_PATH=$OPTARG
+        ;;
+
+        o)
+            OPERATION=$OPTARG
+        ;;
+
+        *)
+            echo "Bad option: $OPTARG"
+            usage
+            exit -1
+        ;;
+    esac
+done
+
+OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
+FIPS_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/fips1010/Builds/
+
+#Check if user has passed all required arguments, if not raise error
+if [ -z $BUILD_TYPE ]; then
+    echo "***ERROR | Build Type not entered."
+    usage
+    exit -1
+fi
+
+if [ -z $OPERATION ]; then
+    #Default operation
+    OPERATION="trace"
+fi
+
+if [ "$BUILD_TYPE" != "SBE" ]; then
+    if [ -z $BUILD_LEVEL ]; then
+        echo "***ERROR | Build Level not entered."
+        usage
+        exit -1
+    fi
+fi
+
+#check if Build Type entered is valid(OP/FIPS/SBE). If valid populate required fields
+if [ "$BUILD_TYPE" = "OP" ]; then
+
+    SBE_IMAGE_PATH=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/
+    SBE_DEBUG_TOOL=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/sbe-debug.py
+
+elif [ "$BUILD_TYPE" = "FIPS" ]; then
+
+    SBE_IMAGE_PATH=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/
+    SBE_DEBUG_TOOL=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
+
+elif [ "$BUILD_TYPE" = "SBE" ]; then
+
+    if [ -z $SBE_IMAGE_PATH ]; then
+        echo "***ERROR | SBE Tools path not entered/SBE Image path not entered.
+        Enter symbol file absolute path."
+        usage
+        exit -1
+    fi
+
+    #Fetch all required tools if available from SBE_IMAGE_PATH else fetch from op build latest_master-p10
+    if [ -f $SBE_IMAGE_PATH/sbe-debug.py ]; then
+        if [ -f $SBE_IMAGE_PATH/fsp-trace ]; then
+            if [ -f $SBE_IMAGE_PATH/ppe2fsp ]; then
+                echo "Fetching tools from SBE Image path - $SBE_IMAGE_PATH"
+                SBE_DEBUG_TOOL=$SBE_IMAGE_PATH/sbe-debug.py
+            fi
+        fi
+    fi
+
+    if [ -z $SBE_DEBUG_TOOL ]; then
+        BUILD_LEVEL=/latest_master-p10/
+        echo "SBE tools not found in: $SBE_IMAGE_PATH .
+        Fetching tools from OP build - Level: $BUILD_LEVEL"
+        SBE_DEBUG_TOOL=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/sbe-debug.py
+    fi
+
+else
+
+    echo "***ERROR | Invalid Build Type entered : $BUILD_TYPE"
+    usage
+    exit -1
+
+fi
+
+export PATH=$PATH:/afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_models/p10_e10027_vbu_sc_027u09a_01/ekb/output/bin
+
+#SBE symbol file will be searched/fetched from below path.
+export SBE_TOOLS_PATH=$SBE_IMAGE_PATH
+
+#sbe-debug.py tool path from OP Build. ppe2fsp and fsp-trace tools are also present in below path,hence we need not export.
+SBE_DEBUG_TOOL_PATH=${SBE_DEBUG_TOOL}
+
+#Default cronus settings for fetching SBE traces
+setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_models/p10_e10027_vbu_sc_027u09a_01/ekb/output/lib
+setconfig GLOBAL_DEBUG none
+
+#Run sbe-debug.py tool
+$SBE_DEBUG_TOOL_PATH -l $OPERATION -t HW
+
+#Set back cronus settings to actual
+setconfig HW_PROCEDURE_PATH none
+
+exit 0
