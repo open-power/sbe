@@ -178,6 +178,10 @@ typedef enum
 } DDS_JUMP_VALUE_INDEX;
 #endif
 
+
+//WOF_VRATIO Attribute Index
+#define NUM_WOF_VRATIO_PCT      8
+
 #ifndef __ASSEMBLER__
 #ifdef __cplusplus
 extern "C" {
