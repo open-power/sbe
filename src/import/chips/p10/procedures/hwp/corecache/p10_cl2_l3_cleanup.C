@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -119,14 +119,13 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
         FAPI_IMP("Core position %d CL2 state  %d L3 state %d", l_core_relative_pos,
                  l_core_clock_State, l_l3_clock_State);
 
-        if (!l_core_clock_State)
+
         {
             //Read the power state of core/l2
             FAPI_TRY(GET_CPMS_CL2_PFETSTAT(i_core_target, l_data));
             GET_CPMS_CL2_PFETSTAT_VDD_PFETS_ENABLED_SENSE(l_data, l_cl2_pfet_sense);
         }
 
-        if (!l_l3_clock_State)
         {
             //Read the power state of L3
             FAPI_TRY(GET_CPMS_L3_PFETSTAT(i_core_target, l_data));
@@ -177,12 +176,27 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
                         FAPI_TRY( fapi2::putScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
                     }
 
+                    l_data.flush<0>().setBit<0>();
+                    FAPI_IMP("Reset the core timefac to INACTIVE via PC.COMMON.TFX[1]");
+                    FAPI_TRY( fapi2::putScom( i_core_target, EC_PC_TFX_SM, l_data));
+
+
+                    l_data.flush<0>().setBit<1>();
+                    FAPI_IMP("Assert TFAC_RESET via PCR_TFCSR[1]");
+                    FAPI_TRY( fapi2::putScom( i_core_target, QME_TFCSR_SCOM2, l_data));
+
+
                     //Shadow disable
                     FAPI_TRY(p10_hcd_core_shadows_disable(i_core_target));
                 }
                 else
                 {
+                    l_data.flush<0>().setBit<1>();
+                    FAPI_IMP("Assert TFAC_RESET via PCR_TFCSR[1]");
+                    FAPI_TRY( fapi2::putScom( i_core_target, QME_TFCSR_SCOM2, l_data));
+
                     FAPI_IMP("Core clock %d is already stopped", i_core_unit_pos);
+
                 }
 
             }
