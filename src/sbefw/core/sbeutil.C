@@ -127,8 +127,8 @@ namespace SBE
         #define SBE_FUNC "CLEAR_MPIPL_RESET"
         sbe_local_LFR lfrReg;
         // Set the mpiplreset bit and write to WO_OR Reg to clear
-        lfrReg.mpipl = 0;
-        PPE_STVD(0xc0002050, lfrReg);
+        lfrReg.mpipl = 1;
+        PPE_STVD(0xc0002058, lfrReg);
         #undef SBE_FUNC
     }
 
