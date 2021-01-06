@@ -25,12 +25,14 @@
 
 #include "sbeCollectDump.H"
 #include "fapi2.H"
+#include "sbeglobals.H"
 #include <hwp_data_stream.H>
 #include <plat_hwp_data_stream.H>
 #include <sbecmdsram.H>
 #include <sbecmdmemaccess.H>
 #include <sbecmdringaccess.H>
 #include <sbecmdmpipl.H>
+#include <sbecmdfastarray.H>
 #include <p10_query_host_meminfo.H>
 
 #include "sbecmdringaccess.H"
@@ -52,6 +54,70 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
     return ( (!iv_hdctRow->genericHdr.chipletStart) ||
              ( (chipUnitNum-1 >= iv_hdctRow->genericHdr.chipletStart) &&
                (chipUnitNum-1 <= iv_hdctRow->genericHdr.chipletEnd)) );
+}
+
+uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
+{
+    #define SBE_FUNC "writeGetFastArrayPacketToFifo"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    do
+    {
+        // Create the req struct for the sbeFastArray Chip-op
+        sbeControlFastArrayCMD_t dumpFastArrayReq = {0};
+        // Update address, length and stream header data vai FIFO
+        iv_tocRow.tocHeader.address = iv_hdctRow->cmdFastArray.strEqvHash32;
+        //TODO: As there is no way as of now to get the fast array length we
+        //will hard code and stream out the data length. If the actual length value
+        //deviates from the hardcoded value dump parser will fail.
+        if(iv_hdctRow->cmdFastArray.controlSet == 0x01)
+            iv_tocRow.tocHeader.dataLength = (0x48E18 * 8);
+        else
+            iv_tocRow.tocHeader.dataLength = (0x2524 * 8);
+
+        uint32_t dummyDataLengthInBits =
+            64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
+
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+        len = sizeof(dumpFastArrayReq)/sizeof(uint32_t);
+        dumpFastArrayReq.hdr.targetType  = TARGET_CORE;
+        dumpFastArrayReq.hdr.chipletId   = iv_tocRow.tocHeader.chipUnitNum;
+        dumpFastArrayReq.hdr.control_set = iv_hdctRow->cmdFastArray.controlSet;
+        dumpFastArrayReq.hdr.custom_data_length = 0x00;
+
+        uint32_t startCount = iv_oStream.words_written();
+        uint32_t totalCountInBytes = dummyDataLengthInBits / 8;
+        uint32_t totalCount = totalCountInBytes / (sizeof(uint32_t));
+        uint32_t dummyData = 0x00;
+
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                (uint32_t*)&dumpFastArrayReq, false );
+        rc = sbeControlFastArrayWrap( istream, iv_oStream );
+        uint32_t endCount = iv_oStream.words_written();
+
+        //If endCount = startCount means chip-op failed. We will write dummy data
+        //All data streamed out need's to be 8 byte aligned.
+        //TODO:RC check needs to be done properly.
+        if(endCount == startCount || ((endCount - startCount) != totalCount))
+        {
+            totalCount = totalCount - (endCount - startCount);
+            while(totalCount !=0)
+            {
+                iv_oStream.put(dummyData);
+                totalCount = totalCount - 1;
+            }
+        }
+
+        SBE_INFO("Dump FastArray: control_set[0x%08X], chipUnitNum [0x%08X]",
+                iv_hdctRow->cmdFastArray.controlSet, iv_tocRow.tocHeader.chipUnitNum);
+    }
+    while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
 }
 
 uint32_t sbeCollectDump::stopClocksOff()
@@ -592,6 +658,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
            (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)  ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
            (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         return rc;
 
@@ -618,6 +685,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_PUTSCOM:
             {
                 rc = writePutScomPacketToFifo();
+                break;
+            }
+            case CMD_GETFASTARRAY:
+            {
+                rc = writeGetFastArrayPacketToFifo();
                 break;
             }
             case CMD_GETRING:

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -104,7 +104,8 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
             }
             hwp_array_istream istream(req.custom_control_data, req.hdr.custom_data_length);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
-            i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
+            if(i_putStream.isStreamRespHeader())
+                i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
         }
         else
         {
@@ -132,7 +133,8 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
 
             seeprom_hwp_data_istream istream(control_data, control_data_size);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
-            i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
+            if(i_putStream.isStreamRespHeader())
+                i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
         }
 
         if(fapiRc != FAPI2_RC_SUCCESS)

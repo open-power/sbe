@@ -257,6 +257,13 @@ class sbeCollectDump
          */
         uint32_t populateHDCTRowTOC();
 
+       /** @brief Write getFastArray data to the FIFO.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *          ERROR,    Incase of failure.
+        */
+        uint32_t writeGetFastArrayPacketToFifo();
+
        /** @brief stop clocks off as per HDCT row data.
         *
         * @return SUCCESS,  If chip-op is successful.
