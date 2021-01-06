@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -59,7 +59,10 @@ uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
     do
     {
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
-        Target<TARGET_TYPE_CORE> core(plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(0));
+        uint8_t l_coreId = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> core =
+              plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(l_coreId);
 
         // size of host memory in MB
         uint32_t sizeHostMem = 0x0;
@@ -94,32 +97,36 @@ uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
         SBE_INFO("sizeHostMem:[0x%08X], hrmor:[0x%08X%08X]", sizeHostMem,
                   SBE::higher32BWord(hrmor), SBE::lower32BWord(hrmor));
 
+        sizeHostMem = 1; // TODO read only 1 MB HB data
+
+        // Update address, length and stream header data vai FIFO
+        iv_tocRow.tocHeader.address = hrmor;
+        iv_tocRow.tocHeader.dataLength = P10_QUERY_HOST_MEMINFO_MB * sizeHostMem * 8;
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
         // sizeHostMem = Number of MBs of memory to dump (hex format)
-        for (uint8_t i = 0; i < sizeHostMem; i++)
+        // Dump ChipOp need length of data in bits
+        for (uint32_t i = 0; i < sizeHostMem; i++)
         {
             uint64_t hrmorAddr = hrmor + (i * P10_QUERY_HOST_MEMINFO_MB);
             // Default Master Core Target
             sbeMemAccessReqMsgHdr_t dumpPbaReq = {0};
             dumpPbaReq.coreId = 0;
             dumpPbaReq.eccByte = 0;
-            dumpPbaReq.flags = 0x02;
+            dumpPbaReq.flags = 0x22;
             dumpPbaReq.addrHi = SBE::higher32BWord(hrmorAddr);
             dumpPbaReq.addrLo = SBE::lower32BWord(hrmorAddr);
             dumpPbaReq.len = P10_QUERY_HOST_MEMINFO_MB;
-            uint32_t len  = sizeof(sbeMemAccessReqMsgHdr_t)/sizeof(uint32_t);
+
+            len  = sizeof(sbeMemAccessReqMsgHdr_t)/sizeof(uint32_t);
             sbefifo_hwp_data_istream istream(iv_fifoType, len,
                                             (uint32_t*)&dumpPbaReq, false);
-            // Update address, length and stream header data vai FIFO
-            iv_tocRow.tocHeader.address = hrmorAddr;
-            // Dump ChipOp need length of data in bits
-            iv_tocRow.tocHeader.dataLength = P10_QUERY_HOST_MEMINFO_MB * 8;
-            len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
-            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+            sbefifo_hwp_data_ostream oStream(iv_fifoType, false);
 
-            SBE_INFO("GetMemPBA:hostboot memory[0x%08X%08X] and Length[0x%08X]",
-                      dumpPbaReq.addrHi, dumpPbaReq.addrLo, dumpPbaReq.len);
-
-            rc = sbeMemAccess_Wrap( istream, iv_oStream, true );
+            SBE_INFO("GetMemPBA:hostboot memory[0x%08X%08X] and Length[0x%08X], MBsize[0x%08X]",
+                      dumpPbaReq.addrHi, dumpPbaReq.addrLo, dumpPbaReq.len, i);
+            rc = sbeMemAccess_Wrap( istream, oStream, true );
             if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
             {
                 // TODO: Verify and modify all error rc to handle all
@@ -473,7 +480,6 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
         iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
-
         switch(iv_tocRow.tocHeader.cmdType)
         {
             case CMD_GETSCOM:

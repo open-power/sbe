@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -341,24 +341,24 @@ uint32_t processPbaRequest( fapi2::sbefifo_hwp_data_istream& i_getStream,
             l_rc = flushUpstreamFifo(i_getStream, l_respHdr.primaryStatus());
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
         }
-
         // first enqueue the length of data actually written
         uint32_t l_len = 1;
         uint32_t l_respLen = l_granulesCompleted * l_granuleSize;
 
         SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
-        l_rc = i_putStream.put( l_len, &l_respLen );
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
         if(i_putStream.isStreamRespHeader())
         {
+            l_rc = i_putStream.put( l_len, &l_respLen );
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
+
             l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,
                                      i_getStream.getFifoType() );
-        }
-        // Indicate the host in put pass through mode via Interrupt
-        if(!l_rc && i_hdr.isPbaHostPassThroughModeSet() && !i_isFlagRead)
-        {
-            l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT4);
+            // Indicate the host in put pass through mode via Interrupt
+            if(!l_rc && i_hdr.isPbaHostPassThroughModeSet() && !i_isFlagRead)
+            {
+                l_rc = sbeSetSbe2PsuDbBitX(SBE_SBE2PSU_DOORBELL_SET_BIT4);
+            }
         }
     } while(false);
 
