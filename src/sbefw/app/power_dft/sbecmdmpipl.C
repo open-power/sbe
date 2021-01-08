@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/sbecmdmpipl.C $                           */
+/* $Source: src/sbefw/app/power_dft/sbecmdmpipl.C $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,22 +49,14 @@
 #include "sbearchregdump.H"
 #include "fapi2.H"
 #include "core/ipl.H"
+#include "sberegaccess.H"
+#include "chipop_handler.H"
 
 using namespace fapi2;
 
 // Defines for stop clock
 #define SBE_IS_EX0(chipletId) \
     (!(((chipletId - CORE_CHIPLET_OFFSET) & 0x0002) >> 1))
-
-/* @brief Bitmapped enumeration to identify the stop clock HWP call
- */
-enum stopClockHWPType
-{
-    SC_NONE     = 0x00,
-    SC_PROC     = 0x01, // Call p10_stopclocks
-    SC_CACHE    = 0x02, // Call p10_hcd_cache_stopclocks
-    SC_CORE     = 0x04, // Call p10_hcd_core_stopclocks
-};
 
 #ifdef __SBEFW_SEEPROM__
 
@@ -77,7 +69,7 @@ p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
 #endif
 
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
-static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 8;
+static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 9;
 static const uint32_t SBE_ISTEP_MPIPL_CONTINUE      = 97;
 static const uint32_t MPIPL_CONTINUE_MAX_SUBSTEPS   = 7;
 static const uint32_t SBE_ISTEP4                    = 4;
@@ -207,20 +199,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
-
-        //In P10 Architected register data will be collected as part of MPIPL
-        //for both the FSP and BMC based systems
-        //Collect Architected Register Dump
-        fapiRc = sbeDumpArchRegs();
-        if( fapiRc != FAPI2_RC_SUCCESS )
-        {
-            SBE_ERROR(SBE_FUNC "Failed in sbeDumpArchRegs()");
-            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
-            ffdc.setRc(fapiRc);
-            break;
-        }
-
         //Core and Cache stop Clock
         SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
         fapiRc = stopClockS0();
@@ -230,6 +208,17 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
             break;
         }
+
+        //WORKAROUND:Force TOD RUNNING status to be OFF
+        //TODO:Remove this once TOD procedure is updated.
+        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
+        fapiRc = putscom_abs_wrap(&l_proc, 0x40024,0x1000000000000000);
+        if(fapiRc)
+        {
+            SBE_ERROR("Failed in applying TOD workaround in MPIPL Path");
+            break;
+        }
+        SBE_INFO("Workaround applied : TOD Status Forced to be OFF");
 
     }while(0);
 
@@ -268,15 +257,19 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     uint32_t len = 0;
-
+    sbeFifoType type;
     sbeResponseFfdc_t ffdc;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
 
     do
     {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
         // Dequeue the EOT entry as no more data is expected.
-        rc = sbeUpFifoDeq_mult (len, NULL);
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
         // Refresh SBE role and proc chip mem attribute
@@ -310,16 +303,20 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         }
     }while(0);
 
-    // reset attribute. We do not want to reset register, so do not
-    // use setMpIplMode
-    uint8_t isMpipl = 0;
-    PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
+    //Clear the MPIPL attribute for secondary SBEs. For the primary SBE
+    //this attribute will be cleared post deadman timer chipOp.
+    if(g_sbeRole == SBE_ROLE_SLAVE)
+    {
+        uint8_t isMpipl = 0;
+        PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
+    }
+
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
     if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        rc = sbeDsSendRespHdr( respHdr, &ffdc,type);
     }
     SBE_EXIT(SBE_FUNC);
     return rc;
@@ -373,7 +370,7 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
     if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
        (l_fapiTarget == TARGET_TYPE_PERV))
     {
-           l_rc |= SC_PROC;
+        l_rc |= SC_PROC;
     }
     if(l_fapiTarget == TARGET_TYPE_CORE)
     {
@@ -390,50 +387,94 @@ static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
 /* @brief Prepare Stop clock flags base on Target Type
  *
  * @param[in] i_targetType  SBE chip-op target Type
+ * @param[in] i_chipletId  Target chiplet
  *
  * @return p9_stopclocks_flags
  */
 ///////////////////////////////////////////////////////////////////////
-static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType)
+static inline p10_stopclocks_flags getStopClocksFlags(uint32_t i_targetType,
+                                                      uint32_t i_chipletId)
 {
     p10_stopclocks_flags flags;
 
-    if(i_targetType != TARGET_PROC_CHIP)
+    do
     {
+        if(i_targetType == TARGET_PROC_CHIP)
+        {
+            // We need the default Proc Flags
+            SBE_INFO(SBE_FUNC "In Proc Target");
+            break;
+        }
+
         // Clear default flags - only in case the target is not PROC_CHIP
         // Otherwise, for a PROC_CHIP target, we want to keep default flags
         flags.clearAll();
-    }
-    if(i_targetType == TARGET_PERV)
-    {
-        // Keep only tp as true
-        flags.stop_tp_clks  = true;
-    }
-    else if(i_targetType == TARGET_CORE)
-    {
-        // Keep only core flag as true
-        flags.stop_core_clks = true;
-    }
-    else if(i_targetType == TARGET_EQ)
-    {
-        // Keep only cache flag as true
-        flags.stop_cache_clks = true;
-    }
-    else
-    {
-        SBE_ERROR("getStopClocksFlags:Unsupported Target Type=0x%.8x",i_targetType);
-    }
+
+        if(i_targetType == TARGET_PERV)
+        {
+            if((i_chipletId >= NEST_CHIPLET_OFFSET) &&
+               (i_chipletId < (NEST_CHIPLET_OFFSET + NEST_TARGET_COUNT)))
+            {
+                flags.stop_nest_clks = true;
+            }
+            else if((i_chipletId >= PEC_CHIPLET_OFFSET) &&
+                    (i_chipletId < (PEC_CHIPLET_OFFSET + PEC_TARGET_COUNT)))
+            {
+                flags.stop_pcie_clks = true;
+            }
+            else if((i_chipletId >= MC_CHIPLET_OFFSET) &&
+                i_chipletId < (MC_CHIPLET_OFFSET + MC_TARGET_COUNT))
+            {
+                flags.stop_mc_clks = true;
+            }
+            else if((i_chipletId >= PAUC_CHIPLET_OFFSET) &&
+                    (i_chipletId < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))
+            {
+                flags.stop_pau_clks = true;
+            }
+            else if((i_chipletId >= IOHS_CHIPLET_OFFSET) &&
+                    (i_chipletId < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))
+            {
+                flags.stop_axon_clks = true;
+            }
+            else
+            {
+                SBE_ERROR( SBE_FUNC "Unsupported Perv TargetType=[0x%08X] "
+                    "Chiplet Id=[0x%08X]",i_targetType, i_chipletId);
+            }
+            break;
+        }
+        else if(i_targetType == TARGET_CORE)
+        {
+            // Keep only core flag as true
+            flags.stop_core_clks = true;
+        }
+        else if(i_targetType == TARGET_EQ)
+        {
+            // Keep only cache flag as true
+            flags.stop_cache_clks = true;
+        }
+        else
+        {
+            SBE_ERROR( SBE_FUNC "Unsupported TargetType=[0x%08X] "
+                "ChipletId=[0x%08X]",i_targetType, i_chipletId);
+        }
+    }while(0);
     return flags;
 }
 
 ///////////////////////////////////////////////////////////////////////
-// @brief sbeStopClocks Sbe Stop Clocks function
-//
+// @brief sbeStopClocks_Wrap Sbe Stop Clocks function
+// @param[in]  i_getStream      up-stream fifo for chip-op /
+//                              memory interface for dump
+// @param[in]  i_putStream      down-stream fifo for chip-op /
+//                              memory interface for dump
 // @return  RC from the underlying FIFO utility
 ///////////////////////////////////////////////////////////////////////
-uint32_t sbeStopClocks(uint8_t *i_pArg)
+uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                            fapi2::sbefifo_hwp_data_ostream& i_putStream )
 {
-    #define SBE_FUNC " sbeStopClocks"
+    #define SBE_FUNC " sbeStopClocks_Wrap"
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
@@ -447,7 +488,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     {
         // Get the TargetType and ChipletId from the command message
         len  = sizeof(sbeStopClocksReqMsgHdr_t)/sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len, (uint32_t *)&reqMsg); // EOT fetch
+        rc = i_getStream.get(len, (uint32_t *)&reqMsg); // EOT fetch
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
 
@@ -476,14 +517,12 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // All Eq/All Cache/All & Perv & Proc are handled here
         if(hwpType & SC_PROC)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_stopclocks HWP");
-            p10_stopclocks_flags flags = getStopClocksFlags(
-                                                        reqMsg.targetType);
-            SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp,
-                         proc, flags);
+            SBE_INFO(SBE_FUNC "Calling p10_stopclocks HWP with Proc Target FLag ALL");
+            p10_stopclocks_flags flags = getStopClocksFlags(reqMsg.targetType, reqMsg.chipletId);
+            SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp, proc, flags);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR("Failed in p10_stopclocks(), fapiRc=0x%.8x",fapiRc);
+                SBE_ERROR("Failed in p10_stopclocks(), Proc, Flag ALL, fapiRc=0x%.8x",fapiRc);
                 break;
             }
         }
@@ -492,7 +531,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // and MMA.
         if(hwpType & SC_CORE)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_core_stopclocks");
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_core_stopclocks, Core");
             if(reqMsg.chipletId == SMT4_ALL_CORES)
             {
                 //Request is for All cores , create a multicast target and call
@@ -503,8 +542,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
             }
             else //Specific core Instance number
             {
-                sbeGetFapiTargetHandle(reqMsg.targetType,
-                                       reqMsg.chipletId,tgtHndl);
+                sbeGetFapiTargetHandle(reqMsg.targetType,reqMsg.chipletId,tgtHndl);
             }
             //Execute the Core Stop Clock HWP
             SBE_EXEC_HWP(fapiRc, p10_hcd_core_stopclocks_hwp, tgtHndl);
@@ -519,7 +557,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
         // p10_hcd_eq_stopclocks: CORE+L2,L3 and MMA clocks are stopped.
         if(hwpType & SC_CACHE)
         {
-            SBE_DEBUG(SBE_FUNC " Calling p10_hcd_eq_stopclocks");
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_eq_stopclocks, Cache");
             if(reqMsg.chipletId == EQ_ALL_CHIPLETS)
             {
                 //Request is for All EQs , create a multicast target and call
@@ -530,8 +568,7 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
             }
             else //Specific eq chiplet
             {
-                sbeGetFapiTargetHandle(reqMsg.targetType,
-                                       reqMsg.chipletId,tgtHndl);
+                sbeGetFapiTargetHandle(reqMsg.targetType,reqMsg.chipletId,tgtHndl);
             }
             //Execute the EQ Stop Clock procedure
             SBE_EXEC_HWP(fapiRc, p10_hcd_eq_stopclocks_hwp, tgtHndl);
@@ -541,7 +578,6 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
                            fapiRc,tgtHndl);
                 break;
             }
-
         }
 
     }while(0);
@@ -559,10 +595,36 @@ uint32_t sbeStopClocks(uint8_t *i_pArg)
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+    if(i_putStream.isStreamRespHeader())
     {
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+        {
+            rc = sbeDsSendRespHdr( respHdr, &ffdc, i_getStream.getFifoType());
+        }
     }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+///////////////////////////////////////////////////////////////////////
+// @brief sbeStopClocks Sbe Stop Clocks function
+//
+// @return  RC from the underlying FIFO utility
+///////////////////////////////////////////////////////////////////////
+uint32_t sbeStopClocks(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeStopClocks"
+    SBE_ENTER(SBE_FUNC);
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+    rc = sbeStopClocks_Wrap (istream,ostream);
+
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -618,6 +680,8 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
         SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
                   SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
                   coreTgt.get());
+        //Bit 0 of the core scratch reg meant to ignore hrmor.
+        tiDataLoc = tiDataLoc & 0x7FFFFFFFFFFFFFFF;
         //Now we got the TI data location. Read TI_DATA_LEN bytes from
         //that location.
         uint32_t bytesRemaining = TI_DATA_LEN;
