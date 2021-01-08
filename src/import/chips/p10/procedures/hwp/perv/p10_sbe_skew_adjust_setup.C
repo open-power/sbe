@@ -31,6 +31,7 @@
 // *HWP FW Maintainer   : Raja Das (rajadas2@in.ibm.com)
 // *HWP Consumed by     : SBE:SGPE
 //------------------------------------------------------------------------------
+//EKB-Mirror-To: hw/ppe
 
 #include "p10_sbe_skew_adjust_setup.H"
 #include "p10_scom_perv_5.H"
