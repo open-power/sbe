@@ -225,8 +225,6 @@ uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
         SBE_INFO("sizeHostMem:[0x%08X], hrmor:[0x%08X%08X]", sizeHostMem,
                   SBE::higher32BWord(hrmor), SBE::lower32BWord(hrmor));
 
-        sizeHostMem = 1; // TODO read only 1 MB HB data
-
         // Update address, length and stream header data vai FIFO
         iv_tocRow.tocHeader.address = hrmor;
         iv_tocRow.tocHeader.dataLength = P10_QUERY_HOST_MEMINFO_MB * sizeHostMem * 8;
