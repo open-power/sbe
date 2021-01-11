@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -362,7 +362,7 @@ typedef struct
     uint8_t             cb[PK_TRACE_SZ];
 } PkTraceBuffer; //pk_trace_buffer_t;
 
-extern PkTraceBuffer g_pk_trace_buf __attribute__((section (".sdata")));
+extern PkTraceBuffer g_pk_trace_buf __attribute__((section (".data.pk_trace_buf")));
 
 #ifdef PK_TRACE_BUFFER_WRAP_MARKER
     extern uint32_t G_wrap_mask;
