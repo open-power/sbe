@@ -5,8 +5,9 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
+/* [+] Justin.Ginn@ibm.com                                                */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -78,6 +79,7 @@
 #include <p10_sbe_mcs_setup.H>
 #include <p10_sbe_select_ex.H>
 #include <p10_sbe_dts_init.H>
+#include <p10_sbe_skew_adjust_setup.H>
 #include <p10_sbe_chiplet_fir_init.H>
 
 // Core Cache HWP header files (istep 4)
@@ -315,7 +317,7 @@ static istepMap_t g_istep3PtrTbl[] =
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_init), //13
              ISTEP_MAP( istepWithProc, p10_sbe_chiplet_fir_init), //14
              ISTEP_MAP( istepWithProc, p10_sbe_dts_init), //15
-             ISTEP_MAP( istepNoOp, NULL), //16
+             ISTEP_MAP( istepWithProc, p10_sbe_skew_adjust_setup), //16
              ISTEP_MAP( istepWithProc, p10_sbe_nest_enable_ridi), //17
              ISTEP_MAP( istepWithProc, p10_sbe_scominit), //18
              ISTEP_MAP( istepNoOp,  p10_sbe_lpc_init), //19

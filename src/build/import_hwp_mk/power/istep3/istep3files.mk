@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -64,6 +64,9 @@ ISTEP3-CPP-SOURCES += p10_trace_pau_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_pci_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_perv_scom.C
 ISTEP3-CPP-SOURCES += p10_sbe_check_master.C
+#ifdef DFT
+ISTEP3-CPP-SOURCES += p10_sbe_skew_adjust_setup.C
+#endif
 
 ISTEP3-C-SOURCES =
 ISTEP3-S-SOURCES =
