@@ -766,13 +766,20 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
     fapi2::Target<fapi2::TARGET_TYPE_CORE >
         coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
     // Get hbbl section
-    P9XipHeader *hdr = getXipHdr();
-    P9XipSection *hbblSection =  &(hdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
+    P9XipHeader *bSeepromHdr = getXipHdr();
+    P9XipHeader *mSeepromHdr = getMSeepromXipHdr();
+    P9XipSection *sbSettingMSection = &(mSeepromHdr->iv_section[P9_XIP_SECTION_SBE_SB_SETTINGS]);
+    P9XipSection *hbblSection =  &(bSeepromHdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
+    P9XipSection *sbSettingBSection =  &(bSeepromHdr->iv_section[P9_XIP_SECTION_SBE_SB_SETTINGS]);
+    uint8_t *bSeepromSbSettingPtr = (uint8_t*)(sbSettingBSection->iv_offset + g_headerAddr);
+    uint32_t *mSeepromSbSettingPtr = (uint32_t*)(sbSettingMSection->iv_offset + g_mseeprom_headerAddr);
 
     uint64_t drawer_base_address_nm0, drawer_base_address_nm1;
     uint64_t drawer_base_address_m;
     uint64_t drawer_base_address_mmio;
     uint64_t l_hostboot_hrmor_offset;
+    uint32_t mSeepromVersion = *mSeepromSbSettingPtr;
+    uint8_t  minimumSecureVersion = *(uint8_t*)(bSeepromSbSettingPtr + 64*sizeof(uint8_t));
     do
     {
         // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
@@ -801,10 +808,21 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
            SBE_ERROR(" Num of backing cache is less than 2. Cannot proceed with IPL");
            pk_halt();
         }
-        ATTR_NUM_KEY_ADDR_PAIR_Type l_value = MAX_ROW_COUNT;
-        PLAT_ATTR_INIT(fapi2::ATTR_NUM_KEY_ADDR_PAIR, sysTgt, l_value);
-        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSection->iv_size,
-                     getSectionAddr(hbblSection))
+        ATTR_NUM_KEY_ADDR_PAIR_Type keyAddrPair = MAX_ROW_COUNT;
+        PLAT_ATTR_INIT(fapi2::ATTR_NUM_KEY_ADDR_PAIR, sysTgt, keyAddrPair);
+
+        SBE_INFO(SBE_FUNC "seepromVersion = 0x%08X", mSeepromVersion);
+        fapi2::ATTR_SBE_MEASUREMENT_SEEPROM_VERSION_Type seepromVersion = mSeepromVersion;
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_MEASUREMENT_SEEPROM_VERSION, sysTgt, seepromVersion);
+
+        SBE_INFO(SBE_FUNC "minimum secure version = 0x%02X", minimumSecureVersion);
+        fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION_Type secureVersion = minimumSecureVersion;
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION, sysTgt, secureVersion);
+
+        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = reinterpret_cast<uint64_t>(getSectionAddr(sbSettingBSection));
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR, sysTgt, hashKeyAddr);
+
+        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSection->iv_size, getSectionAddr(hbblSection))
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" p10_sbe_load_bootloader failed");

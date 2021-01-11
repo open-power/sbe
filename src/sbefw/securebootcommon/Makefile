@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +26,7 @@
 # This is an automatically generated prolog.
 #
 export SUB_OBJDIR = /sbefw/securebootcommon
+export VPATH = $(SBE_FW_DIR)/core
 
 OBJS = $(addprefix $(OBJDIR)/, $(SECUREBOOT_COMMON_OBJECTS))
 LIBNAME = libsecurebootcommon

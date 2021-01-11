@@ -31,13 +31,13 @@
 
 #include "sbesecuritycommon.H"
 #include "ppe42_string.h"
+#include "p10_ipl_image.H"
 #include "sbeXipUtils.H"
 
 #define SPI_READ_SIZE_BYTES 8192       //8Kb
 
 void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context)
 {
-
     uint8_t buf[SPI_READ_SIZE_BYTES] __attribute__ ((aligned(8))) = {0x00};
     uint32_t xipSectionSize = getXipSize(xipSection);
     uint32_t xipSectionOffset = getXipOffset(xipSection);

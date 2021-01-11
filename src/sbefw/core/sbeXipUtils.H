@@ -46,8 +46,23 @@ asm volatile ( \
 const uint32_t g_pibMemAddr = SBE_BASE_ORIGIN;
 // SEEPROM start address
 const uint32_t g_headerAddr = SBE_SEEPROM_BASE_ORIGIN;
+// Measurement Seeprom start address
+const uint32_t g_mseeprom_headerAddr = SBE_MEASUREMENT_BASE_ORIGIN;
 // IVPR register address
 const uint32_t g_ivprLoc = 0xC0000160;
+
+// Get Measurement Seeprom XIP image header
+inline P9XipHeader * getMSeepromXipHdr()
+{
+    P9XipHeader *hdr = (P9XipHeader *)( g_mseeprom_headerAddr );
+    return hdr;
+}
+
+// Get Measurement Seeprom Section start addess
+inline uint8_t * getMSeepromSectionAddr( P9XipSection * i_section )
+{
+    return ( (uint8_t *)( g_mseeprom_headerAddr + i_section->iv_offset));
+}
 
 // Get XIP image header
 inline P9XipHeader * getXipHdr()
@@ -63,24 +78,24 @@ inline uint8_t * getSectionAddr( P9XipSection * i_section )
 }
 
 /**
- * @brief Get the Xip offset(Start location) from SBE Image for SPI.
- *
- * @return Xip offset(Start location) SPI
- */
+ *  @brief Get the Xip offset(Start location) from SBE Image for SPI.
+ *  *
+ *  @return Xip offset(Start location) SPI
+ **/
 uint32_t getXipOffset(p9_xip_section_sbe_t xipSection);
 
 /**
- * @brief Get the Absolute Xip offset(Start location) from SBE Image.
- *
- * @return Xip offset(Start location)
- */
+ *  @brief Get the Absolute Xip offset(Start location) from SBE Image.
+ *  *
+ *  @return Xip offset(Start location)
+ **/
 uint32_t getXipOffsetAbs(p9_xip_section_sbe_t xipSection);
 
 /**
- * @brief Get the Xip Size.
- *
- * @return Xip Size
- */
+ *  @brief Get the Xip Size.
+ *  *
+ *  @return Xip Size
+ **/
 uint32_t getXipSize(p9_xip_section_sbe_t xipSection);
 
 #endif // SBE_XIP_UTILS_H

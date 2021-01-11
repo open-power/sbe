@@ -28,7 +28,7 @@
 #include "sbeglobals.H"
 #include "sbeDecompression.h"
 #include "sbeXipUtils.H"
-#include "sbesecuritycommon.C"
+#include "sbesecuritycommon.H"
 
 extern "C" {
 #include "pk_api.h"

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -215,6 +215,12 @@ fapi_try_exit:
 ///        configuration structure data
 ///
 /// @param[in] i_master_chip_target Reference to processor chip target
+/// @param[in] i_cacheline Fills up Cacheline 0 Data or Cacheline 1 Data
+///        Cacheline 0 is the first 128Bytes at the top and Cacheline 1 is the
+///        next 128Bytes i.e. 128 to 255Bytes.
+///        Cacheline 0 is filled up by BootloaderConfigData_t structure content
+///        fully. Cacheline 1 is filled up by Partial BootloaderConfigData_t
+///        structure data
 /// @param[in] i_load_size Size of complete bootloader payload
 /// @param[inout] io_data Pointer to cacheline buffer to fill
 /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
@@ -222,6 +228,7 @@ fapi_try_exit:
 fapi2::ReturnCode
 get_bootloader_config_data(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
+    const uint8_t i_cacheline,
     const uint64_t i_load_size,
     uint8_t* io_data)
 {
@@ -231,114 +238,180 @@ get_bootloader_config_data(
     uint64_t l_chip_base_address_m;
     uint64_t l_chip_base_address_mmio = 0;
     uint64_t l_index = 0;
-    // Variable to fetch the Key-Addr Stash Pair
-    uint64_t l_stashAddrAttr = 0;
-    uint8_t* l_stashDataPtr = NULL;
     uint8_t  l_numBackingCaches = 0;
+    // Variable to fetch the Key-Addr Stash Pair
+    uint64_t stashAddrAttr = 0;
+    uint8_t* stashDataPtr = NULL;
+    // Variable to fetch Hash Key from Seeprom
+    uint8_t* hashKeyPtr = NULL;
 
     fapi2::buffer<uint64_t> l_cbs_cs;
     BootloaderConfigData_t l_bootloader_config_data;
 
     FAPI_DBG("Start");
 
-    // read platform initialized attributes to determine struct content
-    FAPI_TRY(p10_fbc_utils_get_chip_base_address(i_master_chip_target,
-             EFF_TOPOLOGY_ID,
-             l_chip_base_address_nm0,
-             l_chip_base_address_nm1,
-             l_chip_base_address_m,
-             l_chip_base_address_mmio),
-             "Error from p10_fbc_utils_get_chip_base_address (chip)");
-
-    l_bootloader_config_data.version = INIT;
-
-    // XSCOM BAR offset (always set smf bit, anyone can access the bar if smf is disabled)
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.xscomBAR),
-             "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
-    l_bootloader_config_data.xscomBAR += l_chip_base_address_mmio;
-    l_bootloader_config_data.xscomBAR |= FABRIC_ADDR_SMF_MASK;
-
-    // LPC BAR offset
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.lpcBAR),
-             "Error from FAPI_ATTR_GET (ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET)");
-    l_bootloader_config_data.lpcBAR += l_chip_base_address_mmio;
-
-    // SBE boot side
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOT_SIDE,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.sbeBootSide),
-             "Error from FAPI_ATTR_GET (ATTR_SBE_BOOT_SIDE)");
-
-    // Cache Size available to hostboot
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
-                           i_master_chip_target,
-                           l_numBackingCaches),
-             "Error from FAPI_ATTR_GET (ATTR_BACKING_CACHES_NUM)");
-    l_bootloader_config_data.cacheSizeMB = (4 * l_numBackingCaches);
-
-    // LPC Console Enable
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_LPC_CONSOLE_INITIALIZED,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.lpcConsoleEnable),
-             "Error from FAPI_ATTR_GET (ATTR_LPC_CONSOLE_INITIALIZED)");
-
-    // Number of Key-Addr Pair
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NUM_KEY_ADDR_PAIR,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.numKeyAddrPair),
-             "Error from FAPI_ATTR_GET (ATTR_NUM_KEY_ADDR_PAIR)");
-
-    // pass size of load including exception vectors and bootloader
-    l_bootloader_config_data.blLoadSize = i_load_size;
-
-    // Set Secure Settings Byte
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURE_SETTINGS,
-                           FAPI_SYSTEM,
-                           l_bootloader_config_data.secureSettings.data8),
-             "Error from FAPI_ATTR_GET (ATTR_SECURE_SETTINGS)");
-
-    // re-read Secure Access Bit in case it's changed
-    FAPI_TRY(GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS(i_master_chip_target, l_cbs_cs),
-             "Error from GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS");
-    l_bootloader_config_data.secureSettings.secureAccessBit =
-        GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT(l_cbs_cs);
-
-    // initialize cacheline storage
-    PACK_4B(io_data, l_index, EXCEPTION_VECTOR_BRANCH);
-    PACK_4B(io_data, l_index, l_bootloader_config_data.version);
-    PACK_1B(io_data, l_index, l_bootloader_config_data.sbeBootSide);
-    PACK_1B(io_data, l_index, l_bootloader_config_data.lpcConsoleEnable);
-    PACK_2B(io_data, l_index, l_bootloader_config_data.cacheSizeMB);
-    PACK_8B(io_data, l_index, l_bootloader_config_data.blLoadSize);
-    PACK_1B(io_data, l_index, l_bootloader_config_data.secureSettings.data8);
-    PACK_2B(io_data, l_index, 0x0);
-    PACK_4B(io_data, l_index, 0x0);
-    PACK_1B(io_data, l_index, l_bootloader_config_data.numKeyAddrPair);
-    PACK_8B(io_data, l_index, l_bootloader_config_data.xscomBAR);
-    PACK_8B(io_data, l_index, l_bootloader_config_data.lpcBAR);
-
-    // Fetch the address for the stash storage
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR,
-                           FAPI_SYSTEM,
-                           l_stashAddrAttr),
-             "Error from FAPI_ATTR_GET (ATTR_SBE_ADDR_KEY_STASH_ADDR)");
-
-    if(l_stashAddrAttr) // If not 0, use this as addr to point to the data
+    if(i_cacheline == 0)
     {
-        l_stashDataPtr = reinterpret_cast<uint8_t*>(l_stashAddrAttr);
+        // read platform initialized attributes to determine struct content
+        FAPI_TRY(p10_fbc_utils_get_chip_base_address(i_master_chip_target,
+                 EFF_TOPOLOGY_ID,
+                 l_chip_base_address_nm0,
+                 l_chip_base_address_nm1,
+                 l_chip_base_address_m,
+                 l_chip_base_address_mmio),
+                 "Error from p10_fbc_utils_get_chip_base_address (chip)");
 
-        // This will continue to write all 72 bytes i.e. (8 + 8*8), Hostboot
-        // to use numKeyAddrPair as index here.
-        for(uint8_t l_idx = 0; l_idx < sizeof(keyAddrPair_t); l_idx++)
+        l_bootloader_config_data.version = SB_SETTING;
+
+        // XSCOM BAR offset (always set smf bit, anyone can access the bar if smf is disabled)
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.xscomBAR),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET)");
+        l_bootloader_config_data.xscomBAR += l_chip_base_address_mmio;
+        l_bootloader_config_data.xscomBAR |= FABRIC_ADDR_SMF_MASK;
+
+        // LPC BAR offset
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.lpcBAR),
+                 "Error from FAPI_ATTR_GET (ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET)");
+        l_bootloader_config_data.lpcBAR += l_chip_base_address_mmio;
+
+        // SBE boot side
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_BOOT_SIDE,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.sbeBootSide),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_BOOT_SIDE)");
+
+        // Cache Size available to hostboot
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_NUM,
+                               i_master_chip_target,
+                               l_numBackingCaches),
+                 "Error from FAPI_ATTR_GET (ATTR_BACKING_CACHES_NUM)");
+        l_bootloader_config_data.cacheSizeMB = (4 * l_numBackingCaches);
+
+        // LPC Console Enable
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_LPC_CONSOLE_INITIALIZED,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.lpcConsoleEnable),
+                 "Error from FAPI_ATTR_GET (ATTR_LPC_CONSOLE_INITIALIZED)");
+
+        // Number of Key-Addr Pair
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NUM_KEY_ADDR_PAIR,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.numKeyAddrPair),
+                 "Error from FAPI_ATTR_GET (ATTR_NUM_KEY_ADDR_PAIR)");
+
+        // pass size of load including exception vectors and bootloader
+        l_bootloader_config_data.blLoadSize = i_load_size;
+
+        // Set Secure Settings Byte
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURE_SETTINGS,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.secureSettings.data8),
+                 "Error from FAPI_ATTR_GET (ATTR_SECURE_SETTINGS)");
+
+        // re-read Secure Access Bit in case it's changed
+        FAPI_TRY(GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS(i_master_chip_target, l_cbs_cs),
+                 "Error from GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS");
+        l_bootloader_config_data.secureSettings.secureAccessBit =
+            GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT(l_cbs_cs);
+
+        // Read the Sbe Measurement Seeprom Version
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_MEASUREMENT_SEEPROM_VERSION,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.mSeepromVersion),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_MEASUREMENT_SEEPROM_VERSION)");
+
+        // initialize cacheline storage
+        PACK_4B(io_data, l_index, EXCEPTION_VECTOR_BRANCH);
+        PACK_4B(io_data, l_index, l_bootloader_config_data.version);
+        PACK_1B(io_data, l_index, l_bootloader_config_data.sbeBootSide);
+        PACK_1B(io_data, l_index, l_bootloader_config_data.lpcConsoleEnable);
+        PACK_2B(io_data, l_index, l_bootloader_config_data.cacheSizeMB);
+        PACK_8B(io_data, l_index, l_bootloader_config_data.blLoadSize);
+        PACK_1B(io_data, l_index, l_bootloader_config_data.secureSettings.data8);
+        PACK_2B(io_data, l_index, 0x0);
+        PACK_4B(io_data, l_index, 0x0);
+        PACK_1B(io_data, l_index, l_bootloader_config_data.numKeyAddrPair);
+        PACK_8B(io_data, l_index, l_bootloader_config_data.xscomBAR);
+        PACK_8B(io_data, l_index, l_bootloader_config_data.lpcBAR);
+
+        // Fetch the address for the stash storage
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_ADDR_KEY_STASH_ADDR,
+                               FAPI_SYSTEM,
+                               stashAddrAttr),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_ADDR_KEY_STASH_ADDR)");
+
+        if(stashAddrAttr) // If not 0, use this as addr to point to the data
         {
-            // Total of 72Bytes will be stashed, First 8Bytes are the keys
-            // Next 8 x 8Bytes are the addresses
-            PACK_1B(io_data, l_index, l_stashDataPtr[l_idx]);
+            stashDataPtr = reinterpret_cast<uint8_t*>(stashAddrAttr);
+
+            // This will continue to write all 72 bytes i.e. (8 + 8*8), Hostboot
+            // to use numKeyAddrPair as index here.
+            for(uint8_t idx = 0; idx < sizeof(keyAddrPair_t); idx++)
+            {
+                // Total of 72Bytes will be stashed, First 8Bytes are the keys
+                // Next 8 x 8Bytes are the addresses
+                PACK_1B(io_data, l_index, stashDataPtr[idx]);
+            }
         }
+        //Incase sbe doesn't send the stash data ptr, append zeros to keep structure alignment
+        else
+        {
+            for(uint8_t idx = 0; idx < sizeof(keyAddrPair_t); idx++)
+            {
+                // Total of 72Bytes will be stashed, First 8Bytes are the keys
+                // Next 8 x 8Bytes are the addresses
+                PACK_1B(io_data, l_index, 0x0);
+            }
+        }
+
+        PACK_4B(io_data, l_index, l_bootloader_config_data.mSeepromVersion);
+        PACK_4B(io_data, l_index, 0x0); // Reserved1
+        PACK_4B(io_data, l_index, 0x0); // Reserved1
+    }
+    else if(i_cacheline == 1)
+    {
+        // Read the HW Key Hash
+        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR,
+                               FAPI_SYSTEM,
+                               hashKeyAddr),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_HW_KEY_HASH_ADDR)");
+        FAPI_DBG("Hash Key Addr [0x%08X %08X]", ((hashKeyAddr >> 32) & 0xFFFFFFFF), (hashKeyAddr & 0xFFFFFFFF));
+
+        if(hashKeyAddr) // if not 0, use this as addr to point to the HW Key Hash data
+        {
+            hashKeyPtr = reinterpret_cast<uint8_t*>(hashKeyAddr);
+
+            // This will continue to write all 64Bytes of Hash Key
+            for(uint8_t cnt = 0; cnt < 64; cnt++)
+            {
+                PACK_1B(io_data, l_index, hashKeyPtr[cnt]);
+            }
+        }
+        // Incase SBE doesn't update the HW hash key addr, append zeros to keep structure alignment
+        else
+        {
+            for(uint8_t cnt = 0; cnt < 64; cnt++)
+            {
+                PACK_1B(io_data, l_index, 0x0);
+            }
+        }
+
+        // Read the Minimum Secure Version
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.sbSettings.msv),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_MINIMUM_SECURE_VERSION)");
+
+        PACK_1B(io_data, l_index, l_bootloader_config_data.sbSettings.msv);
+        // 7B Reserved
+        PACK_1B(io_data, l_index, 0x0);
+        PACK_2B(io_data, l_index, 0x0);
+        PACK_4B(io_data, l_index, 0x0);
     }
 
 fapi_try_exit:
@@ -454,13 +527,14 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
         {
             // set content to move into next cacheline based on current
             // position in load sequence
-            if (l_load_exception_vector && (l_cacheline_num == 0))
+            if (l_load_exception_vector && (l_cacheline_num == 0 || l_cacheline_num == 1))
             {
                 // set background data for initial cacheline to exception instruction fill pattern
                 FAPI_TRY(get_exception_vector_data(l_data),
                          "Error from get_exception_vector_data");
                 // write bootloader configuration data in first cacheline
                 FAPI_TRY(get_bootloader_config_data(i_master_chip_target,
+                                                    l_cacheline_num,
                                                     l_load_size,
                                                     l_data),
                          "Error from get_bootloader_config_data");
@@ -496,7 +570,7 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
                      "Error from p10_pba_access");
 
             // set data to fill pattern for remainder of exception vector
-            if (l_load_exception_vector && (l_cacheline_num == 0))
+            if (l_load_exception_vector && (l_cacheline_num == 0 || l_cacheline_num == 1))
             {
                 FAPI_TRY(get_exception_vector_data(l_data),
                          "Error from get_exception_vector_data");

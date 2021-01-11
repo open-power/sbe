@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -629,5 +629,17 @@
     <value>0x00</value>
     <value>0x00</value>
     <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_MEASUREMENT_SEEPROM_VERSION</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_HW_KEY_HASH_ADDR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_MINIMUM_SECURE_VERSION</name>
+    <value>0x0</value>
   </entry>
 </entries>
