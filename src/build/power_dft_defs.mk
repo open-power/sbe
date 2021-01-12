@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -24,7 +24,8 @@
 #
 # IBM_PROLOG_END_TAG
 
-export img = pibmem
+IMG = pibmem
+export img = ${IMG}
 
 # Levels of SBE logging
 # 0 - No tracing
@@ -35,7 +36,7 @@ export img = pibmem
 SBE_TRACE_LEVEL_DEF = 4
 SBEM_TRACE_LEVEL_DEF = 4
 
-FAPI_TRACE_LEVEL_DEF = 3
+FAPI_TRACE_LEVEL_DEF = 4
 
 HOST_INTERFACE_AVAILABLE = 0
 PERIODIC_IO_TOGGLE_SUPPORTED = 1
@@ -137,10 +138,8 @@ MEASUREMENT_PROJ_SUBDIRS += $(MEASUREMENT_SRCDIR)
 MEASUREMENT_PROJ_LIB_DIRS += -L$(OBJDIR-MEASUREMENT)
 MEASUREMENT_PROJ_LLIBS += -ltestMeasure
 
-IMAGE_SUFFIX := DD1
-
-IMAGE_SEEPROM_NAME := avp_$(IMAGE_SUFFIX)
-IMAGE_SBE_NAME := avp_$(IMAGE_SUFFIX)
+IMAGE_SEEPROM_NAME := sbe_$(IMG)
+IMAGE_SBE_NAME := sbe_$(IMG)
 
 IMAGE_LOADER_NAME := sbe_loader_$(IMAGE_SUFFIX)
 IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
