@@ -614,6 +614,9 @@ typedef enum
     CLIENT_OCC          = 0x4,
 } sbeClientId_t;
 
+//Supported MPIPL Metadata version
+static const uint16_t SBE_MPIPL_METADATA_VERSION = 0x1;
+
 #ifdef __cplusplus
 }
 #endif

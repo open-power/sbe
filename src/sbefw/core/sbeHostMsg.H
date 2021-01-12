@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,7 +37,9 @@
 #include "sbe_host_intf.H"
 #include "sbe_sp_intf.H"
 #include "sbe_link.H"
-
+#include "ppe42_string.h"
+#include "sbetrace.H"
+#include "sbeutil.H"
 /*****************************************************************/
 /*            SBE->PSU request structures                        */
 /*****************************************************************/
@@ -255,6 +257,114 @@ typedef struct
     uint64_t regNum:32;
     uint64_t regVal;
 } sbeArchRegDumpEntries_t;
+
+
+/**
+ *  @brief Defines the 128 bytes metadata structure used for capturing architected
+ *         and HW data as part of MPIPL.
+ *
+ *  @var metaDataVersion   : Metadata format version
+ *
+ *  @var reserved          : 7 Bytes reserved for alignment
+ *
+ *  @var archDataMemoryAddr : HB reserved Memory address for architected
+ *                            data(Source:HB)
+ *
+ *  @var archDataMemAllocSize : Total size allocated in bytes for Architected data
+ *                              collection(Source:HB)
+ *
+ *  @var hwDataMemoryAddr     : Memory address to capture Processor specific
+ *                              HW dump data(Source:PHYP/OPAL)
+ *
+ *  @var hwDataMemAllocSize   : Size allocated in bytes for Processor specific HW
+ *                              dump data(Source:PHYP/OPAL)
+ *
+ *  @var hwDataMemCapturedSize : Actual Captured HW dump sizein bytes (Source:SBE)
+ *
+ *  @var reserved           : 80bytes reserved for making it 128byte
+ *                            structure
+ *
+ */
+struct sbeArchHWDumpMetaData_t
+{
+    uint8_t metaDataVersion;
+    uint8_t reserved1[7];
+    uint64_t archDataMemoryAddr;
+    uint64_t archDataMemAllocSize;
+    uint64_t hwDataMemoryAddr;
+    uint64_t hwDataMemAllocSize;
+    uint64_t hwDataMemCapturedSize;
+    uint64_t reserved2[10];
+
+    //Init all parameters to zero
+    sbeArchHWDumpMetaData_t()
+    {
+        metaDataVersion = 0x0;
+        archDataMemoryAddr = 0x0;
+        archDataMemAllocSize = 0x0;
+        hwDataMemoryAddr = 0x0;
+        hwDataMemAllocSize = 0x0;
+        hwDataMemCapturedSize = 0x0;
+        memset(reserved1,0,sizeof(reserved1));
+        memset(reserved2,0,sizeof(reserved2));
+    }
+
+    //Validate Address and size allocated for collection of Architected data
+    bool canCollectArchDumpData()
+    {
+        bool collectArchData = false;
+        do{
+            if(!archDataMemoryAddr)
+            {
+                SBE_INFO("Invalid Architected Dump collection address:0x%.8x%.8x",
+                        SBE::higher32BWord(archDataMemoryAddr),SBE::lower32BWord(archDataMemoryAddr));
+                break;
+            }
+            else if(archDataMemoryAddr % 128)
+            {
+                SBE_INFO("Allocated address:0x%.8x%.8x is not 128 bytes aligned",
+                        SBE::higher32BWord(archDataMemoryAddr),SBE::lower32BWord(archDataMemoryAddr));
+                break;
+            }
+            else if(!archDataMemAllocSize)
+            {
+                SBE_INFO("Allcoated size for architected data collection is zero");
+                break;
+            }
+            collectArchData = true;
+        }while(0);
+        return collectArchData;
+    }
+   
+    //Validate Address and size allocated for collection of HW data
+    bool canCollectHwDumpData()
+    {
+        bool collectHwData = false;
+        do{
+            if(!hwDataMemoryAddr)
+            {
+                SBE_INFO("Invalid HW Dump collection address:0x%.8x%.8x",
+                        SBE::higher32BWord(hwDataMemoryAddr),SBE::lower32BWord(hwDataMemoryAddr));
+                break;
+            }
+            else if(hwDataMemoryAddr % 128)
+            {
+                SBE_INFO("Allocated address:0x%.8x%.8x is not 128 bytes aligned",
+                        SBE::higher32BWord(hwDataMemoryAddr),SBE::lower32BWord(hwDataMemoryAddr));
+                break;
+            }
+            else if(!hwDataMemAllocSize)
+            {
+                SBE_INFO("Allcoated size for HW dump data collection is zero");
+                break;
+            }
+            collectHwData = true;
+        }while(0);
+        return collectHwData;
+    }
+
+
+};// sbeArchHWDumpMetaData_t;
 
 
 

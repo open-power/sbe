@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -364,13 +364,44 @@ ReturnCode sbeDumpArchRegs()
                       SBE::higher32BWord(dumpAddr),SBE::lower32BWord(dumpAddr));
             break;
         }
+
         SBE_INFO(SBE_FUNC "Stash Dump Addr = [0x%08X %08X] ",
                      SBE::higher32BWord(dumpAddr), SBE::lower32BWord(dumpAddr));
 
-        // Initialise the PBA with the above address from stash,
-        // The access API would use it in auto-increment mode.
+        //Read metadata and fetch the address to dump the architected data
+        sbeArchHWDumpMetaData_t metadata;
         p10_PBA_oper_flag pbaFlag;
-        pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+        //Limiting the scope of the object
+        {
+            pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+            sbeMemAccessInterface PBAInterForMetadata(
+                    SBE_MEM_ACCESS_PBA,
+                    dumpAddr,
+                    &pbaFlag,
+                    SBE_MEM_ACCESS_READ,
+                    sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+
+            fapiRc = PBAInterForMetadata.accessWithBuffer(&metadata,
+                    sizeof(sbeArchHWDumpMetaData_t),true);
+        }
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+           SBE_ERROR(SBE_FUNC "Failed to fetch the Dump metadata at the offset:0x%.8x%.8x!!",
+                               SBE::higher32BWord(dumpAddr), SBE::lower32BWord(dumpAddr));
+           break;
+        }
+        if(metadata.metaDataVersion >= SBE_MPIPL_METADATA_VERSION)
+        {
+            dumpAddr = metadata.archDataMemoryAddr;
+            SBE_INFO(SBE_FUNC "Based on metadata architected data save address =0x%.8x%.8x",
+                    SBE::higher32BWord(dumpAddr),SBE::lower32BWord(dumpAddr));
+        }
+        else
+        {
+            SBE_INFO("Architected data will be copied into Stash Dump Address offset:[0x%08X %08X]",
+                      SBE::higher32BWord(dumpAddr), SBE::lower32BWord(dumpAddr));
+        }
+        //Perform the PBA setup for doing PBA writes.
         sbeMemAccessInterface PBAInterface(
                 SBE_MEM_ACCESS_PBA,
                 dumpAddr,
