@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,28 +37,23 @@
 #include "sbefapiutil.H"
 #include "fapi2.H"
 
-//#include "p9_sbe_tracearray.H"
+#include "p10_sbe_tracearray.H"
 
 using namespace fapi2;
 
-#if 0
 constexpr uint32_t SBE_TRACE_GRANULE_NUM_ROWS = 1;
 constexpr uint32_t SBE_TRACEARRAY_BYTES_PER_ROW =
-                            (P9_TRACEARRAY_BITS_PER_ROW / 8);
+                            (P10_TRACEARRAY_BITS_PER_ROW / 8);
 constexpr uint32_t SBE_TRACE_GRANULE_NUM_WORDS =
      (SBE_TRACE_GRANULE_NUM_ROWS * SBE_TRACEARRAY_BYTES_PER_ROW) /
                                                         sizeof(uint32_t);
-#endif
-#ifdef SEEPROM_IMAGE
-//p9_sbe_tracearray_FP_t p9_sbe_tracearray_hwp = &p9_sbe_tracearray;
-#endif
+p10_sbe_tracearray_FP_t p10_sbe_tracearray_hwp = &p10_sbe_tracearray;
 
 uint32_t sbeControlTraceArray(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeControlTraceArray"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
-#if 0
     sbeControlTraceArrayCMD_t l_req = {};
     sbeRespGenHdr_t respHdr;
     respHdr.init();
@@ -95,7 +90,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
         }
         proc_gettracearray_args l_args = {};
         // Fill trace array Id
-        l_args.trace_bus = (p9_tracearray_bus_id)l_req.traceArrayId;
+        l_args.trace_bus = (p10_tracearray_bus_id)l_req.traceArrayId;
         // Fill control arguments
         l_args.reset_post_dump      = (l_req.operation & SBE_TA_RESET);
         l_args.restart_post_dump    = (l_req.operation & SBE_TA_RESTART);
@@ -105,10 +100,10 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
                                                     SBE_TA_IGNORE_MUX_SETTING);
 
         uint64_t l_buffer[SBE_TRACE_GRANULE_NUM_WORDS/2] = {};
-        for(uint32_t l_cur_row = 0; l_cur_row < P9_TRACEARRAY_NUM_ROWS;
+        for(uint32_t l_cur_row = 0; l_cur_row < P10_TRACEARRAY_NUM_ROWS;
                                                                 l_cur_row++)
         {
-            SBE_EXEC_HWP(l_fapiRc, p9_sbe_tracearray_hwp,
+            SBE_EXEC_HWP(l_fapiRc, p10_sbe_tracearray_hwp,
                          l_tgtHndl,
                          l_args,
                          l_buffer,
@@ -116,7 +111,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
                          SBE_TRACE_GRANULE_NUM_ROWS);
             if(l_fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR("p9_sbe_tracearray failed");
+                SBE_ERROR("p10_sbe_tracearray failed");
                 // Respond with HWP FFDC
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                      SBE_SEC_GENERIC_FAILURE_IN_EXECUTION );
@@ -152,7 +147,6 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
         }
     }
-    #endif
     SBE_EXIT(SBE_FUNC);
     return l_rc;
     #undef SBE_FUNC

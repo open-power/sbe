@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -30,8 +30,8 @@
 # Object Files
 ##########################################################################
 
-#ARRAYACCESS-CPP-SOURCES = p9_sbe_tracearray.C
-ARRAYACCESS-CPP-SOURCES = p10_sbe_fastarray.C
+ARRAYACCESS-CPP-SOURCES = p10_sbe_tracearray.C
+ARRAYACCESS-CPP-SOURCES += p10_sbe_fastarray.C
 ARRAYACCESS-C-SOURCES =
 ARRAYACCESS-S-SOURCES =
 
