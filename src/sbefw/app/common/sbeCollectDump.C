@@ -658,7 +658,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
            (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)  ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
            (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
+//           (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         return rc;
 
