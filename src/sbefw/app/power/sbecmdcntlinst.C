@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,11 +45,12 @@
 #include "p10_scom_eq_3.H"
 #include "p10_scom_eq_1.H"
 #include "p10_query_corecachemma_access_state.H"
+#include "sbeglobals.H"
 using namespace fapi2;
 
 //Utility function to mask special attention
 extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target);
-
+extern sbeRole g_sbeRole;
 p10_thread_control_FP_t threadCntlhwp = &p10_thread_control;
 
 static const uint64_t SPWKUP_ASSERT   = 0x8000000000000000ull;
@@ -426,6 +427,21 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         // control instruction commands, it's a no-op
         if( req.threadOps == THREAD_STOP_INS )
         {
+            //If the request is on NON-Master SBE and SBE has not completed the
+            //SBE_STATE_DMT make stop Instruction Chip-OP a NOOP
+            if( (!SBE_GLOBAL->sbeDmtStateComplete) && (g_sbeRole !=SBE_ROLE_MASTER) )
+            {
+                SBE_INFO("Non-master SBE and SBE not reached DMT state. Hence make StopInstuction"
+                " chipOp a NOOP");
+                rc = SBE_SEC_OPERATION_SUCCESSFUL;
+                break;
+            }
+            else
+            {
+                SBE_INFO("Executing Stop Instruction,g_sbeRole=%d and sbeDmtStateComplete=%d",
+                          g_sbeRole,uint32_t(SBE_GLOBAL->sbeDmtStateComplete));
+            }
+
             //Stop Instruction Chip-OP is a NOOP when SBE in the MPIPL path
             //Special Wake Asserts should not be done in the MPIPL path
             if(  (SbeRegAccess::theSbeRegAccess().getSbePrevState() == SBE_STATE_RUNTIME) &&
