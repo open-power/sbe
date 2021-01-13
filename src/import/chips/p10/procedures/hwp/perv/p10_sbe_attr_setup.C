@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -735,6 +735,7 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         fapi2::buffer<uint64_t> l_read_scratch6_reg = 0;
         fapi2::ATTR_FILTER_PLL_BUCKET_Type l_attr_filter_pll_bucket = 0;
         fapi2::ATTR_PCI_PLL_BUCKET_Type l_attr_pci_pll_bucket = 0;
+        fapi2::ATTR_CP_REFCLOCK_SELECT_Type l_attr_cp_refclock_select = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
         fapi2::ATTR_SKEWADJ_BYPASS_Type l_attr_skewadj_bypass = fapi2::ENUM_ATTR_SKEWADJ_BYPASS_NO_BYPASS;
         fapi2::ATTR_DCADJ_BYPASS_Type l_attr_dcadj_bypass = fapi2::ENUM_ATTR_DCADJ_BYPASS_NO_BYPASS;
         fapi2::ATTR_CP_PLLTODFLT_BYPASS_Type l_attr_cp_plltodflt_bypass = fapi2::ENUM_ATTR_CP_PLLTODFLT_BYPASS_NO_BYPASS;
@@ -774,6 +775,12 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PCI_PLL_BUCKET, i_target_chip, l_attr_pci_pll_bucket),
                      "Error from FAPI_ATTR_SET (ATTR_PCI_PLL_BUCKET)");
+
+            FAPI_DBG("Setting up refclock select value");
+            l_read_scratch6_reg.extractToRight<ATTR_CP_REFCLOCK_SELECT_STARTBIT, ATTR_CP_REFCLOCK_SELECT_LENGTH>
+            (l_attr_cp_refclock_select);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_attr_cp_refclock_select),
+                     "Error from FAPI_ATTR_SET (ATTR_CP_REFCLOCK_SELECT)");
 
             FAPI_DBG("Setting up skew adjust/duty cycle adjust bypass attributes");
 

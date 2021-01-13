@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -45,6 +45,7 @@ ISTEP2-CPP-SOURCES +=p10_sbe_tp_initf.C
 ISTEP2-CPP-SOURCES +=p10_sbe_dft_probe_setup_2.C
 ISTEP2-CPP-SOURCES +=p10_sbe_tp_chiplet_init.C
 ISTEP2-CPP-SOURCES +=p10_perv_sbe_cmn.C
+ISTEP2-CPP-SOURCES +=p10_clock_test_cmn.C
 ISTEP2-CPP-SOURCES +=p10_sbe_scratch_regs.C
 ISTEP2-CPP-SOURCES +=hw540133.C
 

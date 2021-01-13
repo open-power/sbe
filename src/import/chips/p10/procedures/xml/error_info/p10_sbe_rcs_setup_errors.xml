@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -38,16 +38,6 @@
       <description> RCS pll not locked </description>
       <ffdc>TP_PLL_LOCK_REG</ffdc>
       <ffdc>ATTR_CP_REFCLOCK_SELECT_VALUE</ffdc>
-   </hwpError>
-  <!-- ******************************************************************** -->
-   <hwpError>
-      <rc>RC_RCS_CLOCK_TEST_OUT_ERR</rc>
-      <description> 
-      Latches clocked by input clocks not transporting input value to output
-      </description>
-      <ffdc>READ_SNS1LTH</ffdc>
-      <ffdc>ATTR_CP_REFCLOCK_SELECT_VALUE</ffdc>
-      <ffdc>RCS_CLOCK_TEST_IN</ffdc>
    </hwpError>
  <!-- ******************************************************************** -->
    <hwpError>
