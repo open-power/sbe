@@ -236,8 +236,8 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         {
             sbeHandleFifoResponse (rc, SBE_FIFO);
             SBE_GLOBAL->sbeIntrSource.clearIntrSource(SBE_ALL_HANDLER,SBE_INTERFACE_FIFO);
-            pk_irq_enable(SBE_IRQ_SBEHFIFO_DATA);
-            pk_irq_enable(SBE_IRQ_SBEHFIFO_RESET);
+            pk_irq_enable(SBE_IRQ_SBEFIFO_DATA);
+            pk_irq_enable(SBE_IRQ_SBEFIFO_RESET);
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);
