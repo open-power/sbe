@@ -63,10 +63,21 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
     {
-        // Create the req struct for the sbeFastArray Chip-op
-        sbeControlFastArrayCMD_t dumpFastArrayReq = {0};
         // Update address, length and stream header data vai FIFO
         iv_tocRow.tocHeader.address = iv_hdctRow->cmdFastArray.strEqvHash32;
+        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        if(!iv_tocRow.tgtHndl.getFunctional())
+        {
+            // Update non functional state DUMP header
+            iv_tocRow.tocHeader.preReq = false;
+            iv_tocRow.tocHeader.dataLength = 0x00;
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+            SBE_INFO("DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
+                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+            break;
+        }
+        // Create the req struct for the sbeFastArray Chip-op
+        sbeControlFastArrayCMD_t dumpFastArrayReq = {0};
         //TODO: As there is no way as of now to get the fast array length we
         //will hard code and stream out the data length. If the actual length value
         //deviates from the hardcoded value dump parser will fail.
@@ -78,7 +89,6 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         uint32_t dummyDataLengthInBits =
             64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
 
-        uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         len = sizeof(dumpFastArrayReq)/sizeof(uint32_t);
@@ -191,6 +201,17 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
 
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetRing.strEqvHash32;
+    uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+    if(!iv_tocRow.tgtHndl.getFunctional())
+    {
+        // Update non functional state in DUMP header
+        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETRING: NonFunctional Target UnitNum[0x%08X]",
+                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
     uint32_t bitlength = iv_hdctRow->cmdGetRing.ringLen;
     //Stream out the actual ring length.
     iv_tocRow.tocHeader.dataLength = bitlength;
@@ -200,7 +221,6 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     uint32_t dummyDataLengthInBits =
                 64 * (((uint32_t)(bitlength / 64)) + ((uint32_t)(bitlength % 64) ? 1:0 ));
 
-    uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
     sbeGetRingAccessMsgHdr_t l_reqMsg;
@@ -342,8 +362,18 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
     {
         // Update address, length and stream header data vai FIFO
         iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetSram.addr;
-        iv_tocRow.tocHeader.dataLength = 0x2000; // Length in bits (1024 bytes)
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+        if(!iv_tocRow.tgtHndl.getFunctional())
+        {
+            // Update non functional state in DUMP header
+            iv_tocRow.tocHeader.preReq = false;
+            iv_tocRow.tocHeader.dataLength = 0x00;
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+            SBE_INFO("DUMP GETSRAM: NonFunctional Target UnitNum[0x%08X]",
+                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+            break;
+        }
+        iv_tocRow.tocHeader.dataLength = 0x2000; // Length in bits (1024 bytes)
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         uint32_t addr = iv_hdctRow->cmdGetSram.addr;
@@ -401,6 +431,13 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         iv_tocRow.tocHeader.dataLength = 0x00;
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        if(!iv_tocRow.tgtHndl.getFunctional())
+        {
+            iv_tocRow.tocHeader.preReq = false; 
+            SBE_INFO("DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]",
+                     (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+            break;
+        }
 
         uint32_t addr = iv_tocRow.tocHeader.address;
         uint32_t maskType = iv_hdctRow->cmdPutScom.extGenericHdr.bitModifier;
@@ -462,8 +499,18 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
 
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetScom.addr;
-    iv_tocRow.tocHeader.dataLength = 0x40; // 64 bits -or- 2 words
     uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+    if(!iv_tocRow.tgtHndl.getFunctional())
+    {
+        // Update non functional state DUMP header
+        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]",
+                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
+    iv_tocRow.tocHeader.dataLength = 0x40; // 64 bits -or- 2 words
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
     uint64_t dumpData;
     fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
@@ -501,7 +548,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 break;
             }
         case CHIP_UNIT_TYPE_PERV:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -511,7 +558,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_EQ:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -521,7 +568,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_C:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -531,7 +578,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_PHB:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PHB>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -541,7 +588,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_MI:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MI>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MI>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -551,7 +598,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_MC:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MC>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -561,7 +608,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_PAUC:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAUC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAUC>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -571,7 +618,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_IOHS:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_IOHS>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_IOHS>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -581,7 +628,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_NMMU:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_NMMU>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_NMMU>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -591,7 +638,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_PEC:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PEC>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PEC>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -601,7 +648,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             }
             break;
         case CHIP_UNIT_TYPE_PAU:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAU>(fapi2::TARGET_STATE_FUNCTIONAL))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PAU>(fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -614,27 +661,27 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
         /*
         //TODO: Bellow targets are required or not should be checked.
         case CHIP_UNIT_TYPE_MCS:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MCS>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCS>();
         case CHIP_UNIT_TYPE_MCBIST:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MCBIST>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCBIST>();
         case CHIP_UNIT_TYPE_CAPP:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_CAPP>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_CAPP>();
         case CHIP_UNIT_TYPE_XBUS:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_XBUS>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_XBUS>();
         case CHIP_UNIT_TYPE_MCA:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MCA>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCA>();
         case CHIP_UNIT_TYPE_MBA:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MBA>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MBA>();
         case CHIP_UNIT_TYPE_DMI:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_DMI>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_DMI>();
         case CHIP_UNIT_TYPE_MCC:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MCC>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_MCC>();
         case CHIP_UNIT_TYPE_OMI:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_OMI>(fapi2::TARGET_STATE_FUNCTIONAL);
+            return procTgt.getChildren<fapi2::TARGET_TYPE_OMI>();
         */
         default:
         {
-            SBE_INFO(SBE_FUNC "command Id [0x%02X] Type[0x%02X] not supported.",
+            SBE_ERROR(SBE_FUNC "command Id [0x%02X] Type[0x%02X] not supported",
                                (uint8_t) iv_tocRow.tocHeader.chipUnitType,
                                (uint8_t) iv_tocRow.tocHeader.cmdType);
             break;
@@ -674,6 +721,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         // write dump row header contents using FIFO
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
+        iv_tocRow.tocHeader.preReq = true;
         iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
         switch(iv_tocRow.tocHeader.cmdType)
         {
