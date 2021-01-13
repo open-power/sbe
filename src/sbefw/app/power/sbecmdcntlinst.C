@@ -438,6 +438,13 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 
             do //Iterate over all cores for special wakeup assert
             {
+                //TODO: Skip doing special wakeup on Simics
+                if(SBE::isSimicsRunning())
+                {
+                    SBE_INFO("Special Wakeup is NOOP on simics for Stop Instructions");
+                    break;
+                }
+
                 fapi2::Target<fapi2::TARGET_TYPE_CORE>coreTgt(
                         plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(core));
                 if(!coreTgt.isFunctional())
@@ -464,7 +471,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 {
                     SBE_INFO(SBE_FUNC "Assert succeeded for core[0x%2x]", core);
                 }
-            } while(++core < coreCntMax);
+            }while(++core < coreCntMax);
 
             if ( (fapiRc) && !(IGNORE_HW_ERRORS & req.mode) )
             {
