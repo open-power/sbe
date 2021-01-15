@@ -33,7 +33,9 @@
 #include <sbecmdringaccess.H>
 #include <sbecmdmpipl.H>
 #include <sbecmdfastarray.H>
+#include <sbecmdtracearray.H>
 #include <p10_query_host_meminfo.H>
+#include <p10_tracearray_defs.H>
 
 #include "sbecmdringaccess.H"
 
@@ -242,6 +244,76 @@ uint32_t sbeCollectDump::stopClocksOff()
         SBE_INFO("dumpStopClocks: dumpStopClocks clockTypeTgt[0x%04X],chipUnitNum[0x%08X],chipletStart[0x%02x], chipletEnd{0x%02x}",dumpStopClockReq.targetType, iv_tocRow.tocHeader.chipUnitNum,iv_hdctRow->cmdStopClocks.chipletStart,iv_hdctRow->cmdStopClocks.chipletEnd);
     }
     while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
+{
+    #define SBE_FUNC " writeGetTracearrayPacketToFifo "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    // Update address, length and stream header data vai FIFO
+    iv_tocRow.tocHeader.address = iv_hdctRow->cmdTraceArray.strEqvHash32;
+    uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
+    if(!iv_tocRow.tgtHndl.getFunctional())
+    {
+        // Update non functional state DUMP header
+        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]",
+                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
+    // The size of data streamed from SBE is irespective of trace ID
+    // and it is 128*16*8 bits. [ PROC_TRACEARRAY_MAX_SIZE ] 
+    iv_tocRow.tocHeader.dataLength = PROC_TRACEARRAY_MAX_SIZE;
+    iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+
+    sbeControlTraceArrayCMD_t reqMsg = {};
+    len  = sizeof(sbeControlTraceArrayCMD_t)/sizeof(uint32_t);
+
+    uint16_t o_targetType = 0;
+    uint8_t  o_chipletId  = 0;
+    getControlTraceArrayTargetType((uint8_t)iv_tocRow.tocHeader.chipUnitType,
+                                  (uint8_t)iv_tocRow.tocHeader.chipUnitNum,
+                                   o_targetType, o_chipletId );
+    reqMsg.targetType   = o_targetType;
+    reqMsg.chipletId    = o_chipletId;
+    reqMsg.traceArrayId = iv_hdctRow->cmdTraceArray.traceArrayID;
+    reqMsg.operation    = SBE_TA_COLLECT_DUMP; // 0x0008: Collect Trace Dump
+
+    SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                     " traceArrayId [0x%04X] operation [0x%04X]",
+                       reqMsg.targetType, reqMsg.chipletId,
+                       reqMsg.traceArrayId, reqMsg.operation);
+
+    uint32_t startCount = iv_oStream.words_written();
+    sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                      (uint32_t*)&reqMsg, false );
+    rc = sbeControlTraceArrayWrap( istream, iv_oStream );
+
+    uint32_t endCount = iv_oStream.words_written();
+    uint32_t totalCountInBytes = iv_tocRow.tocHeader.dataLength/8;
+    uint32_t totalCount = totalCountInBytes / (sizeof(uint32_t));
+    uint32_t dummyData = 0x00;
+
+    //If endCount = startCount means chip-op failed. We will write dummy data.
+    //TODO:Rc is not handled properly. Will hardcode rc=fail based on endCount
+    //and startCount.
+    if(endCount == startCount || ((endCount - startCount) != totalCount))
+    {
+        totalCount = totalCount - (endCount - startCount);
+        while(totalCount !=0)
+        {
+            iv_oStream.put(dummyData);
+            totalCount = totalCount - 1;
+        }
+    }
 
     SBE_EXIT(SBE_FUNC);
     return rc;
@@ -761,6 +833,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
            (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         return rc;
 
@@ -813,6 +886,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             case CMD_GETMEMPBA:
             {
                 rc = writeGetMemPBAPacketToFifo();
+                break;
+            }
+            case CMD_GETTRACEARRAY:
+            {
+                rc = writeGetTracearrayPacketToFifo();
                 break;
             }
             default:

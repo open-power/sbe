@@ -283,6 +283,14 @@ class sbeCollectDump
         */
         uint32_t writeGetMemPBAPacketToFifo();
 
+       /**
+        * @brief Write tracearry data to FIFO.
+        *
+        * @return SUCCESS,  If chip-op is successful.
+        *         ERROR,    Incase of failure.
+        */
+        uint32_t writeGetTracearrayPacketToFifo();
+
        /** @brief Write getRing data to the FIFO.
         *
         * @return SUCCESS,  If chip-op is successful.

@@ -36,7 +36,7 @@
 #include "sbeutil.H"
 #include "sbefapiutil.H"
 #include "fapi2.H"
-
+#include "chipop_handler.H"
 #include "p10_sbe_tracearray.H"
 
 using namespace fapi2;
@@ -49,9 +49,30 @@ constexpr uint32_t SBE_TRACE_GRANULE_NUM_WORDS =
                                                         sizeof(uint32_t);
 p10_sbe_tracearray_FP_t p10_sbe_tracearray_hwp = &p10_sbe_tracearray;
 
+
 uint32_t sbeControlTraceArray(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeControlTraceArray"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+
+    sbefifo_hwp_data_ostream ostream(type);
+    sbefifo_hwp_data_istream istream(type);
+
+    l_rc = sbeControlTraceArrayWrap( istream, ostream );
+
+    SBE_EXIT(SBE_FUNC);
+    return l_rc;
+    #undef SBE_FUNC
+}
+
+uint32_t sbeControlTraceArrayWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                                  fapi2::sbefifo_hwp_data_ostream& i_putStream)
+{
+    #define SBE_FUNC " sbeControlTraceArrayWrap"
     SBE_ENTER(SBE_FUNC);
     uint32_t l_rc = SBE_SEC_OPERATION_SUCCESSFUL;
     sbeControlTraceArrayCMD_t l_req = {};
@@ -65,7 +86,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
     do
     {
         l_len = sizeof(sbeControlTraceArrayCMD_t)/sizeof(uint32_t);
-        l_rc = sbeUpFifoDeq_mult (l_len, (uint32_t *)&l_req); //EOT fetch
+        l_rc = i_getStream.get(l_len, (uint32_t *)&l_req);
 
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
@@ -126,8 +147,7 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
             // Put the buffer onto Fifo
             SBE_DEBUG(SBE_FUNC " sending row [%d]", l_cur_row);
             l_len = SBE_TRACE_GRANULE_NUM_WORDS;
-            l_rc = sbeDownFifoEnq_mult (l_len,
-                                        reinterpret_cast<uint32_t *>(l_buffer));
+            l_rc = i_putStream.put(l_len, reinterpret_cast<uint32_t *>(l_buffer));
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
             l_NumWordsRead += SBE_TRACE_GRANULE_NUM_WORDS;
         }
@@ -137,11 +157,12 @@ uint32_t sbeControlTraceArray(uint8_t *i_pArg)
     // Now build and enqueue response into downstream FIFO
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if ( SBE_SEC_OPERATION_SUCCESSFUL == l_rc )
+    if ( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc ) &&
+         (i_putStream.isStreamRespHeader()) )
     {
         SBE_INFO(SBE_FUNC " l_NumWordsRead [%d]", l_NumWordsRead);
         l_len = sizeof(l_NumWordsRead)/sizeof(uint32_t);
-        l_rc = sbeDownFifoEnq_mult (l_len, &l_NumWordsRead);
+        l_rc  = i_putStream.put(l_len);
         if(SBE_SEC_OPERATION_SUCCESSFUL == l_rc)
         {
             l_rc = sbeDsSendRespHdr( respHdr, &l_ffdc);
