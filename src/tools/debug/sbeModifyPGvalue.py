@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020
+# Contributors Listed Below - COPYRIGHT 2020,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -129,7 +129,18 @@ def updateAttrPg( image, coresnum):
       sys.exit(1)
 
     #Remove without ECC from SEEPROM binary.
-    cmd2 = getFilePath("ecc") +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
+    #Before running the command check if ECC_TOOL_PATH is available, if not
+    #append before ecc cmd x86_64-yocto27-jail(For yocto env)
+    if getFilePath("ecc") == 1 :
+        print("MCP path not found")
+        cmd2 = "x86_64-yocto27-jail ecc " +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
+        print("JAIL CMD:- %s" % cmd2)
+    else:
+        print("MCP path found")
+        cmd2 = getFilePath("ecc") +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
+        print("CMD:- %s" % cmd2)
+
+
     rc = os.system(cmd2)
     if rc:
       print("Unable to remove ECC from seeprom binary")
@@ -181,7 +192,17 @@ def updateAttrPg( image, coresnum):
       sys.exit(1)
 
     #Append the ecc from SEEPEOM binary.
-    cmd6 = getFilePath("ecc") + " --p8 image --inject " + image + " --output "  + image_ecc
+    #Before running the command check if ECC_TOOL_PATH is available, if not
+    #append before ecc cmd x86_64-yocto27-jail(For yocto env)
+    if getFilePath("ecc") == 1:
+        print("MCP path not found")
+        cmd6 = "x86_64-yocto27-jail ecc " + " --p8 image --inject " + image + " --output "  + image_ecc
+        print("JAIL CMD:- %s" % cmd6)
+    else:
+        print("MCP path found")
+        cmd6 = getFilePath("ecc") + " --p8 image --inject " + image + " --output "  + image_ecc
+        print("CMD:- %s" % cmd6)
+
     rc = os.system(cmd6)
     if rc:
       print("Unable to append the ECC to seeprom binary")
