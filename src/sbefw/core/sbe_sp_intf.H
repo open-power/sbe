@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -61,6 +61,8 @@ enum sbeCommandClass
     SBE_CMD_CLASS_INSTRUCTION_CONTROL    = 0xA7,
     SBE_CMD_CLASS_GENERIC_MESSAGE        = 0xA8,
     SBE_CMD_CLASS_MPIPL_COMMANDS         = 0xA9,
+    SBE_CMD_CLASS_DUMP_COMMANDS          = 0xAA,
+    SBE_CMD_CLASS_HOST_FIFO_COMMANDS     = 0xAB,
 };
 
 static const uint8_t SBE_CMD_UNKNOWN = 0x00;
@@ -181,6 +183,15 @@ enum sbeMpIplCommands
 enum sbeDumpCommands
 {
     SBE_CMD_GET_DUMP = 0x01, /* Get Dump */
+};
+
+/**
+ * @brief enums for Generic Host Commands
+ *
+*/
+enum sbeHostFifoGenericCommands
+{
+    SBE_CMD_HALT = 0x01, /* Halt request from Host Fifo */
 };
 
 /**

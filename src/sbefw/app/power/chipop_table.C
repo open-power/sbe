@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,6 +48,7 @@
 #include "sbecmdgeneric.H"
 #include "istep.H"
 #include "sbecmddump.H"
+#include "sbehostfifomsg.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -253,13 +254,25 @@ CMD_ARR(
 )
 
 //////////////////////////////////////////////////////////////
-//// @brief g_sbeSbeDumpCmdArray
+//// @brief g_sbeDumpCmdArray
 ////
 ////////////////////////////////////////////////////////////////
 CMD_ARR(
     AA,
     {sbeGetDump,
      SBE_CMD_GET_DUMP,
+     SBE_NO_FENCE,
+    }
+)
+
+//////////////////////////////////////////////////////////////
+//// @brief g_sbeHostFifoGenericCmdArray
+////
+////////////////////////////////////////////////////////////////
+CMD_ARR(
+    AB,
+    {sbeHostHaltReq,
+     SBE_CMD_HALT,
      SBE_NO_FENCE,
     }
 )
