@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020
+# Contributors Listed Below - COPYRIGHT 2020,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -214,6 +214,16 @@ def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
              #Will not be validated as it is not part of HDCT.txt
              if(entry.command == "getring"):
                 entry.addDetails.update({entry.address:{"ringAddr":int.from_bytes(file.read(4),"big"), "ringLen":int.from_bytes(file.read(4), "big")}})
+
+             #Decode trace array ID and write into dict
+             #Will not be validated as it is not part of HDCT.txt
+             if(entry.command == "gettracearray"):
+                entry.addDetails.update({entry.address:int.from_bytes(file.read(4),"big")})
+
+             #Decode target type in case of stop clocks and write into dict
+             #Will not be validated as it is not part of HDCT.txt
+             if(entry.command == "stopclocks"):
+                entry.addDetails.update({entry.address:int.from_bytes(file.read(4),"big")})
 
              #decodeFunArg
              args = {}
