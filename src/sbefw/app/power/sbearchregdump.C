@@ -369,10 +369,11 @@ ReturnCode sbeDumpArchRegs()
                      SBE::higher32BWord(dumpAddr), SBE::lower32BWord(dumpAddr));
 
         //Read metadata and fetch the address to dump the architected data
-        sbeArchHWDumpMetaData_t metadata;
         p10_PBA_oper_flag pbaFlag;
+        sbeArchHWDumpMetaData_t metadata;
         //Limiting the scope of the object
         {
+            //Read metadata and fetch the address to dump the architected data
             pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
             sbeMemAccessInterface PBAInterForMetadata(
                     SBE_MEM_ACCESS_PBA,

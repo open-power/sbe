@@ -51,6 +51,8 @@
 #include "core/ipl.H"
 #include "sberegaccess.H"
 #include "chipop_handler.H"
+#include "sbearchregdump.H"
+#include "sbeCollectDump.H"
 
 using namespace fapi2;
 
@@ -147,6 +149,128 @@ ReturnCode continueMpiplIstepsExecute(const sbeRole i_sbeRole)
 }
 
 ///////////////////////////////////////////////////////////////////////
+// @brief Collect HW Dump contents in MPIPL path
+///////////////////////////////////////////////////////////////////////
+ReturnCode collectMPIPLHWDumpEntries()
+{
+#define SBE_FUNC " collectMPIPLHWDumpEntries"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint64_t HWDumpAllocAddr = 0;
+    uint64_t HWDumpAllocSize = 0;
+    bool stopClockReq = true;
+
+    do
+    {
+        uint64_t metaDataAddr = 0;
+        //Fetch the MetaData related to the MPIPL
+        metaDataAddr = sbeFetchRegDumpAddrFromStash();
+        if(metaDataAddr == 0xFFFFFFFFFFFFFFFFULL || metaDataAddr == 0)
+        {
+            SBE_ERROR(SBE_FUNC "Invalid Metadata address from Stash [0x%08X %08X]",
+                    SBE::higher32BWord(metaDataAddr),SBE::lower32BWord(metaDataAddr));
+            break;
+        }
+        SBE_INFO(SBE_FUNC "Metadata Address = [0x%08X %08X] ",
+                SBE::higher32BWord(metaDataAddr), SBE::lower32BWord(metaDataAddr));
+
+        //Read metadata and fetch the address to collect HW dump contents
+        sbeArchHWDumpMetaData_t metadata;
+        {//Keeping below memory access object to limited scope
+            p10_PBA_oper_flag pbaFlag;
+            pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+            sbeMemAccessInterface PBAInterForMetadata(
+                    SBE_MEM_ACCESS_PBA,
+                    metaDataAddr, 
+                    &pbaFlag,
+                    SBE_MEM_ACCESS_READ,
+                    sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+
+            fapiRc = PBAInterForMetadata.accessWithBuffer(&metadata,
+                    sizeof(sbeArchHWDumpMetaData_t),true);
+        }
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to fetch the Dump metadata at the offset:0x%.8x%.8x!!",
+                    SBE::higher32BWord(metaDataAddr), SBE::lower32BWord(metaDataAddr));
+            break;
+        }
+
+        HWDumpAllocAddr = metadata.hwDataMemoryAddr;
+        HWDumpAllocSize = metadata.hwDataMemAllocSize;
+        SBE_INFO(SBE_FUNC "PHYP allocated HW Dump adress=0x%.8x%.8x and Size=0x%.8x%.8x",
+                SBE::higher32BWord(HWDumpAllocAddr),SBE::lower32BWord(HWDumpAllocAddr),
+                SBE::higher32BWord(HWDumpAllocSize),SBE::lower32BWord(HWDumpAllocSize));
+
+        if(!metadata.canCollectHwDumpData())
+        {
+            SBE_ERROR(SBE_FUNC "PHYP has not allocated memory for collection of HW Dump Data!"
+                      "Collection of HW dump content is skipped,clocks will be stopped");
+            break;
+        }
+        //Remove the 0th Bit while accessing the address sent by PHYP
+        HWDumpAllocAddr = HWDumpAllocAddr & 0x7FFFFFFFFFFFFFFF;
+        uint32_t bytesCollected = 0;
+        //Skip stopping of the clocks as collectMpiplHwDump() will do it
+        //internally
+        stopClockReq = false;
+        uint32_t rc = collectMpiplHwDump(HWDumpAllocAddr,bytesCollected);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC "Failed in collectMpiplHwDump().MPIPL will continue");
+            break;
+        }
+        SBE_INFO(SBE_FUNC "Bytes collected=0x%.8x",bytesCollected);
+        metadata.hwDataMemCapturedSize = bytesCollected;
+     
+        //Update the Metadata
+        {//Keeping below memory access object to limited scope
+            p10_PBA_oper_flag pbaFlag;
+            pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+            sbeMemAccessInterface PBAInterForMetadata(
+                    SBE_MEM_ACCESS_PBA,
+                    metaDataAddr, 
+                    &pbaFlag,
+                    SBE_MEM_ACCESS_WRITE,
+                    sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+
+            fapiRc = PBAInterForMetadata.accessWithBuffer(&metadata,
+                    sizeof(sbeArchHWDumpMetaData_t),true);
+        }
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to update the Dump metadata at the offset:0x%.8x%.8x!!",
+                    SBE::higher32BWord(metaDataAddr), SBE::lower32BWord(metaDataAddr));
+            break;
+        }
+
+    }while(0);
+
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "Internal Error in collectMPIPLHWDumpEntries() MPIPL will continue!");
+        fapiRc = FAPI2_RC_SUCCESS;
+    }
+
+    //Internal failure detected stop clock will be explcited done ehre
+    if(stopClockReq)
+    {
+        SBE_INFO(SBE_FUNC "Internal Error in collectMPIPLHWDumpEntries(),Attempt Stop "
+                "clocks for all Core and cache, for MPIPL to continue");
+        fapiRc = stopClockS0();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
+        }
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+#undef SBE_FUNC
+
+}
+
+
+///////////////////////////////////////////////////////////////////////
 // @brief sbeEnterMpipl Sbe enter MPIPL function
 //
 // @return  RC from the underlying FIFO utility
@@ -199,14 +323,27 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             PLAT_ATTR_INIT(ATTR_IS_MPIPL, Target<TARGET_TYPE_SYSTEM>(), isMpipl);
             break;
         }
+
+//TODO: Enable collection of HW dump data once HB changes are integrated.
+//    : Remove below StopClock call
+#if 0
+        //HW Dump related HDCT entries. Below interface also takes care of
+        //stopping the clocks
+        fapiRc = collectMPIPLHWDumpEntries();
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR("Failed in collectMPIPLHWDumpEntries(),cannot continue MPIPL!");
+            break;
+        }
+#endif
         //Core and Cache stop Clock
         SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
         fapiRc = stopClockS0();
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
-            rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
-            SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
-            break;
+             rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
+             SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
+             break;
         }
 
         //WORKAROUND:Force TOD RUNNING status to be OFF

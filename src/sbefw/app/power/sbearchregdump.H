@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,4 +47,10 @@ fapi2::ReturnCode sbeDumpArchRegs(void);
  */
 void fetchEffectiveGroupAndChipId(uint8_t &o_procGroupId,
                                       uint8_t &o_chipId);
+
+/**
+ * @brief Fetch the HB reserved memory address to fetch the 
+ *        metadata structure
+ */
+uint64_t sbeFetchRegDumpAddrFromStash(void);
 #endif /* __SBEFW_ARCHREGDUMP_H */
