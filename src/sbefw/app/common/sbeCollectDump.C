@@ -37,6 +37,9 @@
 
 #include "sbecmdringaccess.H"
 
+#define FAST_ARRAY_CTRL_SET1_SIZE 0x48E18
+#define FAST_ARRAY_CTRL_SET2_SIZE 0x2524
+
 using namespace fapi2;
 
 p10_query_host_meminfo_FP_t p10_query_host_meminfo_hwp = &p10_query_host_meminfo;
@@ -82,9 +85,9 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         //will hard code and stream out the data length. If the actual length value
         //deviates from the hardcoded value dump parser will fail.
         if(iv_hdctRow->cmdFastArray.controlSet == 0x01)
-            iv_tocRow.tocHeader.dataLength = (0x48E18 * 8);
+            iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET1_SIZE * 8);
         else
-            iv_tocRow.tocHeader.dataLength = (0x2524 * 8);
+            iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET2_SIZE * 8);
 
         uint32_t dummyDataLengthInBits =
             64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
@@ -92,7 +95,9 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         len = sizeof(dumpFastArrayReq)/sizeof(uint32_t);
+        //FIXME:We have to fetch the target type from HDCT.bin.
         dumpFastArrayReq.hdr.targetType  = TARGET_CORE;
+
         dumpFastArrayReq.hdr.chipletId   = iv_tocRow.tocHeader.chipUnitNum;
         dumpFastArrayReq.hdr.control_set = iv_hdctRow->cmdFastArray.controlSet;
         dumpFastArrayReq.hdr.custom_data_length = 0x00;
@@ -148,43 +153,28 @@ uint32_t sbeCollectDump::stopClocksOff()
         sbeStopClocksReqMsgHdr_t dumpStopClockReq = {0};
         len = sizeof(dumpStopClockReq)/sizeof(uint32_t);
         dumpStopClockReq.reserved = 0x00;
-        uint32_t clockType = iv_hdctRow->cmdStopClocks.strEqvHash32;
-        if( TYPE_ALL == clockType )
+        dumpStopClockReq.targetType = iv_hdctRow->cmdStopClocks.tgtType;
+        if(iv_hdctRow->cmdStopClocks.chipletStart == 0xff && iv_hdctRow->cmdStopClocks.chipletEnd == 0xff)
         {
-            dumpStopClockReq.targetType = TARGET_PROC_CHIP;
-            //For TARGET_PROC_CHIP chiplet ID is N/A. lets keep it 0x00.
-            dumpStopClockReq.chipletId = 0x00;
-        }
-        //TODO:Stop clocks on Cache is not supported by SBE.Beow code is wrong
-        //and needs to be updated. MPIPL clock OFF will not work without this
-        //support.
-        else if( TYPE_CACHE == clockType )
-        {
-            dumpStopClockReq.targetType = TARGET_EQ;
-            dumpStopClockReq.chipletId  = EQ_ALL_CHIPLETS;
-        }
-        else if( TYPE_CORE == clockType )
-        {
-            dumpStopClockReq.targetType = TARGET_CORE;
-            dumpStopClockReq.chipletId  = SMT4_ALL_CORES;
-        }
-        else if( TYPE_EQ == clockType )
-        {
-            dumpStopClockReq.targetType = TARGET_EQ;
-            dumpStopClockReq.chipletId  = EQ_ALL_CHIPLETS;
+            //All chiplets
+            dumpStopClockReq.chipletId = 0xff;
+            sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                          (uint32_t*)&dumpStopClockReq, false );
+            rc = sbeStopClocks_Wrap( istream, iv_oStream );
         }
         else
         {
-            SBE_ERROR("Failed in dumpStopClocks clockType[0x%08X], chipUnitNum",
-                      "[0x%08X]",clockType, iv_tocRow.tocHeader.chipUnitNum);
-            break;
-        }
-        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+            //TODO:Need to provide support for stop clock on all cache chiplets
+            for(uint32_t chiplet=iv_hdctRow->cmdStopClocks.chipletStart; chiplet <= iv_hdctRow->cmdStopClocks.chipletEnd; chiplet++)
+            {
+                dumpStopClockReq.chipletId = chiplet;
+                sbefifo_hwp_data_istream istream( iv_fifoType, len,
                                           (uint32_t*)&dumpStopClockReq, false );
-        rc = sbeStopClocks_Wrap( istream, iv_oStream );
+                rc = sbeStopClocks_Wrap( istream, iv_oStream );
+            }
+        }
 
-        SBE_INFO("dumpStopClocks: dumpStopClocks clockType[0x%08X],chipUnitNum",
-                  "[0x%08X]",clockType, iv_tocRow.tocHeader.chipUnitNum);
+        SBE_INFO("dumpStopClocks: dumpStopClocks clockTypeTgt[0x%04X],chipUnitNum[0x%08X],chipletStart[0x%02x], chipletEnd{0x%02x}",dumpStopClockReq.targetType, iv_tocRow.tocHeader.chipUnitNum,iv_hdctRow->cmdStopClocks.chipletStart,iv_hdctRow->cmdStopClocks.chipletEnd);
     }
     while(0);
 

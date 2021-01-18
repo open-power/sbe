@@ -131,16 +131,6 @@ enum bitModifier
     B_OR  = 0x02,
 };
 
-// Clock HWP Type for stopClock
-// No: of bits used in HDCT.bin - 32bits
-enum clockType
-{
-    TYPE_ALL = 0x62E649F3,
-    TYPE_CACHE = 0x7C914A69,
-    TYPE_CORE = 0xC3F1DA81,
-    TYPE_EQ = 0xE9088340,
-};
-
 // Generic Structre for each HDCT row.
 // Any change in HDCT.bin row format the below structure needs to be updated.
 typedef struct __attribute__((packed))
@@ -205,11 +195,15 @@ typedef struct __attribute__((packed))
         struct __attribute__((packed))
         {
             uint32_t strEqvHash32;
+            uint32_t chipletEnd:8;
+            uint32_t chipletStart:8;
+            uint32_t tgtType:16;
         }cmdStopClocks;
 
         struct __attribute__((packed))
         {
             uint32_t strEqvHash32;
+            uint32_t traceArrayID;
         }cmdTraceArray;
     };
 
