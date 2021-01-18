@@ -223,6 +223,16 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
             }
         }
 
+        //Need to reset the shadow state, when cores are in stop 11 as well
+        if (!l_cl2_pfet_sense ||
+            (l_cl2_pfet_sense && l_core_clock_State && l_l3_clock_State))
+        {
+            l_data.flush<0>().setBit<1>();
+            FAPI_IMP("Assert TFAC_RESET via PCR_TFCSR[1]");
+            FAPI_TRY( fapi2::putScom( i_core_target, QME_TFCSR_SCOM2, l_data));
+        }
+
+
     }
     while(0);
 
