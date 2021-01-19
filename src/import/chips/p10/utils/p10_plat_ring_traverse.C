@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -88,29 +88,29 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
                                   i_ringMode) );
 #else
     // For DFT, find offset to TOR using attributes
-    fapi2::ATTR_RING_IMG_CNFG_Type l_ring_img_cnfg = 0;
-    fapi2::ATTR_HW_IMG_PTR_Type l_img_addr = 0;
-    uint8_t* l_img_ptr = 0;
+    fapi2::ATTR_RING_IMG_CNFG_Type l_ringImgCnfg = 0;
+    fapi2::ATTR_HW_IMG_PTR_Type l_imgAddr = 0;
+    uint8_t* l_pImgPtr = 0;
 
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_procTgt   =
         i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP> ();
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RING_IMG_CNFG, l_procTgt, l_ring_img_cnfg));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RING_IMG_CNFG, l_procTgt, l_ringImgCnfg));
 
-    if (l_ring_img_cnfg == 0)
+    if (l_ringImgCnfg == 0)
     {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HW_IMG_PTR, l_procTgt, l_img_addr));
-        FAPI_DBG("DFT putRing reading appended BASE RS4 image beginning at 0x%.8x", l_img_ptr);
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HW_IMG_PTR, l_procTgt, l_imgAddr));
+        FAPI_DBG("DFT putRing reading appended BASE RS4 image beginning at 0x%.8x", l_imgAddr);
     }
     else
     {
-        FAPI_ERR("Unknown image pointer %.2x in ATTR_RING_IMG_CNFG", l_ring_img_cnfg);
+        FAPI_ERR("Unknown image pointer %.2x in ATTR_RING_IMG_CNFG", l_ringImgCnfg);
     }
 
-    l_img_ptr = (uint8_t*) l_img_addr;
+    l_pImgPtr = (uint8_t*) l_imgAddr;
 
     FAPI_TRY( getRS4ImageFromTor( i_target,
-                                  l_img_ptr,
+                                  l_pImgPtr,
                                   i_ringId,
                                   false,
                                   i_ringMode) );
