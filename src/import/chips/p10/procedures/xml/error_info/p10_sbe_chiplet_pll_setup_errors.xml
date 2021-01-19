@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -93,6 +93,17 @@
       <ffdc>INTERMEDIATE_STEP</ffdc>
       <ffdc>LAST_ATTEMPT</ffdc>
       <ffdc>WA_TYPE</ffdc>
+   </hwpError>
+   <!-- ******************************************************************** -->
+   <hwpError>
+      <sbeError/>
+      <rc>RC_P10_HW540133_COMBO_WA_ERR</rc>
+      <description>
+        Error applying combo_bandsel workaround -- bad return code in
+        scan/scom sequence application or failure to observe subseqent PLL lock
+      </description>
+      <ffdc>TARGET</ffdc>
+      <ffdc>LOCK_ERR</ffdc>
    </hwpError>
    <!-- ******************************************************************** -->
    <hwpError>
