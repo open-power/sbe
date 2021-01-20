@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -84,7 +84,10 @@ typedef struct
         }
     } hdr;
 
-    uint32_t custom_control_data[SBE_FASTARRAY_MAX_CONTROL_DATA_WORDS];
+    //FIXME:Adding the below pice of code utilises a large amount of stack and
+    //ultimately corrupts it.
+    //We need to get rid off "req.custom_control_data" array.
+    //    uint32_t custom_control_data[SBE_FASTARRAY_MAX_CONTROL_DATA_WORDS];
 } sbeControlFastArrayCMD_t;
 
 /**
