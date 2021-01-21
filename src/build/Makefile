@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
+# [+] Justin.Ginn@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,6 +158,7 @@ SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbe-debug.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbeModifyPGvalue.py
+SIMICS_BB_TAR_FILES += $(SBE_SRC_DIR)/tools/utils/ecc
 SIMICS_BB_TAR_FILES += $(P10_IMAGE_TOOL_BINDIR)/ipl_image_tool
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/cmvc/makefile
 SIMICS_PPETRACEPP_TAR_FILES += $(PPETRACEPP_DIR)/ppe2fsp.h

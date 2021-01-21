@@ -37,7 +37,6 @@ import operator
 
 err = False
 
-ECC_TOOL_PATH = "/opt/mcp/shared/fr_FLD9-DEV-20200624/opt/fsp/usr/bin/"
 SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
 
 if 'BLD' in os.environ:
@@ -45,17 +44,17 @@ if 'BLD' in os.environ:
     #Add sbeModifyPGvalue.py path in PATH for Denali system.
     SBE_SCRIPTS_PATH_DENALI=os.environ['BLD']+"/obj/ppc/sbei/sbfw/simics/"
     # preference is SBE_TOOLS_PATH, current woring directory and then system path
-    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_DENALI+os.pathsep+ECC_TOOL_PATH
+    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_DENALI
 else:
     #Add sbeModifyPGvalue.py path in PATH for Rainier system.
     SBE_SCRIPTS_PATH_RAINIER=os.getcwd()+"/sbe_sim_data/"
     # preference is SBE_TOOLS_PATH, current woring directory and then system path
-    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_RAINIER+os.pathsep+ECC_TOOL_PATH
-
+    PATH = SBE_TOOLS_PATH+os.pathsep+os.getcwd()+os.pathsep+os.environ['PATH']+os.pathsep+SBE_SCRIPTS_PATH_RAINIER
 
 def getFilePath(filename):
     for dir in PATH.split(os.pathsep):
         retPath = os.path.join(dir, filename)
+        print(retPath)
         if(os.path.exists(retPath)):
             return os.path.abspath(retPath)
     print("ERROR: file " + filename +" not found")
@@ -128,18 +127,7 @@ def updateAttrPg( image, coresnum):
       print("Unable to make copy of ecc seeprom binary")
       sys.exit(1)
 
-    #Remove without ECC from SEEPROM binary.
-    #Before running the command check if ECC_TOOL_PATH is available, if not
-    #append before ecc cmd x86_64-yocto27-jail(For yocto env)
-    if getFilePath("ecc") == 1 :
-        print("MCP path not found")
-        cmd2 = "x86_64-yocto27-jail ecc " +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
-        print("JAIL CMD:- %s" % cmd2)
-    else:
-        print("MCP path found")
-        cmd2 = getFilePath("ecc") +  " --p8 --remove " + image + " --output "  + image + "updat.bin"
-        print("CMD:- %s" % cmd2)
-
+    cmd2 = getFilePath("ecc") + " --p8 --remove " + image + " --output "  + image + "updat.bin"
 
     rc = os.system(cmd2)
     if rc:
@@ -191,17 +179,7 @@ def updateAttrPg( image, coresnum):
       print("Unable to make  seeprom binary")
       sys.exit(1)
 
-    #Append the ecc from SEEPEOM binary.
-    #Before running the command check if ECC_TOOL_PATH is available, if not
-    #append before ecc cmd x86_64-yocto27-jail(For yocto env)
-    if getFilePath("ecc") == 1:
-        print("MCP path not found")
-        cmd6 = "x86_64-yocto27-jail ecc " + " --p8 image --inject " + image + " --output "  + image_ecc
-        print("JAIL CMD:- %s" % cmd6)
-    else:
-        print("MCP path found")
-        cmd6 = getFilePath("ecc") + " --p8 image --inject " + image + " --output "  + image_ecc
-        print("CMD:- %s" % cmd6)
+    cmd6 = getFilePath("ecc") + " --p8 image --inject " + image + " --output "  + image_ecc
 
     rc = os.system(cmd6)
     if rc:

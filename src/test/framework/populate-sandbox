@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -106,6 +106,7 @@ cp $SBEROOT/images/*.dis $SBETESTDIR/ || exit -1
 cp $SBEROOT/images/*StringFile* $SBETESTDIR/ || exit -1
 cp $SBEROOT/images/ipl_image_tool  $SBETESTDIR/ || exit -1
 cp $SBEROOT/obj/power/genfiles/ppe2fsp $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/tools/utils/ecc $SBETESTDIR/ || exit -1
 echo "Copy fsp-trace"
 cp $MCP_PATH/opt/fsp/usr/bin/fsp-trace $SBETESTDIR || exit -1
 

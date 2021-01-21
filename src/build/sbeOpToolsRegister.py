@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020
+# Contributors Listed Below - COPYRIGHT 2020,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -54,7 +54,10 @@ def exportFiles(sbe_simdata_dir, img_dir):
     #Copy the ppe2fsp file to the sbe_simdata_dir
     os.system('cp '+img_dir+'/../obj/power/genfiles/ppe2fsp'+' '+sbe_simdata_dir+'/')
 
-    #Copy the ppe2fsp file to the sbe_simdata_dir
+    #Copy the ecc tool to the sbe_simdata_dir
+    os.system('cp '+img_dir+'/../src/tools/utils/ecc'+' '+sbe_simdata_dir+'/')
+
+    #Copy the fsp-trace file to the sbe_simdata_dir
     os.system('cp /opt/mcp/shared/fr_FLD9-DEV-20190320/opt/fsp/usr/bin/fsp-trace ' +sbe_simdata_dir+'/')
 
     #Copy the simic scripts to the sbe_simdata_dir
