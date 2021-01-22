@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -66,6 +66,9 @@
 #define DBCR_DACE_ST     0x00040000 /* Data Address Compare Enable: 01=store */
 #define DBCR_DACE_LD     0x00080000 /* Data Address Compare Enable: 10=load */
 #define DBCR_DACE_STLD   0x000C0000 /* Data Address Compare Enable: 11=both */
+#define DBCR_ACS_WORD    0x00000040 /* Address Compare Size: 01=word aligned */
+#define DBCR_ACS_DWORD   0x00000080 /* Address Compare Size: 10=Dword aligned */
+#define DBCR_ACS_QWORD   0x000000c0 /* Address Compare Size: 11=Quad aligned */
 #define DBCR_ZACE        0x00000004 /* Zero Address Compare Enable */
 
 /* TCR - Timer Control Register */
@@ -175,6 +178,9 @@ typedef union
 // set dbcr
 #define mtdbcr(value) \
     asm volatile ("mtdbcr %0" : : "r" (value) : "memory")
+
+#define mtdacr(value) \
+    asm volatile ("mtdacr %0" : : "r" (value) : "memory")
 
 // set tcr
 #define mttcr(value) \
