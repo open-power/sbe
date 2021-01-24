@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -79,6 +79,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
     uint8_t l_attr_chip_unit_pos = 0;
     uint8_t l_core_num = 0;
     uint32_t l_pfet_senses = 0;
+    fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
     FAPI_INF("> p10_query_access_state..");
 
@@ -98,7 +99,14 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         //unit is having power or not, quad is always on.
 
         //Read the power state of core/l2
-        FAPI_TRY(fapi2::getScom(l_core, CPMS_CL2_PFETSTAT, l_scomData));
+        l_rc = fapi2::getScom(l_core, CPMS_CL2_PFETSTAT, l_scomData);
+
+        if (l_rc)
+        {
+            FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_CL2_PFETSTAT);
+            goto scom_check;
+        }
+
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
 
         if( l_pfet_senses & BIT32(CPMS_CL2_PFETSTAT_VDD_PFETS_ENABLED_SENSE))
@@ -107,7 +115,14 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         }
 
         //Read the power state of l3
-        FAPI_TRY(fapi2::getScom(l_core, CPMS_L3_PFETSTAT, l_scomData));
+        l_rc = fapi2::getScom(l_core, CPMS_L3_PFETSTAT, l_scomData);
+
+        if (l_rc)
+        {
+            FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_L3_PFETSTAT);
+            goto scom_check;
+        }
+
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
 
         if( l_pfet_senses & BIT32(CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE))
@@ -116,7 +131,14 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         }
 
         //Read the power state of mma
-        FAPI_TRY(fapi2::getScom(l_core, CPMS_MMA_PFETSTAT, l_scomData));
+        l_rc = fapi2::getScom(l_core, CPMS_MMA_PFETSTAT, l_scomData);
+
+        if (l_rc)
+        {
+            FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_MMA_PFETSTAT);
+            goto scom_check;
+        }
+
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
 
         if( l_pfet_senses & BIT32(CPMS_MMA_PFETSTAT_S_ENABLED_SENSE))
@@ -130,6 +152,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
     FAPI_INF("QUAD Status : scan access state(0x%08X)",
              o_scanStateData.scanState);
 
+scom_check:
     // A region is scomable if following four factors are fulfilled
     // 1) Clock should be on for that region
     // 2) The region must not be fenced
