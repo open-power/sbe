@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -593,11 +593,11 @@ __special_machine_check_handler:
         stvd    %d9,    PK_CTX_GPR9(%r1)
         stvd    %d28,   PK_CTX_GPR28(%r1)
         stvd    %d30,   PK_CTX_GPR30(%r1)
-        mflr    %r3
-        stw     %r3,    PK_CTX_LR(%r1)
         mfcr    %r3
-        mfsprg0 %r4
-        stvd    %d3,    PK_CTX_CR(%r1)
+        mflr    %r4
+        stvd    %d3,  PK_CTX_CR(%r1)
+        mfsprg0 %r3
+        stw     %r3,  PK_CTX_KERNEL_CTX(%r1)
         mfxer   %r3
         mfctr   %r4
         stvd    %d3,    PK_CTX_XER(%r1)
@@ -607,25 +607,7 @@ __special_machine_check_handler:
 #if defined(__PPE__)    
         bl      __ppe42_pib_reset_handler
 #endif    
-        lwz     %r0,    PK_CTX_GPR0(%r1)
-        lvd     %d7,    PK_CTX_SRR0(%r1)
-        mtsrr1  %r8
-        mtsrr0  %r7
-        lvd     %d5,    PK_CTX_XER(%r1)
-        mtctr   %r6
-        mtxer   %r5
-        lvd     %d30,   PK_CTX_GPR30(%r1)
-        lvd     %d28,   PK_CTX_GPR28(%r1)
-        lvd     %d9,    PK_CTX_GPR9(%r1)
-        lvd     %d7,    PK_CTX_GPR7(%r1)
-        lvd     %d5,    PK_CTX_GPR5(%r1)
-        lvd     %d3,    PK_CTX_CR(%r1)  ## CR,SPRG0
-        mtcr0   %r3
-        lwz     %r4,    PK_CTX_LR(%r1)
-        mtlr    %r4
-        lvd     %d3,    PK_CTX_GPR3(%r1)
-        addi    %r1,    %r1, PK_CTX_SIZE
-    
+        b    ctx_pop_with_sprg0
         rfi
 
 /// \endcond
