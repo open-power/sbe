@@ -106,7 +106,10 @@ typedef struct hdctXipSecDetails
 typedef struct __attribute__((packed)) dumpHeader
 {
     uint32_t dataLayoutVersion:8;
-    uint32_t reserved:24;
+    uint32_t chipTypeToEncode:8; // P10 Chip Type
+    uint32_t ecMajor:4;          // EC major level
+    uint32_t ecMinor:4;          // EC minor level
+    uint32_t reserved:8;
     //EKB Commit ID
     uint64_t hdctVer;
 
@@ -117,7 +120,16 @@ typedef struct __attribute__((packed)) dumpHeader
     {
         //TODO: Needs to be updated to right version
         dataLayoutVersion = 0x01;
-        reserved = 0x00;
+        chipTypeToEncode  = 0x05;  // P10 Chip Type [ 0x5 ]
+                                   // More info @ dumpConstants.py
+        // EC major level[1] | EC minor level[0]
+        fapi2::ATTR_EC_Type chip_ec = 0;
+        FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, plat_getChipTarget(), chip_ec);
+        SBE_INFO("DUMP Chip ATTR_EC =[ %02X] ", chip_ec);
+        uint8_t ecMajarMinor = (uint8_t)chip_ec;
+        ecMajor = (ecMajarMinor & 0xF0)>>4;
+        ecMinor = (ecMajarMinor & 0x0F);
+        reserved          = 0x00;
     }
 
 }dumpHeader_t;
