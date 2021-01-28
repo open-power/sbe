@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -106,23 +106,33 @@ skip_pibmem_init_memory_in_mpipl:
         li       r1, 0x00
         stvd     d0, 0(r5)
 
+        // Clear the deconfig bit for TPM for all chips
+        // It is possible that PHYP did TPM deconfig. start cbs clears this
+        // bit. But in MPIPL this bit is not cleared, so HB IPL will fail.
+        // bit 12 of PU_SECURITY_SWITCH_REGISTER_SCOM1 clear TPM deconfig state
         // Reset the TPM using SBE local register 0xC0002020
         // 0xC0002030 is the W_OR Register, 0xC0002038 is W_CLR Register,
         // Set the Bit0 to 1 then to 0
-         
+        lis     r6, 0x0001
+        ori     r6, r6, 0x0006
+        lis     r0, 0x0008
+        ori     r0, r0, 0x0
+        li      r1, 0x0
+        stvd    d0, 0(r6)   // putscom 0x10006 0x00080000_00000000
+
         lis     r6, 0xc000
         ori     r6, r6, 0x2030
         lis     r0, 0x8000
         ori     r0, r0, 0x0
         li      r1, 0x0
-        stvd    d0, 0(r6)   // putscom 0xc0002030 0x8000000000000000
-        
+        stvd    d0, 0(r6)   // putscom 0xc0002030 0x80000000_00000000
+
         // Setup loop counter to delay the transition [2nsec * 0x50 = 160nsec]
         _liw    %r5, 0x50
         mtctr   r5
 delay_loop:
         bdnz    delay_loop
-        
+
         stvd    d0, 0x8(r6) // putscom 0xc0002038 0x8000000000000000
 
         ############################################################
