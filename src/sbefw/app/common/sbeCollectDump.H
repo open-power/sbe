@@ -41,16 +41,6 @@ static const uint32_t FIFO_DOUBLEWORD_LEN = 2;
 
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
 
-//Struct with complete HDCT.bin header section
-//(HDCT XIP section Header + EKB Commit ID)
-typedef struct __attribute__((packed))
-{
-     DdContHeader_t hdctXipSectionHdr;
-     //TODO:Remove p9_dd_block once DdContHeader_t struct issue is fixed in ekb
-     struct p9_dd_block p9_dd_blk;
-     uint64_t ekbCommitId;
-}hdctSectionHdr_t;
-
 //Struct containing details of HDCT XIP section
 typedef struct hdctXipSecDetails
 {
@@ -104,7 +94,7 @@ typedef struct hdctXipSecDetails
         size = getHdctXipSize();
         endAddr = startAddr + size;
         //Set currAddr to start of HDCT row
-        currAddr = startAddr + sizeof(hdctSectionHdr_t);
+        currAddr = startAddr + sizeof(uint64_t); //Dump start after EKB CommitID
 
         SBE_INFO("Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X] ",
                 startAddr,size,endAddr );
@@ -175,7 +165,6 @@ class sbeCollectDump
         genericRowTOC_t iv_tocRow;
         dumpHeader_t iv_dumpHeader;
         hdctXipSecDetails_t iv_hdctXipSecDetails;
-        hdctSectionHdr_t *iv_hdctSectionHdr;
 
     public:
 
@@ -194,15 +183,17 @@ class sbeCollectDump
              if (iv_clockState == SBE_DUMP_CLOCK_ON)
                  iv_clockOffEntryFlag = false;
 
-             //Parse the HDCT Xip section header
-             iv_hdctSectionHdr = (hdctSectionHdr_t*)iv_hdctXipSecDetails.startAddr;
-
              //Get the equivalent HDCT dump type based on the requested Dump type
              iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
-             SBE_DEBUG("Dump Type Map is %x ", iv_hdctDumpTypeMap);
+             SBE_INFO("Dump Type Map is %x ", iv_hdctDumpTypeMap);
 
-             //Populate dump header struct
-             iv_dumpHeader.hdctVer = iv_hdctSectionHdr->ekbCommitId;
+             //Populate dump header struct with EKB Commit ID
+             seeprom_hwp_data_istream stream((uint32_t*)iv_hdctXipSecDetails.startAddr,
+                                             sizeof(uint64_t));
+             uint32_t msbEkbIdValue, lsbEkbIdValue;
+             stream.get(msbEkbIdValue), stream.get(lsbEkbIdValue);
+             iv_dumpHeader.hdctVer = (((uint64_t)msbEkbIdValue << 32 ) |
+                                      ((uint64_t)lsbEkbIdValue));
              SBE_INFO("EKB Commit ID: 0x%.8x%.8x ",
                        SBE::higher32BWord(iv_dumpHeader.hdctVer),
                        SBE::lower32BWord(iv_dumpHeader.hdctVer));

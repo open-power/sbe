@@ -67,6 +67,10 @@ if [ -f $SBEBINIMAGE ]; then
     #Extract HDCT section from SBE section of HWREF image.
     $SBEROOT/images/ipl_image_tool $HREFSBEIMAGE extract .hdct $HDCTBINIMAGE || exit -1
 
+    #Remove Header HDCT Section of 20 Bytes from HDCT.bin
+    dd if=$HDCTBINIMAGE of=$SBEROOT/images/hdct.bin~ ibs=20 skip=1 || exit -1
+    mv $SBEROOT/images/hdct.bin~ $HDCTBINIMAGE || exit -1
+
     #Append HDCT section into SBE image.
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
 
