@@ -53,9 +53,10 @@ usage()
     echo "  -s: scratch dir path."
     echo "  -i: SBE image to sign. "
     echo "  -t: IPL Image tool path."
+    echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
 }
 
-while getopts "h?s:i:t:" opt;
+while getopts "h?s:i:t:b:" opt;
 do
     case $opt in
 
@@ -74,6 +75,10 @@ do
 
         t)
             IPL_IMAGE_TOOL=$OPTARG
+        ;;
+
+        b)
+            BUILD_TYPE=$OPTARG
         ;;
 
         *)
@@ -104,6 +109,11 @@ if [ -z $IPL_IMAGE_TOOL ]; then
     exit -1
 fi
 
+if [ -z $BUILD_TYPE ]; then
+    echo "***INFO | SBE | signSbeImage : Build Type not entered. Defaulting to PNOR build type"
+    BUILD_TYPE="PNOR" #Default Build Type
+fi
+
 printf "\nSign SBE Image\n"
 
 OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
@@ -127,8 +137,34 @@ check_path ${SBEBINSIMIMAGE}
 #Create the scratch dir
 mkdir -p ${SCRATCH_DIR}
 
-#Extract .hbbl section from SBE image
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .hbbl $SCRATCH_DIR/hbbl.bin || exit -1
+if [ "$BUILD_TYPE" = "STANDALONE" ]; then
+
+    #Extract .hbbl section from SBE image
+    $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .hbbl $SCRATCH_DIR/hbbl.bin || exit -1
+
+    # Sign the .hbbl binary
+    echo "Sign .hbbl section"
+    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
+
+    #Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
+    echo "Strip SBE_HBBL.header content"
+    dd bs=1 count=1288 if=${SCRATCH_DIR}/SBE_HBBL.header of=${SCRATCH_DIR}/SBE_HBBL_stripped.header
+
+    #Append the stripped SBE_HBBL_stripped.header into .sbh_hbbl xip section
+    echo "Appending secure header into .sbh_hbbl xip section"
+    $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_hbbl $SCRATCH_DIR/SBE_HBBL_stripped.header || exit -1
+
+elif [ "$BUILD_TYPE" = "PNOR" ]; then
+
+    echo "Skipping sigining of HBBL section....."
+
+else
+
+    echo "***ERROR | SBE | signSbeImage : Invalid Build Type entered : $BUILD_TYPE. Please supply the -t option."
+    usage
+    exit -1
+
+fi
 
 #Extract .loader_text section from SBE image
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .loader_text $SCRATCH_DIR/loader_text.bin || exit -1
@@ -144,18 +180,6 @@ $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .baseloader $SCRATCH_DIR/baseloader.bin 
 
 #Combine .loader_text,.test,.baseloader,.base
 cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/base.bin $SCRATCH_DIR/baseloader.bin > $SCRATCH_DIR/sbe_fw.bin
-
-# Sign the .hbbl binary
-echo "Sign .hbbl section"
-crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
-
-#Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
-echo "Strip SBE_HBBL.header content"
-dd bs=1 count=1288 if=${SCRATCH_DIR}/SBE_HBBL.header of=${SCRATCH_DIR}/SBE_HBBL_stripped.header
-
-#Append the stripped SBE_HBBL_stripped.header into .sbh_hbbl xip section
-echo "Appending secure header into .sbh_hbbl xip section"
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_hbbl $SCRATCH_DIR/SBE_HBBL_stripped.header || exit -1
 
 # Sign the SBE firmware binary image(payload.bin)
 echo "Sign SBE FW image"
