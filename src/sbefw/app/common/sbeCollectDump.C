@@ -44,6 +44,71 @@ using namespace fapi2;
 
 p10_query_host_meminfo_FP_t p10_query_host_meminfo_hwp = &p10_query_host_meminfo;
 
+void getControlTraceArrayTargetType( const uint8_t i_chipUnitType,
+                                    const uint8_t i_chipUnitNum,
+                                    uint16_t & o_targetType,
+                                    uint8_t  & o_chipletId )
+{
+    o_targetType = 0x00;
+    o_chipletId  = i_chipUnitNum;
+    switch(i_chipUnitType)
+    {
+        case CHIP_UNIT_TYPE_CHIP:
+        case CHIP_UNIT_TYPE_UNKNOWN:
+                {
+                    o_targetType = TARGET_PROC_CHIP;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_C:
+                {
+                    o_targetType = TARGET_CORE;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_EQ:
+                {
+                    o_targetType = TARGET_EQ;
+                    o_chipletId  = EQ_CHIPLET_OFFSET + i_chipUnitNum;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_PERV:
+                {
+                    o_targetType = TARGET_PERV;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_IOHS:
+                {
+                    o_targetType = TARGET_PERV;
+                    o_chipletId  = IOHS_CHIPLET_OFFSET + i_chipUnitNum;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_PEC:
+                {
+                    o_targetType = TARGET_PERV;
+                    o_chipletId  = PEC_CHIPLET_OFFSET + i_chipUnitNum;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_PAUC:
+                {
+                    o_targetType = TARGET_PERV;
+                    o_chipletId  = PAUC_CHIPLET_OFFSET + i_chipUnitNum;
+                    break;
+                }
+        case CHIP_UNIT_TYPE_MC:
+                {
+                    o_targetType = TARGET_PERV;
+                    o_chipletId  = MC_CHIPLET_OFFSET + i_chipUnitNum;
+                    break;
+                }
+        default:
+                {
+                    SBE_ERROR("chipUnitType [0x%02X] and Id[0x%02X] are not "
+                          "supported", (uint8_t) i_chipUnitType, i_chipUnitNum);
+                    break;
+                }
+    }
+    return;
+}   
+
 inline bool sbeCollectDump::dumpTypeCheck()
 {
     return (iv_hdctRow->genericHdr.dumpContent & iv_hdctDumpTypeMap);
@@ -543,7 +608,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "PERV: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " PERV: [0x%08X]", target.get());
                 }
             }
             break;
@@ -553,7 +618,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "EQ: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " EQ: [0x%08X] ",target.get());
                 }
             }
             break;
@@ -563,7 +628,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "CORE id: [0x%08X]",target.get().getTargetInstance());
+                    SBE_DEBUG(SBE_FUNC " CORE:[0x%08X]", target.get().getTargetInstance());
                 }
             }
             break;
@@ -573,7 +638,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "PHB: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " PHB: [0x%08X]",target.get());
                 }
             }
             break;
@@ -583,7 +648,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "MI: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " MI: [0x%08X]",target.get());
                 }
             }
             break;
@@ -593,7 +658,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "MC: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " MC: [0x%08X]",target.get());
                 }
             }
             break;
@@ -603,7 +668,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "PAUC: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " PAUC: [0x%08X]",target.get());
                 }
             }
             break;
@@ -613,7 +678,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "IOHS: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " IOHS: [0x%08X]",target.get());
                 }
             }
             break;
@@ -623,7 +688,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "NMMU: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " NMMU: [0x%08X]",target.get());
                 }
             }
             break;
@@ -633,7 +698,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "PEC: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " PEC: [0x%08X]",target.get());
                 }
             }
             break;
@@ -643,7 +708,7 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 if(isChipUnitNumAllowed(target))
                 {
                     o_targetList.push_back(target);
-                    SBE_DEBUG(SBE_FUNC "PAU: [0x%08X]",target.get());
+                    SBE_DEBUG(SBE_FUNC " PAU: [0x%08X]",target.get());
                 }
             }
             break;
