@@ -104,13 +104,9 @@ class HDCTBinEntry():
 # Function - Functions - Functions - Functions - Functions
 ############################################################
 
-def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
+def createHDCTTxt(HDCTBinFileName, stringHashDict = None):
 
     file = open(HDCTBinFileName,"rb" )
-
-    #Read the XIP section header if present.Useful in ppe/sbe dumpInterpret tool
-    if parserUsage == "ppe":
-        xipHdr = file.read(20)
 
     #Read and process the ekb commit ID from HDCT.bin
     byte = file.read(8)
