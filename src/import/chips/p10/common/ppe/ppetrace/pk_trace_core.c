@@ -52,7 +52,7 @@ PkTimer g_pk_trace_timer __attribute__ ((section (".sdata"))) =
 #endif
 
 //Static initialization of the pk trace buffer
-PkTraceBuffer g_pk_trace_buf __attribute__ ((section (".data.pk_trace_buf"))) =
+PkTraceBuffer g_pk_trace_buf __attribute__ ((section (".sdata"))) =
 {
     .version            = PK_TRACE_VERSION,
     .image_str          = PPE_IMG_STRING,
