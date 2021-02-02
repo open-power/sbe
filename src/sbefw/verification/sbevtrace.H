@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeXipUtils.H $                                */
+/* $Source: src/sbefw/verification/sbevtrace.H $                          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,45 +21,55 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef SBE_XIP_UTILS_H
-#define SBE_XIP_UTILS_H
+#ifndef __SBEFW_SBEV_TRACE_H
+#define __SBEFW_SBEV_TRACE_H
 
-#include "p10_ipl_image.H"
-#include "ppe42_scom.h"  // for PPE_STVD
-#include "sbe_link.H"  // for SBE_BASE_ORIGIN, SBE_SEEPROM_BASE_ORIGIN
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// Unconditional jump to a memory location
-#define JUMP_TO_ADDR(VAL ) \
-{ \
-asm volatile ( \
-    "mtlr  %0 \n\t" \
-    :   \
-    : "r" (VAL)); \
-asm volatile ( \
-    "blr  \n\t" \
-    :   \
-    );\
+#include "pk_api.h"
+#include "trac_interface.h"
+
+#ifdef __cplusplus
 }
+#endif
 
-// PIBMEM start address
-const uint32_t g_pibMemAddr = SBE_BASE_ORIGIN;
-// Verification start address
-const uint32_t g_shaLoaderAddr = SBE_VERIFICATION_LOADER_ORIGIN;
-// SEEPROM start address
-const uint32_t g_headerAddr = SBE_SEEPROM_BASE_ORIGIN;
-// IVPR register address
-const uint32_t g_ivprLoc = 0xC0000160;
+#define  SBEV_ENTER_MRK ">>"
+#define  SBEV_EXIT_MRK "<<"
+#define  SBEV_ERR_MRK "E>"
+#define  SBEV_INF_MRK "I>"
+#define  SBEV_DEBUG_MRK "D>"
 
-// Get XIP image header
-inline P9XipHeader * getXipHdr()
-{
-    P9XipHeader *hdr = (P9XipHeader *)( g_headerAddr );
-    return hdr;
-}
+#define SBEV_ERROR(args...)
+#define SBEV_INFO(args...)
+#define SBEV_ENTER(args...)
+#define SBEV_EXIT(args...)
+#define SBEV_DEBUG(args...)
 
-// Get Section start addess
-inline uint8_t * getSectionAddr( P9XipSection * i_section )
-{
-    return ( (uint8_t *)( g_headerAddr + i_section->iv_offset));
-}
-#endif // SBE_XIP_UTILS_H
+// Levels of logging
+// 0 - No tracing
+// 1 - Error
+// 2 - Error, info
+// 3 - Error, info, entry/exit
+// 4 - Error, info, entry/exit, debug
+#if (SBEV_TRACE_LEVEL >= 1)
+#undef SBEV_ERROR
+#define SBEV_ERROR(args...) PK_TRACE(SBEV_ERR_MRK"" args)
+#endif
+#if (SBEV_TRACE_LEVEL >= 2)
+#undef SBEV_INFO
+#define SBEV_INFO(args...) PK_TRACE(SBEV_INF_MRK"" args)
+#endif
+#if (SBEV_TRACE_LEVEL >= 3)
+#undef SBEV_ENTER
+#undef SBEV_EXIT
+#define SBEV_ENTER(args...) PK_TRACE(SBEV_ENTER_MRK"" args)
+#define SBEV_EXIT(args...) PK_TRACE(SBEV_EXIT_MRK"" args)
+#endif
+#if (SBEV_TRACE_LEVEL >= 4)
+#undef SBEV_DEBUG
+#define SBEV_DEBUG(args...) PK_TRACE(SBEV_DEBUG_MRK"" args)
+#endif
+#define SBEV_TRACE(args...) PK_TRACE(args)
+#endif // __SBEFW_SBEV_TRACE_H

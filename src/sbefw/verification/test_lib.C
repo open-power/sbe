@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeXipUtils.H $                                */
+/* $Source: src/sbefw/verification/test_lib.C $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,45 +21,16 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef SBE_XIP_UTILS_H
-#define SBE_XIP_UTILS_H
 
-#include "p10_ipl_image.H"
-#include "ppe42_scom.h"  // for PPE_STVD
-#include "sbe_link.H"  // for SBE_BASE_ORIGIN, SBE_SEEPROM_BASE_ORIGIN
-
-// Unconditional jump to a memory location
-#define JUMP_TO_ADDR(VAL ) \
-{ \
-asm volatile ( \
-    "mtlr  %0 \n\t" \
-    :   \
-    : "r" (VAL)); \
-asm volatile ( \
-    "blr  \n\t" \
-    :   \
-    );\
-}
-
-// PIBMEM start address
-const uint32_t g_pibMemAddr = SBE_BASE_ORIGIN;
-// Verification start address
-const uint32_t g_shaLoaderAddr = SBE_VERIFICATION_LOADER_ORIGIN;
-// SEEPROM start address
-const uint32_t g_headerAddr = SBE_SEEPROM_BASE_ORIGIN;
-// IVPR register address
-const uint32_t g_ivprLoc = 0xC0000160;
-
-// Get XIP image header
-inline P9XipHeader * getXipHdr()
+extern "C" void __sbe_register_saveoff()
 {
-    P9XipHeader *hdr = (P9XipHeader *)( g_headerAddr );
-    return hdr;
 }
 
-// Get Section start addess
-inline uint8_t * getSectionAddr( P9XipSection * i_section )
+extern "C" void __sbe_machine_check_handler()
 {
-    return ( (uint8_t *)( g_headerAddr + i_section->iv_offset));
 }
-#endif // SBE_XIP_UTILS_H
+
+int dummy_verification_lib()
+{
+    return 0;
+}

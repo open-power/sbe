@@ -87,10 +87,17 @@
 //   Base section is the 9th (P9_XIP_SECTION_SBE_BASE) section
 #define SBE_MEASUREMENT_BASE_SECTION  SBE_MEASUREMENT_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 108
+//   sb_verification section is the 22th section
+#define SBE_SHA_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
+                                  + 264 // This needs to be updated.
 // Base Loader start address
 #define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
 // Base Loader length - Pibmem control area for P10
 #define SBE_LOADER_BASE_LENGTH (0x2C00 - 0x80)
+
+// Base Loader start address
+#define SBE_VERIFICATION_LOADER_ORIGIN 0xFFF85000
+#define SBE_VERIFICATION_LOADER_LENGTH (0xC800)
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
@@ -149,6 +156,8 @@
 #define SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x0A
 // Code reached to BOOT PIBMEM Main Flow
 #define SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0B
+// Code reached to Measurement Verification Main Flow
+#define SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG 0x0C
 
 // Macros to use in assembly code in Seeprom for Traps
 #define PIB_OPCG_LOCK_FAIL                    0x01

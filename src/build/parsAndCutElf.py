@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -40,6 +40,9 @@ def parserElf(argv):
         print("Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem/measurement)")
         exit(-1)
     if(img == "measurement_seeprom"):
+        SBE_OUT = outdir+"/sbe_"+img+".out"
+        SBE_BIN = outdir+"/sbe_"+img+".bin"
+    elif (img == "verification"):
         SBE_OUT = outdir+"/sbe_"+img+".out"
         SBE_BIN = outdir+"/sbe_"+img+".bin"
     else :

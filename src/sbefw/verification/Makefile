@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/utils/utils.mk $
+# $Source: src/sbefw/verification/Makefile $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2019,2021
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +21,29 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILDDATA-S-SOURCES = base_ppe_header.S
-BUILDDATA-S-SOURCES += base_sbe_fixed.S
-BUILDDATA-S-SOURCES += base_measurement_header.S
-BUILDDATA-S-SOURCES += base_verification_header.S
 
-BUILDDATA_OBJECTS += $(BUILDDATA-S-SOURCES:.S=.o)
+export SUB_OBJDIR = /sbefw/verification
+OBJS = $(addprefix $(OBJDIR)/, $(VERIFICATION_OBJECTS))
+LIBNAME = libVerification
+
+include img_defs.mk
+include verificationfiles.mk
+
+$(LIBNAME).a: $(OBJS)
+	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
+
+.PHONY: clean verify
+verify: $(OBJS)
+
+$(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+#clean the kernel directory first, then the application level clean
+clean:
+	rm -fr $(OBJDIR)
+
+ifneq ($(MAKECMDGOALS),clean)
+	include $(OBJS:.o=.d)
+endif

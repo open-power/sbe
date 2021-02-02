@@ -27,6 +27,7 @@
 # Image settings
 # pass argument img=seeprom/pibmem. When seeprom is used both the boot and
 # measurement images are built only when set MEASUREMENT_IMAGE_SUPPORTED to 1.
+# verification image is built only when set VERIFICATION_IMAGE_SUPPORTED to 1.
 # By default seeprom image is built without measurement image
 
 ifndef img
@@ -136,12 +137,22 @@ MEASUREMENT_LLIBS += -lpkbase
 MEASUREMENT_LIB_DIRS += -L$(OBJDIR)/pk
 MEASUREMENT_LLIBS += -lpk
 
+VERIFICATION_LIB_DIRS += -L$(OBJDIR)/pkbaselib
+VERIFICATION_LLIBS += -lpkbase
+
+VERIFICATION_LIB_DIRS += -L$(OBJDIR)/pk
+VERIFICATION_LLIBS += -lpk
+
 # Measurment PLAT/FAPI lib
 SBEM_FAPI_SUBDIRS += sbemfapi_$(PLAT_FAPI2_DIR)
 
 MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
 MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
 MEASUREMENT_LLIBS += $(MEASUREMENT_PROJ_LLIBS)
+
+VERIFICATION_SUBDIRS += $(VERIFICATION_PROJ_SUBDIRS)
+VERIFICATION_LIB_DIRS += $(VERIFICATION_PROJ_LIB_DIRS)
+VERIFICATION_LLIBS += $(VERIFICATION_PROJ_LLIBS)
 
 # TODO Add Pibmem dis-assembly as well as measurement dis-assembly as part of
 # the simics.tar
@@ -196,6 +207,10 @@ else
 IN_LINK_SCRIPT = linkseeprom.cmd
 OUT_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptsbe)
 endif
+
+#verification seeprom image linker
+IN_VERIFICATION_LINK_SCRIPT = linkverification.cmd
+OUT_VERIFICATION_LINK_SCRIPT = $(addprefix $(OBJDIR)/build/linkerscripts, linkscriptverify_$(IMAGE_SUFFIX))
 
 pre_sbe_image: xml ppe_trace_bin buildInfo linker_seeprom $(SBE_TOOLS) $(IPL_IMAGE_TOOL) security
 build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
@@ -282,7 +297,66 @@ all:
 ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 1)
 	$(MAKE) measurement_branch
 endif
+ifeq ($(VERIFICATION_IMAGE_SUPPORTED), 1)
+	$(MAKE) verification_branch
 endif
+endif
+## TODO:: Look into all pre linked info for verification image
+pre_verify_image: verify_xml ppe_trace_bin buildInfo linker_verify
+
+# Build the verification subdirectories files
+build_verify_image: $(VERIFICATION_SUBDIRS)
+
+$(VERIFICATION_SUBDIRS): ppe_trace_bin
+	$(C1)$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
+
+linker_verify:
+	@mkdir -p $(OBJDIR)/build
+	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_VERIFICATION_LINK_SCRIPT) -o $(OUT_VERIFICATION_LINK_SCRIPT)
+
+VERIFICATION_LIB_DIRS += -L$(OBJDIR)/fapi2_measurement
+VERIFICATION_LLIBS += -lfapi2measurement
+
+VERIFICATION_LIB_DIRS += -L$(OBJDIR)/import_hwp_mk/sbem_hwp
+VERIFICATION_LLIBS += -lsbem_hwp
+
+output_verify_image:
+	$(C2) "Generating $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out"
+	$(C1)$(LD) -e __system_reset -n -T$(OUT_VERIFICATION_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).map \
+  -Bstatic -o $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_VERIFICATION_HEADER).o  $(VERIFICATION_LIB_DIRS) \
+					   --start-group $(VERIFICATION_LLIBS) --end-group --gc-sections
+	$(C1)./parsAndCutElf.py $(IMAGE_SUFFIX) $(IMG_DIR) verification
+	$(C1)$(OBJDUMP) -S $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out > $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).dis
+
+verify_normalize:
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin normalize
+
+verify_symbols:
+	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out > $(IMG_DIR)/$(VERIFICATION_SYMBOLS_NAME)
+
+verify_report: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin report > $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).rpt
+
+verify_buildtag:
+	./updateBuildTag.py $(IPL_IMAGE_TOOL) $(IMG_DIR) $(IMAGE_VERIFICATION_NAME)
+
+# collect all of the trace hash files for verification image into a single sbeVerifyStringFile
+verify_tracehash:
+	$(THASH) -c -d $(OBJDIR) -s $(IMG_DIR)/$(SBE_VERIFICATION_STRINGFILE_NAME)
+
+verify_xml: $(M_FAPI_RC)
+
+$(M_FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
+	$(M_FAPI_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(HWPERR_SRCDIR)/p10_sbe_spi_cmd_errors.xml
+
+### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File
+add_VerifyLoaderAddr:
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixed
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .toc
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixedtoc
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .strings
 
 boot_branch:
 	$(MAKE) $(OBJDIR)
@@ -296,7 +370,6 @@ boot_branch:
 	$(MAKE) defaultset
 	$(MAKE) add_BootLoaderAddr
 	$(MAKE) symbols tracehash buildtag
-	$(MAKE) report
 
 add_BootLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
@@ -333,6 +406,20 @@ measurement_branch:
 	$(MAKE) measure_tracehash
 	$(MAKE) measure_report
 
+verification_branch:
+	$(MAKE) $(OBJDIR)
+	$(MAKE) pre_verify_image
+	$(MAKE) build_verify_image
+	$(MAKE) output_verify_image
+	$(MAKE) verify_normalize
+#	$(MAKE) add_VerifyLoaderAddr
+#	$(MAKE) verify_symbols verify_buildtag
+	$(MAKE) verify_symbols
+	$(MAKE) verify_tracehash
+	$(MAKE) verify_report
+	$(MAKE) appendverification
+	$(MAKE) report
+
 ifneq ($(project), $(filter $(project), power_dft))
 tar:
 	@cp $(IMG_DIR)/$(SBE_STRINGFILE_NAME) $(IMG_DIR)/sbeStringFile || true
@@ -350,8 +437,8 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 endif
 
-.PHONY: all normalize compress defaultset appendloader add_BootLoaderAddr \
-  add_MeasureLoaderAddr add_LoaderAddr symbols report \
+.PHONY: all normalize compress defaultset appendloader appendverification add_BootLoaderAddr \
+  add_MeasureLoaderAddr add_LoaderAddr add_VerifyLoaderAddr symbols report \
 		appendoverrides xml security tracehash topfixedheaders \
 		tar install
 #TODO add symbols for all images (pibmem/boot_seeprom/measurement_seeprom)
@@ -481,6 +568,9 @@ $(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 
 appendloader:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
+
+appendverification:
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .sb_verification $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin
 
 # collect all of the trace hash files for this image into a single sbeStringFile
 tracehash:

@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/utils/utils.mk $
+# $Source: src/sbefw/verification/verificationfiles.mk $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
-# [+] International Business Machines Corp.
+# Contributors Listed Below - COPYRIGHT 2019,2021
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +21,15 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BUILDDATA-S-SOURCES = base_ppe_header.S
-BUILDDATA-S-SOURCES += base_sbe_fixed.S
-BUILDDATA-S-SOURCES += base_measurement_header.S
-BUILDDATA-S-SOURCES += base_verification_header.S
 
-BUILDDATA_OBJECTS += $(BUILDDATA-S-SOURCES:.S=.o)
+VERIFICATION-CPP-SOURCES =  verification_main.C
+VERIFICATION-CPP-SOURCES += test_lib.C
+VERIFICATION-CPP-SOURCES += ecverify.C
+VERIFICATION-CPP-SOURCES += sbesecureboot.C
+VERIFICATION-CPP-SOURCES += sha512.C
+
+VERIFICATION-C-SOURCES =
+VERIFICATION-S-SOURCES =
+
+VERIFICATION_OBJECTS = $(VERIFICATION-C-SOURCES:.c=.o) $(VERIFICATION-CPP-SOURCES:.C=.o) $(VERIFICATION-S-SOURCES:.S=.o)
+

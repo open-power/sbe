@@ -52,6 +52,7 @@ simicsObjForBackupSeeprom = simics.SIM_run_command("get-seeprom 0 0 1")
 
 bootSyms = {};
 measureSyms = {};
+verifySyms = {};
 
 def get_dd_level(procNr = 0, nodeNr = 0):
     return "DD1"
@@ -127,6 +128,14 @@ def fillSymTable():
         if( len( words ) == 4 ):
             measureSyms[words[3]] = [words[0], words[1]]
 
+    verifySymFile = SBE_TOOLS_PATH + "/sbe_verification.syms"
+    if(os.path.exists(verifySymFile)):
+      vf = open( verifySymFile, 'r')
+      for vline in vf:
+        words = vline.split()
+        if( len( words ) == 4 ):
+            verifySyms[words[3]] = [words[0], words[1]]
+
 # Print least available stack of each thread in SBE during a Run.
 #
 # Logic is - during init, ppe kernel fills the stack memory with '0xEFCDAB03'.
@@ -142,6 +151,9 @@ def collectStackUsage ( procNr, nodeNr=0 ):
   if ( opMode == 0x06 ):
     syms = measureSyms
     threads = ('measurment_Kernel_NC_Int_stack')
+  elif ( opMode == 0x0C ):
+    syms = verifySyms
+    threads = ('verification_Kernel_NC_Int_stack')
   elif ( opMode == 0x0B ):
     syms = bootSyms
     threads = ('sbeSyncCommandProcessor_stack',
@@ -238,12 +250,17 @@ def collectTrace ( procNr, nodeNr=0 ):
   # SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x09 - code reached to BOOT SEEPROM loader L1
   # SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x0A - code reached to BOOT PIBMEM Loader L2
   # SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0B - code reached to BOOT PIBMEM Main Flow
+  # SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG - Code reached to Measurement Verification Main Flow
 
   opMode = (rValue >> 32) & 0xf
   if ( opMode == 0x06 ):
     fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
+  elif ( opMode == 0x0C ):
+    fileName = "sbe_verification_seeprom" + `procNr` + "_tracMERG"
+    syms = verifySyms
+    stringFile = "sbeVerificationStringFile"
   elif ( opMode == 0x0B ):
     fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
     syms = bootSyms
@@ -261,8 +278,11 @@ def collectTrace ( procNr, nodeNr=0 ):
   if ( rc ):
     print("simics ERROR running %s: %d "%( cmd1, rc ))
 
+  print("simics running %s: "%( cmd2))
   run_command ( cmd2 )
+  print("simics running %s: "%( cmd3))
   run_command ( cmd3 )
+  print("simics running %s: "%( cmd4))
   run_command ( cmd4 )
 
 # MAGIC_INSTRUCTION hap handler

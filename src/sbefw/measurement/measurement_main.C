@@ -81,13 +81,25 @@ void __eabi()
         }
     } while (false);
 }
-
 /*
- ** API to jump to the boot seeprom.
+ ** API to jump to verification code.
  */
-void jump2boot()
+void jump2verify()
 {
     asm(
+            // Verifcation code is present at 0xFFF85000
+            "lis %r6, 0xFFF8\n"
+            "ori %r6, %r6, 0x5A20\n"
+            "mtctr %r6\n"
+            "bctr\n"
+       );
+}
+/*
+ *  ** API to jump to the boot seeprom.
+ *   */
+void jump2boot()
+{   
+    asm(    
             "lis %r4, 0xFF80\n"
             "lvd %d0, 0(%r4)\n"
             "lis %r2 , 0x5849\n"
@@ -110,6 +122,29 @@ extern uint32_t initializeTPM();
 extern uint32_t performTPMSequences();
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
+
+int32_t copySection(P9XipSection * i_section, uint64_t *i_destAddr )
+{
+    uint32_t rc = 0, i= 0;
+    uint32_t dsize = i_section->iv_size;
+    uint64_t *srcAddr;
+
+    //dsize should be 8byte aligned
+    //assert(!(dsize & 0x7));
+
+    //Source address in the seeprom
+    srcAddr = (uint64_t*)(i_section->iv_offset + g_headerAddr);
+    while(i < dsize)
+    {
+        *i_destAddr = *srcAddr;
+        i_destAddr++;
+        srcAddr++;
+        i += sizeof(uint64_t);
+    }
+    return rc;
+}
+
+extern void spi_test();
 
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
@@ -200,7 +235,25 @@ int  main(int argc, char **argv)
 
     sbemSetSecureAccessBit();
     
-    jump2boot();
+    // Load .sb_verification section into PIBMEM.
+    P9XipHeader *hdr = getXipHdr();
+    P9XipSection* pSection = &hdr->iv_section[P9_XIP_SECTION_SBE_SB_VERIFICATION];
+    uint32_t dsize = pSection->iv_size;
+    SBEM_INFO("SBE verification size is %d", dsize);
+    if(dsize)
+    {
+        //TODO: Remove the hardcoding of the destination address.
+        uint64_t *pibMemAddr  = (uint64_t *)g_shaLoaderAddr;
+        copySection(pSection, pibMemAddr);
+        SBEM_INFO("Completed Loading of .sb_verification into PIBMEM. Verify the image.");
+        jump2verify();
+    }
+    else
+    {
+        SBEM_INFO("No verification image, jump to boot");
+        jump2boot();
+    }
+
     SBEM_EXIT(SBEM_FUNC);
     return l_rc;
 }

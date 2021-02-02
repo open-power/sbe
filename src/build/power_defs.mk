@@ -30,6 +30,7 @@
 # 4 - Error, info, entry/exit, debug
 SBE_TRACE_LEVEL_DEF = 2
 SBEM_TRACE_LEVEL_DEF = 2
+SBEV_TRACE_LEVEL_DEF = 2
 
 FAPI_TRACE_LEVEL_DEF = 2
 
@@ -39,6 +40,9 @@ PERIODIC_IO_TOGGLE_SUPPORTED = 1
 SBE_CONSOLE_SUPPORT = 1
 #If MEASUREMENT_IMAGE_SUPPORTED is 1 then only sbe_measurement_seeprom image will creates
 export MEASUREMENT_IMAGE_SUPPORTED = 1
+
+#If VERIFICATION_IMAGE_SUPPORTED is 1 then only sbe_verification image will create
+export VERIFICATION_IMAGE_SUPPORTED = 0
 
 AWAN_NMZ_MODEL = 1
 
@@ -67,6 +71,7 @@ OBJDIR-ARRAYACCESS = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/arrayaccess
 OBJDIR-SBEM-HWP = $(BASE_OBJDIR)/$(IMPORT_OBJDIR)/sbem_hwp
 OBJDIR-MEASUREMENT = $(BASE_OBJDIR)/sbefw/measurement
 OBJDIR-SECUREBOOTCOMMON = $(BASE_OBJDIR)/sbefw/securebootcommon
+OBJDIR-VERIFICATION = $(BASE_OBJDIR)/sbefw/verification
 
 PROJ_SUBDIRS += $(ISTEP2_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ISTEP2)
@@ -115,6 +120,10 @@ MEASUREMENT_PROJ_SUBDIRS += $(MEASUREMENT_SRCDIR)
 MEASUREMENT_PROJ_LIB_DIRS += -L$(OBJDIR-MEASUREMENT)
 MEASUREMENT_PROJ_LLIBS += -ltestMeasure
 
+VERIFICATION_PROJ_SUBDIRS += $(VERIFICATION_SRCDIR)
+VERIFICATION_PROJ_LIB_DIRS += -L$(OBJDIR-VERIFICATION)
+VERIFICATION_PROJ_LLIBS += -lVerification
+
 #########################################################
 # mandatory defines                                     #
 #########################################################
@@ -127,12 +136,17 @@ IMAGE_LOADER_NAME := sbe_loader_$(IMAGE_SUFFIX)
 IMAGE_OTPROM_NAME := sbe_otprom_$(IMAGE_SUFFIX)
 IMAGE_BASE_PPE_HEADER := base_ppe_header
 IMAGE_BASE_MEASUREMENT_HEADER := base_measurement_header
+IMAGE_BASE_VERIFICATION_HEADER := base_verification_header
 
 IMAGE_MEASUREMENT_NAME := sbe_measurement_seeprom
 SBE_MEASUREMENT_STRINGFILE_NAME := sbeMeasurementStringFile
 
+IMAGE_VERIFICATION_NAME := sbe_verification
+SBE_VERIFICATION_STRINGFILE_NAME := sbeVerificationStringFile
+
 SBE_SYMBOLS_NAME := sbe_$(IMAGE_SUFFIX).syms
 MEASUREMENT_SYMBOLS_NAME := sbe_measurement_seeprom.syms
+VERIFICATION_SYMBOLS_NAME := sbe_verification.syms
 SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)
 
 PROJECT_APP_DIR := power
