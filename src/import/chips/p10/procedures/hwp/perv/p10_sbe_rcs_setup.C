@@ -55,9 +55,9 @@ enum P10_SBE_RCS_SETUP_Private_Constants
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
-    RCS_BYPASS_NS_DELAY = 10000, // unit is nano seconds
+    RCS_BYPASS_NS_DELAY = 5000000, // unit is nano seconds
     RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
-    RCS_RESET_NS_DELAY = 1000, // unit is nano seconds
+    RCS_RESET_NS_DELAY = 5000000, // unit is nano seconds
     RCS_RESET_SIM_CYCLE_DELAY = 100  // unit is sim cycles
 };
 
@@ -195,6 +195,8 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
             //Do not clear l_data64_rc5 here
             FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
             //read back the RCS sens register
             GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
