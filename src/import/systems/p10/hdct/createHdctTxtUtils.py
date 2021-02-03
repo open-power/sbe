@@ -104,7 +104,7 @@ class HDCTBinEntry():
 # Function - Functions - Functions - Functions - Functions
 ############################################################
 
-def createHDCTTxt(HDCTBinFileName, stringHashDict = None):
+def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
 
     file = open(HDCTBinFileName,"rb" )
 
