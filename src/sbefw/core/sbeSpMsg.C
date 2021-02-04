@@ -27,6 +27,8 @@
 #include "sbeSpMsg.H"
 #include "sbeglobals.H"
 
+extern sbeRole g_sbeRole;
+
 void sbeRespGenHdr_t::init(void)
 {
     _magicCode = 0xC0DE;
@@ -104,7 +106,7 @@ void sbeCntlInstMsgHdr_t::processInputDataToIterate(uint8_t & o_core,
         uint64_t prevState = SbeRegAccess::theSbeRegAccess().getSbePrevState();
         uint64_t curState = SbeRegAccess::theSbeRegAccess().getSbeState();
         //If the SBE has not completed the SBE_STATE_DMT state
-        if(! SBE_GLOBAL->sbeDmtStateComplete)
+        if( (g_sbeRole == SBE_ROLE_MASTER) && (! SBE_GLOBAL->sbeDmtStateComplete) )
         {
             //SBE is in the State where we should only consider stopping the instructions
             //on the master core pair
