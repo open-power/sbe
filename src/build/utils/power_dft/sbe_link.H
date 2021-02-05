@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -148,6 +149,17 @@
 #define SBE_CODE_BOOT_PIBMEM_L2_LOADER_MSG 0x0A
 // Code reached to BOOT PIBMEM Main Flow
 #define SBE_CODE_BOOT_PIBMEM_MAIN_MSG 0x0B
+
+// Macros to use in assembly code in Seeprom for Traps
+#define PIB_OPCG_LOCK_FAIL                    0x01
+#define PIB_CLOCK_RUNNING_STATUS_FAIL         0x02
+#define PIBMEM_REPAIR_COMPARE_HDR_FAIL        0x03
+
+#define PAU_DPLL_SCAN_HDR_COMPARE_FAIL        0x04
+#define PAU_DPLL_START_CLOCK_OPCG_FAIL        0x05
+#define PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL    0x06
+#define PAU_DPLL_LOCK_FAIL                    0x07
+
 
 #endif  // __SBE_LINK_H
 
