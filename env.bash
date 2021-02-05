@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -45,7 +45,7 @@ export DEFAULT_MACHINE=nimbus
 
 #Get the latest backing build from fips based on the time
 BACKING_BUILD_PATH=/esw/fips1010/Builds
-OUT_FILES=( $(ls -lr ${BACKING_BUILD_PATH}/*.1010) )
+OUT_FILES=( $(ls -lt ${BACKING_BUILD_PATH}/*.1010) )
 #If file found use latest backing build else use default
 if [[ ${OUT_FILES[8]} == *".1010"* ]]; then
       export BACKING_BUILD=${OUT_FILES[8]}/ #latest
