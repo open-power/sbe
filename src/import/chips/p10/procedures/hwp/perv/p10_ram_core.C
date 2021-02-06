@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -457,6 +457,9 @@ fapi2::ReturnCode RamCore::ram_initiate_recovery()
     fapi2::Target<fapi2::TARGET_TYPE_CORE> l_target_fused_peer;
     bool l_block_recovery_fused_peer = false;
 
+    // contained mode state
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_contained_ipl_type = fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE;
+
     // HID restore values
     fapi2::buffer<uint64_t> l_hid_restore;
     fapi2::buffer<uint64_t> l_hid_restore_fused_peer;
@@ -479,6 +482,19 @@ fapi2::ReturnCode RamCore::ram_initiate_recovery()
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
                            fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
                            l_fused_core_mode));
+
+    // ignore fused core partner if in cache-contained mode -- our
+    // intent is to run the cores completely independently regardless
+    // of the fused state, and the FIR setup will block the paired recovery
+    // from completing successfully
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE,
+                           fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                           l_contained_ipl_type));
+
+    if (l_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE)
+    {
+        l_fused_core_mode = fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_UNFUSED;
+    }
 
     if (l_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
     {
