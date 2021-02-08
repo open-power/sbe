@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -97,6 +97,9 @@ def main(argv):
         # Create binaries folder
         run_system_cmd('mkdir -p '+sbe_binary_dir)
         for ecLevel, ddLevel in p10_EC.items():
+            #Sign SBE image
+            run_system_cmd(img_dir + '/signSbeImage -s ' + img_dir + "/sbeScratchDir -i " + img_dir + '/' + 'sbe_seeprom_' + ddLevel + '.bin -t ' + img_dir + "/ipl_image_tool ")
+
             # Copy sbe seeprom binary to binaries folder.
             run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+ddLevel+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
 
@@ -135,12 +138,22 @@ def main(argv):
             sbeMeasurementSeepromImage = sbe_binary_dir + "/sbe_measurement_seeprom.bin"
             sbeMeasurementSeepromImageEcc = sbeMeasurementSeepromImage + ".ecc"
             hbbl = scratch_dir + "/HBBL.staged"
+            hbblHeader = scratch_dir + "/HBBL.header"
+            hbblHeaderStripped = scratch_dir + "/HBBL.header.stripped"
 
             #Delete HBBL from sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .hbbl" )
 
             #Append HBBL into sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .hbbl " + hbbl )
+
+            #Strip HBBL.header to 1288 bytes
+            run_system_cmd("dd bs=1 count=1288 if=" + hbblHeader + " of=" + hbblHeaderStripped)
+
+            #Append HBBL into.header into sbeSeepromImage
+            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .sbh_hbbl" )
+            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .sbh_hbbl " + hbblHeaderStripped )
+            run_system_cmd("rm -f " +  hbblHeaderStripped)
 
             #Inject ECC into sbeSeepromImage
             run_system_cmd( "ecc --p8 --inject " + sbeSeepromImage + " --output " + sbeSeepromImageEcc )
