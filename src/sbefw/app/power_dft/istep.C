@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/istep.C $                                 */
+/* $Source: src/sbefw/app/power_dft/istep.C $                             */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -151,18 +151,6 @@ uint32_t sbeHandleIstep (uint8_t *i_pArg)
         if (rc != SBE_SEC_OPERATION_SUCCESSFUL) //FIFO access issue
         {
             SBE_ERROR(SBE_FUNC"FIFO dequeue failed, rc[0x%X]", rc);
-            break;
-        }
-
-        if( false == validateIstep( req.major, req.minor ) )
-        {
-            SBE_ERROR(SBE_FUNC" Invalid Istep. major:0x%08x"
-                      " minor:0x%08x",
-                      (uint32_t)req.major, (uint32_t)req.minor);
-            // @TODO via RTC 132295.
-            // Need to change code asper better error handling.
-            respHdr.setStatus( SBE_PRI_INVALID_DATA,
-                               SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             break;
         }
 
