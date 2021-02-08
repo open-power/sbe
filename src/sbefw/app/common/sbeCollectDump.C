@@ -576,8 +576,8 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         uint64_t mask = (((uint64_t)msbValue << 32 ) | ((uint64_t)lsbValue));
         dumpData = mask; // maskType is nnone then putScom data is mask value.
 
-        SBE_INFO("putscom address:[0x%08X] mask:[0x%08X%08X]", addr,
-                  SBE::higher32BWord(mask), SBE::lower32BWord(mask));
+        SBE_INFO("putscom address:[0x%08X], maskType:[0x%08X], mask:[0x%08X%08X]",
+                  addr, maskType, SBE::higher32BWord(mask), SBE::lower32BWord(mask));
 
         if( B_NONE != maskType )
         {
@@ -596,7 +596,7 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
             {
                 dumpData = (readData | mask);
             }
-            if( B_AND != maskType )
+            if( B_AND == maskType )
             {
                 dumpData = (readData & mask);
             }
