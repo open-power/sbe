@@ -52,7 +52,7 @@ else
 IMAGE_NAME = $(IMAGE_SEEPROM_NAME)
 endif
 
-#Mesurement SEEPROM version: Any change in measurement seeprom code the below version field 
+#Mesurement SEEPROM version: Any change in measurement seeprom code the below version field
 #needs to be updated.
 #Example: 3.4 = \x00\03\x00\x04
 #Version = 4Bytes = 1.0 = "\x00\01\x00\x00"
@@ -446,6 +446,8 @@ $(IPL_IMAGE_TOOL):
 	$(MAKE) -I $(INCLUDES) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 #$(MAKE) -I $(IMAGEPROCS_TOOL_DIR) -C $(IPL_IMAGE_BUILD_DIR) -f Makefile BINDIR=$(P10_IPL_IMAGE_BINDIR) CXX_FLAGS=-D__PPE__=1
 	cp -f $(IPL_IMAGE_TOOL) $(IMG_DIR)/
+	cp -f $(SBE_SRC_DIR)/tools/scripts/signSbeImage $(IMG_DIR)/
+	cp -f $(SBE_SRC_DIR)/tools/scripts/signSbeImage_cronusWrap $(IMG_DIR)/
 
 normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
