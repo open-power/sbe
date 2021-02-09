@@ -47,16 +47,35 @@ usage()
     echo "Optional Options:"
     echo "  -h: print this message."
     echo "  -o: Operation to be carried out.All operations that are supported by
-    sbeDebug.py tool can be passed as an argument.
-    Example: 'trace', 'forced-trace', 'attr', 'stack', 'ppestate', 'sbestate' etc"
+    sbe-debug.py tool can be passed as an argument.The arguments needs to be passed
+    within double quotes."
     echo "  -i: Required option if Build Type is SBE. SBE Image Absolute Path(To fetch symbol files etc). This is for
                 SBE internal use only. Required tools will be fetched from op build latest
                 master. OP/FIPS Build Level option is optional."
     echo "Example:"
-    echo "Fetch SBE Traces:"
+    echo "Fetch SBE Traces from OP or FIPS Builds:"
     echo "./getSbeTrace -t <Build_type> -l <Build_level>"
-    echo "Fetch SBE State:"
-    echo "./getSbeTrace -t <Build_type> -l <Build_level> -o stack"
+    echo "Example for FIPS Builds: getSbeTrace -t FIPS -l b0205a2105.1010"
+    echo "Example for OP Builds: getSbeTrace -t OP -l oprai.2099.20201109t"
+    echo " "
+    echo "Example:"
+    echo "Fetch SBE Traces of SBE custom image or when using crorecoversbe"
+    echo "getSbeTrace -t <Build_type> -i <Absolute Path to symbol file>"
+    echo "getSbeTrace -t SBE -i /labnfs/cronus/p10/exe/dev/ecmd14/prcd_d/images/hw/"
+    echo " "
+    echo "Fetch other SBE parameters/state:"
+    echo " getSbeTrace -t <Build_type> -l <Build_level> -o \"<all parameters supported/arguments supported by sbe-debug.py>\""
+    echo " getSbeTrace -t <Build_type> -i <Absolute Path to symbol file> -o \"<all parameters supported/arguments supported by sbe-debug.py>\""
+    echo "Example to fetch stack usage:"
+    echo "getSbeTrace -t FIPS -l b0205a2105.1010 -o \"-l stack\""
+    echo " "
+    echo "To see help option of sbe-debug.py:
+          getSbeTrace -t <Build_type> -l <Build_level> -o \"-h\"
+          getSbeTrace -t <Build_type> -i <Absolute Path to symbol file> -o \"-h\""
+    echo " "
+    echo "Note: ***It is required to enter -o argument within double quotes.
+                ***The -t option for sbe-debug.py is defaulted to HW. hence it is
+                not required to pass -t option within -o option"
 }
 
 while getopts "h?l:i:t:o:" opt;
@@ -102,9 +121,10 @@ if [ -z $BUILD_TYPE ]; then
     exit -1
 fi
 
-if [ -z $OPERATION ]; then
+if [ -z "$OPERATION" ]; then
     #Default operation
-    OPERATION="trace"
+    echo "Fetching SBE Traces"
+    OPERATION="-l trace"
 fi
 
 if [ "$BUILD_TYPE" != "SBE" ]; then
@@ -173,7 +193,7 @@ setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_mod
 setconfig GLOBAL_DEBUG none
 
 #Run sbe-debug.py tool
-$SBE_DEBUG_TOOL_PATH -l $OPERATION -t HW
+$SBE_DEBUG_TOOL_PATH -t HW $OPERATION
 
 #Set back cronus settings to actual
 setconfig HW_PROCEDURE_PATH none
