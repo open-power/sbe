@@ -44,8 +44,6 @@ asm volatile ( \
 
 // PIBMEM start address
 const uint32_t g_pibMemAddr = SBE_BASE_ORIGIN;
-// Verification start address
-const uint32_t g_shaLoaderAddr = SBE_VERIFICATION_LOADER_ORIGIN;
 // SEEPROM start address
 const uint32_t g_headerAddr = SBE_SEEPROM_BASE_ORIGIN;
 // IVPR register address

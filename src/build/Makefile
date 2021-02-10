@@ -351,7 +351,7 @@ $(M_FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(HWPERR_SRCDIR)/p10_sbe_spi
 
 ### TODO :: Bellow L1_LoaderAddr will update once we get right L1 Loder File
 add_VerifyLoaderAddr:
-	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep __l1Loader | cut -f 1 -d " "`
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep _base_origin | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixed
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .toc
@@ -412,7 +412,7 @@ verification_branch:
 	$(MAKE) build_verify_image
 	$(MAKE) output_verify_image
 	$(MAKE) verify_normalize
-#	$(MAKE) add_VerifyLoaderAddr
+	$(MAKE) add_VerifyLoaderAddr
 #	$(MAKE) verify_symbols verify_buildtag
 	$(MAKE) verify_symbols
 	$(MAKE) verify_tracehash

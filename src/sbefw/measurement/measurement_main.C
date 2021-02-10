@@ -84,12 +84,12 @@ void __eabi()
 /*
  ** API to jump to verification code.
  */
-void jump2verify()
+void jump2verify(uint32_t i_destAddr)
 {
+    asm volatile (
+                     "mr %0, %1" : : "i" (6), "r" (i_destAddr) : "memory"
+                 );
     asm(
-            // Verifcation code is present at 0xFFF85000
-            "lis %r6, 0xFFF8\n"
-            "ori %r6, %r6, 0x5A20\n"
             "mtctr %r6\n"
             "bctr\n"
        );
@@ -123,22 +123,15 @@ extern uint32_t performTPMSequences();
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
 
-int32_t copySection(P9XipSection * i_section, uint64_t *i_destAddr )
+int32_t copySection(uint64_t *i_srcAddr, uint64_t *i_destAddr, uint32_t i_size )
 {
     uint32_t rc = 0, i= 0;
-    uint32_t dsize = i_section->iv_size;
-    uint64_t *srcAddr;
 
-    //dsize should be 8byte aligned
-    //assert(!(dsize & 0x7));
-
-    //Source address in the seeprom
-    srcAddr = (uint64_t*)(i_section->iv_offset + g_headerAddr);
-    while(i < dsize)
+    while(i < i_size)
     {
-        *i_destAddr = *srcAddr;
+        *i_destAddr = *i_srcAddr;
         i_destAddr++;
-        srcAddr++;
+        i_srcAddr++;
         i += sizeof(uint64_t);
     }
     return rc;
@@ -234,19 +227,23 @@ int  main(int argc, char **argv)
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
     sbemSetSecureAccessBit();
-    
+
     // Load .sb_verification section into PIBMEM.
     P9XipHeader *hdr = getXipHdr();
     P9XipSection* pSection = &hdr->iv_section[P9_XIP_SECTION_SBE_SB_VERIFICATION];
     uint32_t dsize = pSection->iv_size;
-    SBEM_INFO("SBE verification size is %d", dsize);
     if(dsize)
     {
-        //TODO: Remove the hardcoding of the destination address.
-        uint64_t *pibMemAddr  = (uint64_t *)g_shaLoaderAddr;
-        copySection(pSection, pibMemAddr);
+        uint64_t verificationOffset = *(uint64_t *)pSection; 
+        uint32_t verificationAddress = ( g_headerAddr + ((verificationOffset >> 32) & 0xFFFFFFFF));
+        P9XipHeader *vhdr = (P9XipHeader *)(verificationAddress);
+        P9XipSection* pSectionBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
+        uint32_t dBasesize = pSectionBase->iv_size;
+        uint64_t *srcAddr = (uint64_t *)(pSectionBase->iv_offset + (uint32_t)vhdr);
+        SBEM_INFO("Source addr is 0x%08X", srcAddr);
+        copySection(srcAddr, (uint64_t *)vhdr->iv_L1LoaderAddr, dBasesize);
         SBEM_INFO("Completed Loading of .sb_verification into PIBMEM. Verify the image.");
-        jump2verify();
+        jump2verify((uint32_t )vhdr->iv_kernelAddr);
     }
     else
     {
