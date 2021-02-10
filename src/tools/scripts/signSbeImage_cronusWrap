@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2016,2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,10 +40,13 @@ check_path()
     fi
 }
 
+#search paths for sigining script(LFS System)
+PATH=$PATH:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin/openssl:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin:/afs/rchland.ibm.com/projects/esw/bin/bld/sb_signing_rh7/sb-signing-utils
+
 SIGINING_SCRIPT=$PWD/signSbeImage
 SCRATCH_DIR=$PWD/sbeScratchDir
 SBE_IMAGE=$PWD/sbe_seeprom_DD1.bin
-IPL_IMAGE_TOOL=$PWD/x86_64/ipl_image_tool
+IPL_IMAGE_TOOL=$PWD/ipl_image_tool
 HBBL_HEADER=$PWD/HBBL.header
 HBBL_HEADER_STRIPPED=$PWD/HBBL.header.stripped
 
