@@ -182,7 +182,7 @@ uint32_t sbeControlFastArray(uint8_t *i_pArg)
     fapi2::sbefifo_hwp_data_ostream ostream(type);
     fapi2::sbefifo_hwp_data_istream istream(type);
 
-    l_rc = sbeControlFastArrayWrap( istream, ostream )
+    l_rc = sbeControlFastArrayWrap( istream, ostream );
 
     SBE_EXIT(SBE_FUNC);
     return l_rc;

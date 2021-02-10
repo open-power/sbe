@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -48,7 +48,7 @@ Capabilities structure
 '''
 capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xC8000000) +
-          getsingleword(0xD1000001) +
+          getsingleword(0xD1000003) +
           getsingleword(0xD1800000) +
           getsingleword(0xD2000000) +
           getsingleword(0xD2800000) +
@@ -56,11 +56,11 @@ capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xD3800000) +
           getsingleword(0xD4000001) +
           getsingleword(0xD4800000) +
-          getsingleword(0xD5000000) +
+          getsingleword(0xD5000004) +
           getsingleword(0xD5800000) +
           getsingleword(0xD6000001) +
           getsingleword(0xD6800000) +
-          getsingleword(0xD70000FE) +
+          getsingleword(0xD70001FE) +
           getsingleword(0xD7800000))
 
 def getCapabilities(addr, size, exp_status):

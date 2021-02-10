@@ -539,7 +539,7 @@ typedef struct
 
 
 // Maximum number of capabilities - max of FIFO and PSU capabilities
-static const uint32_t SBE_MAX_CAPABILITIES      = 20;
+static const uint32_t SBE_MAX_CAPABILITIES      = 24;
 
 /**
   * @brief structure for SBE Get Capabilities chipop (0xA802) contents.

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -175,42 +175,43 @@ enum PSU_CAPABILITIES_INDEX
 enum PSU_CAPABILITIES
 {
     // Capabilities 2, 3
-    PSU_CONTROL_DEADMAN_LOOP                = 0xD1000001,
-    PSU_RESERVED_1                          = 0xD1800000,
+    PSU_CONTROL_DEADMAN_LOOP                     = 0xD1000001,
+    PSU_EXIT_CACHE_CONTAINED_MODE                = 0xD1000002,
+    PSU_RESERVED_1                               = 0xD1800000,
 
     // Capabilities 4, 5
-    PSU_DEFAULT_CAPABILITY_D2               = 0xD2000000,
-    PSU_EXECUTE_MULTI_SCOM_SUPPORTED        = 0xD2000001,
-    PSU_RESERVED_2                          = 0xD2800000,
+    PSU_DEFAULT_CAPABILITY_D2                    = 0xD2000000,
+    PSU_EXECUTE_MULTI_SCOM_SUPPORTED             = 0xD2000001,
+    PSU_RESERVED_2                               = 0xD2800000,
 
     // Capabilites 6, 7
-    PSU_PUT_RING_FROM_IMAGE_SUPPORTED       = 0xD3000001,
-    PSU_RESERVED_3                          = 0xD3800000,
+    PSU_PUT_RING_FROM_IMAGE_SUPPORTED            = 0xD3000001,
+    PSU_RESERVED_3                               = 0xD3800000,
 
     // Capabilities 8, 9
-    PSU_CONTROL_TIMER_SUPPORTED             = 0xD4000001,
-    PSU_RESERVED_4                          = 0xD4800000,
+    PSU_CONTROL_TIMER_SUPPORTED                  = 0xD4000001,
+    PSU_RESERVED_4                               = 0xD4800000,
 
     // Capabilities 10, 11
-    PSU_DEFAULT_CAPABILITY_D5               = 0xD5000000,
-    PSU_GET_ARCHITECTED_REG_SUPPORTED       = 0xD5000001,
-    PSU_CLEAR_ARCHITECTED_REG_SUPPORTED     = 0xD5000002,
-    PSU_RESERVED_5                          = 0xD5800000,
+    PSU_DEFAULT_CAPABILITY_D5                    = 0xD5000000,
+    PSU_CMD_GETHWREG                             = 0xD5000004,
+    PSU_RESERVED_5                               = 0xD5800000,
 
     // Capabilities 12, 13
-    PSU_UNSECURE_MEM_REGION_SUPPORTED       = 0xD6000001,
-    PSU_RESERVED_6                          = 0xD6800000,
+    PSU_UNSECURE_MEM_REGION_SUPPORTED            = 0xD6000001,
+    PSU_RESERVED_6                               = 0xD6800000,
 
     // Capabilities 14, 15
-    PSU_GET_SBE_FFDC_SUPPPORTED             = 0xD7000001,
-    PSU_GET_SBE_CAPABILITIES_SUPPPORTED     = 0xD7000002,
-    PSU_READ_SBE_SEEPROM_SUPPORTED          = 0xD7000004,
-    PSU_SET_FFDC_ADDRESS_SUPPORTED          = 0xD7000008,
-    PSU_QUISCE_SUPPORTED                    = 0xD7000010,
-    PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED  = 0xD7000020,
-    PSU_STASH_MPIPL_CONFIG_SUPPORTED        = 0xD7000040,
-    PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED    = 0xD7000080,
-    PSU_RESERVED_7                          = 0xD7800000,
+    PSU_GET_SBE_FFDC_SUPPPORTED                  = 0xD7000001,
+    PSU_GET_SBE_CAPABILITIES_SUPPPORTED          = 0xD7000002,
+    PSU_READ_SBE_SEEPROM_SUPPORTED               = 0xD7000004,
+    PSU_SET_FFDC_ADDRESS_SUPPORTED               = 0xD7000008,
+    PSU_QUISCE_SUPPORTED                         = 0xD7000010,
+    PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED       = 0xD7000020,
+    PSU_STASH_MPIPL_CONFIG_SUPPORTED             = 0xD7000040,
+    PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED         = 0xD7000080,
+    PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED = 0xD7000100,
+    PSU_RESERVED_7                               = 0xD7800000,
 };
 
 #endif // __SBEFW_SBE_HOST_INTF_H

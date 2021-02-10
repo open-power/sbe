@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -53,7 +53,8 @@ using namespace fapi2;
 void updatePsuCapabilities(uint32_t * capability)
 {
     capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX] =
-                                      PSU_CONTROL_DEADMAN_LOOP;
+                                      PSU_CONTROL_DEADMAN_LOOP |
+                                      PSU_EXIT_CACHE_CONTAINED_MODE;
     capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_1;
 
@@ -73,7 +74,7 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_RESERVED_4;
 
     capability[PSU_MPIPL_CAPABILITY_START_IDX] =
-                                      PSU_DEFAULT_CAPABILITY_D5;
+                                      PSU_CMD_GETHWREG;
     capability[PSU_MPIPL_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_5;
 
@@ -89,7 +90,8 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_QUISCE_SUPPORTED |
                                       PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED |
                                       PSU_STASH_MPIPL_CONFIG_SUPPORTED |
-                                      PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED;
+                                      PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED |
+                                      PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED;
     capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_7;
 
@@ -109,14 +111,14 @@ void updateFifoCapabilities(uint32_t * capability)
                                 GET_SCOM_SUPPPORTED |
                                 PUT_SCOM_SUPPPORTED |
                                 MODIFY_SCOM_SUPPPORTED |
+                                MULTI_SCOM_SUPPPORTED |
                                 PUT_SCOM_UNDER_MASK_SUPPPORTED ;
     capability[SCOM_CAPABILITY_START_IDX+1] =
                                 RESERVED_A2_CAPABILITIES;
 
     capability[RING_CAPABILITY_START_IDX] =
                                 GET_RING_SUPPPORTED |
-                                PUT_RING_SUPPPORTED |
-                                PUT_RING_FROM_IMAGE_SUPPPORTED;
+                                PUT_RING_SUPPPORTED ;
     capability[RING_CAPABILITY_START_IDX+1] =
                                 RESERVED_A3_CAPABILITIES;
 
@@ -130,7 +132,9 @@ void updateFifoCapabilities(uint32_t * capability)
 
     capability[REGISTER_CAPABILITY_START_IDX] =
                                 GET_REGISTER_SUPPPORTED |
-                                PUT_REGISTER_SUPPPORTED ;
+                                PUT_REGISTER_SUPPPORTED |
+                                GETHWREG_SUPPPORTED |
+                                PUTHWREG_SUPPPORTED ;
     capability[REGISTER_CAPABILITY_START_IDX+1] =
                                 RESERVED_A5_CAPABILITIES;
 
@@ -146,8 +150,9 @@ void updateFifoCapabilities(uint32_t * capability)
                                 RESERVED_A7_CAPABILITIES;
 
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
+                                GET_SBE_CAPABILITIES_SUPPORTED |
                                 GET_SBE_FFDC_SUPPPORTED |
-                                SBE_QUIESCE;
+                                SBE_QUIESCE_SUPPPORTED;
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                 RESERVED_A8_CAPABILITIES;
 
@@ -158,6 +163,16 @@ void updateFifoCapabilities(uint32_t * capability)
                                 GET_TI_INFO_SUPPORTED;
     capability[MPIPL_CAPABILITY_START_IDX+1] =
                                 RESERVED_A9_CAPABILITIES;
+
+    capability[DUMP_CAPABILITY_START_IDX] =
+                                GET_DUMP_SUPPORTED;
+    capability[DUMP_CAPABILITY_START_IDX+1] =
+                                RESERVED_AA_CAPABILITIES;
+
+    capability[HOST_FIFO_CAPABILITY_START_IDX] =
+                                SBE_CMD_HALT_SUPPORTED;
+    capability[HOST_FIFO_CAPABILITY_START_IDX+1] =
+                                RESERVED_AB_CAPABILITIES;
 
 }
 #endif //__SBEFW_SEEPROM__
