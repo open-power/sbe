@@ -412,6 +412,7 @@ verification_branch:
 	$(MAKE) build_verify_image
 	$(MAKE) output_verify_image
 	$(MAKE) verify_normalize
+	$(MAKE) verify_compress
 	$(MAKE) add_VerifyLoaderAddr
 #	$(MAKE) verify_symbols verify_buildtag
 	$(MAKE) verify_symbols
@@ -437,7 +438,7 @@ tar:
 	@echo "Generated simics.tar in Sbe images Directory"
 endif
 
-.PHONY: all normalize compress defaultset appendloader appendverification add_BootLoaderAddr \
+.PHONY: all normalize compress verify_compress defaultset appendloader appendverification add_BootLoaderAddr \
   add_MeasureLoaderAddr add_LoaderAddr add_VerifyLoaderAddr symbols report \
 		appendoverrides xml security tracehash topfixedheaders \
 		tar install
@@ -540,7 +541,11 @@ normalize:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin normalize
 
 compress: $(IMG_DIR)/$(IMAGE_NAME).bin
-	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin -s "base"
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_NAME).bin -s "data"
+
+verify_compress: $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin
+	$(BOOT_SRCDIR)/sbeCompression.py -l $(IMG_DIR) -i $(IMAGE_VERIFICATION_NAME).bin -s "base"
 
 defaultset:
 	$(TOOLS_ATTR_DIR)/ppeSetFixed.pl $(IMG_DIR) $(IMG_DIR)/$(IMAGE_NAME).bin $(SBEATTRFILE) $(ATTRFILES)

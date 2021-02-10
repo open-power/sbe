@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -139,13 +139,14 @@ def usage():
     print("-h, --help\t\tshow this help message and exit")
     print("-l, --imageLoc\t\tSeeprom Binary Location")
     print("-i, --image\t\tSeeprom Binary")
+    print("-s, --image\t\tXip Section")
     print("-p, --p9_xip_tool\t\tp9_xip_tool path")
     return 1
 
 def main( argv ):
 
     try:
-        opts, args = getopt.getopt(argv[1:], "l:i:h", ['imageLoc=', 'image=', 'help'])
+        opts, args = getopt.getopt(argv[1:], "l:i:s:h", ['imageLoc=', 'image=', 'section=', 'help'])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -159,6 +160,8 @@ def main( argv ):
             imagePath = arg
         elif opt in ('-i', '--image'):
             image = arg
+        elif opt in ('-s', '--section'):
+            section = arg
         else:
             usage()
             exit(1)
@@ -170,52 +173,31 @@ def main( argv ):
       print("Unable to make copy of seeprom binary")
       sys.exit(1)
 
-    #Extract base from SEEPROM binary.
-    cmd2 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .base " + imagePath + "/" + image + ".base"
+    #Extract section from SEEPROM binary.
+    cmd2 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract ." + section + " " + imagePath + "/" + image + "." + section
+    print(cmd2)
     rc = os.system(cmd2)
     if rc:
-      print("Unable to extract the base from seeprom binary")
+      print("Unable to extract the section from seeprom binary")
       sys.exit(1)
 
-    #Compress the base section
-    compress(imagePath + "/" + image + ".base", imagePath + "/" + image + ".base.compressed")
+    #Compress the section
+    compress(imagePath + "/" + image + "." + section , imagePath + "/" + image + "." + section + ".compressed")
 
-    #Delete the base section from SEEPEOM binary.
-    cmd3 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .base"
+    #Delete the section from SEEPEOM binary.
+    cmd3 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete ." + section
+    print(cmd3)
     rc = os.system(cmd3)
     if rc:
-      print("Unable to delete base section from seeprom binary")
+      print("Unable to delete section from seeprom binary")
       sys.exit(1)
 
-    #Append the base section from SEEPEOM binary.
-    cmd4 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .base " + imagePath + "/" + image + ".base.compressed"
+    #Append the section from SEEPEOM binary.
+    cmd4 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append ." + section + " " + imagePath + "/" + image + "." + section + ".compressed"
+    print(cmd4)
     rc = os.system(cmd4)
     if rc:
-      print("Unable to append the base section")
-      sys.exit(1)
-
-    #Extract data section from SEEPROM binary.
-    cmd5 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " extract .data " + imagePath + "/" + image + ".data"
-    rc = os.system(cmd5)
-    if rc:
-      print("Unable to extract the data from seeprom binary")
-      sys.exit(1)
-
-    #Compress the data section
-    compress(imagePath + "/" + image + ".data", imagePath + "/" + image + ".data.compressed")
-
-    #Delete the data section from SEEPEOM binary.
-    cmd6 = imagePath + "/ipl_image_tool " + imagePath + "/" + image + " delete .data"
-    rc = os.system(cmd6)
-    if rc:
-      print("Unable to delete data section from seeprom binary")
-      sys.exit(1)
-
-    #Append the data section from SEEPEOM binary.
-    cmd7 = imagePath + "/ipl_image_tool " + imagePath +  "/" + image + " append .data " + imagePath + "/" + image + ".data.compressed"
-    rc = os.system(cmd7)
-    if rc:
-      print("Unable to append the data section")
+      print("Unable to append the section")
       sys.exit(1)
 
 if __name__ == "__main__":

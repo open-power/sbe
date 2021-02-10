@@ -26,11 +26,12 @@
 #include "sbemtrace.H"
 #include "sbemsecuritysetting.H"
 #include "sbeglobals.H"
+#include "sbeDecompression.h"
+#include "sbeXipUtils.H"
 
 extern "C" {
 #include "pk_api.h"
 }
-#include "sbeXipUtils.H"
 ////////////////////////////////////////////////////////////////
 //// @brief Stacks for Non-critical Interrupts ( timebase, timers )
 ////////////////////////////////////////////////////////////////
@@ -84,7 +85,7 @@ void __eabi()
 /*
  ** API to jump to verification code.
  */
-void jump2verify(uint32_t i_destAddr)
+void jump2verificationImage(uint32_t i_destAddr)
 {
     asm volatile (
                      "mr %0, %1" : : "i" (6), "r" (i_destAddr) : "memory"
@@ -97,7 +98,7 @@ void jump2verify(uint32_t i_destAddr)
 /*
  *  ** API to jump to the boot seeprom.
  *   */
-void jump2boot()
+void jump2bootImage()
 {   
     asm(    
             "lis %r4, 0xFF80\n"
@@ -123,20 +124,18 @@ extern uint32_t performTPMSequences();
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
 
-int32_t copySection(uint64_t *i_srcAddr, uint64_t *i_destAddr, uint32_t i_size )
+// Load section to destination address.
+int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
 {
-    uint32_t rc = 0, i= 0;
+    uint32_t rc = 0;
+    do {
+         uint8_t rc = decompress((uint8_t *)i_srcAddr, (uint8_t *)i_destAddr);
+         if (rc != 0 )
+           break;
+       } while(0);
 
-    while(i < i_size)
-    {
-        *i_destAddr = *i_srcAddr;
-        i_destAddr++;
-        i_srcAddr++;
-        i += sizeof(uint64_t);
-    }
     return rc;
 }
-
 extern void spi_test();
 
 ////////////////////////////////////////////////////////////////
@@ -234,21 +233,20 @@ int  main(int argc, char **argv)
     uint32_t dsize = pSection->iv_size;
     if(dsize)
     {
-        uint64_t verificationOffset = *(uint64_t *)pSection; 
-        uint32_t verificationAddress = ( g_headerAddr + ((verificationOffset >> 32) & 0xFFFFFFFF));
+        uint32_t verificationOffset = pSection->iv_offset;; 
+        uint32_t verificationAddress = (g_headerAddr + verificationOffset);
         P9XipHeader *vhdr = (P9XipHeader *)(verificationAddress);
-        P9XipSection* pSectionBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
-        uint32_t dBasesize = pSectionBase->iv_size;
-        uint64_t *srcAddr = (uint64_t *)(pSectionBase->iv_offset + (uint32_t)vhdr);
+        P9XipSection* pVBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
+        uint64_t *srcAddr = (uint64_t *)(pVBase->iv_offset + (uint32_t)vhdr);
         SBEM_INFO("Source addr is 0x%08X", srcAddr);
-        copySection(srcAddr, (uint64_t *)vhdr->iv_L1LoaderAddr, dBasesize);
+        loadSectionForVerification(srcAddr, (uint64_t *)(vhdr->iv_L1LoaderAddr));
         SBEM_INFO("Completed Loading of .sb_verification into PIBMEM. Verify the image.");
-        jump2verify((uint32_t )vhdr->iv_kernelAddr);
+        jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
     }
     else
     {
         SBEM_INFO("No verification image, jump to boot");
-        jump2boot();
+        jump2bootImage();
     }
 
     SBEM_EXIT(SBEM_FUNC);
