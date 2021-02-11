@@ -40,6 +40,33 @@ check_path()
     fi
 }
 
+# @brief Pad zero's to a binary file to make it 8 byte aligned
+#
+# @param[in] Full path of the file to be padded
+alignFileSize()
+{
+    ALIGN=8
+    PAD_BYTE="\x00"
+
+    FILESIZE=$(wc -c <"$1")
+    echo " "
+    echo "Size of $1 = $FILESIZE bytes."
+
+    if [ $((FILESIZE % ALIGN)) -ne 0 ]; then
+        echo "File: $1 unaligned. Aligning to nearest 8Byte."
+        PAD_BYTES=$((ALIGN - (FILESIZE % ALIGN)))
+
+        while [ $PAD_BYTES -ne 0 ]
+            do
+                echo -n -e $PAD_BYTE >> $1
+                PAD_BYTES=$(($PAD_BYTES - 1))
+            done
+
+        FILESIZE=$(wc -c <"$1")
+        echo "Size of $1 after alignment = $FILESIZE bytes."
+    fi
+}
+
 # @brief Print the help/usage info to the console
 usage()
 {
@@ -190,6 +217,13 @@ $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .base $SCRATCH_DIR/base.bin || exit -1
 
 #Extract .baseloader section from SBE image
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .baseloader $SCRATCH_DIR/baseloader.bin || exit -1
+
+#Align all files which are related to FW secure HDR to overcome alignment issues
+#during SHA512 calculation in verification process.
+alignFileSize $SCRATCH_DIR/loader_text.bin
+alignFileSize $SCRATCH_DIR/text.bin
+alignFileSize $SCRATCH_DIR/base.bin
+alignFileSize $SCRATCH_DIR/baseloader.bin
 
 #Combine .loader_text,.test,.baseloader,.base
 cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/baseloader.bin $SCRATCH_DIR/base.bin > $SCRATCH_DIR/sbe_fw.bin
