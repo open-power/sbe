@@ -129,6 +129,11 @@ int  main(int argc, char **argv)
 
     // Fetch the SPI4 Config Registers 
     uint64_t spiClockReg = 0;
+    uint64_t spiConfigReg = 0;
+    // Unlock SPI4 if it was locked by Hostboot, keep it unlocked
+    PPE_LVD(0xc0082, spiConfigReg);
+    PPE_STVD(0xc0082, spiConfigReg);
+
     PPE_LVD(0xc0083, spiClockReg);
     uint8_t clock_delay = 0x80; // default clock delay
     spiClockReg = ( (spiClockReg & SPI_CLOCK_DELAY_MASK) |
