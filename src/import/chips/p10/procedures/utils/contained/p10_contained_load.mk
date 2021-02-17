@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019,2020
+# Contributors Listed Below - COPYRIGHT 2019,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -33,6 +33,7 @@ $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/nest)
 $(call ADD_MODULE_INCDIR,$(PROCEDURE),$(ROOTPATH)/output/gen/ringspin)
 $(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/lib)
+$(call ADD_MODULE_SRCDIR,$(PROCEDURE),$(ROOTPATH)/chips/p10/procedures/hwp/pm)
 
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_contained.o)
 $(call ADD_MODULE_OBJ,$(PROCEDURE),p10_pm_utils.o)
