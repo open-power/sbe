@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,6 +22,7 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
 #include "sbeMemAccessInterface.H"
 
 #ifdef HOST_INTERFACE_AVAILABLE
@@ -47,7 +48,7 @@ ReturnCode sbeMemAccessInterface::setup()
     // Reset the current granule count
     iv_currGranule = 0;
     iv_intfCleanedUp = false;
-    SBE_INFO("iv_addr [0x%08x%08x]", SBE::higher32BWord(iv_addr), SBE::lower32BWord(iv_addr));
+    SBE_INFO(SBE_FUNC"():iv_addr [0x%08x%08x]", SBE::higher32BWord(iv_addr), SBE::lower32BWord(iv_addr));
     if(iv_interface == SBE_MEM_ACCESS_PBA)
     {
         // Call the PBA setup HWP
@@ -74,7 +75,8 @@ ReturnCode sbeMemAccessInterface::setup()
     // if setup returns error
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR(SBE_FUNC" setup Failed");
+        SBE_ERROR(SBE_FUNC" setup Failed for address iv_addr [0x%08x%08x]",
+                  SBE::higher32BWord(iv_addr), SBE::lower32BWord(iv_addr));
     }
     else
     {

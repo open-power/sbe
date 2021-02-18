@@ -40,9 +40,12 @@
 #include "fapi2.H"
 #include "hwp_data_stream.H"
 #include "sbeFifoMsgUtils.H"
+#include "sbeMemAccessInterface.H"
 
 namespace fapi2
 {
+
+    static const uint64_t ADDR_NOT_INITAILSED = 0x00;
     /**
      * @brief Stream data from FIFO into a HWP
      *
@@ -131,12 +134,32 @@ namespace fapi2
          *
          */
         sbefifo_hwp_data_ostream( sbeFifoType type = SBE_FIFO,
-                                  bool doRespHeader = true ):
+                                  bool doRespHeader = true,
+                                  uint64_t hbMemAddr = ADDR_NOT_INITAILSED ):
                                   iv_words_written(0),
                                   iv_isResponseHeader(doRespHeader),
+                                  iv_hbMemAddr(hbMemAddr),
+                                  iv_isPBALastAccess(false),
                                   iv_fifoType(type),
                                   iv_primarySecondaryRc(SBE_PRI_OPERATION_SUCCESSFUL),
-                                  iv_ffdcRc(FAPI2_RC_SUCCESS){};
+                                  iv_ffdcRc(FAPI2_RC_SUCCESS),
+                                  pbaFlag(),
+                                  iv_memInterface(SBE_MEM_ACCESS_PBA,hbMemAddr,&pbaFlag,SBE_MEM_ACCESS_WRITE,sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES)
+        {
+
+            SBE_INFO("sbefifo_hwp_data_ostream() Contructor");
+            if(hbMemAddr)
+            {
+
+                pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+                SBE_DEBUG(" sbefifo_hwp_data_ostream() will write to address iv_hbMemAddr=0x%.8x%.8x",
+                            SBE::higher32BWord(iv_hbMemAddr),SBE::lower32BWord(iv_hbMemAddr));
+            }
+            else
+            {
+                SBE_DEBUG("sbefifo_hwp_data_ostream() will write to FIFO");
+            }
+        };
 
         /**
          *	@brief Writes 4 bytes of data from the caller to the FIFO.
@@ -238,12 +261,37 @@ namespace fapi2
         {
             return iv_fifoType;
         }
+        /**
+         * @brief set PBA mode set inteface stop as per the ostream
+         *
+         * @return return void
+         */
+        void setPBALastAccess()
+        {
+            iv_isPBALastAccess = true;
+        }
+
+        /**
+         * @brief return updated HB MEM address after adding DUMP data
+         *
+         * @return return updated value back to caller
+         */ 
+        uint64_t getUpdatedHbMemAddr()
+        {
+            return iv_hbMemAddr + (iv_words_written * 4);
+        }
+
     private:
-        uint32_t iv_words_written;
-        bool iv_isResponseHeader;
-        const sbeFifoType iv_fifoType;
-        uint32_t iv_primarySecondaryRc;
-        uint32_t iv_ffdcRc;
+        uint32_t                 iv_words_written;
+        bool                     iv_isResponseHeader;
+        uint64_t                 iv_hbMemAddr;
+        // Flag to push less than 128 bytes data into FIFO using PBA interface.
+        bool                     iv_isPBALastAccess;
+        const sbeFifoType        iv_fifoType;
+        uint32_t                 iv_primarySecondaryRc;
+        uint32_t                 iv_ffdcRc;
+        p10_PBA_oper_flag        pbaFlag;
+        sbeMemAccessInterface    iv_memInterface;
     };
 
     /**

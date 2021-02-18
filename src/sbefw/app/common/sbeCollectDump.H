@@ -189,7 +189,8 @@ class sbeCollectDump
          * @param [in] type        sbe fifo type.
          */
          sbeCollectDump( uint8_t i_dumpID, uint8_t i_clockState,
-                         sbeFifoType i_type ):iv_oStream(i_type, false),
+                         sbeFifoType i_type, uint64_t i_hbMemAddr = 0x00 ):
+                         iv_oStream(i_type, false, i_hbMemAddr),
                          iv_clockState(i_clockState), iv_fifoType(i_type)
          {
              iv_clockState = i_clockState;
@@ -211,6 +212,10 @@ class sbeCollectDump
                        SBE::higher32BWord(iv_dumpHeader.hdctVer),
                        SBE::lower32BWord(iv_dumpHeader.hdctVer));
          }
+         ~sbeCollectDump()
+         {
+             SBE_DEBUG("sbeCollectDump() Destructor...");
+         }
 
         /**
          * @brief Collect the data for all the entries present in HDCT.
@@ -221,6 +226,17 @@ class sbeCollectDump
          */
          uint32_t collectAllHDCTEntries();
 
+        /**
+         * @brief Collect the length of data for MpIpl the entries in HDCT.
+         *        It will be called from MpIpl func.
+         *
+         * @return SUCCESS, Incase of no error.
+         *         error,   Incase of failure.
+         */
+         uint32_t collectLenInBytesOfWriteData()
+         {
+             return iv_oStream.words_written() * 4;
+         }
     private:
 
         /*
@@ -372,5 +388,22 @@ class sbeCollectDump
         bool checkHWStateofChipAndChiplets();
 };
 
+/**
+ * @brief collectMpiplHwDump interface is used to collect MPIPL DUMP data as per
+ * HDCT bin file. Interface will collect HDCT data with CLOCK ON state and update
+ * data as per HB address(input address for this interface). After completing
+ * ClockOn data then interface takes care of stopping the Cache and Core clocks
+ * internally. Collect HDCT data with CLOCK OFF state and update data into HB
+ * address. Interface returns the updated data length back to caller.
+ *
+ * @prama [in] hbMemAddr  The HB address of the data to write.
+ * @prama [out] hbMemAddr  The length of the data returned in bytes.
+ *
+ * @return SUCCESS,  If write Mpipl HwDump is successful.
+ *         ERROR,    Incase of failure.
+ */
+uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
+                             uint32_t &o_length );
+ 
 #endif /* __SBEFW_SBECOLLECTDUMP_H */
 

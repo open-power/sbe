@@ -36,7 +36,6 @@
 #include <sbecmdtracearray.H>
 #include <p10_query_host_meminfo.H>
 #include <p10_tracearray_defs.H>
-
 #include "sbecmdringaccess.H"
 
 #define FAST_ARRAY_CTRL_SET1_SIZE 0x48E18
@@ -109,7 +108,81 @@ void getControlTraceArrayTargetType( const uint8_t i_chipUnitType,
                 }
     }
     return;
-}   
+}
+
+uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
+                             uint32_t &o_length )
+{
+    #define SBE_FUNC "collectMpiplHwDump"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint64_t hbMemAddr = i_hbMemAddr;
+    do
+    {
+        o_length = 0;
+        if( hbMemAddr == 0x00 )
+        {
+            SBE_ERROR(SBE_FUNC " Unsupported/Invalid HbMem Address[0x%08X %08X]",
+                                 SBE::higher32BWord(hbMemAddr),
+                                 SBE::lower32BWord(hbMemAddr));
+            rc = SBE_SEC_MPIPL_DUMP_INVALID_PARAMS;
+            break;
+        }
+        SBE_INFO(SBE_FUNC "HbMem Address[0x%08X %08X]",
+                           SBE::higher32BWord(hbMemAddr),
+                           SBE::lower32BWord(hbMemAddr));
+        // Create the sbeCollectDump object for ClockOn
+        sbeCollectDump dumpClockOnObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_ON,
+                                SBE_FIFO, hbMemAddr);
+        //Call collectAllEntries to write dump into HbMem
+        rc = dumpClockOnObj.collectAllHDCTEntries();
+        if(rc)
+        {
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP chipOp
+            SBE_ERROR(SBE_FUNC" Dump collection failed for Clock State:[0x%02],"
+                     "HbMem Address[0x%08X %08X]", SBE_DUMP_CLOCK_ON,
+                      SBE::higher32BWord(hbMemAddr),SBE::lower32BWord(hbMemAddr));
+            rc = SBE_SEC_GET_DUMP_FAILED;
+            break;
+        }
+        // Get length of dump data to rerun back to caller
+        uint32_t clockOnLength = dumpClockOnObj.collectLenInBytesOfWriteData();
+        SBE_INFO(SBE_FUNC "ClockOn Total Bytes HW dump written [0x%08X]", clockOnLength);
+
+        o_length = clockOnLength;
+//TODO: Enable code bellow once clock off entries from HDCT enabled
+/*
+        // Aline 128 bytes lenfth and update hbMemAddr
+        hbMemAddr = hbMemAddr + ( ((clockOnLength / 0x80) * (0x80) ) +
+                                  ((clockOnLength % 0x80 )?(0x80):(0)) );
+
+        // Create the sbeCollectDump object for ClockOff
+        sbeCollectDump dumpClockOffObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_OFF,
+                                SBE_FIFO, hbMemAddr);
+        //Call collectAllEntries to write dump into HbMem
+        rc = dumpClockOffObj.collectAllHDCTEntries();
+        if(rc)
+        {
+            // TODO: Verify and modify all error rc to handle all
+            // primary/secondary error in DUMP chipOp
+            SBE_ERROR(SBE_FUNC" Dump collection failed for Clock State:[0x%02],"
+                     "HbMem Address[0x%08X %08X]", SBE_DUMP_CLOCK_ON,
+                      SBE::higher32BWord(hbMemAddr),SBE::lower32BWord(hbMemAddr));
+            rc = SBE_SEC_GET_DUMP_FAILED;
+            break;
+        }
+        // Get length of dump data to rerun back to caller
+        uint32_t clockOffLength = dumpClockOffObj.collectLenInBytesOfWriteData();
+        SBE_INFO(SBE_FUNC "ClockOff Total Bytes HW dump written [0x%08X]", clockOffLength);
+        o_length = o_length + clockOffLength;
+*/
+    }
+    while(0);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
 
 inline bool sbeCollectDump::dumpTypeCheck()
 {
@@ -1058,7 +1131,6 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
         iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
     } // End For loop
-
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -1066,7 +1138,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
 
 uint32_t sbeCollectDump::collectAllHDCTEntries()
 {
-    #define SBE_FUNC " collectAllHDCTEntries "
+#define SBE_FUNC " collectAllHDCTEntries "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
@@ -1088,6 +1160,10 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
                 break;
             }
         }
+        // setPBALastAccess will set a flag to clear all bytes to
+        // write data into FIFO via PBA interface before last PBA
+        // update to DONE fifo data.
+        iv_oStream.setPBALastAccess();
         //Dump chip-op Footer - DONE
         iv_oStream.put(DUMP_CHIP_OP_FOOTER);
     }
@@ -1095,7 +1171,7 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
 
     SBE_EXIT(SBE_FUNC);
     return rc;
-    #undef SBE_FUNC
+#undef SBE_FUNC
 }
 
 uint32_t sbeCollectDump::parserSingleHDCTEntry()

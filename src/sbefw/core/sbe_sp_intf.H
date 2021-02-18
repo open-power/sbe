@@ -27,7 +27,6 @@
  *
  *  @brief This file contains the SP - SBE interface protocol common details
  */
-
 #ifndef __SBEFW_SBE_SP_INTF_H
 #define __SBEFW_SBE_SP_INTF_H
 
@@ -296,6 +295,8 @@ enum sbeSecondaryResponse
     SBE_SEC_INVALID_OCMB_INSTANCE             = 0x41,
     SBE_SEC_FAILED_TO_CHECKSTOP               = 0x42,
     SBE_SEC_GET_DUMP_STREAM_FAILED            = 0x43,
+    SBE_SEC_MPIPL_DUMP_INVALID_PARAMS         = 0x44,
+
 };
 
 /**

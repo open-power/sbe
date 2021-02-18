@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,8 +22,10 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
 #include "plat_hwp_data_stream.H"
 #include "sbeFifoMsgUtils.H"
+#include "sbeMemAccessInterface.H"
 
 using namespace fapi2;
 
@@ -81,36 +83,64 @@ uint32_t sbefifo_hwp_data_istream::get( uint32_t o_length, uint32_t* o_buffer,
 
 ReturnCodes sbefifo_hwp_data_ostream::put(hwp_data_unit i_data)
 {
-    #define SBE_FUNC "sbefifo_hwp_data_ostream::put"
+#define SBE_FUNC "sbefifo_hwp_data_ostream::put(): 1 word"
     SBE_ENTER(SBE_FUNC);
 
-    uint32_t len = 1;
+    uint32_t len = 1; //1 word ie 4 bytes
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    rc = sbeDownFifoEnq_mult(len, &i_data, iv_fifoType);
-    if (rc)
+    if(iv_hbMemAddr) //Dump the data into the memory
     {
-        return FAPI2_RC_PLAT_ERR_SEE_DATA;
+        ReturnCode rc  = iv_memInterface.accessWithBuffer(
+                                              &i_data, 4, iv_isPBALastAccess);
+        if(rc)
+        {
+            SBE_ERROR(SBE_FUNC " PBA write failed in accessWithBuffer");
+            return FAPI2_RC_PLAT_ERR_SEE_DATA;
+        }
+    }
+    else
+    {
+        rc = sbeDownFifoEnq_mult(len, &i_data, iv_fifoType);
+        if (rc)
+        {
+            SBE_ERROR(SBE_FUNC " sbeDownFifoEnq_mult failed");
+            return FAPI2_RC_PLAT_ERR_SEE_DATA;
+        }
     }
     iv_words_written++;
     return FAPI2_RC_SUCCESS;
-    #undef SBE_FUNC
+#undef SBE_FUNC
 }
 
-uint32_t sbefifo_hwp_data_ostream::put(uint32_t i_length, hwp_data_unit* i_buffer)
+uint32_t sbefifo_hwp_data_ostream::put(uint32_t i_length, uint32_t* i_buffer)
 {
-    #define SBE_FUNC "sbefifo_hwp_data_ostream::put with length"
+#define SBE_FUNC "sbefifo_hwp_data_ostream::put()"
     SBE_ENTER(SBE_FUNC);
-    uint32_t len = i_length;
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
-    // Push data into the downstream FIFO
-    rc = sbeDownFifoEnq_mult (len, i_buffer, iv_fifoType);
-    if (rc)
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    if(iv_hbMemAddr) //Dump the data into the memory
     {
-        return rc;
+        fapiRc  = iv_memInterface.accessWithBuffer(
+                                  i_buffer, (i_length*4), iv_isPBALastAccess);
+        if(fapiRc)
+        {
+            SBE_ERROR(SBE_FUNC " PBA write failed in accessWithBuffer");    
+            return SBE_SEC_GET_DUMP_STREAM_FAILED;
+        }
     }
-    iv_words_written = iv_words_written + len;
+    else
+    {
+        // Push data into the downstream FIFO
+        rc = sbeDownFifoEnq_mult (i_length, i_buffer, iv_fifoType);
+        if (rc)
+        {
+            SBE_ERROR(SBE_FUNC " sbeDownFifoEnq_mult failed");
+            return rc;
+        }
+    }
+    iv_words_written = iv_words_written + i_length;
     return rc;
-    #undef SBE_FUNC
+#undef SBE_FUNC
 }
 
 seeprom_hwp_data_istream::seeprom_hwp_data_istream(const uint32_t *i_data, size_t i_size) :
