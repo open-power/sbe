@@ -54,9 +54,10 @@ usage()
     echo "  -i: SBE image to sign. "
     echo "  -t: IPL Image tool path."
     echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
+    echo "  -d: SBE Image Dir path in op-build"
 }
 
-while getopts "h?s:i:t:b:" opt;
+while getopts "h?s:i:t:b:d:" opt;
 do
     case $opt in
 
@@ -79,6 +80,10 @@ do
 
         b)
             BUILD_TYPE=$OPTARG
+        ;;
+
+	d)
+            SBE_IMG_DIR_OP=$OPTARG
         ;;
 
         *)
@@ -114,13 +119,21 @@ if [ -z $BUILD_TYPE ]; then
     BUILD_TYPE="PNOR" #Default Build Type
 fi
 
-printf "\nSign SBE Image\n"
+if [ -z $SBE_IMG_DIR_OP ]; then
+    echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and sigining scripts from /afs/..."
+    OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
+    OP_BUILD_LEVEL=/latest_master-p10/
+    KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
+    PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
+else
+    echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and sigining scripts from OP-Build Tree"
+    KEYS_DIR=${SBE_IMG_DIR_OP}/../../../host/etc/keys/
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SBE_IMG_DIR_OP}/../../../host/usr/bin/
+    PATH=$PATH:$LD_LIBRARY_PATH
+fi
 
-OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
-OP_BUILD_LEVEL=/latest_master-p10/
-KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
-PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
+printf "\nSign SBE Image\n"
 
 #Append MSV after HW Keys Hash in .sb_settings and add padding to keep the section 8 byte alligned.
 MSV="\x00"

@@ -98,7 +98,7 @@ def main(argv):
         run_system_cmd('mkdir -p '+sbe_binary_dir)
         for ecLevel, ddLevel in p10_EC.items():
             #Sign SBE image
-            run_system_cmd(img_dir + '/signSbeImage -s ' + img_dir + "/sbeScratchDir -i " + img_dir + '/' + 'sbe_seeprom_' + ddLevel + '.bin -t ' + img_dir + "/ipl_image_tool ")
+            run_system_cmd(img_dir + '/signSbeImage -s ' + img_dir + "/sbeScratchDir -i " + img_dir + '/' + 'sbe_seeprom_' + ddLevel + '.bin -t ' + img_dir + "/ipl_image_tool -d " + img_dir)
 
             # Copy sbe seeprom binary to binaries folder.
             run_system_cmd('cp '+img_dir+'/'+'sbe_seeprom_'+ddLevel+'.bin'+' '+sbe_binary_dir+'/'+CHIPID+'_'+ecLevel+'.'+SEEPROM_IMAGE)
