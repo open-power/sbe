@@ -340,9 +340,7 @@ ReturnCode sbeDoRangeIpl(const size_t i_startMajor,
 
 uint32_t gpeStartDDS (uint8_t *i_pArg)
 {
-    //Have the SBE tell the GPE to execute DDS code
-    //Runs contained runn with infinit runn cycles
-    //Polls SPRG0 until the GPE reports it is finish
+    //Polls SPRG0 until the GPE reports it is finished
     #define SBE_FUNC "sbeSeepromLoad "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -364,41 +362,20 @@ uint32_t gpeStartDDS (uint8_t *i_pArg)
 
         //Chipop code goes here
 
-        FAPI_INF(">> Start gpeStartDDS");
+        FAPI_INF(">> Start gpeStartDDS chipop");
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-
-        FAPI_DBG("Running contained run procedure and starting OPCGs");
-        p10_contained_run(proc);
-
-        FAPI_DBG("Disable fences for CUCR and FDCR");
-        fapi2::putScom(proc, 0x6E0F0041, 0xFFFFDFFFF0000000);
-        FAPI_DBG("Enable DDS in CUCR");
-        fapi2::putScom(proc, 0x6E0EFE3E, 0xC600000000000000);
-        FAPI_DBG("Turn off disable bit in FDCR");
-        fapi2::putScom(proc, 0x6E0EFE40, 0x0000000000000000);
-
-        FAPI_DBG("Issuing hard reset of p10GPE0");
-        fapi2::putScom(proc, 0x00060010, 0x6000000000000000);
-        fapi2::putScom(proc, 0x00060010, 0x7000000000000000);
-        FAPI_DBG("Setting p10GPE0 IVPR to 0xfff01040");
-        fapi2::putScom(proc, 0x00060001, 0xFFF0104000000000);
-        fapi2::putScom(proc, 0x00060010, 0x5000000000000000);
-        FAPI_DBG("Starting p10GPE0");
-        fapi2::putScom(proc, 0x00060010, 0x2000000000000000);
 
         fapi2::buffer<uint64_t> i_status;
         int64_t i_timeout_cnt = 0;
-        FAPI_DBG("Polling SPRG0 to check status of DDS, polling 100x for 1 second then timing out");
+        FAPI_DBG("Polling SPRG0 to check status of DDS, polling for 100 second then timing out");
         fapi2::getScom(proc, 0x00060013, i_status);
 
-        while ( (i_status & 0xFF) < 0xA0)
+        while ( (i_status & 0xFF) < 0x80)
         {
             fapi2::delay(100000, 50000); //100,000ns or 50k sim cycles
             fapi2::getScom(proc, 0x00060013, i_status);
-//            FAPI_DBG("status: %X", i_status);
-//            FAPI_DBG("_timeout_cnt: %X", i_timeout_cnt);
             i_timeout_cnt ++;
-            if ( i_timeout_cnt > 100000 ) //100000 * 100,000ns is 10 sec before timeout
+            if ( i_timeout_cnt > 1000000 ) //1000000 * 100,000ns is 100 sec before timeout
             {
                 SBE_DEBUG(SBE_FUNC"TIMEOUT: gpeStartDDS() failed. DDS did not halt in allotted time");
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,

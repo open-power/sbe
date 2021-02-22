@@ -353,7 +353,7 @@ static istepMap_t g_istep4PtrTbl[] =
 static istepMap_t g_istep8PtrTbl[] =
         {
             ISTEP_MAP( istepContainedLoad, p10_contained_load),    //1
-            ISTEP_MAP( istepNoOp, p10_contained_dyn_inits), //2
+            ISTEP_MAP( istepNoOp, NULL), //2 p10_contained_dyn_inits
 			ISTEP_MAP( istepNoOp, p10_hcd_l2_purge),
             ISTEP_MAP( istepWithProc, p10_contained_save_config), //3
             ISTEP_MAP( istepWithProc, p10_contained_stopclocks), //4
