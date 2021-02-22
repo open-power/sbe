@@ -152,6 +152,7 @@ inline fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYP
 
 #endif // P10_CONTAINED_ENABLE_SEEDING
 
+#ifndef __PPE__
 #ifdef P10_CONTAINED_ENVVARS_ALLOWED
 
 ///
@@ -173,4 +174,5 @@ constexpr bool getenvvar(const char* i_envvar, std::string& o_val)
 }
 
 #endif // P10_CONTAINED_ENVVARS_ALLOWED
+#endif // __PPE__
 #endif
