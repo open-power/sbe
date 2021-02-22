@@ -655,6 +655,10 @@
     <value>0x00</value>
   </entry>
   <entry>
+    <name>ATTR_SEEPROM_STARTING_ADDR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
     <name>ATTR_HW_IMG_PTR</name>
     <value>0x00</value>
   </entry>
