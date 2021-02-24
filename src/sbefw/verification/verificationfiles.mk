@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2019,2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,6 @@ VERIFICATION-CPP-SOURCES =  verification_main.C
 VERIFICATION-CPP-SOURCES += test_lib.C
 VERIFICATION-CPP-SOURCES += ecverify.C
 VERIFICATION-CPP-SOURCES += sbesecureboot.C
-VERIFICATION-CPP-SOURCES += sha512.C
 
 VERIFICATION-C-SOURCES =
 VERIFICATION-S-SOURCES =

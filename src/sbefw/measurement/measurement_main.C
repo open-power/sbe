@@ -28,6 +28,7 @@
 #include "sbeglobals.H"
 #include "sbeDecompression.h"
 #include "sbeXipUtils.H"
+#include "sbesecuritycommon.C"
 
 extern "C" {
 #include "pk_api.h"
@@ -36,10 +37,11 @@ extern "C" {
 //// @brief Stacks for Non-critical Interrupts ( timebase, timers )
 ////////////////////////////////////////////////////////////////
 #define INITIAL_PK_TIMEBASE   0
-#define MEASUREMENT_NONCRITICAL_STACK_SIZE 512
+//Keep stack size greater than SPI_READ_SIZE_BYTES.
+#define MEASUREMENT_NONCRITICAL_STACK_SIZE 12288
 #define SPI_CLOCK_DELAY_SHIFT     44
 #define SPI_CLOCK_DELAY_MASK      0xFFF00FFFFFFFFFFF
-#define SPI_CLOCK_DIVIDER_SHIFT   52 
+#define SPI_CLOCK_DIVIDER_SHIFT   52
 #define SPI_CLOCK_DIVIDER_MASK    0x000FFFFFFFFFFFFF
 
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
@@ -99,8 +101,8 @@ void jump2verificationImage(uint32_t i_destAddr)
  *  ** API to jump to the boot seeprom.
  *   */
 void jump2bootImage()
-{   
-    asm(    
+{
+    asm(
             "lis %r4, 0xFF80\n"
             "lvd %d0, 0(%r4)\n"
             "lis %r2 , 0x5849\n"
@@ -157,7 +159,7 @@ int  main(int argc, char **argv)
         //Fetch the default clock divider from LFR
         PPE_LVD(0xc0002040, lfrReg);
 
-        // Fetch the SPI4 Config Registers 
+        // Fetch the SPI4 Config Registers
         uint64_t spiClockReg = 0;
         uint64_t spiConfigReg = 0;
         // Unlock SPI4 if it was locked by Hostboot, keep it unlocked
@@ -186,7 +188,7 @@ int  main(int argc, char **argv)
         {
             // g_sbemfrequency and lfr.spi_clock_divider are already updated with
             // 133Mhz and 4 respectively. Just update the TPM Spi clock at this
-            // point so that TPM can be accessible. 
+            // point so that TPM can be accessible.
 
             //SPI4
             spiClockReg = 0;
@@ -220,8 +222,15 @@ int  main(int argc, char **argv)
             SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", l_rc);
             break;
         }
-        SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom"); 
+        SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
+
+        SBEM_INFO("Measure/Calculate SHA512 of .sb_verification XIP Section");
+        SHA512_t result;
+        SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
+
+        //TODO: Extend MSB 32 Bytes of result into TPM.
 #endif
+
     }while(0);
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
@@ -233,7 +242,7 @@ int  main(int argc, char **argv)
     uint32_t dsize = pSection->iv_size;
     if(dsize)
     {
-        uint32_t verificationOffset = pSection->iv_offset;; 
+        uint32_t verificationOffset = pSection->iv_offset;;
         uint32_t verificationAddress = (g_headerAddr + verificationOffset);
         P9XipHeader *vhdr = (P9XipHeader *)(verificationAddress);
         P9XipSection* pVBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];

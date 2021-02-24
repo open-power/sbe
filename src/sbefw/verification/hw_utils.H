@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/hw_utils.H $                              */
+/* $Source: src/sbefw/verification/hw_utils.H $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */

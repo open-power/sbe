@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/ecverify.C $                              */
+/* $Source: src/sbefw/verification/ecverify.C $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -34,9 +34,6 @@
 #endif
 
 #define __LITTLE_ENDIAN
-//#define __BIG_ENDIAN
-
-//#include <securerom/ecverify.H>
 
 #ifdef SPPE_IMAGE
 
@@ -200,7 +197,7 @@ bn_t bn_dmul (bn_t a, bn_t b)
 //
 void bn_mul (bn_t *r, const bn_t *a, const bn_t *b)
 {
-    
+
     unsigned char cf[ NWORDS+NWORDS ];     /* carry collector */
     bnindex_t i, j;
     bn_t ph, pl;                           /* product high,low words */
@@ -278,7 +275,7 @@ void bn_mul (bn_t *r, const bn_t *a, const bn_t *b)
 }
 #else
 void bn_mul (bn_t *r, const bn_t *a, const bn_t *b)
-{    
+{
     bnindex_t i, j;
     bn_t ph, pl, th, tb;                           /* product high,low words */
 
@@ -323,7 +320,7 @@ void bn_mul (bn_t *r, const bn_t *a, const bn_t *b)
 #ifdef BN_POWER64_SQR
 void bn_sqr (bn_t *r, const bn_t *a)
 {
-    
+
     bnindex_t i, j;
     const bn_t *b;                           /* product high,low words */
     bn_t *c, ph, pl, ta, t0, t1, t2;         /* product high,low words */
@@ -844,7 +841,7 @@ unsigned int bn_bits (const bn_t *a)
 //
 int bn_modinv(bn_t *inv, const bn_t *a, const bn_t *n)
 {
-    
+
     bn_t r[ NWORDS ], s[ NWORDS ],  u[ NWORDS ], v[ NWORDS ],
                      ss[ NWORDS ], vs[ NWORDS ];   // shifted S,V
     unsigned int shl, ub, vb;                      // shift amount; bitcount
@@ -1053,8 +1050,8 @@ void ec_projective2affine (bn_t *x, const bn_t *z)
 int ec_add (bn_t *x1,       bn_t *y1,       bn_t *z1,
              const bn_t *x2, const bn_t *y2, const bn_t *z2)
 {
-    
-    
+
+
     bn_t a[ NWORDS ], b[ NWORDS ], c[ NWORDS ],
          bs[ NWORDS ],                     // B^2
          t1[ NWORDS ], t2[ NWORDS ];       // XXX minimize these
@@ -1208,7 +1205,7 @@ int ec_add (bn_t *x1,       bn_t *y1,       bn_t *z1,
 int ec_double (bn_t *x, bn_t *y, bn_t *z)
 {
     bn_t a[ NWORDS ], b[ NWORDS ], c[ NWORDS ], d[ NWORDS ], t[ NWORDS ];
-    
+
     EC_ASSERT(NULL != x);
     EC_ASSERT(NULL != y);
     EC_ASSERT(NULL != z);
@@ -1348,7 +1345,7 @@ int ec_double (bn_t *x, bn_t *y, bn_t *z)
 //
 int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k)
 {
-    
+
     bn_t px[ NWORDS ], py[ NWORDS ], pz[ NWORDS ];
     unsigned int i;
     bn_t mask = 1;

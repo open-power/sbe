@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/ecverify.H $                              */
+/* $Source: src/sbefw/verification/ecverify.H $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -152,7 +152,7 @@ const consts_t consts = {
     0x00000000,0x00000000,
     0x00000000,0x00000000,
     0x00000000,0x00000000,
-    0x00000000,0x00000003,    
+    0x00000000,0x00000003,
     },
     {
         0x00000051,

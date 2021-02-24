@@ -82,8 +82,8 @@ void __eabi()
  *  ** API to jump to the boot seeprom.
  *   */
 void jump2boot()
-{   
-    asm(    
+{
+    asm(
             "lis %r4, 0xFF80\n"
             "lvd %d0, 0(%r4)\n"
             "lis %r2 , 0x5849\n"
@@ -110,7 +110,7 @@ int  main(int argc, char **argv)
     #define SBEV_FUNC "Verification main"
     SBEV_ENTER(SBEV_FUNC);
     int l_rc = 0;
- 
+
     uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG)<<32;
     PPE_STVD(0x50009, loadValue);
 
@@ -123,11 +123,7 @@ int  main(int argc, char **argv)
          return 0;
     }
     SBEV_INFO("Completed PK initialization for Verification");
-#if 0    
-    SBEV_INFO("Measure/Calculate SHA512 Hash of verification code XIP section");
-    SHA512_t result;
-    SHA512_Verification_Code_Hash(&result);
-    
+#if 0
     SBEV_INFO("Verify SBE-FW secure header.");
     verifyFWSecureHdr();
     SBEV_INFO("Completed SBE-FW secure header verification.");
@@ -135,7 +131,7 @@ int  main(int argc, char **argv)
     SBEV_INFO("Verify HBBL secure header.");
     verifyHBBLSecureHdr();
     SBEV_INFO("Completed HBBL secure header verification.");
-#endif    
+#endif
     SBEV_INFO("Jump to Boot.");
 
     jump2boot();

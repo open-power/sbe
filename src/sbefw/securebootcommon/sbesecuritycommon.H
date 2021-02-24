@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/verification/sbesecureboot.H $                      */
+/* $Source: src/sbefw/securebootcommon/sbesecuritycommon.H $              */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -22,6 +22,7 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
 /*
  * @file: ppe/sbe/sbefw/sbesecureboot.H
  *
@@ -29,38 +30,59 @@
  *
  */
 
-#ifndef __SBEFW_SBESECUREBOOT_H
-#define __SBEFW_SBESECUREBOOT_H
+#ifndef __SBEFW_SBESECURITYCOMMON_H
+#define __SBEFW_SBESECURITYCOMMON_H
 
 #include <stdint.h>
+#include "sha512.H"
+#include "p10_sbe_spi_cmd.H"
 #include "p10_ipl_image.H"
-#include "ROM.H"
+#include "plat_hwp_data_stream.H"
 
 /**
- * @brief Verify Secure container.
+ * @brief Get the Xip offset(Start location) from SBE Image for SPI.
  *
- * @param ROM_container_raw* Pointer to secure container start address
- *
- * @param ROM_hw_params* Pointer to HW Keys Hash
- *
- * @param hw_sig_to_verify The hardware signature that has to be verified(Among the 3 HW signaturs that are present)
- *
- * @return Secure container verification response/result/status_code.
+ * @return Xip offset(Start location) SPI
  */
-ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int hw_sig_to_verify);
+uint32_t getXipOffset(p9_xip_section_sbe_t xipSection);
 
 /**
- * @brief Verify HBBL Secure Header.
+ * @brief Get the Absolute Xip offset(Start location) from SBE Image.
  *
- * @return Secure container verification response/result/status_code
+ * @return Xip offset(Start location)
  */
-ROM_response verifyHBBLSecureHdr();
+uint32_t getXipOffsetAbs(p9_xip_section_sbe_t xipSection);
 
 /**
- * @brief Verify SBE-FW Secure Header.
+ * @brief Get the Xip Size.
  *
- * @return Secure container verification response/result/status_code
+ * @return Xip Size
  */
-ROM_response verifyFWSecureHdr();
+uint32_t getXipSize(p9_xip_section_sbe_t xipSection);
 
-#endif /* __SBEFW_SBESECUREBOOT_H */
+/**
+ * @brief Perform SHA512 update for particular XIP section.
+ *        Data is read from seeprom via SPI.
+ *        SHA512 is calculated always for a 8byte aligned region internally.
+ *        If unaligned section it is a must for padding bytes to be zero's.
+ *
+ * @Param p9_xip_section_sbe_t XIP section for which SHA512 needs to be calculated
+ *
+ * @Param SHA512_CTX* SHA512 contest struct pointer used during SHA512 Init
+ *
+ * @return None
+ */
+void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context);
+
+/**
+ * @brief Calculate SHA512 for a given XIP section.
+ *
+ * @Param p9_xip_section_sbe_t XIP section for which SHA512 needs to be calculated
+ *
+ * @Param SHA512_t Output SHA512 of XIP Section
+ *
+ * @return None
+ */
+void SHA512_XIP_section(p9_xip_section_sbe_t xipSection, SHA512_t *result);
+
+#endif /* __SBEFW_SBESECURITYCOMMON_H */
