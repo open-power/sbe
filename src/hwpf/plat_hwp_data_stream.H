@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -134,7 +134,9 @@ namespace fapi2
                                   bool doRespHeader = true ):
                                   iv_words_written(0),
                                   iv_isResponseHeader(doRespHeader),
-                                  iv_fifoType(type){};
+                                  iv_fifoType(type),
+                                  iv_primarySecondaryRc(SBE_PRI_OPERATION_SUCCESSFUL),
+                                  iv_ffdcRc(FAPI2_RC_SUCCESS){};
 
         /**
          *	@brief Writes 4 bytes of data from the caller to the FIFO.
@@ -175,9 +177,56 @@ namespace fapi2
          *
          * @return return Response Header
          */
-        bool isStreamRespHeader()
+        bool isStreamRespHeader( uint32_t hdrRc  = SBE_PRI_OPERATION_SUCCESSFUL,
+                                 uint32_t ffdcRc = FAPI2_RC_SUCCESS )
         {
+            if(!iv_isResponseHeader)
+            {
+                iv_primarySecondaryRc = hdrRc;
+                iv_ffdcRc = ffdcRc;
+            }
             return iv_isResponseHeader;
+        }
+
+        /**
+          * @brief set primary secondary RC as per the stream init
+          *
+          * @return return PriSec Rc
+          */
+        void setPriSecRc(uint32_t priSecRc = SBE_PRI_OPERATION_SUCCESSFUL)
+        {
+            iv_primarySecondaryRc = priSecRc;
+            return;
+        }
+
+       /**
+         * @brief Return primary secondary RC as per the stream init
+         *
+         * @return return PriSec Rc
+         */
+        uint32_t getPriSecRc()
+        {
+            return iv_primarySecondaryRc;
+        }
+
+        /**
+         * @brief set FIFO RC as per the stream init
+         *
+         * @return return Fifo Rc
+         */
+        void setFifoRc(uint32_t ffdcRc = FAPI2_RC_SUCCESS)
+        {
+            iv_ffdcRc = ffdcRc;
+            return;
+        }
+        /**
+         * @brief Return FIFO RC as per the stream init
+         *
+         * @return return Fifo Rc
+         */
+        uint32_t getFifoRc()
+        {
+            return iv_ffdcRc;
         }
 
         /**
@@ -193,6 +242,8 @@ namespace fapi2
         uint32_t iv_words_written;
         bool iv_isResponseHeader;
         const sbeFifoType iv_fifoType;
+        uint32_t iv_primarySecondaryRc;
+        uint32_t iv_ffdcRc;
     };
 
     /**

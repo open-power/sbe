@@ -80,6 +80,7 @@ typedef struct
     const uint8_t  command() const         { return _command; }
     const uint16_t primaryStatus() const   { return _primaryStatus; }
     const uint16_t secondaryStatus() const { return _secondaryStatus; }
+    const uint32_t rcStatus() const { return  ((uint32_t)_primaryStatus << 16 ) | _secondaryStatus; }
     /**
       * @brief set the primary and secondary status
       *

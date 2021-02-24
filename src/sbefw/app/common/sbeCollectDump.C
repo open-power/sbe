@@ -649,6 +649,14 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
+    // Set FFDC failed command information and
+    // Sequence Id is 0 by default for Fifo interface
+    iv_chipOpffdc.setCmdInfo(0, SBE_CMD_CLASS_SCOM_ACCESS, SBE_CMD_GETSCOM );
+    // Add HWP specific ffdc data length
+    iv_chipOpffdc.lenInWords = 0;
+    iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
+    iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
+
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetScom.addr;
     uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
@@ -671,6 +679,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     {
         //TODO: Verify and modify all error rc to handle all primary/secondary
         //error in DUMP chipOp
+        iv_oStream.setFifoRc(fapiRc);
         rc = SBE_SEC_INVALID_ADDRESS_PASSED;
     }
     else
@@ -850,7 +859,6 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
 
     // Get update row values by using HDCT bin data
     iv_tocRow.tocHeaderInit(iv_hdctRow);
-
     // TODO: Clean-Up once other chip-op ennabled.
     if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)    ||
            (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)    ||
@@ -935,18 +943,32 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         }
         else
         {
-            //TODO: Need to update FFDC and fail scenario handling here
-            iv_tocRow.ffdcLen = 0x08;
-            uint64_t ffdcData = 0x0000FFDC0000FFDC;
-            // write FFDC data on failed case using FIFO
-            iv_oStream.put(iv_tocRow.ffdcLen);
-            iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&ffdcData);
+            if( iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)
+            {
+                iv_chipOpffdc.setRc(iv_oStream.getFifoRc());
+                // Update FFDC lenth + PrimarySecondary(32 bits) RC lenth
+                iv_tocRow.ffdcLen = sizeof(sbeResponseFfdc_t) + sizeof(uint32_t);
+                // write FFDC data on failed case using FIFO
+                iv_oStream.put(iv_tocRow.ffdcLen);
+                iv_oStream.put(iv_oStream.getPriSecRc()); // Set Primary Secondary RC
+                iv_oStream.put(sizeof(sbeResponseFfdc_t)/sizeof(uint32_t), (uint32_t*)&iv_chipOpffdc);
+                iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
+                iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
+            }
+            else
+            {
+                //TODO: Need to update FFDC and fail scenario handling here
+                iv_tocRow.ffdcLen = 0x08;
+                uint64_t ffdcData = 0x0000FFDC0000FFDC;
+                // write FFDC data on failed case using FIFO
+                iv_oStream.put(iv_tocRow.ffdcLen);
+                iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&ffdcData);
+            }
             rc = SBE_SEC_OPERATION_SUCCESSFUL;
         }
         // FIFO the cpuCycles value
         iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
         iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
-
     } // End For loop
 
     SBE_EXIT(SBE_FUNC);

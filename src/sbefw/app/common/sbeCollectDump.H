@@ -177,6 +177,7 @@ class sbeCollectDump
         genericRowTOC_t iv_tocRow;
         dumpHeader_t iv_dumpHeader;
         hdctXipSecDetails_t iv_hdctXipSecDetails;
+        sbeResponseFfdc_t iv_chipOpffdc;
 
     public:
 
