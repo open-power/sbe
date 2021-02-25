@@ -37,7 +37,7 @@ ResClkFreqIdx_t RESCLK_INDEX[RESCLK_FREQ_REGIONS] =
     {0,     3},     //Freq, Index
     {1500,  3},     //Freq, Index
     {2000, 21},     //Freq, Index
-    {3400, 19}      //Freq, Index
+    {3400, 21}      //Freq, Index
 };
 
 uint64_t RESCLK_TABLE[RESCLK_STEPS / 8] =
