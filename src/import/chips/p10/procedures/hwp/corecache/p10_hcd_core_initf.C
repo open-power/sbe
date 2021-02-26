@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -66,6 +66,8 @@ p10_hcd_core_initf(
 
 #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    uint8_t                        l_attr_mma_poweron_disable = 0;
     fapi2::buffer<uint64_t>        l_data64             = 0;
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
@@ -81,45 +83,45 @@ p10_hcd_core_initf(
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (ec_cl2_mode)");
 
-    for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+    // do this to avoid unused variable warning
+    static_cast<void>(l_eq_num);
+
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+
+    if( !l_attr_mma_poweron_disable )
     {
-        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
-
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               l_eq,
-                               l_attr_chip_unit_pos));
-        l_eq_num = (uint32_t)l_attr_chip_unit_pos;
-
-        // do this to avoid unused variable warning
-        do
+        for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
         {
-            (void)( l_eq_num );
-        }
-        while (0);
+            fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
 
-        // Read partial good value from Chiplet Control 2
-        FAPI_TRY(fapi2::getScom(l_eq, scomt::eq::CPLT_CTRL2_RW, l_data64));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   l_eq,
+                                   l_attr_chip_unit_pos));
+            l_eq_num = (uint32_t)l_attr_chip_unit_pos;
 
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               l_core,
-                               l_attr_chip_unit_pos));
-        l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+            // Read partial good value from Chiplet Control 2
+            FAPI_TRY(fapi2::getScom(l_eq, scomt::eq::CPLT_CTRL2_RW, l_data64));
 
-        FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
-                 l_eq_num, l_core_num);
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   l_core,
+                                   l_attr_chip_unit_pos));
+            l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
 
-        if( l_data64.getBit(5 + l_core_num) == 0)
-        {
-            FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+            FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
                      l_eq_num, l_core_num);
-            continue;
+
+            if( l_data64.getBit(5 + l_core_num) == 0)
+            {
+                FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                         l_eq_num, l_core_num);
+                continue;
+            }
+
+            FAPI_DBG("Scan ec_mma_func ring");
+            FAPI_TRY(fapi2::putRing(l_core, ec_mma_func,
+                                    fapi2::RING_MODE_HEADER_CHECK),
+                     "Error from putRing (ec_mma_func)");
         }
-
-        FAPI_DBG("Scan ec_mma_func ring");
-        FAPI_TRY(fapi2::putRing(l_core, ec_mma_func,
-                                fapi2::RING_MODE_HEADER_CHECK),
-                 "Error from putRing (ec_mma_func)");
-
     }
 
 fapi_try_exit:

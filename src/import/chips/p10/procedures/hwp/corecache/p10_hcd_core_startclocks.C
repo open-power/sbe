@@ -45,6 +45,8 @@
 
 #include "p10_hcd_core_startclocks.H"
 #include "p10_hcd_mma_startclocks.H"
+#include "p10_hcd_mma_scaninit.H"
+#include "p10_hcd_mma_poweron.H"
 #include "p10_hcd_corecache_clock_control.H"
 #include "p10_hcd_common.H"
 #ifndef __PPE__
@@ -97,6 +99,7 @@ p10_hcd_core_startclocks(
         i_target;//getChildren w/o and/or
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    uint8_t                 l_attr_mma_poweron_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
@@ -165,11 +168,7 @@ p10_hcd_core_startclocks(
         l_eq_num = (uint32_t)l_attr_chip_unit_pos;
 
         // do this to avoid unused variable warning
-        do
-        {
-            (void)( l_eq_num );
-        }
-        while (0);
+        static_cast<void>(l_eq_num);
 
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_scomData));
@@ -196,9 +195,16 @@ p10_hcd_core_startclocks(
 
     }
 
-    // Start MMA clocks along/after core clocks
-    // shared for both stop11 and stop3 path
-    FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+
+    if( !l_attr_mma_poweron_disable )
+    {
+        // Start MMA clocks along/after core clocks
+        // shared for both stop11 and stop3 path
+        FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
+        FAPI_TRY( p10_hcd_mma_scaninit( i_target ) );
+        FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
+    }
 
     //Enable the hardware filter upon any stop exit including mpipl
     //so that any regular wakeup at runtime will not be interrupting QME constantly

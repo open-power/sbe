@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,25 +40,30 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_mma_scaninit.H"
-#include "p10_hcd_common.H"
-#include "p10_ring_id.H"
+#include <p10_hcd_common.H>
+#include <p10_pm_hcd_flags.h>
+#include <p10_ring_id.H>
+#include <p10_perv_sbe_cmn.H>
+
 
 #ifdef __PPE_QME
-    #include "p10_scom_eq.H"
+    #include "p10_scom_eq_c.H"
+    #include "p10_scom_eq_0.H"
+    #include "p10_scom_eq_f.H"
+    #include "p10_ppe_eq.H"
     #include "p10_ppe_c.H"
-    using namespace scomt::eq;
+    using namespace scomt::ppe_eq;
     using namespace scomt::ppe_c;
+    #include "qme.h"
+    extern QmeRecord G_qme_record;
+    #define QME_FLAGS_RUNNING_EPM QME_FLAGS_RUNNING_EPM
 #else
     #include "p10_scom_eq.H"
     #include "p10_scom_c.H"
     using namespace scomt::eq;
     using namespace scomt::c;
+    #define QME_FLAGS_RUNNING_EPM p10hcd::QME_FLAGS_RUNNING_EPM
 #endif
-
-#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
-    //    #include <p10_perv_sbe_cmn.H>
-#endif
-
 
 //------------------------------------------------------------------------------
 // Constant Definitions
@@ -76,26 +81,37 @@ enum P10_HCD_MMA_ARRAYINIT_CONSTANTS
 
 fapi2::ReturnCode
 p10_hcd_mma_scaninit(
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
-    /*
-    #if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
-        fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
-            i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-        fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
-            eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
-        uint32_t l_regions                                  = i_target.getCoreSelect();
-        uint32_t l_loop                                     = 0;
-    #endif
-    #ifndef P10_HCD_CORECACHE_SKIP_INITF
-        uint32_t l_eq_num                                   = 0;
-        uint32_t l_core_num                                 = 0;
-        fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
-    #endif
 
-        FAPI_INF(">>p10_hcd_mma_scaninit");
+#if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
+    fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
+        i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
+        eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
+    uint32_t                       l_regions            = i_target.getCoreSelect();
+    uint32_t                       l_loop               = 0;
+#endif
+#ifndef P10_HCD_CORECACHE_SKIP_INITF
+    fapi2::buffer<uint64_t>        l_data64             = 0;
+    uint32_t                       l_eq_num             = 0;
+    uint32_t                       l_core_num           = 0;
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+#endif
+    fapi2::buffer<buffer_t> l_mmioData                  = 0;
+    fapi2::buffer<uint64_t> l_scomData                  = 0;
 
-    #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+    FAPI_INF(">>p10_hcd_mma_scaninit");
+    FAPI_TRY(HCD_GETMMIO_Q( eq_target, MMIO_LOWADDR(QME_FLAGS_RW), l_mmioData ) );
+
+#ifdef __PPE_QME
+
+    if( ( G_qme_record.hcode_func_enabled & QME_EPM_BROADSIDE_ENABLE ) ||
+        (  MMIO_GET ( MMIO_LOWBIT(QME_FLAGS_RUNNING_EPM) ) != 1 ) )
+    {
+#endif
+
+#ifndef P10_HCD_CORECACHE_SKIP_FLUSH
 
         FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
 
@@ -111,9 +127,21 @@ p10_hcd_mma_scaninit(
                                                    (l_regions << SHIFT16(15)),
                                                    HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
-    #endif
+#endif
 
-    #ifndef P10_HCD_CORECACHE_SKIP_INITF
+#ifdef __PPE_QME
+    }
+
+#endif
+
+#ifdef __PPE_QME
+
+    if ( MMIO_GET ( MMIO_LOWBIT(QME_FLAGS_RUNNING_EPM) ) != 1 )
+    {
+#endif
+
+
+#ifndef P10_HCD_CORECACHE_SKIP_INITF
 
         for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
         {
@@ -123,6 +151,7 @@ p10_hcd_mma_scaninit(
                                    l_eq,
                                    l_attr_chip_unit_pos));
             l_eq_num = (uint32_t)l_attr_chip_unit_pos;
+            static_cast<void>(l_eq_num);
 
             // Read partial good value from Chiplet Control 2
             FAPI_TRY(fapi2::getScom(l_eq, scomt::eq::CPLT_CTRL2_RW, l_data64));
@@ -135,16 +164,12 @@ p10_hcd_mma_scaninit(
             FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
                      l_eq_num, l_core_num);
 
-            // While one could assume that the the plaform target model matches the active partial good
-            // settings in the hardware, let's not (at least until we get through some MPIPL and core
-            // deconfiguration testing.
-
-            FAPI_ASSERT((l_data64.getBit(5 + l_core_num)),
-                        fapi2::CORE_REPAIR_FUNCTIONAL_TARGET_MISMATCH_PARTIAL_GOOD()
-                        .set_CPLT_CTRL2(l_data64)
-                        .set_CORE_NUM(l_core_num)
-                        .set_EQ_NUM(l_eq_num),
-                        "Configuration Mismatch: CPLT_CTRL2 partial good bit is not set.");
+            if( l_data64.getBit(5 + l_core_num) == 0)
+            {
+                FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                         l_eq_num, l_core_num);
+                continue;
+            }
 
             FAPI_DBG("Scan ec_mma_gptr ring");
             FAPI_TRY(fapi2::putRing(l_core, ec_mma_gptr,
@@ -163,32 +188,55 @@ p10_hcd_mma_scaninit(
 
         }
 
+#endif
+
+#ifdef __PPE_QME
+    }
+
+#endif
+
+    /*it is confirmed that we do not need to arrayinit mma, keep the code here in case we need to do so
+    #ifdef __PPE_QME
+
+        if( ( G_qme_record.hcode_func_enabled & QME_EPM_BROADSIDE_ENABLE ) ||
+            (  MMIO_GET ( MMIO_LOWBIT(QME_FLAGS_RUNNING_EPM) ) != 1 ) )
+        {
     #endif
 
+            FAPI_DBG("Assert sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
+            FAPI_TRY( HCD_PUTSCOM_Q( eq_target, scomt::eq::CPLT_CONF0_WO_OR, SCOM_1BIT(34) ) );
+
     #ifndef P10_HCD_CORECACHE_SKIP_ARRAY
+            FAPI_DBG("Arrayinit selected MMA regions");
 
-        FAPI_DBG("Arrayinit selected MMA regions");
-
-        FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
-                 (l_regions << SHIFT16(15)),
-                 LOOP_COUNTER,
-                 START_ABIST_MATCH_VALUE));
+            FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
+                     (l_regions << SHIFT16(15)),
+                     LOOP_COUNTER,
+                     START_ABIST_MATCH_VALUE, false, false));
 
     #endif
 
     #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+            FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
 
-        FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
+            for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
+                FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
+                                                       (l_regions << SHIFT16(15)),
+                                                       HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
-        for(l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
-            FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                                   (l_regions << SHIFT16(15)),
-                                                   HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
+    #endif
 
-    fapi_try_exit:
+            FAPI_DBG("Drop sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
+            FAPI_TRY( HCD_PUTSCOM_Q( eq_target, scomt::eq::CPLT_CONF0_WO_CLEAR, SCOM_1BIT(34) ) );
+
+    #ifdef __PPE_QME
+        }
 
     #endif
     */
+
+fapi_try_exit:
+
     FAPI_INF("<<p10_hcd_mma_scaninit");
     return fapi2::current_err;
 }

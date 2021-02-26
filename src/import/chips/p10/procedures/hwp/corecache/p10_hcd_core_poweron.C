@@ -76,9 +76,13 @@ p10_hcd_core_poweron(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+    uint8_t                 l_attr_mma_poweron_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
 
     FAPI_INF(">>p10_hcd_core_poweron");
 
@@ -91,14 +95,11 @@ p10_hcd_core_poweron(
     // VDD on first, VCS on after
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
 
-    // MMA PFET Power On/Off sequence requires CL2 PFET[ON] + CL2 RegulationFinger[ON]
-    // Stop11: Set RF -> MMA PFET[OFF] -> Drop RF -> CL2 PFET[OFF]
-    // Exit11:                                       CL2 PFET[ON] -> Set RF -> MMA PFET[ON] (keep RF on)
-    FAPI_DBG("Assert VDD_PFET_REGULATION_FINGER_EN via CPMS_CL2_PFETCNTL[8]");
-    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CL2_PFETCNTL_WO_OR, BIT64(8) ) );
-
-    // Only VDD for MMA
-    FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
+    if( !l_attr_mma_poweron_disable )
+    {
+        // Only VDD for MMA
+        FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
+    }
 
 fapi_try_exit:
 

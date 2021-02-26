@@ -566,8 +566,16 @@
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>
     <value>0x00</value>
   </entry>
-    <entry>
+  <entry>
     <name>ATTR_ZERO_CORE_CHIP</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SYSTEM_MMA_POWEROFF_DISABLE</name>
+    <value>0x01</value>
+  </entry>
+  <entry>
+    <name>ATTR_SYSTEM_MMA_POWERON_DISABLE</name>
     <value>0x00</value>
   </entry>
   <!-- virtual attributes -->

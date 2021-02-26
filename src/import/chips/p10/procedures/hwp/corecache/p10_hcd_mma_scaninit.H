@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -36,9 +36,7 @@
 
 /// function pointer typedef definition for HWP call support
 typedef fapi2::ReturnCode (*p10_hcd_mma_scaninit_FP_t) (
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-    fapi2::TARGET_TYPE_MULTICAST,
-    fapi2::MULTICAST_AND > &);
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > &);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -54,9 +52,7 @@ extern "C"
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 ///
     fapi2::ReturnCode p10_hcd_mma_scaninit(
-        const fapi2::Target < fapi2::TARGET_TYPE_CORE |
-        fapi2::TARGET_TYPE_MULTICAST,
-        fapi2::MULTICAST_AND > & i_target);
+        const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target);
 
 } // extern "C"
 

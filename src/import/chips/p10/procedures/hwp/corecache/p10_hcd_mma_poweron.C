@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -74,14 +74,27 @@ p10_hcd_mma_poweron(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(18);
     fapi2::buffer<uint64_t> l_scomData = 0;
+    fapi2::buffer<buffer_t> l_mmioData = 0;
 
     FAPI_INF(">>p10_hcd_mma_poweron");
+
+    // MMA PFET Power On/Off sequence requires CL2 PFET[ON] + CL2 RegulationFinger[ON]
+
+    // Due to Stop3 requires RegulationFinger to be ON while OFF for stop11,
+    // Here always assert RF for stop3 exit(already on) and stop11 exit(off -> on)
+
+    // Stop11: Set RF -> MMA PFET[OFF] -> Drop RF -> CL2 PFET[OFF]
+    // Exit11:                                       CL2 PFET[ON] -> Set RF -> MMA PFET[ON] (keep RF on)
+
+    // Stop3: Set RF -> MMA PFET[OFF] -> CL2 PFET[Vmin]
+    // Exit3:                            CL2 PFET[ON] -> MMA PFET[ON] (keep RF on)
+
+    FAPI_DBG("Assert VDD_PFET_REGULATION_FINGER_EN via CPMS_CL2_PFETCNTL[8]");
+    FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CL2_PFETCNTL_WO_OR, BIT64(8) ) );
 
     FAPI_DBG("Enable MMA Regional Fences via CPLT_CTRL1[16-19:MMA_FENCES] to regions 0x%08X", l_regions);
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H(l_regions) ) );
 
-    // Due to Stop3 requires RegulationFinger to be ON while OFF for stop11,
-    // handle it outside of this procedure.
     // Also note MMA only has VDD
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_MMA_ON ) );
 

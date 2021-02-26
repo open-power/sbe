@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -79,40 +79,54 @@ p10_hcd_core_arrayinit(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::buffer<uint64_t> l_scomData = 0;
 #if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
         eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint32_t                l_regions  = i_target.getCoreSelect();
+    //uint8_t                 l_attr_mma_poweron_disable = 0;
+
+    /*  it is confirmed that we do not need to arrayinit mma, keep the code here in case we need to do so
+        FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+
+        if( l_attr_mma_poweron_disable )
+        {
+    */
+    l_regions = l_regions << SHIFT16(5);
+    /*
+        }
+        else
+        {
+            l_regions = ( l_regions << SHIFT16(5) | l_regions << SHIFT16(15) );
+        }
+    */
+
 #endif
 
-    fapi2::buffer<uint64_t> l_scomData = 0;
-
     FAPI_INF(">>p10_hcd_core_arrayinit");
+
+#ifndef EPM_TUNING
 
     FAPI_DBG("Scan ec_cl2_abst");
     FAPI_TRY(fapi2::putRing(i_target, ec_cl2_abst,
                             fapi2::RING_MODE_HEADER_CHECK),
              "Error from putRing (ec_cl2_abst)");
 
+#endif
+
     FAPI_DBG("Assert sdis_n(flushing LCBES condition) via CPLT_CONF0[34]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CONF0_WO_OR, SCOM_1BIT(34) ) );
 
 #ifndef P10_HCD_CORECACHE_SKIP_ARRAY
 
-    FAPI_DBG("Arrayinit selected ECL2 +MMA regions");
+    FAPI_DBG("Arrayinit selected ECL2 regions");
     FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
-             ((l_regions << SHIFT16(5)) | (l_regions << SHIFT16(15))),
+             l_regions,
              LOOP_COUNTER,
              START_ABIST_MATCH_VALUE,
              false, false));
 
-    /*
-        FAPI_DBG("Arrayinit selected MMA regions");
-        FAPI_TRY(p10_perv_sbe_cmn_array_init_module(perv_target,
-                 (l_regions << SHIFT16(15)),
-                 LOOP_COUNTER,
-                 START_ABIST_MATCH_VALUE));
-    */
 #endif
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
@@ -128,14 +142,7 @@ p10_hcd_core_arrayinit(
 
     for(uint32_t l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
         FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                               (l_regions << SHIFT16(5)),
-                                               HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
-
-    FAPI_DBG("Scan0 region:mma type:all_but_gptr_repr_time rings");
-
-    for(uint32_t l_loop = 0; l_loop < P10_HCD_SCAN0_FUNC_REPEAT; l_loop++)
-        FAPI_TRY(p10_perv_sbe_cmn_scan0_module(perv_target,
-                                               (l_regions << SHIFT16(15)),
+                                               l_regions,
                                                HCD_SCAN0_TYPE_ALL_BUT_GPTR_REPR_TIME));
 
 #endif
@@ -146,7 +153,5 @@ p10_hcd_core_arrayinit(
 fapi_try_exit:
 
     FAPI_INF("<<p10_hcd_core_arrayinit");
-
     return fapi2::current_err;
-
 }
