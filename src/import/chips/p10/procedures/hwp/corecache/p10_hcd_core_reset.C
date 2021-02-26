@@ -87,7 +87,7 @@ p10_hcd_core_reset(
     FAPI_DBG("Switch ECL2 Glsmux to DPLL via CPMS_CGCSR[11:CL2_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(11) ) );
 
-    FAPI_DBG("ECL2 sector buffer strength is left as default 0");
+    FAPI_DBG("No-op: ECL2 sector buffer strength is left to be at default values");
 
     FAPI_DBG("Drop ECL2 Glsmux Reset via CPMS_CGCSR[8:CL2_CLKGLM_ASYNC_RESET]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(8) ) );

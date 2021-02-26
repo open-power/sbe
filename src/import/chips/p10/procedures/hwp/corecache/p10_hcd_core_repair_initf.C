@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,6 +78,13 @@ p10_hcd_core_repair_initf(
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+//    enable if we need mma repair ring
+//    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
+//    uint8_t                        l_attr_mma_poweron_disable = 0;
+//    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+
+    // do this to avoid unused variable warning
+    static_cast<void>(l_eq_num);
 
     for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
     {
@@ -87,13 +94,6 @@ p10_hcd_core_repair_initf(
                                l_eq,
                                l_attr_chip_unit_pos));
         l_eq_num = (uint32_t)l_attr_chip_unit_pos;
-
-        // do this to avoid unused variable warning
-        do
-        {
-            (void)( l_eq_num );
-        }
-        while (0);
 
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_data64));

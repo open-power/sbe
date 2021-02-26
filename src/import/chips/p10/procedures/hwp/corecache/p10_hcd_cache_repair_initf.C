@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -79,6 +79,9 @@ p10_hcd_cache_repair_initf(
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
 
+    // do this to avoid unused variable warning
+    static_cast<void>(l_eq_num);
+
     for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
@@ -87,13 +90,6 @@ p10_hcd_cache_repair_initf(
                                l_eq,
                                l_attr_chip_unit_pos));
         l_eq_num = (uint32_t)l_attr_chip_unit_pos;
-
-        // do this to avoid unused variable warning
-        do
-        {
-            (void)( l_eq_num );
-        }
-        while (0);
 
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_data64));

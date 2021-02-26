@@ -133,12 +133,19 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
                          l_base_address_mmio),
                      "Error from p10_fbc_utils_get_chip_base_address");
 
+#ifndef EPM_TUNING
             l_darn_bar = l_base_address_mmio + l_darn_offset;
 
             if(l_darn_en == fapi2::ENUM_ATTR_PROC_NX_RNG_BAR_ENABLE_ENABLE)
             {
+#else
+            l_darn_bar = 0x60302031D0000;
+#endif
                 l_darn_bar.setBit<NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG_EN>();
+#ifndef EPM_TUNING
             }
+
+#endif
 
             FAPI_TRY(fapi2::putScom(l_core, NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG, l_darn_bar),
                      "Error from putScom (NCU_DARN_BAR_REG)");

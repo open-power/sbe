@@ -86,7 +86,7 @@ p10_hcd_cache_reset(
     FAPI_DBG("Switch L3 Glsmux to DPLL via CPMS_CGCSR[7:L3_CLKGLM_SEL]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(7) ) );
 
-    FAPI_DBG("L3 sector buffer Strength is left as default 0");
+    FAPI_DBG("No-op: L3 sector buffer strength is left as default values");
 
     FAPI_DBG("Drop L3 Glsmux Reset via CPMS_CGCSR[4:L3_CLKGLM_ASYNC_RESET]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(4) ) );
