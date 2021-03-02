@@ -45,7 +45,10 @@
 #define SBE_STRING_FILE                 "sbeStringFile"
 std::string SBE_SEEPROM_BIN = "sbe_seeprom_DD1.bin";
 
-#define SBE_PARSER_MAX_LOCAL_BUFFER     8192
+#define SBE_PARSER_TRACE_HEADER_SIZE    56
+#define SBE_PARSER_MAX_CIRC_BUFFER_SIZE 8192
+#define SBE_PARSER_MAX_LOCAL_BUFFER     SBE_PARSER_TRACE_HEADER_SIZE + \
+                                        SBE_PARSER_MAX_CIRC_BUFFER_SIZE
 
 #define SBE_PARSER_PRINT_DELIMITER {std::cout << \
 "*****************************************************************************"\
