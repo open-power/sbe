@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemtrace.H $                           */
+/* $Source: src/sbefw/securebootcommon/sbeTPMCommand.H $                  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2021                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,55 +21,19 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __SBEFW_SBEM_TRACE_H
-#define __SBEFW_SBEM_TRACE_H
+#ifndef __SBEM_TPM_COMMAND_H
+#define __SBEM_TPM_COMMAND_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "fapi2.H"
+#include "stdint.h"
 
-#include "pk_api.h"
-#include "trac_interface.h"
+/**
+ * @brief This function peforms the sequencing to do a transmit of the
+ *      TPM that is identified.
+ *
+ * @return errlHndl_t NULL if successful, otherwise a pointer to the
+ *      error log.
+ */
 
-#ifdef __cplusplus
-}
+fapi2::ReturnCode tpmPosionPCR();
 #endif
-
-#define  SBEM_ENTER_MRK ">>"
-#define  SBEM_EXIT_MRK "<<"
-#define  SBEM_ERR_MRK "E>"
-#define  SBEM_INF_MRK "I>"
-#define  SBEM_DEBUG_MRK "D>"
-
-#define SBEM_ERROR(args...)
-#define SBEM_INFO(args...)
-#define SBEM_ENTER(args...)
-#define SBEM_EXIT(args...)
-#define SBEM_DEBUG(args...)
-
-// Levels of logging
-// 0 - No tracing
-// 1 - Error
-// 2 - Error, info
-// 3 - Error, info, entry/exit
-// 4 - Error, info, entry/exit, debug
-#if (SBEM_TRACE_LEVEL >= 1)
-#undef SBEM_ERROR
-#define SBEM_ERROR(args...) PK_TRACE(SBEM_ERR_MRK"" args)
-#endif
-#if (SBEM_TRACE_LEVEL >= 2)
-#undef SBEM_INFO
-#define SBEM_INFO(args...) PK_TRACE(SBEM_INF_MRK"" args)
-#endif
-#if (SBEM_TRACE_LEVEL >= 3)
-#undef SBEM_ENTER
-#undef SBEM_EXIT
-#define SBEM_ENTER(args...) PK_TRACE(SBEM_ENTER_MRK"" args)
-#define SBEM_EXIT(args...) PK_TRACE(SBEM_EXIT_MRK"" args)
-#endif
-#if (SBEM_TRACE_LEVEL >= 4)
-#undef SBEM_DEBUG
-#define SBEM_DEBUG(args...) PK_TRACE(SBEM_DEBUG_MRK"" args)
-#endif
-#define SBEM_TRACE(args...) PK_TRACE(args)
-#endif // __SBEFW_SBEM_TRACE_H
