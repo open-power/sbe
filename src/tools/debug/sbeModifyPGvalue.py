@@ -54,7 +54,6 @@ else:
 def getFilePath(filename):
     for dir in PATH.split(os.pathsep):
         retPath = os.path.join(dir, filename)
-        print(retPath)
         if(os.path.exists(retPath)):
             return os.path.abspath(retPath)
     print("ERROR: file " + filename +" not found")
