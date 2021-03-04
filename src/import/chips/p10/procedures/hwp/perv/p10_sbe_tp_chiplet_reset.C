@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -175,7 +175,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_PERV_CTRL1_CLEAR_WO_CLEAR, l_data64));
 
     FAPI_DBG("Release Nest Async Reset to enable Nest clock mesh");
-    l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>();
+    l_data64.flush<0>().setBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL4_TP_AN_CLKGLM_NEST_ASYNC_RESET_DC>().setBit<31>();
     FAPI_TRY(fapi2::putScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_data64));
 
     // NET,PLL regions works with nest_gckn
