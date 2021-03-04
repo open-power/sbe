@@ -167,6 +167,96 @@ fapi2::ReturnCode tpmSequenceToStartup()
     #undef SBEM_FUNC
 }
 
+fapi2::ReturnCode tpmSequenceToDetectPCRs(bool pcrAllocation)
+{
+    #define SBEM_FUNC " tpmSequenceToDetectPCRs "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        uint8_t spi_engine  = 4;
+        Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
+        SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
+       
+        uint8_t tpmCapPCR[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x01, 0x7A, 0x00,
+                                 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40};
+        uint8_t tpmPCRAllocated[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x03, 0x00, 0x04, 0x03,
+                                       0x00, 0x00, 0x00, 0x00, 0x0b, 0x03, 0xff, 0xff, 0xff, 0x00, 0x0c,
+                                       0x03, 0x00, 0x00, 0x00};
+        uint32_t buflen = 64;
+        uint32_t cmdLen = 22;
+        SBEM_INFO(SBEM_FUNC "Call TPM_CAP_PCRS ");
+        rc = tpmTransmit(handle, (void *)tpmCapPCR, buflen, cmdLen);
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            break;
+        }
+        for(uint32_t i = 0; i < buflen; i++)
+        {
+            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", tpmCapPCR[i]);
+            SBEM_INFO(SBEM_FUNC "TPM expected data is 0x%02X", tpmPCRAllocated[i]);
+            if(tpmCapPCR[i] != tpmPCRAllocated[i])
+            {
+                pcrAllocation = false;
+                break;
+            }
+        }
+        uint32_t tpmRc = (tpmCapPCR[6] << 24) | (tpmCapPCR[7] << 16) |  (tpmCapPCR[8] << 8) | tpmCapPCR[9];
+        SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
+        if(tpmRc)
+        {
+            SBEM_ERROR(SBEM_FUNC " tpmSequenceToDetectPCRs command failed.");
+            break;
+        }
+    }while(0);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
+fapi2::ReturnCode tpmSequenceToAllocatePCRs()
+{
+    #define SBEM_FUNC " tpmSequenceToAllocatePCRs "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        uint8_t spi_engine  = 4;
+        Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
+        SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
+       
+        uint8_t tpmAllocatePCR[64] = {0x80, 0x02, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x01, 0x2b, 0x40, 0x00,
+                                      0x00, 0x0c, 0x00, 0x00, 0x00, 0x09, 0x40, 0x00, 0x00, 0x09, 0x00, 0x00,
+                                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x04, 0x03, 0x00, 0x00,
+                                      0x00, 0x00, 0x0b, 0x03, 0xff, 0xff, 0xff, 0x00, 0x0c, 0x03, 0x00, 0x00, 0x00};
+        uint32_t buflen = 64;
+        uint32_t cmdLen = 49;
+        SBEM_INFO(SBEM_FUNC "Call TPM_CAP_PCRS ");
+        rc = tpmTransmit(handle, (void *)tpmAllocatePCR, buflen, cmdLen);
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            break;
+        }
+        for(uint32_t i = 0; i < buflen; i++)
+        {
+            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", tpmAllocatePCR[i]);
+        }
+        uint32_t tpmRc = (tpmAllocatePCR[6] << 24) | (tpmAllocatePCR[7] << 16) |  (tpmAllocatePCR[8] << 8) | tpmAllocatePCR[9];
+        SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
+        if(tpmRc)
+        {
+            SBEM_ERROR(SBEM_FUNC " tpmSequenceToAllocatePCRs command failed.");
+            break;
+        }
+    }while(0);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
 fapi2::ReturnCode performTPMSequences()
 {
     #define SBEM_FUNC " performTPMSequences "
@@ -203,6 +293,26 @@ fapi2::ReturnCode performTPMSequences()
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToStartup Failed with rc 0x%08X", rc);
             break;
+        }
+
+        SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to detect allocated PCRs");
+        bool pcrAllocation = true;
+        rc = tpmSequenceToDetectPCRs(pcrAllocation);
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "tpmSequenceToDetectPCRs Failed with rc 0x%08X", rc);
+            break;
+        }
+
+        if(!pcrAllocation)
+        {
+            SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to allocate PCRs");
+            rc = tpmSequenceToAllocatePCRs();
+            if( rc != fapi2::FAPI2_RC_SUCCESS )
+            {
+                SBEM_ERROR(SBEM_FUNC "tpmSequenceToAllocatePCRs Failed with rc 0x%08X", rc);
+                break;
+            }
         }
 
         SBEM_INFO(SBEM_FUNC "Poison TPM incase of ALT master");
