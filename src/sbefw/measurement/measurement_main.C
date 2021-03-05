@@ -38,11 +38,16 @@ extern "C" {
 ////////////////////////////////////////////////////////////////
 #define INITIAL_PK_TIMEBASE   0
 //Keep stack size greater than SPI_READ_SIZE_BYTES.
-#define MEASUREMENT_NONCRITICAL_STACK_SIZE 12288
-#define SPI_CLOCK_DELAY_SHIFT     44
-#define SPI_CLOCK_DELAY_MASK      0xFFF00FFFFFFFFFFF
-#define SPI_CLOCK_DIVIDER_SHIFT   52
-#define SPI_CLOCK_DIVIDER_MASK    0x000FFFFFFFFFFFFF
+#define MEASUREMENT_NONCRITICAL_STACK_SIZE      12288
+#define SPI_CLOCK_DELAY_SHIFT                   44
+#define SPI_CLOCK_DIVIDER_SHIFT                 52
+#define SPI_CLOCK_DIVIDER_DELAY_MASK            0x00000FFFFFFFFFFF
+#define DEFAULT_SPI_CLOCK_DELAY                 0x80
+#define BIT15_MASK                              0x00010000
+#define ECC_SPIMM_ADDR_CORRECTION_DIS           1
+#define SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT     33
+#define ECC_CONTROL_TRANSPARENT_READ            1
+#define SPI_ECC_CONTROL_SHIFT                   35
 
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
 
@@ -138,7 +143,216 @@ int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
 
     return rc;
 }
-extern void spi_test();
+
+// This function is to lock on the PAU DPLL from Ref clock
+void lockPauDpll(void)
+{
+    uint64_t loadData = 0;
+    uint64_t fetchData = 0;
+    sbe_local_LFR lfrReg;
+    uint32_t opcg_done = 0;
+    uint32_t pau_lock = 0;
+    /////////////////////////# Putring Start for perv_dpll_time/////////////////////////
+    //# Scan region & type
+    //# SCOMIN 01030005 000C000000000100
+    loadData = 0x000C000000000100ULL;
+    PPE_STVD(0x01030005, loadData);
+    //# insert header
+    //# SCOMIN 0103F040 A5A5A5A5A5A5A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000000000480014
+    loadData = 0x0000000000480014ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 3101554000012488
+    loadData = 0x3101554000012488;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000002000000000
+    loadData = 0x0000002000000000ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0009000286202AA8
+    loadData = 0x0009000286202AA8ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000249100000004
+    loadData = 0x0000249100000004ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 16bits
+    //# SCOMIN 0103F010 0000000000000000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x0103F010, loadData);
+    //# extract/read the header out and compare
+    //# SCOMOUT 0103F000 A5A5A5A5A5A5A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_LVD(0x0103F000, fetchData);
+    if(fetchData != loadData)
+    {
+        pk_halt();
+    }
+    //# clear scan region & type
+    //# SCOMIN 01030005 0000000000000000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x01030005, loadData);
+    //////////////////////////# Putring End for perv_dpll_time/////////////////////////
+
+    //////////////////# SPI Clock Setting per the new Frequency Start /////////////////
+    //  # Calculate the Clock divider from PAU Freq which is 0x7B0 (1968MHz),
+    //  # default frequency set in the sbe boot seeprom, we don't need to
+    //  # change this basis any boot seeprom update. This will remain hard-coded
+    //  # in the measurement seeprom.
+    //  # (7B0/40 - 1) = 48 = 0x30 -> SPI Seeprom Clock Divider
+    //  # (7B0/192) - 1) = 10 -> SPI TPM Clock Divider
+    //  # Pick up the clock delay from LFR
+    PPE_LVD(0xc0002040, lfrReg);
+    loadData = 0;
+    uint32_t spiSeepromClockDivider = 48;
+    uint32_t spiTpmClockDivider = 10;
+    uint32_t spiAddr = 0;
+    for(spiAddr = 0xc0003; spiAddr<=0xc0063; spiAddr += 0x20)
+    {
+        PPE_LVD(spiAddr, loadData);
+        loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
+                ((uint64_t)spiSeepromClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
+                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
+        PPE_STVD(spiAddr, loadData); 
+    }
+    // Update TPM SPI Clock Divider
+    spiAddr = 0xc0083;
+    PPE_LVD(spiAddr, loadData);
+    loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
+            ((uint64_t)spiTpmClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
+            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+            ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
+            ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
+    PPE_STVD(spiAddr, loadData);
+
+    // Update the LFR Clock divider and Hard-coded PAU Freq
+    lfrReg.spi_clock_divider = spiSeepromClockDivider;
+    lfrReg.pau_freq_in_mhz = 0x7B0;
+    PPE_STVD(0xc0002040, lfrReg); // New Divider and system freq updated into LFR
+    //////////////////# SPI Clock Setting per the new Frequency - End /////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    //# PAU DPLL: Initialize to mode1
+    //# SCOMIN 01060052 A000000000000000
+    loadData = 0xA000000000000000ULL;
+    PPE_STVD(0x01060052, loadData);
+    //# PAU DPLL: Write frequency settings
+    //# frquency_calculated = ((7B0 + 1) * 2)/25 = 0x9D
+    // SCOMIN 01060051 09D009D009D00000
+    loadData = 0x09D009D009D00000ULL;
+    PPE_STVD(0x01060051, loadData);
+    //# PAU DPLL: Switch to internal clocks (Bit 27)
+    //# SCOMIN 00050133 0000001000000000
+    loadData = 0x0000001000000000ULL;
+    PPE_STVD(0x00050133, loadData);
+    //# PAU DPLL : Release reset (Bit 24)
+    //# SCOMIN 00050133 0000008000000000
+    loadData = 0x0000008000000000;
+    PPE_STVD(0x00050133, loadData);
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////START CLOCKS/////////////////////////////////////
+    //# Startclocks for PAU DPLL regions
+    //# Exit flush (set flushmode inhibit) (set bit 2)
+    //# SCOMIN 01000010 2000000000000000
+    loadData = 0x2000000000000000ULL;
+    PPE_STVD(0x01000010, loadData);
+    //# Clear Scan region type register
+    //# SCOMIN 01030005 0000000000000000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x01030005, loadData);
+    //# Setup all Clock Domains and Clock Types
+    //# SCOMIN  01030006 400800000000E000
+    loadData = 0x400800000000E000ULL;
+    PPE_STVD(0x01030006, loadData);
+    //# Poll OPCG done bit to check for completeness
+    //# SCOMOUT 01000100 00C0000000000000, see if bit8 is set
+    for(uint32_t cnt=0; cnt<0x100; cnt++)
+    {
+        PPE_LVD(0x01000100, fetchData);
+        if(fetchData & 0x0080000000000000ULL)
+        {
+            opcg_done = 1;
+            break;
+        }
+    }
+    if(opcg_done == 0)
+    {
+        pk_halt();
+    }
+    //# status of region 8 - dpllpau, bit 12
+    //# CLOCK RUNNING STATUS
+    //# OPGC Done, check clock status SL, NSL, ARY
+
+    //# Check for clocks running SL
+    //# SCOMOUT  01030008 F9F7FFFFFFFFFFFF
+    PPE_LVD(0x01030008, fetchData);
+    if(((fetchData >> 32) & 0x00800000) == 0)
+    {
+        pk_halt();
+    }
+    //# Check for clocks running NSL
+    //# SCOMOUT  01030009 F9F7FFFFFFFFFFFF
+    PPE_LVD(0x01030009, fetchData);
+    if(((fetchData >> 32) & 0x00800000) == 0)
+    {
+        pk_halt();
+    }
+    //# Check for clocks running ARY
+    //# SCOMOUT  0103000A F9F7FFFFFFFFFFFF
+    PPE_LVD(0x0103000A, fetchData);
+    if(((fetchData >> 32) & 0x00800000) == 0)
+    {
+        pk_halt();
+    }
+    //# Clear clock region
+    //# SCOMIN   01030006 0000000000000000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x01030006, loadData);
+    //# Enter flush (clear flushmode inhibit)
+    //# SCOMIN   01000024 0008000000000000
+    loadData = 0x0008000000000000ULL;
+    PPE_STVD(0x01000024, loadData);
+
+    //# Drop clock region fences for PAU DPLL
+    //# SCOMIN   01000021 0008000000000000
+    loadData = 0x0008000000000000ULL;
+    PPE_STVD(0x01000021, loadData);
+    //////////////////////////////////START CLOCKS/////////////////////////////////////
+
+    //////////////////////////////////PAU DPLL LOCK////////////////////////////////////
+    //# Check for PAU DPLL lock, check if bit 63 is set
+    //# SCOMOUT  01060055 0AA0000000000009
+    for(uint32_t cnt=0; cnt<0x2750; cnt++)
+    {
+        PPE_LVD(0x01060055, fetchData);
+        if(fetchData & 0x1)
+        {
+            pau_lock = 1;
+            break;
+        }
+    }
+    if(pau_lock == 0)
+    {
+        pk_halt();
+    }
+
+    //# PAU DPLL: Release test_enable and bypass
+    //# SCOMIN 00050133 0000006000000000
+    loadData = 0x0000006000000000ULL;
+    PPE_STVD(0x00050133, loadData);
+    //# Raise clock region fences for PAU DPLL
+    //# SCOMIN 01000011 0008000000000000
+    loadData = 0x0008000000000000ULL;
+    PPE_STVD(0x01000011, loadData);
+
+    //////////////////////////////////PAU DPLL LOCK////////////////////////////////////
+}
 
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
@@ -147,9 +361,11 @@ int  main(int argc, char **argv)
 {
     #define SBEM_FUNC "Measurement main"
     SBEM_ENTER(SBEM_FUNC);
-    int l_rc = 0;
-    uint64_t rootCtrlReg3 = 0;
+    int rc = 0;
+    uint64_t loadData = 0;
     sbe_local_LFR lfrReg;
+    uint64_t scratchReg6 = 0;
+    uint64_t spiClockReg = 0;
     do
     {
         // Update the Code Flow status in messaging register 50009
@@ -159,19 +375,67 @@ int  main(int argc, char **argv)
         //Fetch the default clock divider from LFR
         PPE_LVD(0xc0002040, lfrReg);
 
-        // Fetch the SPI4 Config Registers
-        uint64_t spiClockReg = 0;
-        uint64_t spiConfigReg = 0;
-        // Unlock SPI4 if it was locked by Hostboot, keep it unlocked
-        PPE_LVD(0xc0082, spiConfigReg);
-        PPE_STVD(0xc0082, spiConfigReg);
-
-        PPE_LVD(0xc0083, spiClockReg);
-        uint8_t clock_delay = 0x80; // default clock delay
-        spiClockReg = ( (spiClockReg & SPI_CLOCK_DELAY_MASK) |
-                        ((uint64_t)clock_delay << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
-        PPE_STVD(0xc0083, spiClockReg);
-
+        ///////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////// Lock PAU DPLL /////////////////////////////////////
+        // Lock PAU DPLL for faster SBE clock if Scratch Reg6 bit15
+        // is clear then try PAU lock Also if not in MPIPL Path
+        //
+        // Reset the TPM SPI Engine, c0002010 bit 12 OR_Register/ c0002018 bit 12 And_Register
+        // This is an externel reset, it will clear the spi lock and any status/config register
+        // to default.
+        loadData = 0x0008000000000000ULL;
+        PPE_STVD(0xc0002010, loadData);
+        PPE_STVD(0xc0002018, loadData);
+        // In this path, we make sure we have updated all SPI Clock Registers and updated LFR
+        // all fields, nothing is missing, so that subsequent flow can depend on LFR
+        if(!(lfrReg.mpipl)) // IPL Path
+        {
+            // Fetch scratch register6, check if bit15 is unset
+            PPE_LVD(0x5003D, scratchReg6);
+            if(!((scratchReg6 >> 32) & BIT15_MASK)) //PAU Path
+            {
+                lockPauDpll();
+                // The above function is going to return success, if not then pk_halt
+                g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ; // this is required for pk init
+            }
+            else // Ref clock Path
+            {
+                // We can assume all other SPIs are configured here in Otprom with
+                // 133Mhz and 4 respectively, We just need to set the TPM SPI Clock Register
+                PPE_LVD(0xc0083, spiClockReg);
+                spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
+                                ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
+                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+                                ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
+                                ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
+                PPE_STVD(0xc0083, spiClockReg);
+                g_sbemfreqency = SBE_REF_BASE_FREQ_HZ; // this is required for pk init
+                // Let's update the Ref clock frequency into LFR, this is the first time we got
+                // a chance to do that since otprom change is not allowed.
+                lfrReg.pau_freq_in_mhz = 133; // 133MHz Ref clock
+                PPE_STVD(0xc0002040, lfrReg);
+            }
+        }
+        //In this path, no update LFR. it's already updated from last IPL run.
+        else // MPIPL Path
+        {
+            // In Mpipl path, Otprom has set the right clock divider settings from LFR for
+            // Seeprom SPIs. We need not touch that again, but we need to set up the TPM SPIs
+            // in case they are modified. We have the PAU system frequency in LFR, fetch that and
+            // calculate TPM SPI Clock divider.
+            uint32_t tpmSpiClockDivider = ((lfrReg.pau_freq_in_mhz/192) - 1); // 24MHz = ((PAU/4)/2(N+1))
+            PPE_LVD(0xc0083, spiClockReg);
+            spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
+                            ((uint64_t)tpmSpiClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
+                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+                            ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
+                            ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
+            PPE_STVD(0xc0083, spiClockReg);
+            g_sbemfreqency = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init
+        }
+        //////////////////////////////////// Lock PAU DPLL ////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
+#if 0
         //Check root control register3 bit25 if the PAU DPLL in bypass or not.
         //If not bypass then we can use the 1968MHz chip frequency, if bypass then
         //use 133MHz chip frequency
@@ -194,32 +458,32 @@ int  main(int argc, char **argv)
             spiClockReg = 0;
             PPE_LVD(0xc0083, spiClockReg);
             spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_MASK) |
-                            ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
+                    ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
             PPE_STVD(0xc0083, spiClockReg);
         }
-
-        l_rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
-                             MEASUREMENT_NONCRITICAL_STACK_SIZE,
-                             INITIAL_PK_TIMEBASE, // initial_timebase
-                             g_sbemfreqency );
-        if (l_rc)
+#endif
+        rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
+                MEASUREMENT_NONCRITICAL_STACK_SIZE,
+                INITIAL_PK_TIMEBASE, // initial_timebase
+                g_sbemfreqency );
+        if (rc)
         {
-            SBEM_ERROR(SBEM_FUNC "pk_initialize failed with rc 0x%08X", l_rc);
+            SBEM_ERROR(SBEM_FUNC "pk_initialize failed with rc 0x%08X", rc);
             break;
         }
-        SBEM_INFO("Completed PK initialization for Measurement");
+        SBEM_INFO("Completed PK init for Measurement with Freq [0x%08X]", g_sbemfreqency);
 #if 0
-        l_rc = initializeTPM();
-        if (l_rc)
+        rc = initializeTPM();
+        if (rc)
         {
-            SBEM_ERROR(SBEM_FUNC "initializeTPM failed with rc 0x%08X", l_rc);
+            SBEM_ERROR(SBEM_FUNC "initializeTPM failed with rc 0x%08X", rc);
             break;
         }
         SBEM_INFO("TPM initialization is complete. Verify SPI and TPM read and write.");
-        l_rc = performTPMSequences();
-        if (l_rc)
+        rc = performTPMSequences();
+        if (rc)
         {
-            SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", l_rc);
+            SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", rc);
             break;
         }
         SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
@@ -259,5 +523,5 @@ int  main(int argc, char **argv)
     }
 
     SBEM_EXIT(SBEM_FUNC);
-    return l_rc;
+    return rc;
 }

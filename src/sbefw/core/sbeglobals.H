@@ -190,8 +190,8 @@ typedef struct sbe_local_LFR {
     uint32_t mpipl_reset_done : 1;  //Bit 18 Set if Mpipl flow is done in FW
     uint32_t secure_mode : 1;       //Bit 19 Secure mode bit indication from M.Seeprom to B.Seeprom
     uint32_t round_trip_delay : 4;  //Bit 20-23 round trip delay
-    uint32_t bitsreserved : 8;      //Bit24-31 Reserved
-    uint32_t reserved;
+    uint32_t bitsreserved : 8;      //Bit 24-31 Reserved
+    uint32_t pau_freq_in_mhz;       //Bit 32-63 PAU system frequency in MHz
 
     sbe_local_LFR()
     {
@@ -207,7 +207,7 @@ typedef struct sbe_local_LFR {
         secure_mode = 0;
         // This is required else these gets initialised with dummy data
         bitsreserved = 0;
-        reserved = 0;
+        pau_freq_in_mhz = 0;
     }
 }sbe_local_LFR;
 

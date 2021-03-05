@@ -341,9 +341,11 @@ uint32_t main(int argc, char **argv)
     SBE_ENTER(SBE_FUNC);
     int l_rc = 0;
     uint64_t rootCtrlReg3 = 0;
+    sbe_local_LFR lfrReg;
 
     uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_MAIN_MSG)<<32;
     PPE_STVD(0x50009, loadValue);
+    PPE_LVD(0xc0002040, lfrReg);
 
     // backup i2c mode register
     uint32_t reg_address = PU_MODE_REGISTER_B;
@@ -363,12 +365,12 @@ uint32_t main(int argc, char **argv)
     do
     {
         //Check root control register3 bit25 if the PAU DPLL in bypass or not.
-        //If not bypass then we can use the 2048MHz chip frequency, if bypass then
+        //If not bypass then we use LFR frequency, if bypass then
         //use 133MHz chip frequency
         PPE_LVD(0x50013, rootCtrlReg3);
         if(!(rootCtrlReg3 & MASK_BIT25))
         {
-            SBE_GLOBAL->sbefreq = SBE_PAU_DPLL_BASE_FREQ_HZ;
+            SBE_GLOBAL->sbefreq = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init;
         }
         // initializes kernel data -
         // stack, threads, timebase, timers, etc.
@@ -381,7 +383,7 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
-        SBE_INFO("Completed PK init");
+        SBE_INFO("Completed Boot PK init with Freq [0x%08X]", SBE_GLOBAL->sbefreq);
 
         // Initialize the semaphores
         l_rc = sbeInitSems();
