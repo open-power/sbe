@@ -177,11 +177,14 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
             SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
             //clear BYPASS
             l_data64_rc5.flush<0>();
             SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
             FAPI_DBG("Clear RCS errors");
             l_data64_rc5.flush<0>();
