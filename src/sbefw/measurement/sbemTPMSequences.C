@@ -39,6 +39,7 @@
 #include "sbeTPMaccess.H"
 #include "sbeTPMCommand.H"
 #include "sbeRoleIdentifier.H"
+#include "p10_scom_pibms.H"
 
 using namespace fapi2;
 
@@ -257,6 +258,28 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
     #undef SBEM_FUNC
 }
 
+fapi2::ReturnCode setTPMDeconfigBit()
+{
+    #define SBEM_FUNC " setTPMDeconfigBit "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        // putscom 0x10005 0x00080000_00000000
+        Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
+        constexpr uint64_t tpmDeconfigMask = 0x0008000000000000ULL;
+        rc = putscom_abs_wrap (&target, OTP_SECURITY_SWITCH, tpmDeconfigMask);
+        if(rc)
+        {
+            SBEM_ERROR(SBEM_FUNC " putscom failed on OTP_SECURITY_SWITCH with rc 0x%08X", rc);
+            break;
+        }
+    }while(0);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
 fapi2::ReturnCode performTPMSequences()
 {
     #define SBEM_FUNC " performTPMSequences "
@@ -268,7 +291,12 @@ fapi2::ReturnCode performTPMSequences()
         if(sbeRole == SBE_ROLE_SLAVE)
         {
             SBEM_INFO(SBE_FUNC "Current Proc is slave. Do not access TPM");
-            break;
+            rc = setTPMDeconfigBit();
+            if( rc != fapi2::FAPI2_RC_SUCCESS )
+            {
+                SBEM_ERROR(SBEM_FUNC "Failed to set the deconfig bit with rc 0x%08X", rc);
+                break;
+            }
         }
 
         SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to Read Vendor and DeviceID");
@@ -276,6 +304,7 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToReadDIDAndVendor Failed with rc 0x%08X", rc);
+            setTPMDeconfigBit();
             break;
         }
 
