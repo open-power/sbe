@@ -71,6 +71,62 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
 //---------------------------------------------------------------------------------
 // Function to find the deskew val from the input string of error bits
 //---------------------------------------------------------------------------------
+void p10_get_deskew_dd2(
+    const uint32_t  i_shiftedErrVals,
+    int&  o_deskewVal
+)
+{
+
+    uint32_t l_streak = 0;
+    uint32_t l_streakMax = 0;
+    uint32_t l_lastGoodPos = 0;
+    o_deskewVal = -1;
+
+
+    FAPI_DBG("Input shiftedErrVal = 0x%016X", i_shiftedErrVals);
+
+    //From the input error values i_shiftedErrVal, the algorithm will find the optimum
+    //deskew to set on the PLL.
+    //For finding the optimum deskew there must be a sequence of three or more deskew
+    //that did not result in an error.
+    //The algorithm will interate over the 32 bits in the input i_shiftedErrVal that represent
+    //output of the experiments
+    for ( int l_step = 0 ; l_step < 32; ++l_step)
+    {
+        //Check if the current bit position in the input error string represents an error
+        if ((i_shiftedErrVals >> (31 - l_step)) & 0x1)
+        {
+            if (l_streak > l_streakMax)     //found longest good streak
+            {
+                l_streakMax = l_streak;
+                l_lastGoodPos = l_step - 1; //last good position
+            }
+
+            l_streak = 0; //restart the counter
+        }
+        else //The current position do not represent error
+        {
+            ++l_streak;
+        }
+    }
+
+    if ( l_streak == 32)  //This represents  a case where no error was found, trivially assign the
+        //o_deskewVal to zero
+    {
+        o_deskewVal = 0;
+    }
+    else if ( l_streakMax >= 3 ) //If three consecutive non-error bits were found
+    {
+        //set deskew to center of streak
+        o_deskewVal = (l_lastGoodPos - (l_streakMax / 2)) % 16;
+    }
+
+    return;
+}
+
+//---------------------------------------------------------------------------------
+// Function to find the deskew val from the input string of error bits
+//---------------------------------------------------------------------------------
 void p10_get_deskew(
     const uint32_t  i_shiftedErrVals,
     int&  o_deskewVal
@@ -123,6 +179,208 @@ void p10_get_deskew(
 
     return;
 }
+
+//---------------------------------------------------------------------------------
+// Run the deskew algorithm to find optimum deskew for the RCS FPLL
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    FAPI_DBG("Entering p10_sbe_rcs_dd2_deskew_calibrate");
+    using namespace scomt;
+    using namespace scomt::proc;
+    using namespace scomt::perv;
+
+    fapi2::buffer<uint64_t> l_data64_rc6;
+    fapi2::buffer<uint64_t> l_data64_rc5;
+    fapi2::buffer<uint64_t> l_data64_rc3;
+    fapi2::buffer<uint64_t> l_data64_rcsns;
+    fapi2::buffer<uint64_t> l_deskew_buf;
+
+    bool     l_clkErrA = false, l_clkErrB = false;
+    uint32_t l_clkAErrVals = 0, l_shiftedAErrVals = 0;
+    uint32_t l_clkBErrVals = 0, l_shiftedBErrVals = 0;
+    const uint16_t l_max_deskews = 16;
+    uint64_t l_deskew_array[l_max_deskews] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
+    int      l_max_loop = 5;                   //The number of times PLL reset will be tried
+    int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
+    int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
+
+    for(int l_index = 0; l_index < l_max_loop ; l_index++)
+    {
+        l_clkAErrVals = 0;
+        l_clkBErrVals = 0;
+        l_shiftedAErrVals = 0;
+        l_shiftedBErrVals = 0;
+
+        for( int l_deskewIndex = 0 ; l_deskewIndex < l_max_deskews; l_deskewIndex++)
+        {
+            //Initialize the RC5 to ASSERT RESET and BYPASS (Add:2925)
+            l_data64_rc5 = 0xC000000200000000ull;
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+            //Set deskew to 0
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target_chip));
+            l_deskew_buf.flush<0>();
+            SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_DESKEW_SEL_A(0xF, l_deskew_buf);
+            SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_DESKEW_SEL_B(0xF, l_deskew_buf);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target_chip, l_deskew_buf));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            //Initialize the DESKEW value
+            l_data64_rc6.flush<0>();
+            l_deskew_buf = l_deskew_array[l_deskewIndex];
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip));
+            SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_A(l_deskew_buf, l_data64_rc6);
+            SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_B(l_deskew_buf, l_data64_rc6);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip, l_data64_rc6));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            //take RCS out of RESET
+            l_data64_rc5.flush<0>();
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+            SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            //clear BYPASS
+            l_data64_rc5.flush<0>();
+            SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            FAPI_DBG("Clear RCS errors");
+            l_data64_rc5.flush<0>();
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+            SET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_CLEAR_CLK_ERROR_A(l_data64_rc5);
+            SET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_CLEAR_CLK_ERROR_B(l_data64_rc5);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            //Do not clear l_data64_rc5 here
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+
+            //read back the RCS sens register
+            GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
+
+            FAPI_DBG("deskew loop 0x%02X, rcs sens register %#018lX", l_deskewIndex, l_data64_rcsns);
+
+            //Check if there was a clock error
+            l_clkErrA = l_data64_rcsns.getBit<6>();
+            l_clkErrB = l_data64_rcsns.getBit<8>();
+
+            //The clock errors encountered for each deskew will be put into a bit string with
+            //0th deskew forming the leftmost bit, the 1st deskew forming the 2nd bit from left and
+            //so on.
+            l_clkAErrVals += l_clkErrA << (15 - l_deskew_buf);
+            l_clkBErrVals += l_clkErrB << (15 - l_deskew_buf);
+            FAPI_DBG("deskew loop 0x%02X, l_clkErrA 0x%02X, l_clkErrB 0x%02X, l_clkAErrVals 0x%02X, l_clkBErrVals 0x%02X",
+                     l_deskewIndex, l_clkErrA, l_clkErrB, l_clkAErrVals, l_clkBErrVals);
+
+        }//end of deskew range for
+
+        //Arrange the bit string values one after the other in-order at arrive at the
+        //pattern from which three consecutive deskew that did not produce an error will be searched.
+        l_shiftedAErrVals = (l_clkAErrVals & 0xFFFF) | ((l_clkAErrVals << 16) & 0xFFFF0000);
+        l_shiftedBErrVals = (l_clkBErrVals & 0xFFFF) | ((l_clkBErrVals << 16) & 0xFFFF0000);
+
+        p10_get_deskew_dd2(l_shiftedAErrVals, l_goodDeskewA);
+        p10_get_deskew_dd2(l_shiftedBErrVals, l_goodDeskewB);
+
+        if((l_goodDeskewA == INVALID_DESKEW) || (l_goodDeskewB == INVALID_DESKEW))
+        {
+            FAPI_INF("Valid deskew not found, loop count 0x%02x", l_index);
+        }
+        else
+        {
+            FAPI_INF("Found good A-side deskew 0x%02x, loopcount 0x%02X", l_goodDeskewA, l_index);
+            FAPI_INF("Found good B-side deskew 0x%02x, loopcount 0x%02X", l_goodDeskewB, l_index);
+            break;
+        }
+
+        //reset the RCS PLL before entering the new loop
+        l_data64_rc3.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW1_RESET_DC(l_data64_rc3);
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW2_RESET_DC(l_data64_rc3);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target_chip, l_data64_rc3));
+
+        fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target_chip));
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc3));
+    }// End of loop to find the deskew
+
+    GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
+    FAPI_ASSERT((l_goodDeskewA != INVALID_DESKEW),
+                fapi2::RCS_FPLL_DESKEW_ERR_A()
+                .set_READ_SNS1LTH(l_data64_rcsns)
+                .set_SHIFTED_ERR_VAL(l_shiftedAErrVals),
+                "Deskew caliberation failed on A-side");
+    FAPI_ASSERT((l_goodDeskewB != INVALID_DESKEW),
+                fapi2::RCS_FPLL_DESKEW_ERR_B()
+                .set_READ_SNS1LTH(l_data64_rcsns)
+                .set_SHIFTED_ERR_VAL(l_shiftedBErrVals),
+                "Deskew caliberation failed on B-side");
+
+    //Set deskew to 0
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target_chip));
+    l_deskew_buf.flush<0>();
+    SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_DESKEW_SEL_A(0xF, l_deskew_buf);
+    SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_DESKEW_SEL_B(0xF, l_deskew_buf);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target_chip, l_deskew_buf));
+
+    //set the newly determined deskew val
+    l_data64_rc5.flush<0>();
+    l_deskew_buf = l_goodDeskewA;
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip));
+    SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_A(l_deskew_buf, l_data64_rc5);
+    l_deskew_buf = l_goodDeskewB;
+    SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_B(l_deskew_buf, l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    //Put RCS into RESET
+    l_data64_rc5.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_RESET_DC(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    //set RCS BYPASS
+    l_data64_rc5.flush<0>();
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    //take RCS out of RESET
+    l_data64_rc5.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+    //clear BYPASS
+    l_data64_rc5.flush<0>();
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+    //set the sel_del val
+    l_data64_rc5.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SEL_DEL(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    FAPI_INF("p10_sbe_rcs_dd2_deskew_calibrate: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
 
 //---------------------------------------------------------------------------------
 // Run the deskew algorithm to find optimum deskew for the RCS FPLL
@@ -301,6 +559,9 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+//---------------------------------------------------------------------------------
+// RCS Setup Routine
+//---------------------------------------------------------------------------------
 fapi2::ReturnCode p10_sbe_rcs_setup(const
                                     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
@@ -431,6 +692,10 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         {
             FAPI_TRY(p10_sbe_rcs_deskew_calibrate(i_target_chip));
         }
+        else
+        {
+            FAPI_TRY(p10_sbe_rcs_dd2_deskew_calibrate(i_target_chip));
+        }
 
         fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
 
@@ -448,7 +713,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
             if(!l_rcs_hw545231)
             {
-                if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED))
+                if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1)
                 {
                     FAPI_ASSERT(((l_rcs_status.getBit<2>() == 0)),
                                 fapi2::RCS_CLOCK_ERR()
@@ -457,7 +722,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
                                 "RCS_UNLOCKDET error : Clock A is not locked");
                 }
 
-                if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED))
+                if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0)
                 {
                     FAPI_ASSERT(((l_rcs_status.getBit<3>() == 0)),
                                 fapi2::RCS_CLOCK_ERR()
