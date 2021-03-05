@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/test_lib.C $                            */
+/* $Source: src/sbefw/securebootcommon/sbeOtpromMeasurementReg.H $        */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2021                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,15 +22,34 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-extern "C" void __sbe_register_saveoff()
-{
-}
+/*
+ *  @file: ppe/sbe/sbefw/securebootcommon/sbeOtpromMeasurementReg.H
+ *  
+ *  @brief This file contains the otprom measurement register definitions
+ *  
+ */
 
-extern "C" void __sbe_machine_check_handler()
-{
-}
+#ifndef __SBE_OTPROM_MEASUREMENT_REG_H
+#define __SBE_OTPROM_MEASUREMENT_REG_H
 
-int dummy_measure_lib()
-{
-    return 0;
-}
+#include "stdint.h"
+
+
+#define OTPROM_MEASUREMENT_REG0         0x10010
+#define OTPROM_MEASUREMENT_REG1         0x10011
+#define OTPROM_MEASUREMENT_REG2         0x10012
+#define OTPROM_MEASUREMENT_REG3         0x10013
+#define OTPROM_MEASUREMENT_REG4         0x10014
+#define OTPROM_MEASUREMENT_REG5         0x10015
+#define OTPROM_MEASUREMENT_REG6         0x10016
+#define OTPROM_MEASUREMENT_REG7         0x10017
+#define OTPROM_MEASUREMENT_REG8         0x10018
+#define OTPROM_MEASUREMENT_REG9         0x10019
+#define OTPROM_MEASUREMENT_REG10        0x1001A
+#define OTPROM_MEASUREMENT_REG11        0x1001B
+#define OTPROM_MEASUREMENT_REG12        0x1001C
+#define OTPROM_MEASUREMENT_REG13        0x1001D
+#define OTPROM_MEASUREMENT_REG14        0x1001E
+#define OTPROM_MEASUREMENT_REG15        0x1001F
+
+#endif

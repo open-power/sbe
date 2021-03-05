@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/securebootcommon/sbesecuritycommon.H $              */
+/* $Source: src/sbefw/measurement/sbemPcrStates.H $                       */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2021                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,57 +21,52 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-
 /*
- * @file: ppe/sbe/sbefw/sbesecureboot.H
+ *  @file: ppe/sbe/sbefw/measurement/sbemPcrStates.H
  *
- * @brief This file contains the Interfaces for SBE Secure Boot Verification
+ *  @brief This file contains basic structures to create PCR definitions
  *
  */
 
-#ifndef __SBEFW_SBESECURITYCOMMON_H
-#define __SBEFW_SBESECURITYCOMMON_H
-
-#include "fapi2.H"
 #include <stdint.h>
-#include "sha512.H"
-#include "p10_ipl_image.H"
-#include "sbeXipUtils.H"
+#include "ppe42_string.h"
 
-typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
+typedef struct securityState_PCR6
+{
+    uint8_t jumperState;
+    uint8_t minimumSecureVersion;
+    uint8_t reserved[6];
 
-//TPM PCR
-#define TPM_PCR0 0x00
-#define TPM_PCR1 0x01
-#define TPM_PCR2 0x02
-#define TPM_PCR3 0x03
-#define TPM_PCR4 0x04
-#define TPM_PCR5 0x05
-#define TPM_PCR6 0x06
+    //Constructor
+    securityState_PCR6()
+    {
+        jumperState = 0;
+        minimumSecureVersion = 0;
+        memset(reserved, 0x0, 6 * sizeof(uint8_t));
+    }
 
-/**
- * @brief Perform SHA512 update for particular XIP section.
- *        Data is read from seeprom via SPI.
- *        SHA512 is calculated always for a 8byte aligned region internally.
- *        If unaligned section it is a must for padding bytes to be zero's.
- *
- * @Param p9_xip_section_sbe_t XIP section for which SHA512 needs to be calculated
- *
- * @Param SHA512_CTX* SHA512 contest struct pointer used during SHA512 Init
- *
- * @return None
- */
-void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context);
+    void update(uint32_t sbe_role);
 
-/**
- * @brief Calculate SHA512 for a given XIP section.
- *
- * @Param p9_xip_section_sbe_t XIP section for which SHA512 needs to be calculated
- *
- * @Param SHA512_t Output SHA512 of XIP Section
- *
- * @return None
- */
-void SHA512_XIP_section(p9_xip_section_sbe_t xipSection, SHA512_t *result);
+}securityState_PCR6_t;
 
-#endif /* __SBEFW_SBESECURITYCOMMON_H */
+typedef struct securityState_PCR1
+{
+    uint8_t  jumperState;
+    uint8_t  isPrimary;
+    uint8_t  mSeepromLock;
+    uint8_t  minimumSecureVersion;
+    uint32_t mSeepromVersion;
+
+    //Constructor
+    securityState_PCR1()
+    {
+        jumperState = 0;
+        isPrimary = 0;
+        mSeepromLock = 0;
+        minimumSecureVersion = 0;
+        mSeepromVersion = 0;
+    }
+
+    void update(uint32_t sbe_role);
+
+}securityState_PCR1_t;

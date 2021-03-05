@@ -30,9 +30,12 @@
  */
 
 #include "sbesecuritycommon.H"
-#include "ppe42_string.h"
-#include "p10_ipl_image.H"
+#include "sbetrace.H"
+#include "sha512.H"
 #include "sbeXipUtils.H"
+#include "ppe42_string.h"
+#include "plat_hwp_data_stream.H"
+#include "p10_sbe_spi_cmd.H"
 
 #define SPI_READ_SIZE_BYTES 8192       //8Kb
 

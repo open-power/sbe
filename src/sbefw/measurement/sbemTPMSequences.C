@@ -178,7 +178,7 @@ fapi2::ReturnCode tpmSequenceToDetectPCRs(bool &pcrAllocation)
         uint8_t spi_engine  = 4;
         Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
         SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
-       
+
         uint8_t tpmCapPCR[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x01, 0x7A, 0x00,
                                  0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40};
         uint8_t tpmPCRAllocated[64] = {0x80, 0x01, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -227,7 +227,7 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
         uint8_t spi_engine  = 4;
         Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
         SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
-       
+
         uint8_t tpmAllocatePCR[64] = {0x80, 0x02, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x01, 0x2b, 0x40, 0x00,
                                       0x00, 0x0c, 0x00, 0x00, 0x00, 0x09, 0x40, 0x00, 0x00, 0x09, 0x00, 0x00,
                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x04, 0x03, 0x00, 0x00,
@@ -295,8 +295,8 @@ fapi2::ReturnCode performTPMSequences()
             if( rc != fapi2::FAPI2_RC_SUCCESS )
             {
                 SBEM_ERROR(SBEM_FUNC "Failed to set the deconfig bit with rc 0x%08X", rc);
-                break;
             }
+            break;
         }
 
         SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to Read Vendor and DeviceID");
@@ -345,15 +345,15 @@ fapi2::ReturnCode performTPMSequences()
             }
         }
 
-        SBEM_INFO(SBEM_FUNC "Poison TPM incase of ALT master");
         if(sbeRole == SBE_ROLE_ALT_MASTER)
         {
+            SBEM_INFO(SBEM_FUNC "Poison TPM incase of ALT master");
             rc = tpmPosionPCR();
             if (rc)
             {
                 SBEM_ERROR(SBEM_FUNC "tpmPosionPCR failed with rc 0x%08X", rc);
-                break;
             }
+            break;
         }
     }while(0);
     SBEM_EXIT(SBEM_FUNC);

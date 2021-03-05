@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -66,3 +67,18 @@ uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
     P9XipSection* pSection = &imgHdr->iv_section[sectionName];
     return (pSection->iv_size);
 }
+
+uint32_t getXipOffsetAbsMeasurement(p9_xip_section_sbe_t xipSection)
+{
+#if defined DFT || defined PIBMEM_ONLY_IMAGE
+    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
+#else
+    uint8_t *base = (uint8_t*)(SBE_MEASUREMENT_BASE_ORIGIN);
+#endif
+
+    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    p9_xip_section_sbe_t sectionName = xipSection;
+    P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+    return ( (uint32_t)base + pSection->iv_offset);
+}
+

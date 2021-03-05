@@ -27,8 +27,11 @@
 #include "sbemsecuritysetting.H"
 #include "sbeglobals.H"
 #include "sbeDecompression.h"
-#include "sbeXipUtils.H"
 #include "sbesecuritycommon.H"
+#include "sbeTPMCommand.H"
+#include "sbeRoleIdentifier.H"
+#include "sbemPcrStates.H"
+#include "sbeOtpromMeasurementReg.H"
 
 extern "C" {
 #include "pk_api.h"
@@ -51,10 +54,17 @@ extern "C" {
 #define ECC_CONTROL_TRANSPARENT_READ            1
 #define SPI_ECC_CONTROL_SHIFT                   35
 
+// TODO - Need to define a Header file for this and remove extern
+extern uint32_t performTPMSequences();
+
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
+// SBE Frequency to be used to initialise PK
+uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
+uint32_t g_sbeRole;
 
 extern "C"
 {
+
 // These variables are declared in linker script to keep track of
 // global constructor pointer functions and sbss section.
 extern void (*ctor_start_address)() __attribute__ ((section (".rodata")));
@@ -91,6 +101,7 @@ void __eabi()
         }
     } while (false);
 }
+
 /*
  ** API to jump to verification code.
  */
@@ -104,6 +115,7 @@ void jump2verificationImage(uint32_t i_destAddr)
             "bctr\n"
        );
 }
+
 /*
  *  ** API to jump to the boot seeprom.
  *   */
@@ -128,11 +140,6 @@ void jump2bootImage()
 }
 } // end extern "C"
 
-extern uint32_t initializeTPM();
-extern uint32_t performTPMSequences();
-// SBE Frequency to be used to initialise PK
-uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
-
 // Load section to destination address.
 int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
 {
@@ -152,7 +159,7 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     sbe_local_LFR lfrReg;
     uint64_t loadData = 0;
     uint32_t spiAddr = 0;
-    
+
     PPE_LVD(0xc0002040, lfrReg);
     //////////////////# SPI Clock Setting per the new Frequency Start /////////////////
     //  # Calculate the Clock divider from PAU Freq which is 0x7B0 (1968MHz),
@@ -171,7 +178,7 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
         loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                 ((uint64_t)spiSeepromClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
                 ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
-        PPE_STVD(spiAddr, loadData); 
+        PPE_STVD(spiAddr, loadData);
     }
     // Update TPM SPI Clock Divider
     spiAddr = 0xc0083;
@@ -366,6 +373,19 @@ void lockPauDpll(void)
     //////////////////////////////////PAU DPLL LOCK////////////////////////////////////
 }
 
+void writeTruncatedVerificationImageHash(SHA512truncated_t truncatedResult)
+{
+    uint64_t hashData = 0x00;
+    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 0], sizeof(uint64_t));
+    putscom_abs((OTPROM_MEASUREMENT_REG4), hashData);
+    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 1], sizeof(uint64_t));
+    putscom_abs((OTPROM_MEASUREMENT_REG5), hashData);
+    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 2], sizeof(uint64_t));
+    putscom_abs((OTPROM_MEASUREMENT_REG6), hashData);
+    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 3], sizeof(uint64_t));
+    putscom_abs((OTPROM_MEASUREMENT_REG7), hashData);
+}
+
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
 ////////////////////////////////////////////////////////////////
@@ -496,34 +516,93 @@ int  main(int argc, char **argv)
             break;
         }
         SBEM_INFO("Completed PK init for Measurement with Freq [0x%08X]", g_sbemfreqency);
-#if 0
-        rc = initializeTPM();
-        if (rc)
-        {
-            SBEM_ERROR(SBEM_FUNC "initializeTPM failed with rc 0x%08X", rc);
-            break;
-        }
-        SBEM_INFO("TPM initialization is complete. Verify SPI and TPM read and write.");
+
+        sbemSetSecureAccessBit();
+
+        g_sbeRole = checkSbeRole();
         rc = performTPMSequences();
         if (rc)
         {
             SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", rc);
-            break;
         }
-        SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
 
-        SBEM_INFO("Measure/Calculate SHA512 of .sb_verification XIP Section");
         SHA512_t result;
-        SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
+        uint64_t data;
+        SHA512truncated_t truncatedResult;
+        securityState_PCR6_t securityStatePCR6;
+        securityState_PCR1_t securityStatePCR1;
 
-        //TODO: Extend MSB 32 Bytes of result into TPM.
-#endif
+        //Write extendSecurityStatePCR6 into measurement register x10010
+        securityStatePCR6.update(g_sbeRole);
+        memcpy(&data, (uint8_t *)&securityStatePCR6, sizeof(securityState_PCR6_t));
+        putscom_abs(OTPROM_MEASUREMENT_REG0, data);
+
+        //Write extendSecurityStatePCR1 into measurement register x10012
+        securityStatePCR1.update(g_sbeRole);
+        memcpy(&data, (uint8_t *)&securityStatePCR1, sizeof(securityState_PCR1_t));
+        putscom_abs(OTPROM_MEASUREMENT_REG2, data);
+
+        //Skip if error/rc in TPM sequence.
+        if((g_sbeRole == SBE_ROLE_MASTER) && (!(rc)))
+        {
+            //Extend HW key hash to PCR6 and PCR1 if SBE role is master.
+            if(getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS) != 0x00)
+            {
+                memcpy(truncatedResult, (uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + sizeof(SHA512truncated_t)), sizeof(SHA512truncated_t));
+            }
+            else
+            {
+                SBEM_ERROR(".sb_settings XIP section not found. HW key hash not found");
+                SBEM_ERROR("Extending 0x00 into TPM_PCR6 and TPM_PCR1");
+            }
+            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
+            tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
+
+            //Extend Security state to PCR6.i.e Jumper State and MSV.
+            memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
+            memcpy(truncatedResult, &securityStatePCR6, sizeof(securityStatePCR6));
+            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
+
+            //Extend Security state to PCR1.
+            memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
+            memcpy(truncatedResult, &securityStatePCR1, sizeof(securityStatePCR1));
+            tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
+        }
+
+        //Measure/Calculate SHA512 of .sb_verification XIP Section
+        memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
+        if(getXipSize(P9_XIP_SECTION_SBE_SB_VERIFICATION) != 0x00)
+        {
+            SBEM_INFO("Measure/Calculate SHA512 of .sb_verification XIP Section");
+            SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
+            memcpy(truncatedResult, &result[sizeof(SHA512truncated_t)], sizeof(SHA512truncated_t));
+        }
+        else
+        {
+            SBEM_ERROR(".sb_verification XIP section not found. Verification code not found.");
+            SBEM_ERROR("SHA512 not calculated for .sb_verification XIP section.");
+        }
+        //Write truncated hash of SBE verification code to measurement register
+        //4-7 (x10014-x10017).
+        writeTruncatedVerificationImageHash(truncatedResult);
+
+        //Skip if error/rc in TPM sequence.
+        if((g_sbeRole == SBE_ROLE_MASTER) && (!(rc)))
+        {
+            //Extend MSB 32 Bytes of result into TPM PCR0 and PCR6 if SBE
+            //role is master.
+            //TODO:Handle TPM fail cases.
+            tpmExtendPCR(TPM_PCR0, truncatedResult, sizeof(SHA512truncated_t));
+            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
+        }
 
     }while(0);
+
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
 
-    sbemSetSecureAccessBit();
+    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
 
+#if 0
     // Load .sb_verification section into PIBMEM.
     P9XipHeader *hdr = getXipHdr();
     P9XipSection* pSection = &hdr->iv_section[P9_XIP_SECTION_SBE_SB_VERIFICATION];
@@ -541,6 +620,7 @@ int  main(int argc, char **argv)
         jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
     }
     else
+#endif
     {
         SBEM_INFO("No verification image, jump to boot");
         jump2bootImage();
