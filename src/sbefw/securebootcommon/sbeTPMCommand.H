@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2021                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -28,12 +29,24 @@
 #include "stdint.h"
 
 /**
- * @brief This function peforms the sequencing to do a transmit of the
- *      TPM that is identified.
+ * @brief This function peforms the poisoning of the PCR.
  *
  * @return errlHndl_t NULL if successful, otherwise a pointer to the
  *      error log.
  */
 
 fapi2::ReturnCode tpmPosionPCR();
+
+
+/**
+ * @brief This function peforms the sequencing to do extend on the TPM.
+ * @param[in] pcrNum   PCT to be extended.
+ *            hashKey  key to be extended on PCR.
+ *            size     Size of the hash key.
+ *
+ * @return errlHndl_t NULL if successful, otherwise a pointer to the
+ *      error log.
+ */
+
+fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size);
 #endif

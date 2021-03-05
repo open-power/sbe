@@ -167,7 +167,7 @@ fapi2::ReturnCode tpmSequenceToStartup()
     #undef SBEM_FUNC
 }
 
-fapi2::ReturnCode tpmSequenceToDetectPCRs(bool pcrAllocation)
+fapi2::ReturnCode tpmSequenceToDetectPCRs(bool &pcrAllocation)
 {
     #define SBEM_FUNC " tpmSequenceToDetectPCRs "
     SBEM_ENTER(SBEM_FUNC);
@@ -304,6 +304,7 @@ fapi2::ReturnCode performTPMSequences()
             break;
         }
 
+        SBEM_INFO(SBEM_FUNC "PCR Allocation is set to %d", pcrAllocation);
         if(!pcrAllocation)
         {
             SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to allocate PCRs");
