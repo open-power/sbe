@@ -118,7 +118,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
     fapi2::buffer<uint64_t> l_data64, l_read_reg;
     fapi2::buffer<uint64_t> l_opcg_align;
     fapi2::buffer<uint32_t> l_attr_freq_pau_mhz;
-    unsigned int sck_clock_divider;
+    unsigned int sck_clock_divider, tpm_sck_clock_divider;
     uint8_t l_attr_dpll_bypass;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
@@ -135,7 +135,10 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_freq_pau_mhz));
         sck_clock_divider = ((l_attr_freq_pau_mhz / 40) - 1 );
-        FAPI_DBG("sck clock divider calculation : %#018lX", sck_clock_divider);
+        FAPI_DBG("sck clock divider calculation for seeprom SPIs: %#018lX", sck_clock_divider);
+
+        tpm_sck_clock_divider = ((l_attr_freq_pau_mhz / 192) - 1); // 24MHz = ((PAU/4)/2(N+1))
+        FAPI_DBG("sck clock divider calculation for TPM SPI: %#018lX", tpm_sck_clock_divider);
 
         if (fapi2::is_platform<fapi2::PLAT_SBE>())
         {
@@ -143,22 +146,38 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
             // so that it can be retrieved and used in case of HReset and Mpipl flow
             // (In HReset & Mpipl, we won't execute this procedure and will be
             // resetting the SPIms)
+            // Not storing the TPM SPI clock divider above since we don't have free bits in LFR
+            // We will have to calculate the TPM SPI clock divider everytime if we need it from
+            // ((PAU/192) - 1)
             FAPI_DBG("Update clock divider and receive delay in SBE LFR register");
             FAPI_TRY(fapi2::getScom(i_target_chip, SBE_LFR, l_data64));
             l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
             l_data64.insertFromRight< 20, 4 >(SPI_RECEIVE_DELAY_ENCODED);
+            l_data64.insertFromRight< 32, 32 >(l_attr_freq_pau_mhz); //Save this to be used in HReset/Mpipl Reset
             FAPI_TRY(fapi2::putScom(i_target_chip, SBE_LFR, l_data64));
         }
 
         FAPI_DBG("Update clock divider and receive delay in SPI masters");
 
-        for (uint32_t l_addr = 0x000C0003; l_addr <= 0x000C0083; l_addr += 0x20)
+        // Update the Seeprom SPIs separately since they have different clock divider
+        // setting, which is to get 5MHz Spi clock.
+        for (uint32_t l_addr = 0x000C0003; l_addr <= 0x000C0063; l_addr += 0x20)
         {
             FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
             l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
             l_data64.insertFromRight< 12, 8 >(SPI_RECEIVE_DELAY_DECODED);
             FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
         }
+
+        // Update to TPM SPI separately since it needs a different clock divider
+        // To be calculated on the fly from PAU and update into c0083, this is a
+        // common clock divider to be used across the system to keep the TPM SPI
+        // clock at 24MHz
+        uint32_t l_addr = 0x000C0083;
+        FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
+        l_data64.insertFromRight< 0, 12 >(tpm_sck_clock_divider);
+        l_data64.insertFromRight< 12, 8 >(SPI_RECEIVE_DELAY_DECODED);
+        FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
 
         // adjust scan ratio
         FAPI_DBG("Adjust scan rate to 4:1");
