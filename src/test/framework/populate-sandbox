@@ -40,6 +40,7 @@ HWREFIMAGE=$BACKING_BUILD/src/engd/href/p10.hw_ref_image.bin
 HREFTEMPIMAGE=$SBEROOT/images/hwref.bin
 HREFSBEIMAGE=$SBEROOT/images/sbe.bin
 HDCTBINIMAGE=$SBEROOT/images/hdct.bin
+ECCTOOLPATH=$SBEROOT/src/tools/utils/ecc
 
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
@@ -78,7 +79,7 @@ if [ -f $SBEBINIMAGE ]; then
     $SBEROOT/src/tools/scripts/signSbeImage -s $SBEROOT/images/sbeScratchDir/ -i $SBEBINSIMIMAGE -t $SBEROOT/images/ipl_image_tool -b STANDALONE
 
     #TODO: Add Ring section into the SBE image before adding the ECC
-    ecc --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
+    $ECCTOOLPATH --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1
     echo "Copy OTPROM image"
     cp -f $SBEROOT/images/sbe_otprom_DD1.bin ${SIMICSROOTDIR}/import/boot_roms/sbe_otprom_p10.bin|| exit -1
 fi
@@ -91,7 +92,7 @@ fi
 
 if [  -f $SBEBINMEASUREMENTIMAGE ]; then
     echo "Copy sbe measurement seeprom image"
-    ecc --inject $SBEBINMEASUREMENTIMAGE --output  $SBEECCMEASUREMENTIMAGE --p8 || exit -1
+    $ECCTOOLPATH --inject $SBEBINMEASUREMENTIMAGE --output  $SBEECCMEASUREMENTIMAGE --p8 || exit -1
 fi
 
 echo  "Copy test files."
