@@ -703,11 +703,11 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     std::vector<plat_target_handle_t> targetList;
     getTargetList(targetList);
 
-    //CPU cycles to complete the chip-op.
-    iv_tocRow.cpuCycles = pk_timebase_get();
-
     for( auto &target : targetList )
     {
+        //CPU cycles to complete the chip-op.
+        iv_tocRow.cpuCycles = pk_timebase_get();
+
         // write dump row header contents using FIFO
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
