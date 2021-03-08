@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -35,6 +35,7 @@ COREPIBMEM-CPP-SOURCES += sbeFFDC.C
 COREPIBMEM-CPP-SOURCES += sbescom.C
 COREPIBMEM-CPP-SOURCES += sbefapiutil.C
 COREPIBMEM-CPP-SOURCES += sbeutil.C
+COREPIBMEM-CPP-SOURCES += sbeXipUtils.C
 COREPIBMEM-CPP-SOURCES += sbeTimerSvc.C
 COREPIBMEM-CPP-SOURCES += sbeHostMsg.C
 COREPIBMEM-CPP-SOURCES += sbeSpMsg.C

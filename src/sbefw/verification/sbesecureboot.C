@@ -36,6 +36,7 @@
 #include "sha512.H"
 #include "plat_hwp_data_stream.H"
 #include "fapi2.H"
+#include "sbeXipUtils.H"
 
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }

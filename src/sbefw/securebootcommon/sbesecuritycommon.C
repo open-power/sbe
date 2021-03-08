@@ -30,46 +30,10 @@
  */
 
 #include "sbesecuritycommon.H"
-#include "ppe42_string.c"
+#include "ppe42_string.h"
+#include "sbeXipUtils.H"
 
 #define SPI_READ_SIZE_BYTES 8192       //8Kb
-
-uint32_t getXipOffset(p9_xip_section_sbe_t xipSection)
-{
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-    uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
-    p9_xip_section_sbe_t sectionName = xipSection;
-    P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-    return pSection->iv_offset;
-}
-
-uint32_t getXipOffsetAbs(p9_xip_section_sbe_t xipSection)
-{
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-    uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-
-    return ( (uint32_t)base + getXipOffset(xipSection));
-}
-
-uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
-{
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-    uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
-    p9_xip_section_sbe_t sectionName = xipSection;
-    P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-    return (pSection->iv_size);
-}
 
 void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context)
 {
