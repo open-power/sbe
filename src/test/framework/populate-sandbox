@@ -75,7 +75,7 @@ if [ -f $SBEBINIMAGE ]; then
     #Append HDCT section into SBE image.
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
 
-    #Sign SBE Image
+    #Sign SBE Standalone Simics Image
     $SBEROOT/src/tools/scripts/signSbeImage -s $SBEROOT/images/sbeScratchDir/ -i $SBEBINSIMIMAGE -t $SBEROOT/images/ipl_image_tool -b STANDALONE
 
     #TODO: Add Ring section into the SBE image before adding the ECC

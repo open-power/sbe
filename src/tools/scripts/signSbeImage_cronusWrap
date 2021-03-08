@@ -43,12 +43,10 @@ check_path()
 #search paths for sigining script(LFS System)
 PATH=$PATH:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin/openssl:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin:/afs/rchland.ibm.com/projects/esw/bin/bld/sb_signing_rh7/sb-signing-utils
 
-SIGINING_SCRIPT=$PWD/signSbeImage
-SCRATCH_DIR=$PWD/sbeScratchDir
-SBE_IMAGE=$PWD/sbe_seeprom_DD1.bin
-IPL_IMAGE_TOOL=$PWD/ipl_image_tool
-HBBL_HEADER=$PWD/HBBL.header
-HBBL_HEADER_STRIPPED=$PWD/HBBL.header.stripped
+SIGINING_SCRIPT=$SBEROOT/images/signSbeImage
+SCRATCH_DIR=$SBEROOT/images/sbeScratchDir
+SBE_IMAGE=$SBEROOT/images/sbe_seeprom_DD1.bin
+IPL_IMAGE_TOOL=$SBEROOT/images/ipl_image_tool
 
 # Do some sanity checks on things we expect the script to consume
 check_path $SIGINING_SCRIPT
@@ -58,16 +56,5 @@ check_path $HBBL_HEADER
 
 #Sign SBE Image
 $SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBE_IMAGE -t $IPL_IMAGE_TOOL
-
-#Strip out padding zeros from HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
-echo "Strip HBBL.header content"
-dd bs=1 count=1288 if=$HBBL_HEADER of=$HBBL_HEADER_STRIPPED
-
-#Append the stripped HBBL_HEADER_STRIPPED into .sbh_hbbl xip section
-echo "Appending HBBL_HEADER_STRIPPED secure header into .sbh_hbbl xip section"
-$IPL_IMAGE_TOOL $SBE_IMAGE append .sbh_hbbl $HBBL_HEADER_STRIPPED || exit -1
-
-#Remove Stripped HBBL header
-rm -rf $HBBL_HEADER_STRIPPED
 
 exit 0

@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -56,6 +56,13 @@ sb_helptext()
         echo "  Usage:"
         echo "      Refer : $PWD/${SBE_TOOLS_PATH}/sbePrime.py -h"
         ;;
+    cronus)
+        echo "  Topic 'Sign SBE Base image for cronus use'"
+        echo "  SBE BAse image will be signed. SBE FW secure headers will be generated"
+        echo "  and inserted into respective XIP section of SBE base image."
+        echo "  ./sb workon"
+        echo "  ./sb cronus"
+        ;;
     simsetup)
         echo "  Topic 'Patch simics action files on fips Sandbox'"
         echo
@@ -84,6 +91,8 @@ sb_helptext()
         echo ""
         echo "      prime"
         echo ""
+        echo "      cronus"
+        echo ""
         echo "      simsetup"
         echo ""
         echo "      citest"
@@ -107,8 +116,8 @@ sb_workon()
 sb_cmvc()
 {
     if [ -n "${SBE_INSIDE_WORKON}" ]; then
-        echo "Already in a workon.. Continuing" 
-        # Launch the CMVC utility 
+        echo "Already in a workon.. Continuing"
+        # Launch the CMVC utility
         str="'$*'"
         echo "User input string : $str"
         $PWD/${SBE_TOOLS_PATH}/CommitSbeImageToCMVC.py $*
@@ -129,6 +138,19 @@ sb_prime()
         echo "Please do workon and re launch..."
     fi
 
+}
+
+sb_cronus()
+{
+    if [ -n "${SBE_INSIDE_WORKON}" ]; then
+        echo "Already in a workon.. Continuing"
+        echo "Sigining SBE Base image for cronus use"
+
+        #Sign SBE Base Image
+        $SBEROOT/images/signSbeImage_cronusWrap
+    else
+        echo "Please do workon and re launch..."
+    fi
 }
 
 sb_citest()
@@ -166,6 +188,9 @@ cmvc)
     ;;
 prime)
     sb_prime $*
+    ;;
+cronus)
+    sb_cronus $*
     ;;
 simsetup)
     sb_simsetup $*
