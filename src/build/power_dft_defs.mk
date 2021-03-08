@@ -159,7 +159,7 @@ PROJECT_APP_SEEPROM_LIB := sbeapppowerseeprom
 
 export LINKER_DIR = $(BUILD_DIR)/linkerscripts/power_dft
 INCLUDES += -I$(SBE_FW_DIR)/app/power_dft
-INCLUDES += -I$(BUILDDATA_SRCDIR)/power_dft
+INCLUDES += -I$(BUILDDATA_SRCDIR)/power
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_pibmem 
 LIB_DIRS += -L$(OBJDIR)/sbefw/app/power_seeprom
 SBEAPPLIB := $(OBJDIR)/sbefw/app/power_pibmem/libsbeapppowerpibmem.a

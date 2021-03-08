@@ -162,3 +162,5 @@ SBE_STRINGFILE_NAME := sbeStringFile_$(IMAGE_SUFFIX)
 PROJECT_APP_DIR := power
 PROJECT_APP_PIBMEM_LIB := sbeapppowerpibmem
 PROJECT_APP_SEEPROM_LIB := sbeapppowerseeprom
+
+INCLUDES += -I$(BUILDDATA_SRCDIR)/power
