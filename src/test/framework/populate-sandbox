@@ -41,6 +41,7 @@ HREFTEMPIMAGE=$SBEROOT/images/hwref.bin
 HREFSBEIMAGE=$SBEROOT/images/sbe.bin
 HDCTBINIMAGE=$SBEROOT/images/hdct.bin
 ECCTOOLPATH=$SBEROOT/src/tools/utils/ecc
+DDLEVEL=10
 
 # Create test directory.
 mkdir -p $SBETESTDIR || exit -1
@@ -66,11 +67,7 @@ if [ -f $SBEBINIMAGE ]; then
     $SBEROOT/images/ipl_image_tool $HREFTEMPIMAGE extract .sbe $HREFSBEIMAGE || exit -1
 
     #Extract HDCT section from SBE section of HWREF image.
-    $SBEROOT/images/ipl_image_tool $HREFSBEIMAGE extract .hdct $HDCTBINIMAGE || exit -1
-
-    #Remove Header HDCT Section of 20 Bytes from HDCT.bin
-    dd if=$HDCTBINIMAGE of=$SBEROOT/images/hdct.bin~ ibs=20 skip=1 || exit -1
-    mv $SBEROOT/images/hdct.bin~ $HDCTBINIMAGE || exit -1
+    $SBEROOT/images/ipl_image_tool $HREFSBEIMAGE extract .hdct $DDLEVEL $HDCTBINIMAGE || exit -1
 
     #Append HDCT section into SBE image.
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
