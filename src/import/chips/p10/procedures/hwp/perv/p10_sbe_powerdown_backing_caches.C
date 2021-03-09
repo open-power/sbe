@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -46,6 +46,7 @@
 #include <p10_scom_c_0.H>
 #include <p10_scom_c_7.H>
 #include <multicast_group_defs.H>
+#include <p10_query_corecachemma_access_state.H>
 
 using namespace scomt;
 using namespace scomt::proc;
@@ -82,69 +83,65 @@ p10_sbe_powerdown_backing_caches(
 
     uint8_t l_attr_chip_unit_core_pos = 0;
     uint8_t l_attr_chip_unit_eq_pos = 0;
+    scomStatus_t l_scomState;
+    scanStatus_t l_scanState;
     fapi2::ATTR_BACKING_CACHES_VEC_Type l_attr_backing_vec = 0;
-    auto l_eq_mc =
-        i_proc_target.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
+    fapi2::ATTR_BACKING_CACHES_VEC_Type l_tmp_backing_vec = 0;
 
-    auto eq_list =
-        i_proc_target.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL);
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_VEC,
-                           i_proc_target,
-                           l_attr_backing_vec),
-             "fapiGetAttribute of ATTR_BACKING_CACHES_VEC failed");
-
-    for( auto eq : eq_list )
+    do
     {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               eq,
-                               l_attr_chip_unit_eq_pos),
-                 "fapiGetAttribute of ATTR_CHIP_UNIT_POS for eq failed");
+        auto l_eq_mc =
+            i_proc_target.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_GOOD_EQ);
 
-        l_eq_pos = (l_attr_chip_unit_eq_pos + 1) << 2;
-        l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
-                               l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
+        auto eq_list =
+            i_proc_target.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL);
 
-        auto coreList =
-            eq.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL);
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_BACKING_CACHES_VEC,
+                               i_proc_target,
+                               l_attr_backing_vec),
+                 "fapiGetAttribute of ATTR_BACKING_CACHES_VEC failed");
 
-        for( auto core : coreList )
+        l_tmp_backing_vec = l_attr_backing_vec;
+
+        for( auto eq : eq_list )
         {
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                                   core,
-                                   l_attr_chip_unit_core_pos),
-                     "fapiGetAttribute of ATTR_CHIP_UNIT_POS for core failed");
+                                   eq,
+                                   l_attr_chip_unit_eq_pos),
+                     "fapiGetAttribute of ATTR_CHIP_UNIT_POS for eq failed");
 
-            l_attr_chip_unit_core_pos = l_attr_chip_unit_core_pos % 4;
+            l_eq_pos = (l_attr_chip_unit_eq_pos + 1) << 2;
+            l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
+                                   l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
 
-            if (l_relative_core_pos & (BIT32(l_attr_chip_unit_core_pos) >> 28))
+            FAPI_TRY(p10_query_corecachemma_access_state(eq, l_scomState, l_scanState));
+            uint32_t l_core_powered = l_scanState.scanState >> 23;
+
+            if ( (l_relative_core_pos & l_core_powered)  != l_relative_core_pos )
             {
-                //STOP 11 entry request enable[0:3]
-                l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
-                PREP_QME_SCRB_WO_OR(eq);
-                PUT_QME_SCRB_WO_OR(eq, l_scrb_data);
+                l_tmp_backing_vec = (l_tmp_backing_vec & ~(0xF << SHIFT32(l_eq_pos - 1)));
             }
         }
-    }
 
-    //Multicast this QME_FLAGS_STOP11_ENTRY_REQUESTED thru QME_FLAG
-    FAPI_TRY(PUT_QME_FLAGS_WO_OR(l_eq_mc, BIT64(QME_FLAGS_STOP11_ENTRY_REQUESTED)));
-
-    //Verify backing cache cores are entered stop 11
-    for( auto eq : eq_list )
-    {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
-                               eq,
-                               l_attr_chip_unit_eq_pos),
-                 "fapiGetAttribute of ATTR_CHIP_UNIT_POS for eq failed");
-
-        l_eq_pos = (l_attr_chip_unit_eq_pos + 1) << 2;
-
-        l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
-                               l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
-
-        if (l_relative_core_pos)
+        if ( !l_tmp_backing_vec)
         {
+            break;
+        }
+
+        l_attr_backing_vec = l_tmp_backing_vec;
+
+        for( auto eq : eq_list )
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   eq,
+                                   l_attr_chip_unit_eq_pos),
+                     "fapiGetAttribute of ATTR_CHIP_UNIT_POS for eq failed");
+
+            l_eq_pos = (l_attr_chip_unit_eq_pos + 1) << 2;
+            l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
+                                   l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
+
+
             auto coreList =
                 eq.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL);
 
@@ -157,53 +154,96 @@ p10_sbe_powerdown_backing_caches(
 
                 l_attr_chip_unit_core_pos = l_attr_chip_unit_core_pos % 4;
 
+
                 if (l_relative_core_pos & (BIT32(l_attr_chip_unit_core_pos) >> 28))
                 {
-                    FAPI_IMP("Waiting for stop 11 to enter for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
-                    uint32_t l_stop11_state_entered = false;
+                    //STOP 11 entry request enable[0:3]
+                    l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
+                    PREP_QME_SCRB_WO_OR(eq);
+                    PUT_QME_SCRB_WO_OR(eq, l_scrb_data);
+                }
+            }
+        }
 
-                    //RTC 247535: need to revisit again
-                    // for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
-                    do
+        //Multicast this QME_FLAGS_STOP11_ENTRY_REQUESTED thru QME_FLAG
+        FAPI_TRY(PUT_QME_FLAGS_WO_OR(l_eq_mc, BIT64(QME_FLAGS_STOP11_ENTRY_REQUESTED)));
+
+        //Verify backing cache cores are entered stop 11
+        for( auto eq : eq_list )
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                   eq,
+                                   l_attr_chip_unit_eq_pos),
+                     "fapiGetAttribute of ATTR_CHIP_UNIT_POS for eq failed");
+
+            l_eq_pos = (l_attr_chip_unit_eq_pos + 1) << 2;
+
+            l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
+                                   l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
+
+            if (l_relative_core_pos)
+            {
+                auto coreList =
+                    eq.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL);
+
+                for( auto core : coreList )
+                {
+                    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                                           core,
+                                           l_attr_chip_unit_core_pos),
+                             "fapiGetAttribute of ATTR_CHIP_UNIT_POS for core failed");
+
+                    l_attr_chip_unit_core_pos = l_attr_chip_unit_core_pos % 4;
+
+                    if (l_relative_core_pos & (BIT32(l_attr_chip_unit_core_pos) >> 28))
                     {
-                        FAPI_TRY(GET_QME_SSH_OTR(core, l_data64));
-                        GET_QME_SSH_OTR_ACT_STOP_LEVEL(l_data64, l_ssh_data);
+                        FAPI_IMP("Waiting for stop 11 to enter for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
+                        uint32_t l_stop11_state_entered = false;
 
-                        if (l_data64.getBit<0>() && (l_ssh_data == 0xB ||
-                                                     l_ssh_data == 0xF))
+                        //RTC 247535: need to revisit again
+                        // for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
+                        do
                         {
-                            FAPI_IMP(" stop 11  entered for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
-                            l_stop11_state_entered = true;
-                            break;
+                            FAPI_TRY(GET_QME_SSH_OTR(core, l_data64));
+                            GET_QME_SSH_OTR_ACT_STOP_LEVEL(l_data64, l_ssh_data);
+
+                            if (l_data64.getBit<0>() && (l_ssh_data == 0xB ||
+                                                         l_ssh_data == 0xF))
+                            {
+                                FAPI_IMP(" stop 11  entered for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
+                                l_stop11_state_entered = true;
+                                break;
+                            }
+
+                            fapi2::delay(POLLTIME_NS, POLLTIME_MCYCLES * 1000 * 1000);
+                        }
+                        while(1);
+
+                        if (!l_stop11_state_entered)
+                        {
+                            FAPI_ERR("STOP 11 enter operation failed for backing core %d of quad %d",
+                                     l_attr_chip_unit_core_pos, l_attr_chip_unit_eq_pos);
+                            FAPI_ASSERT(false,
+                                        fapi2::PM_BACKING_CACHEPOWER_DOWN_FAILED()
+                                        .set_CHIP_TARGET(i_proc_target)
+                                        .set_SCRB_DATA(l_scrb_data)
+                                        .set_SSH_OTR_DATA(l_data64)
+                                        .set_CORE_TARGET(core)
+                                        .set_CORE_POSITION(l_attr_chip_unit_core_pos)
+                                        .set_EQ_TARGET(eq)
+                                        .set_EQ_POSITION(l_attr_chip_unit_eq_pos),
+                                        "Backing cache power down procedure failed");
                         }
 
-                        fapi2::delay(POLLTIME_NS, POLLTIME_MCYCLES * 1000 * 1000);
+                        // Drop PM Exit to allow the core to wake-up later.  This was set
+                        // during istep 4.
+                        FAPI_TRY(fapi2::putScom(core, QME_SCSR_WO_CLEAR, BIT64(QME_SCSR_ASSERT_PM_EXIT)));
                     }
-                    while(1);
-
-                    if (!l_stop11_state_entered)
-                    {
-                        FAPI_ERR("STOP 11 enter operation failed for backing core %d of quad %d",
-                                 l_attr_chip_unit_core_pos, l_attr_chip_unit_eq_pos);
-                        FAPI_ASSERT(false,
-                                    fapi2::PM_BACKING_CACHEPOWER_DOWN_FAILED()
-                                    .set_CHIP_TARGET(i_proc_target)
-                                    .set_SCRB_DATA(l_scrb_data)
-                                    .set_SSH_OTR_DATA(l_data64)
-                                    .set_CORE_TARGET(core)
-                                    .set_CORE_POSITION(l_attr_chip_unit_core_pos)
-                                    .set_EQ_TARGET(eq)
-                                    .set_EQ_POSITION(l_attr_chip_unit_eq_pos),
-                                    "Backing cache power down procedure failed");
-                    }
-
-                    // Drop PM Exit to allow the core to wake-up later.  This was set
-                    // during istep 4.
-                    FAPI_TRY(fapi2::putScom(core, QME_SCSR_WO_CLEAR, BIT64(QME_SCSR_ASSERT_PM_EXIT)));
                 }
             }
         }
     }
+    while(0);
 
 fapi_try_exit:
     FAPI_INF("< p10_sbe_powerdown_backing_caches...");
