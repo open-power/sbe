@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 /// \brief Unsigned 64/64 bit division
 ///
 /// This is IBM code, originally part of OS Open.  The code has been slightly
-/// modified from its original form, both to be compatible with PK and to
+/// modified from its original form, both to be compatible with PPE and to
 /// change the function prototype slightly.
 ///
 /// The code was provided by Matt Tyrlik in Raleigh.
@@ -76,7 +76,7 @@
 ** @#END#@*/
 
         .nolist
-#include "pk.h"
+#include "ppe42_asm.h"
         .list
 
         .global_function __ppe42_udiv64
@@ -141,7 +141,7 @@
         ** tmp is the remainder 16.
         */
 
-__ppe42_udiv64: // PK
+__ppe42_udiv64:
 
         /* push R30 & R31 onto the stack */
         stwu    r1, -16(r1)
