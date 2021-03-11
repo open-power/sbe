@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -29,6 +29,11 @@ export SUB_OBJDIR = /fapi2_measurement
 GCC-DEFS += -D__SBEMFW_MEASUREMENT__=1
 OBJS = $(addprefix $(OBJDIR)/, $(SBEM_FAPI2PLATLIB_OBJECTS))
 LIBNAME = libfapi2measurement
+else ifeq ($(img_mem), verification)
+export SUB_OBJDIR = /fapi2_verification
+GCC-DEFS += -D__SBEMFW_MEASUREMENT__=1
+OBJS = $(addprefix $(OBJDIR)/, $(SBEM_FAPI2PLATLIB_OBJECTS))
+LIBNAME = libfapi2verification
 else ifeq ($(img_mem), seeprom)
 export SUB_OBJDIR = /fapi2_seeprom
 GCC-DEFS += -D__SBEFW_SEEPROM__=1
@@ -54,8 +59,3 @@ $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
-
-ifneq ($(MAKECMDGOALS),clean)
-include $(OBJS:.o=.d)
-endif
-

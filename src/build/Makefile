@@ -146,6 +146,9 @@ VERIFICATION_LLIBS += -lpk
 # Measurment PLAT/FAPI lib
 SBEM_FAPI_SUBDIRS += sbemfapi_$(PLAT_FAPI2_DIR)
 
+#Verification PLAT/FAPI lib
+VERIF_FAPI_SUBDIRS += veriffapi_$(PLAT_FAPI2_DIR)
+
 MEASUREMENT_SUBDIRS += $(MEASUREMENT_PROJ_SUBDIRS)
 MEASUREMENT_LIB_DIRS += $(MEASUREMENT_PROJ_LIB_DIRS)
 MEASUREMENT_LLIBS += $(MEASUREMENT_PROJ_LLIBS)
@@ -305,20 +308,20 @@ endif
 pre_verify_image: verify_xml ppe_trace_bin buildInfo linker_verify
 
 # Build the verification subdirectories files
-build_verify_image: $(VERIFICATION_SUBDIRS)
+build_verify_image: $(VERIFICATION_SUBDIRS) $(VERIF_FAPI_SUBDIRS)
 
 $(VERIFICATION_SUBDIRS): ppe_trace_bin
 	$(C1)$(MAKE) -I $(INCLUDES) -C $@ -f Makefile
+
+$(VERIF_FAPI_SUBDIRS): ppe_trace_bin
+	$(C1)$(MAKE) -I $(INCLUDES) -C $(subst veriffapi_,, $@) -f Makefile img_mem=verification
 
 linker_verify:
 	@mkdir -p $(OBJDIR)/build
 	$(C1)$(CPP) -I $(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/$(IN_VERIFICATION_LINK_SCRIPT) -o $(OUT_VERIFICATION_LINK_SCRIPT)
 
-VERIFICATION_LIB_DIRS += -L$(OBJDIR)/fapi2_measurement
-VERIFICATION_LLIBS += -lfapi2measurement
-
-VERIFICATION_LIB_DIRS += -L$(OBJDIR)/import_hwp_mk/sbem_hwp
-VERIFICATION_LLIBS += -lsbem_hwp
+VERIFICATION_LIB_DIRS += -L$(OBJDIR)/fapi2_verification
+VERIFICATION_LLIBS += -lfapi2verification
 
 output_verify_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out"
