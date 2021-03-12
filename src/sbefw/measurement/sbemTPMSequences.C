@@ -280,14 +280,37 @@ fapi2::ReturnCode setTPMDeconfigBit()
     #undef SBEM_FUNC
 }
 
+// TODO: Set the proper response code incase of TPM failure.
+// For time being set the scratch register with 0xFF.
+
+fapi2::ReturnCode setTPMFailureRespCode(uint64_t failCode)
+{
+    #define SBEM_FUNC " setTPMFailureRespCode "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    do
+    {
+        Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
+        rc = putscom_abs_wrap (&target, MAILBOX_SCRATCH_REG_11, failCode);
+        if(rc)
+        {
+            SBEM_ERROR(SBEM_FUNC " putscom failed on MAILBOX_SCRATCH_REG_11 with rc 0x%08X", rc);
+            break;
+        }
+    }while(0);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
 fapi2::ReturnCode performTPMSequences()
 {
     #define SBEM_FUNC " performTPMSequences "
     SBEM_ENTER(SBEM_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    uint32_t sbeRole = checkSbeRole();
     do
     {
-        uint32_t sbeRole = checkSbeRole();
         if(sbeRole == SBE_ROLE_SLAVE)
         {
             SBEM_INFO(SBE_FUNC "Current Proc is slave. Do not access TPM");
@@ -304,7 +327,6 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToReadDIDAndVendor Failed with rc 0x%08X", rc);
-            setTPMDeconfigBit();
             break;
         }
 
@@ -356,6 +378,20 @@ fapi2::ReturnCode performTPMSequences()
             break;
         }
     }while(0);
+    if((sbeRole != SBE_ROLE_SLAVE) && (rc != fapi2::FAPI2_RC_SUCCESS))
+    {
+        rc = setTPMDeconfigBit();
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "Failed to set the deconfig bit with rc 0x%08X", rc);
+        }
+        rc = setTPMFailureRespCode(0xFF);
+        if( rc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBEM_ERROR(SBEM_FUNC "Failed to set the scratch reg with the response code, rc 0x%08X", rc);
+        }
+
+    }
     SBEM_EXIT(SBEM_FUNC);
     return rc;
     #undef SBEM_FUNC
