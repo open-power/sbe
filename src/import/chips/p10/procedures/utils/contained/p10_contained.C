@@ -412,13 +412,49 @@ fapi_try_exit:
 #ifndef __PPE__
 #include <random>
 
-static std::mt19937_64 seed_rng;
+fapi2::ReturnCode compare_all_seeds(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+{
+    FAPI_INF(">> %s", __func__);
+
+    fapi2::ATTR_RUNN_THREAD_SEEDS_Type thread_seeds;
+    fapi2::ATTR_RUNN_THREAD_SEEDS_Type hold_seeds;
+    bool l_first_core = true;
+
+    for (auto const& core : i_chip.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        if (l_first_core)
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_THREAD_SEEDS, core,
+                                   hold_seeds));
+            l_first_core = false;
+            continue;
+        }
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_RUNN_THREAD_SEEDS, core,
+                               thread_seeds));
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (hold_seeds[i] != thread_seeds[i])
+            {
+                FAPI_ERR("Seeds don't match: Exiting.");
+                return fapi2::FAPI2_RC_FALSE;
+            }
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 
 fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
 {
     FAPI_INF(">> %s", __func__);
 
     using namespace scomt::perv;
+    std::mt19937_64 seed_rng;
 
     fapi2::ATTR_EC_Type ec;
     fapi2::ATTR_CHIP_UNIT_POS_Type corenum;
@@ -427,6 +463,7 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     fapi2::ATTR_RUNN_THREAD_SEEDS_Type thread_seeds;
     fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    uint64_t seed_holder = 0;
     // ec_cl2_func
     const fapi2::buffer<uint64_t> scan_type = (fapi2::buffer<uint64_t>(0)
             .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>());
@@ -454,6 +491,7 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
                                 (corenum % 4));
 
         // Initialize the RNG and *then* advance the RNG state to a core.
+        FAPI_DBG("MASTER_SEED: %016llx", master_seed);
         seed_rng.seed(master_seed);
 
         if (core_seed_sel != fapi2::ENUM_ATTR_RUNN_CORE_SEED_SELECT_RANDOM)
@@ -467,10 +505,21 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
             seed_rng.discard(corenum * 4);
         }
 
-        thread_seeds[0] = seed_rng();
-        thread_seeds[1] = seed_rng();
-        thread_seeds[2] = seed_rng();
-        thread_seeds[3] = seed_rng();
+        seed_holder = seed_rng();
+        FAPI_DBG("THREAD_0 SEED: %016llx", seed_holder);
+        thread_seeds[0] = seed_holder;
+
+        seed_holder = seed_rng();
+        FAPI_DBG("THREAD_1 SEED: %016llx", seed_holder);
+        thread_seeds[1] = seed_holder;
+
+        seed_holder = seed_rng();
+        FAPI_DBG("THREAD_2 SEED: %016llx", seed_holder);
+        thread_seeds[2] = seed_holder;
+
+        seed_holder = seed_rng();
+        FAPI_DBG("THREAD_3 SEED: %016llx", seed_holder);
+        thread_seeds[3] = seed_holder;
 
         // Attempt to write the attribute - if the user has an override set via
         // CONST in a seedfile then the write will silently turn into a NOP and
@@ -497,6 +546,11 @@ fapi2::ReturnCode seed_exer_threads(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
             return fapi2::FAPI2_RC_FALSE;
         // *INDENT-ON*
         }
+    }
+
+    if (core_seed_sel != fapi2::ENUM_ATTR_RUNN_CORE_SEED_SELECT_RANDOM)
+    {
+        FAPI_TRY(compare_all_seeds(i_chip));
     }
 
 fapi_try_exit:
