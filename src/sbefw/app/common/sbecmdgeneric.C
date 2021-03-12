@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -703,4 +703,63 @@ uint32_t sbeUpdateOCMBTarget( uint8_t *i_pArg )
     return rc;
     #undef SBE_FUNC
 }
+
+//----------------------------------------------------------------------------
+uint32_t sbeHostSyncFabTopologyId( uint8_t *i_pArg )
+{
+    #define SBE_FUNC "sbeHostSyncFabTopologyId"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {
+        uint64_t topoTabInfoAddr = 0;
+        //send Ack to Host via SBE_SBE2PSU_DOORBELL_SET_BIT1
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                    (sizeof(topoTabInfoAddr)/sizeof(uint64_t)),
+                                    &topoTabInfoAddr, true);
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1"
+            " Cannot sync fabric topology table");
+            break;
+        }
+
+        SBE_INFO(SBE_FUNC "Address to fetch Fabric Topology Table ID values [0x%08X][%08X]",
+            SBE::higher32BWord(topoTabInfoAddr),
+            SBE::lower32BWord(topoTabInfoAddr));
+
+        //Fetch the Topology ID Table values and update the Attribute
+        fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID_TABLE_Type topoTable;
+        //Do a PBA read to fetch the topology ID
+        p10_PBA_oper_flag pbaFlag;
+        pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
+        sbeMemAccessInterface PBAInterForMetadata(
+                SBE_MEM_ACCESS_PBA,
+                topoTabInfoAddr,
+                &pbaFlag,
+                SBE_MEM_ACCESS_READ,
+                sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+        fapiRc = PBAInterForMetadata.accessWithBuffer(&topoTable,
+                 sizeof(topoTable),true);
+
+        if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to fetch the Fabric System Topology ID,fapiRc =0x%.8x"
+                      fapiRc);
+            break;
+        }
+        PLAT_ATTR_INIT(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID_TABLE, fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(), topoTable);
+
+    }while(0);
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+
 #endif //not __SBEFW_SEEPROM__

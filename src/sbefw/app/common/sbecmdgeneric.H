@@ -221,3 +221,16 @@ uint32_t sbeSecurityListBinDump(uint8_t *i_pArg);
  * @return    Rc from the Psu access utility
  */
 uint32_t sbeUpdateOCMBTarget(uint8_t *i_pArg);
+
+/**
+ *   @brief sbeHostSyncFabTopologyId: Implements SBE SYNC fabric topology ID
+ *          (0xD70A)
+ *
+ *   @param[in] i_pArg Buffer to be passed to the function
+ *   @return    Rc from the FIFO access utility
+ *           
+ */
+uint32_t sbeHostSyncFabTopologyId(uint8_t *i_pArg);
+
+
+

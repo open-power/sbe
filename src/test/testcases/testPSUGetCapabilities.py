@@ -60,7 +60,7 @@ capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xD5800000) +
           getsingleword(0xD6000001) +
           getsingleword(0xD6800000) +
-          getsingleword(0xD70001FE) +
+          getsingleword(0xD70003FE) +
           getsingleword(0xD7800000))
 
 def getCapabilities(addr, size, exp_status):

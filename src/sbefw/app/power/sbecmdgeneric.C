@@ -91,7 +91,8 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_SET_SYSTEM_FABRIC_ID_MAP_SUPPORTED |
                                       PSU_STASH_MPIPL_CONFIG_SUPPORTED |
                                       PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED |
-                                      PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED;
+                                      PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED|
+                                      PSU_SYNC_FAB_TOPOLOGY_ID_SUPPORTED;
     capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_7;
 

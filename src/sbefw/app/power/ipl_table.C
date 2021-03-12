@@ -1134,7 +1134,8 @@ ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp)
         SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce failed,"
             "Either System Quiesce Achieved not true or procedure "
             "failed RC=[0x%08X]",l_rc);
-        
+
+        SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce_states failure!!");
         //Force System Checkstop
         Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
         fapi2::buffer<uint64_t> data(0);

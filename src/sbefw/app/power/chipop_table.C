@@ -391,7 +391,12 @@ CMD_ARR(
     {sbeUpdateOCMBTarget,
      SBE_PSU_GENERIC_MSG_UPDATE_OCMB_TARGET,
      SBE_NO_FENCE,
-    }
+    },
+
+   {sbeHostSyncFabTopologyId,
+    SBE_PSU_GENERIC_MSG_SYNC_FAB_TOPO_ID_TAB,
+    SBE_NO_FENCE,
+   }
 )
 
 // Mandatory macro inclusion
