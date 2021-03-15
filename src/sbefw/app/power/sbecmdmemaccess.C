@@ -347,7 +347,7 @@ uint32_t processPbaRequest( fapi2::sbefifo_hwp_data_istream& i_getStream,
 
         SBE_INFO(SBE_FUNC "Total length Pushed for ChipOp [%d]", l_respLen);
 
-        if(i_putStream.isStreamRespHeader())
+        if(i_putStream.isStreamRespHeader(l_respHdr.rcStatus() ,l_ffdc.getRc()))
         {
             l_rc = i_putStream.put( l_len, &l_respLen );
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
@@ -669,7 +669,7 @@ uint32_t processAduRequest( fapi2::sbefifo_hwp_data_istream& i_getStream,
         l_rc = i_putStream.put( l_len, &l_respLen );
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(l_rc);
 
-        if(i_putStream.isStreamRespHeader())
+        if(i_putStream.isStreamRespHeader(l_respHdr.rcStatus() ,l_ffdc.getRc()))
         {
             l_rc = sbeDsSendRespHdr( l_respHdr, &l_ffdc,
                                      i_getStream.getFifoType() );
