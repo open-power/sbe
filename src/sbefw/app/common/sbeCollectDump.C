@@ -271,7 +271,7 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
     }
     // The size of data streamed from SBE is irespective of trace ID
     // and it is 128*16*8 bits. [ PROC_TRACEARRAY_MAX_SIZE ] 
-    iv_tocRow.tocHeader.dataLength = PROC_TRACEARRAY_MAX_SIZE;
+    iv_tocRow.tocHeader.dataLength = PROC_TRACEARRAY_MAX_SIZE * 8;
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
     sbeControlTraceArrayCMD_t reqMsg = {};
@@ -285,6 +285,21 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
     reqMsg.targetType   = o_targetType;
     reqMsg.chipletId    = o_chipletId;
     reqMsg.traceArrayId = iv_hdctRow->cmdTraceArray.traceArrayID;
+    reqMsg.operation    = SBE_TA_STOP;         // 0x0004: Stop Trace array
+
+    SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                     " traceArrayId [0x%04X] operation [0x%04X]",
+                       reqMsg.targetType, reqMsg.chipletId,
+                       reqMsg.traceArrayId, reqMsg.operation);
+
+    sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                      (uint32_t*)&reqMsg, false );
+    rc = sbeControlTraceArrayWrap( istream, iv_oStream );
+    if(rc)
+    {
+        return rc;
+    }
+
     reqMsg.operation    = SBE_TA_COLLECT_DUMP; // 0x0008: Collect Trace Dump
 
     SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
@@ -292,10 +307,10 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
                        reqMsg.targetType, reqMsg.chipletId,
                        reqMsg.traceArrayId, reqMsg.operation);
 
-    uint32_t startCount = iv_oStream.words_written();
-    sbefifo_hwp_data_istream istream( iv_fifoType, len,
+    sbefifo_hwp_data_istream istreamDump( iv_fifoType, len,
                                       (uint32_t*)&reqMsg, false );
-    rc = sbeControlTraceArrayWrap( istream, iv_oStream );
+    uint32_t startCount = iv_oStream.words_written();
+    rc = sbeControlTraceArrayWrap( istreamDump, iv_oStream );
 
     uint32_t endCount = iv_oStream.words_written();
     uint32_t totalCountInBytes = iv_tocRow.tocHeader.dataLength/8;
@@ -314,7 +329,17 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
             totalCount = totalCount - 1;
         }
     }
+    reqMsg.operation    = SBE_TA_RESTART; // 0x0002: Restart Trace array
 
+    SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                     " traceArrayId [0x%04X] operation [0x%04X]",
+                       reqMsg.targetType, reqMsg.chipletId,
+                       reqMsg.traceArrayId, reqMsg.operation);
+
+    sbefifo_hwp_data_istream istreamStop( iv_fifoType, len,
+                                      (uint32_t*)&reqMsg, false );
+
+    rc = sbeControlTraceArrayWrap( istreamStop, iv_oStream );
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -833,7 +858,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
            (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
            (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
-//           (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
+           (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
            (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         return rc;
 
