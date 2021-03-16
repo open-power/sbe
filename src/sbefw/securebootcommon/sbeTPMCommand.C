@@ -31,9 +31,9 @@
 
 using namespace fapi2;
 
-fapi2::ReturnCode tpmPosionPCR()
+fapi2::ReturnCode tpmPoisonPCR()
 {
-    #define SBEM_FUNC " tpmPosionPCR "
+    #define SBEM_FUNC " tpmPoisonPCR "
     SBEM_ENTER(SBEM_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
     do

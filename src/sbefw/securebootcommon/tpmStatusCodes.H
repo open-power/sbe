@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/securebootcommon/sbeTPMCommand.H $                  */
+/* $Source: src/sbefw/securebootcommon/tpmStatusCodes.H $                 */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,31 +21,25 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __SBEM_TPM_COMMAND_H
-#define __SBEM_TPM_COMMAND_H
 
-#include "fapi2.H"
-#include "stdint.h"
+#ifndef TPM_STATUS_CODES_H
+#define TPM_STATUS_CODES_H
 
-/**
- * @brief This function peforms the poisoning of the PCR.
- *
- * @return errlHndl_t NULL if successful, otherwise a pointer to the
- *      error log.
- */
+enum sbemTPMRespCode
+{
+    SBEM_TPM_OPERATION_SUCCESSFUL                            = 0x00,
+    SBEM_TPM_READ_DID_AND_VID_FAILURE                        = 0x01,
+    SBEM_TPM_ACCESS_LOCALITY0_FAILURE                        = 0x02,
+    SBEM_TPM_START_TPM_SEQUENCE_FAILURE                      = 0x03,
+    SBEM_TPM_DETECT_PCR_ALLOCATION_FAILURE                   = 0x04,
+    SBEM_TPM_PCR_ALLOCATION_FAILURE                          = 0x05,
+    SBEM_TPM_POISON_FAILURE                                  = 0x06,
+    SBEM_TPM_EXTEND_HW_KEY_HASH_PCR6_FAILURE                 = 0x07,
+    SBEM_TPM_EXTEND_HW_KEY_HASH_PCR1_FAILURE                 = 0x08,
+    SBEM_TPM_EXTEND_SECURITY_STATE_PCR6_FAILURE              = 0x09,
+    SBEM_TPM_EXTEND_SECURITY_STATE_PCR1_FAILURE              = 0x0A,
+    SBEM_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR0_FAILURE     = 0x0B,
+    SBEM_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR6_FAILURE     = 0x0C,
+};
 
-fapi2::ReturnCode tpmPoisonPCR();
-
-
-/**
- * @brief This function peforms the sequencing to do extend on the TPM.
- * @param[in] pcrNum   PCT to be extended.
- *            hashKey  key to be extended on PCR.
- *            size     Size of the hash key.
- *
- * @return errlHndl_t NULL if successful, otherwise a pointer to the
- *      error log.
- */
-
-fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size);
 #endif

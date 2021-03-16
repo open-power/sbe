@@ -40,6 +40,8 @@
 #include "sbeTPMCommand.H"
 #include "sbeRoleIdentifier.H"
 #include "p10_scom_pibms.H"
+#include "tpmStatusCodes.H"
+#include "sbemTPMSequences.H"
 
 using namespace fapi2;
 
@@ -280,18 +282,19 @@ fapi2::ReturnCode setTPMDeconfigBit()
     #undef SBEM_FUNC
 }
 
-// TODO: Set the proper response code incase of TPM failure.
-// For time being set the scratch register with 0xFF.
-
-fapi2::ReturnCode setTPMFailureRespCode(uint64_t failCode)
+fapi2::ReturnCode setTPMFailureRespCode(uint32_t failCode)
 {
     #define SBEM_FUNC " setTPMFailureRespCode "
     SBEM_ENTER(SBEM_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
     do
     {
+        SBEM_INFO(SBEM_FUNC "failCode passed is 0x%08X", failCode);
         Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
-        rc = putscom_abs_wrap (&target, MAILBOX_SCRATCH_REG_11, failCode);
+        uint64_t scomData = failCode;
+        scomData = (scomData << 48) & 0x00FF000000000000;
+        SBEM_INFO(SBEM_FUNC "Final Mailbox scratch data is 0x%08X %08X", scomData >> 32, scomData);
+        rc = putscom_abs_wrap (&target, MAILBOX_SCRATCH_REG_11, scomData);
         if(rc)
         {
             SBEM_ERROR(SBEM_FUNC " putscom failed on MAILBOX_SCRATCH_REG_11 with rc 0x%08X", rc);
@@ -303,12 +306,12 @@ fapi2::ReturnCode setTPMFailureRespCode(uint64_t failCode)
     #undef SBEM_FUNC
 }
 
-fapi2::ReturnCode performTPMSequences()
+fapi2::ReturnCode performTPMSequences(uint32_t sbeRole)
 {
     #define SBEM_FUNC " performTPMSequences "
     SBEM_ENTER(SBEM_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
-    uint32_t sbeRole = checkSbeRole();
+    uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
     do
     {
         if(sbeRole == SBE_ROLE_SLAVE)
@@ -327,6 +330,7 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToReadDIDAndVendor Failed with rc 0x%08X", rc);
+            tpmRespCode = SBEM_TPM_READ_DID_AND_VID_FAILURE;
             break;
         }
 
@@ -335,6 +339,7 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToAccessLocality0 Failed with rc 0x%08X", rc);
+            tpmRespCode = SBEM_TPM_ACCESS_LOCALITY0_FAILURE;
             break;
         }
 
@@ -343,6 +348,7 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToStartup Failed with rc 0x%08X", rc);
+            tpmRespCode = SBEM_TPM_START_TPM_SEQUENCE_FAILURE;
             break;
         }
 
@@ -352,6 +358,7 @@ fapi2::ReturnCode performTPMSequences()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmSequenceToDetectPCRs Failed with rc 0x%08X", rc);
+            tpmRespCode = SBEM_TPM_DETECT_PCR_ALLOCATION_FAILURE;
             break;
         }
 
@@ -363,6 +370,7 @@ fapi2::ReturnCode performTPMSequences()
             if( rc != fapi2::FAPI2_RC_SUCCESS )
             {
                 SBEM_ERROR(SBEM_FUNC "tpmSequenceToAllocatePCRs Failed with rc 0x%08X", rc);
+                tpmRespCode = SBEM_TPM_PCR_ALLOCATION_FAILURE;
                 break;
             }
         }
@@ -370,10 +378,11 @@ fapi2::ReturnCode performTPMSequences()
         if(sbeRole == SBE_ROLE_ALT_MASTER)
         {
             SBEM_INFO(SBEM_FUNC "Poison TPM incase of ALT master");
-            rc = tpmPosionPCR();
-            if (rc)
+            rc = tpmPoisonPCR();
+            if( rc != fapi2::FAPI2_RC_SUCCESS )
             {
-                SBEM_ERROR(SBEM_FUNC "tpmPosionPCR failed with rc 0x%08X", rc);
+                SBEM_ERROR(SBEM_FUNC "tpmPoisonPCR failed with rc 0x%08X", rc);
+                tpmRespCode = SBEM_TPM_POISON_FAILURE;
             }
             break;
         }
@@ -385,12 +394,11 @@ fapi2::ReturnCode performTPMSequences()
         {
             SBEM_ERROR(SBEM_FUNC "Failed to set the deconfig bit with rc 0x%08X", rc);
         }
-        rc = setTPMFailureRespCode(0xFF);
+        rc = setTPMFailureRespCode(tpmRespCode);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "Failed to set the scratch reg with the response code, rc 0x%08X", rc);
         }
-
     }
     SBEM_EXIT(SBEM_FUNC);
     return rc;

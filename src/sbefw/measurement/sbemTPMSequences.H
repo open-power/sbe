@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/securebootcommon/sbeTPMCommand.H $                  */
+/* $Source: src/sbefw/measurement/sbemTPMSequences.H $                    */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,31 +22,32 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __SBEM_TPM_COMMAND_H
-#define __SBEM_TPM_COMMAND_H
 
-#include "fapi2.H"
-#include "stdint.h"
+#ifndef SBEM_TPM_SEQUENCE_H
+#define SBEM_TPM_SEQUENCE_H
 
 /**
- * @brief This function peforms the poisoning of the PCR.
+ *  @brief perform TPM sequences in the measurment flow.
  *
- * @return errlHndl_t NULL if successful, otherwise a pointer to the
- *      error log.
+ *  @param[in] sbeRole The Role of SBE. master/alt-master/slave
+ *
  */
 
-fapi2::ReturnCode tpmPoisonPCR();
-
+fapi2::ReturnCode performTPMSequences(uint32_t sbeRole);
 
 /**
- * @brief This function peforms the sequencing to do extend on the TPM.
- * @param[in] pcrNum   PCT to be extended.
- *            hashKey  key to be extended on PCR.
- *            size     Size of the hash key.
+ *  @brief set TPM response code in the scratch register.
  *
- * @return errlHndl_t NULL if successful, otherwise a pointer to the
- *      error log.
+ *  @param[in] failCode TPM response code.
+ *
  */
 
-fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size);
-#endif
+fapi2::ReturnCode setTPMFailureRespCode(uint32_t failCode);
+
+/**
+ *  @brief Set TPM deconfig bit.
+ *
+ */
+fapi2::ReturnCode setTPMDeconfigBit();
+
+#endif //SBEM_TPM_SEQUENCE_H

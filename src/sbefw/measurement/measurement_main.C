@@ -625,7 +625,7 @@ int  main(int argc, char **argv)
         }
 
         SBEM_INFO("Completed PK init for Measurement with Freq [0x%08X]", g_sbemfreqency);
-
+        SBEM_INFO("LFR = [0x%04X 0x%02X]", lfrReg.spi_clock_divider, lfrReg.round_trip_delay);
         //Initialize secure boot thread
         rc = createAndResumeThreadHelper(&sbem_thread,
                 sbemthreadroutine,
