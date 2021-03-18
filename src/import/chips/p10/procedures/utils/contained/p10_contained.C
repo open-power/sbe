@@ -407,6 +407,66 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+fapi2::ReturnCode set_mma_available(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip)
+{
+    FAPI_INF(">> %s", __func__);
+
+    using namespace scomt::c;
+    using namespace scomt::perv;
+
+    fapi2::ATTR_EC_Type ec;
+    fapi2::Target<fapi2::TARGET_TYPE_PERV> perv;
+    // qme_func
+    const fapi2::buffer<uint64_t> scan_region_type = (fapi2::buffer<uint64_t>(0)
+            .setBit<SCAN_REGION_TYPE_SCAN_TYPE_FUNC>()
+            .setBit<SCAN_REGION_TYPE_SCAN_REGION_PERV>()
+            .setBit<SCAN_REGION_TYPE_SCAN_REGION_UNIT9>());
+
+    const uint64_t on = (uint64_t)(1) << 63;
+    const uint64_t off = (uint64_t)(0);
+
+    FAPI_TRY(FAPI_ATTR_GET_PRIVILEGED(fapi2::ATTR_EC, i_chip, ec));
+
+    for (auto const& eq : i_chip.getChildren<fapi2::TARGET_TYPE_EQ>())
+    {
+        perv = eq.getParent<fapi2::TARGET_TYPE_PERV>();
+
+        switch (ec)
+        {
+            // *INDENT-OFF*
+            RINGSPIN_EC_SWITCH_CASE(10, eq_func_set_mma_available,
+                                    perv, scan_region_type,
+                                    on,
+                                    off,
+                                    on,
+                                    off,
+                                    on,
+                                    off,
+                                    on,
+                                    off)
+            RINGSPIN_EC_SWITCH_CASE(20, eq_func_set_mma_available,
+                                    perv, scan_region_type,
+                                    on,
+                                    off,
+                                    on,
+                                    off,
+                                    on,
+                                    off,
+                                    on,
+                                    off)
+            default:
+                FAPI_ERR("No generated ringspin procedure for ATTR_EC=%02x"
+                         " PROCEDURE=eq_func_set_mma_available", ec);
+                return fapi2::FAPI2_RC_FALSE;
+            // *INDENT-ON*
+        }
+    }
+
+fapi_try_exit:
+    FAPI_INF("<< %s", __func__);
+    return fapi2::current_err;
+}
+
 #ifdef P10_CONTAINED_ENABLE_SEEDING
 
 #ifndef __PPE__

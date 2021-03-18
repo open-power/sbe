@@ -1227,6 +1227,76 @@ fapi_try_exit:
 }
 }// namespace ec10
 
+namespace ec10 {
+static inline fapi2::ReturnCode eq_func_set_mma_available(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_pcbsleq_cpms0_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms0_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms1_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms1_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms2_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms2_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms3_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms3_cpms_mmar_mma_func_reset)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 2816, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // PCBSLEQ.CPMS3.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms3_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS3.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms3_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 2915, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // PCBSLEQ.CPMS2.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms2_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS2.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms2_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 19502, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // PCBSLEQ.CPMS1.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms1_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS1.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms1_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 1860, tmp));
+        tmp &= 0x3fffffffffffffffull;
+        // PCBSLEQ.CPMS0.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms0_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS0.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms0_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 62;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 28384, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec10
+
 namespace ec20 {
 static inline fapi2::ReturnCode ec_l3_func_restore_active_l3(
     const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
@@ -2278,6 +2348,76 @@ static inline fapi2::ReturnCode ec_cl2_func_set_thread_sreset(
         tmp |= (((i_ecp_ec_pc_pmc_vt2_sreset_on_1st_dec_en & 0x2000000000000000) >> 61) ^ 0b1) << 63;
         FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
         FAPI_TRY(svs::rotate(i_cplt, 135738, tmp));
+    }
+    // ---
+
+    if (tmp != 0x00BAD666BAD66600) {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+}// namespace ec20
+
+namespace ec20 {
+static inline fapi2::ReturnCode eq_func_set_mma_available(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV> &i_cplt,
+    const uint64_t i_scan_region_type,
+    const uint64_t i_pcbsleq_cpms0_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms0_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms1_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms1_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms2_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms2_cpms_mmar_mma_func_reset,
+    const uint64_t i_pcbsleq_cpms3_cpms_mmar_mma_available,
+    const uint64_t i_pcbsleq_cpms3_cpms_mmar_mma_func_reset)
+{
+    fapi2::buffer<uint64_t> tmp = 0;
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // ---
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 1559, tmp));
+        tmp &= 0x6fffffffffffffffull;
+        // PCBSLEQ.CPMS3.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms3_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS3.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms3_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 4448, tmp));
+        tmp &= 0x6fffffffffffffffull;
+        // PCBSLEQ.CPMS2.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms2_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS2.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms2_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 17299, tmp));
+        tmp &= 0x6fffffffffffffffull;
+        // PCBSLEQ.CPMS1.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms1_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS1.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms1_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+    }
+    {
+        FAPI_TRY(svs::rotate(i_cplt, 2797, tmp));
+        tmp &= 0x6fffffffffffffffull;
+        // PCBSLEQ.CPMS0.CPMS_MMAR_MMA_FUNC_RESET[1:1]
+        tmp |= (((i_pcbsleq_cpms0_cpms_mmar_mma_func_reset & 0x4000000000000000) >> 62) ^ 0b0) << 63;
+        // PCBSLEQ.CPMS0.CPMS_MMAR_MMA_AVAILABLE[0:0]
+        tmp |= (((i_pcbsleq_cpms0_cpms_mmar_mma_available & 0x8000000000000000) >> 63) ^ 0b0) << 60;
+        FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        FAPI_TRY(svs::rotate(i_cplt, 25709, tmp));
     }
     // ---
 

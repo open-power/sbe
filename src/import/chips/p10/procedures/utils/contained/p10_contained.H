@@ -133,6 +133,15 @@ fapi2::ReturnCode fix_fused_core_thread_sreset(const fapi2::Target<fapi2::TARGET
 fapi2::ReturnCode disable_sreset_on_decr(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip,
         const uint32_t i_active_bvec);
 
+///
+/// @brief Set MMA available for all threads
+///
+/// @param[in] i_chip        Reference to chip target
+///
+/// Note: Only applies to chip-contained RUNN IPL
+///
+fapi2::ReturnCode set_mma_available(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_chip);
+
 #ifdef P10_CONTAINED_ENABLE_SEEDING
 
 ///
