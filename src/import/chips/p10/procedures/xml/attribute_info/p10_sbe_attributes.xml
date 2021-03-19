@@ -81,14 +81,14 @@
     <value>0xFFFFFFFF</value> <!-- 21 Unused -->
     <value>0xFFFFFFFF</value> <!-- 22 Unused -->
     <value>0xFFFFFFFF</value> <!-- 23 Unused -->
-    <value>0xFFE33DFF</value> <!-- 24 IOHS0  -->
+    <value>0xFFE3BDFF</value> <!-- 24 IOHS0  -->
     <value>0xFFE3BDFF</value> <!-- 25 IOHS1  -->
     <value>0xFFE3BDFF</value> <!-- 26 IOHS2  -->
-    <value>0xFFE33DFF</value> <!-- 27 IOHS3  -->
-    <value>0xFFE33DFF</value> <!-- 28 IOHS4  -->
-    <value>0xFFE33DFF</value> <!-- 29 IOHS5  -->
-    <value>0xFFE33DFF</value> <!-- 30 IOHS6  -->
-    <value>0xFFE33DFF</value> <!-- 31 IOHS7  -->
+    <value>0xFFE3BDFF</value> <!-- 27 IOHS3  -->
+    <value>0xFFE3BDFF</value> <!-- 28 IOHS4  -->
+    <value>0xFFE3BDFF</value> <!-- 29 IOHS5  -->
+    <value>0xFFE3BDFF</value> <!-- 30 IOHS6  -->
+    <value>0xFFE3BDFF</value> <!-- 31 IOHS7  -->
     <value>0xFFE0001F</value> <!-- 32 EQ0    -->
     <value>0xFFE0001F</value> <!-- 33 EQ1    -->
     <value>0xFFE0001F</value> <!-- 34 EQ2    -->
@@ -178,14 +178,14 @@
     <value>0xFFFFFFFF</value> <!-- 21 Unused -->
     <value>0xFFFFFFFF</value> <!-- 22 Unused -->
     <value>0xFFFFFFFF</value> <!-- 23 Unused -->
-    <value>0xFFE33DFF</value> <!-- 24 IOHS0  -->
+    <value>0xFFE3BDFF</value> <!-- 24 IOHS0  -->
     <value>0xFFE3BDFF</value> <!-- 25 IOHS1  -->
     <value>0xFFE3BDFF</value> <!-- 26 IOHS2  -->
-    <value>0xFFE33DFF</value> <!-- 27 IOHS3  -->
-    <value>0xFFE33DFF</value> <!-- 28 IOHS4  -->
-    <value>0xFFE33DFF</value> <!-- 29 IOHS5  -->
-    <value>0xFFE33DFF</value> <!-- 30 IOHS6  -->
-    <value>0xFFE33DFF</value> <!-- 31 IOHS7  -->
+    <value>0xFFE3BDFF</value> <!-- 27 IOHS3  -->
+    <value>0xFFE3BDFF</value> <!-- 28 IOHS4  -->
+    <value>0xFFE3BDFF</value> <!-- 29 IOHS5  -->
+    <value>0xFFE3BDFF</value> <!-- 30 IOHS6  -->
+    <value>0xFFE3BDFF</value> <!-- 31 IOHS7  -->
     <value>0xFFE0001F</value> <!-- 32 EQ0    -->
     <value>0xFFE0001F</value> <!-- 33 EQ1    -->
     <value>0xFFE0001F</value> <!-- 34 EQ2    -->
