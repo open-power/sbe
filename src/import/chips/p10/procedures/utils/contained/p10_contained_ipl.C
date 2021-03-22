@@ -403,8 +403,10 @@ static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TAR
             tmp.flush<0>()
             .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_LCO_DIS_CFG>()
             .setBit<L3_MISC_L3CERRS_PM_LCO_DIS_REG_RCMD_DIS_CFG>();
-            PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
-            FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+            //Register was renamed for dd2, don't use scom checking
+            //PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
+            //FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+            FAPI_TRY(fapi2::putScom(core, L3_MISC_L3CERRS_PM_LCO_DIS_REG, tmp));
         }
         else
         {
@@ -424,8 +426,10 @@ static fapi2::ReturnCode connect_single_ec_to_fbc(const fapi2::Target<fapi2::TAR
             FAPI_TRY(PUT_NC_NCMISC_NCSCOMS_NCU_RCMD_QUIESCE_REG(core, tmp));
 
             tmp.flush<0>();
-            PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
-            FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+            //Register was renamed for dd2, don't use scom checking
+            //PREP_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core);
+            //FAPI_TRY(PUT_L3_MISC_L3CERRS_PM_LCO_DIS_REG(core, tmp));
+            FAPI_TRY(fapi2::putScom(core, L3_MISC_L3CERRS_PM_LCO_DIS_REG, tmp));
         }
     }
 
