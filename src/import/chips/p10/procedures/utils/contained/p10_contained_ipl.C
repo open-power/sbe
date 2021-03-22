@@ -452,7 +452,7 @@ extern "C" {
         const auto perv_eqs_w_cores = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
         fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec = 0;
         fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
-        fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL_Type l_contained_qme_mma_avail;
+        fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL_Type l_contained_qme_mma_avail = 0;
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL, i_target, l_contained_qme_mma_avail));
 
