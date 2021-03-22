@@ -103,10 +103,16 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
                                    SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
                 break;
             }
+
+            //FIXME:Adding the below pice of code utilises a large amount of stack and
+            //ultimately corrupts it.
+            //We need to get rid off "req.custom_control_data" array.
+#if 0
             hwp_array_istream istream(req.custom_control_data, req.hdr.custom_data_length);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
             if(i_putStream.isStreamRespHeader())
                 i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
+#endif
         }
         else
         {

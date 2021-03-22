@@ -191,9 +191,9 @@ struct cmdStructP_t
     };
 
 // Keep this hash updated with the cmdClassArr
-#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0B))
 
 #ifdef DFT
+#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0A))
 #define CMD_CLASS_DEFAULT_INTIALISATION \
 constexpr cmdClass_t cmdClassArr[] = { \
     CMD_CLASS(A1), \
@@ -230,6 +230,7 @@ constexpr bool validateCmdClassHash(uint8_t index) { \
 static_assert(validateCmdClassHash(0), "Bad chipop_table, check cmdclass hashes");
 
 #else //DFT
+#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0B))
 
 #define CMD_CLASS_DEFAULT_INTIALISATION \
 constexpr cmdClass_t cmdClassArr[] = { \
