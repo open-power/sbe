@@ -80,11 +80,13 @@ usage()
     echo "  -s: scratch dir path."
     echo "  -i: SBE image to sign. "
     echo "  -t: IPL Image tool path."
+    echo "  -m: MSV."
     echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
     echo "  -d: SBE Image Dir path in op-build"
+    echo "  -f: signing Mode. Production/Development(Default)"
 }
 
-while getopts "h?s:i:t:b:d:" opt;
+while getopts "h?s:i:t:b:d:m:f:" opt;
 do
     case $opt in
 
@@ -109,8 +111,16 @@ do
             BUILD_TYPE=$OPTARG
         ;;
 
-	d)
+	    d)
             SBE_IMG_DIR_OP=$OPTARG
+        ;;
+
+        m)
+            MSV=$OPTARG
+        ;;
+
+        f)
+            SIGINING_MODE=$OPTARG
         ;;
 
         *)
@@ -147,23 +157,50 @@ if [ -z $BUILD_TYPE ]; then
 fi
 
 if [ -z $SBE_IMG_DIR_OP ]; then
-    echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and sigining scripts from /afs/..."
-    OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
-    OP_BUILD_LEVEL=/latest_master-p10/
-    KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
+    echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and signing scripts from /esw/bin/sb-signing/sb-signing-keys"
+    KEYS_DIR=/esw/bin/sb-signing/sb-signing-keys
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
     PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
 else
-    echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and sigining scripts from OP-Build Tree"
+    echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and signing scripts from OP-Build Tree"
     KEYS_DIR=${SBE_IMG_DIR_OP}/../../../host/etc/keys/
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SBE_IMG_DIR_OP}/../../../host/usr/bin/
     PATH=$PATH:$LD_LIBRARY_PATH
 fi
 
-printf "\nSign SBE Image\n"
+#Check if user has passed signing mode
+if [ -z $SIGINING_MODE ]; then
+    SIGINING_MODE="Development"
+    echo "***INFO | SBE | signSbeImage : Defaulting signing mode to $SIGINING_MODE "
+else
+    echo "***INFO | SBE | signSbeImage : Signing mode entered: $SIGINING_MODE "
+fi
+
+#Set flag basis Development or production mode.
+if [ "$SIGINING_MODE" = "Development" ]; then
+    FLAG=0x40080000
+    echo "***INFO | SBE | signSbeImage : Development Mode : Defaulting flag to $FLAG"
+
+elif [ "$SIGINING_MODE" = "Production" ]; then
+    FLAG=0x40000000
+    echo "***INFO | SBE | signSbeImage : Production Mode : Defaulting flag to $FLAG"
+    #TODO: Remove below two lines once production mode signing is supported.
+    echo "***ERROR | SBE | signSbeImage : Production Mode not yet suppored"
+    exit -1
+
+else
+    echo "***ERROR | SBE | signSbeImage : Invalid signing mode option. Enter correct -f option"
+    usage
+    exit -1
+fi
 
 #Append MSV after HW Keys Hash in .sb_settings and add padding to keep the section 8 byte alligned.
-MSV="\x00"
+if [ -z $MSV ]; then
+    MSV="\x00"
+    echo "***INFO | SBE | signSbeImage : MSV(Minimum Secure Version) not entered. Defaulting to $MSV"
+else
+    echo "***INFO | SBE | signSbeImage : MSV(Minimum Secure Version) entered: $MSV"
+fi
 RESERVED="\x00\x00\x00\x00\x00\x00\x00"
 
 # Do some sanity checks on things we expect the script to consume
@@ -176,6 +213,8 @@ check_path ${SBEBINSIMIMAGE}
 
 #Create the scratch dir
 mkdir -p ${SCRATCH_DIR}
+
+printf "\nSign SBE Image\n"
 
 if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
@@ -196,7 +235,7 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
 elif [ "$BUILD_TYPE" = "PNOR" ]; then
 
-    echo "Skipping sigining of HBBL section....."
+    echo "Skipping signing of HBBL section....."
 
 else
 
@@ -230,7 +269,7 @@ cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/baseloader.b
 
 # Sign the SBE firmware binary image(payload.bin)
 echo "Sign SBE FW image"
-crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate
+crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags $FLAG --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate
 
 #Strip out padding zeros from SBE_FW.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
 echo "Strip SBE_FW.header content"
