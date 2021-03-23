@@ -626,6 +626,10 @@
     <virtual/>
   </entry>    
   <entry>
+    <name>ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL</name>
+    <virtual/>
+  </entry>    
+  <entry>
     <name>ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX</name>
     <virtual/>
   </entry>
@@ -716,5 +720,17 @@
   <entry>
     <name>ATTR_CONTAINED_FENCE_HANGPULSE</name>
     <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_MEASUREMENT_SEEPROM_VERSION</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_HW_KEY_HASH_ADDR</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_MINIMUM_SECURE_VERSION</name>
+    <value>0x0</value>
   </entry>
 </entries>
