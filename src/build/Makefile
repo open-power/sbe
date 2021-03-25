@@ -57,7 +57,7 @@ endif
 #needs to be updated.
 #Example: 3.4 = \x00\03\x00\x04
 #Version = 4Bytes = 2.0 = "\x00\02\x00\x00"
-MEASUREMENT_SEEPROM_VER="\x00\x02\x00\x00"
+MEASUREMENT_SEEPROM_VER="\x00\x02\x00\x02"
 #4bytes reserved to keep the xip section 8 byte alligned
 MEASUREMENT_SEEPROM_RESERVED="\x00\x00\x00\x00"
 

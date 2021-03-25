@@ -46,9 +46,10 @@ _pibmemRepair:
         stvd    d4, 0(r3)
 
         #Initialize OPCG_ALIGN register with 1:1 scan ratio
-        #SCOMIN   01030001 0x50000000_00000020
+        # INOP_ALIGN_DEFAULT 16:1
+        #SCOMIN   01030001 0x70000000_00000020
         _liw    %r3, 0x1030001
-        lis     %r4, 0x5000
+        lis     %r4, 0x7000
         li      r5, 0x20
         stvd    d4, 0x0(r3)
 

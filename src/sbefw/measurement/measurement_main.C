@@ -32,6 +32,7 @@
 #include "sbeRoleIdentifier.H"
 #include "sbemPcrStates.H"
 #include "sbeOtpromMeasurementReg.H"
+#include "sbe_link.H"
 
 extern "C" {
 #include "pk_api.h"
@@ -53,6 +54,10 @@ extern "C" {
 #define SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT     33
 #define ECC_CONTROL_TRANSPARENT_READ            1
 #define SPI_ECC_CONTROL_SHIFT                   35
+#define DD1                                     1
+#define DD2                                     2
+#define EC_MAJOR_VERSION_BIT_SHIFT              36
+#define TPM_DECONFIG_BIT_SHIFT                  51
 
 // TODO - Need to define a Header file for this and remove extern
 extern uint32_t performTPMSequences();
@@ -185,7 +190,7 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     PPE_LVD(spiAddr, loadData);
     loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
             ((uint64_t)spiTpmClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
     PPE_STVD(spiAddr, loadData);
@@ -195,7 +200,115 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     lfrReg.pau_freq_in_mhz = 0x7B0;
     PPE_STVD(0xc0002040, lfrReg); // New Divider and system freq updated into LFR
     //////////////////# SPI Clock Setting per the new Frequency - End /////////////////
+}
+///////////////////////////////////////////////////////////////////////////////////////
+//SCAN Init sequence for DD2 PAU_DPLL_RING
+///////////////////////////////////////////////////////////////////////////////////////
+void scanInitDD2PauDpllTimeRing()
+{
+    uint64_t loadData = 0;
+    uint64_t fetchData = 0;
+    //# Scan region & type
+    //# SCOMIN 01030005 000C000000000100
+    loadData = 0x000C000000000100ULL;
+    PPE_STVD(0x01030005, loadData);
+    //# insert header
+    //# SCOMIN 0103F040 A5A5A5A5A5A5A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000 0000 0004 8001
+    loadData = 0x0000000000048001ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 4310 1554 0000 1248
+    loadData = 0x4310155400001248ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 8000 0020 0000 0000
+    loadData = 0x8000000200000000ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000 9000 2862 02AA
+    loadData = 0x00009000286202AAULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 8000 0249 1000 0000
+    loadData = 0x8000024910000000ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 16bits
+    //# SCOMIN 0103F010 4000 0000 0000 0000
+    loadData = 0x4000000000000000ULL;
+    PPE_STVD(0x0103F010, loadData);
+    //# extract/read the header out and compare
+    //# SCOMOUT 0103F000 A5A5A5A5A5A5A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_LVD(0x0103F000, fetchData);
+    if(fetchData != loadData)
+    {
+        // asm("li %r0, PAU_DPLL_SCAN_HDR_COMPARE_FAIL\n"); -> wanting to use this,
+        // but because of compile failure hard-coding the values from sbe_link.H
+        // PAU_DPLL_SCAN_HDR_COMPARE_FAIL 0x04
+        asm("li %r1, 4\n");
+        pk_halt();
+    }
+    //# clear scan region & type
+    //# SCOMIN 01030005 0000000000000000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x01030005, loadData);
+}
 
+///////////////////////////////////////////////////////////////////////////////////////
+//SCAN Init sequence for DD1 PAU_DPLL_RING
+///////////////////////////////////////////////////////////////////////////////////////
+void scanInitDD1PauDpllTimeRing()
+{
+    uint64_t loadData = 0;
+    uint64_t fetchData = 0;
+    //# Scan region & type
+    //# SCOMIN 01030005 000C000000000100
+    loadData = 0x000C000000000100ULL;
+    PPE_STVD(0x01030005, loadData);
+    //# insert header
+    //# SCOMIN 0103F040 A5A5 A5A5 A5A5 A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000 0000 0048 0014
+    loadData = 0x0000000000480014ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 3101 5540 0001 2488
+    loadData = 0x3101554000012488;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000 0020 0000 0000
+    loadData = 0x0000002000000000ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0009 0002 8620 2AA8
+    loadData = 0x0009000286202AA8ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 64bits
+    //# SCOMIN 0103F040 0000 2491 0000 0004
+    loadData = 0x0000249100000004ULL;
+    PPE_STVD(0x0103F040, loadData);
+    //# insert scan data 16bits
+    //# SCOMIN 0103F010 0000 0000 0000 0000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x0103F010, loadData);
+    //# extract/read the header out and compare
+    //# SCOMOUT 0103F000 A5A5 A5A5 A5A5 A5A5
+    loadData = 0xA5A5A5A5A5A5A5A5ULL;
+    PPE_LVD(0x0103F000, fetchData);
+    if(fetchData != loadData)
+    {
+        pk_halt();
+    }
+    //# clear scan region & type
+    //# SCOMIN 01030005 0000 0000 0000 0000
+    loadData = 0x0000000000000000ULL;
+    PPE_STVD(0x01030005, loadData);
 }
 
 // This function is to lock on the PAU DPLL from Ref clock
@@ -206,50 +319,21 @@ void lockPauDpll(void)
     uint32_t opcg_done = 0;
     uint32_t pau_lock = 0;
     /////////////////////////# Putring Start for perv_dpll_time/////////////////////////
-    //# Scan region & type
-    //# SCOMIN 01030005 000C000000000100
-    loadData = 0x000C000000000100ULL;
-    PPE_STVD(0x01030005, loadData);
-    //# insert header
-    //# SCOMIN 0103F040 A5A5A5A5A5A5A5A5
-    loadData = 0xA5A5A5A5A5A5A5A5ULL;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 64bits
-    //# SCOMIN 0103F040 0000000000480014
-    loadData = 0x0000000000480014ULL;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 64bits
-    //# SCOMIN 0103F040 3101554000012488
-    loadData = 0x3101554000012488;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 64bits
-    //# SCOMIN 0103F040 0000002000000000
-    loadData = 0x0000002000000000ULL;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 64bits
-    //# SCOMIN 0103F040 0009000286202AA8
-    loadData = 0x0009000286202AA8ULL;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 64bits
-    //# SCOMIN 0103F040 0000249100000004
-    loadData = 0x0000249100000004ULL;
-    PPE_STVD(0x0103F040, loadData);
-    //# insert scan data 16bits
-    //# SCOMIN 0103F010 0000000000000000
-    loadData = 0x0000000000000000ULL;
-    PPE_STVD(0x0103F010, loadData);
-    //# extract/read the header out and compare
-    //# SCOMOUT 0103F000 A5A5A5A5A5A5A5A5
-    loadData = 0xA5A5A5A5A5A5A5A5ULL;
-    PPE_LVD(0x0103F000, fetchData);
-    if(fetchData != loadData)
+    /////////////////SCOM in the SCAN Inits for the PERV_DPLL_TIME Ring/////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    // Check if you are DD1/DD2, CBS Environment Status Register bit 24-27, should be
+    // 0001 -> DD1, 0002 -> DD2
+    PPE_LVD(0x50004, fetchData);
+    if((fetchData >> EC_MAJOR_VERSION_BIT_SHIFT) & DD1)
     {
-        pk_halt();
+        SBE_INFO("Scanning PAU DPLL on DD1");
+        scanInitDD1PauDpllTimeRing();
     }
-    //# clear scan region & type
-    //# SCOMIN 01030005 0000000000000000
-    loadData = 0x0000000000000000ULL;
-    PPE_STVD(0x01030005, loadData);
+    else // DD2
+    {
+        SBE_INFO("Scanning PAU DPLL on DD2");
+        scanInitDD2PauDpllTimeRing();
+    }
     //////////////////////////# Putring End for perv_dpll_time/////////////////////////
 
     // SPI Clock Setting per the new Frequency Start
@@ -302,6 +386,9 @@ void lockPauDpll(void)
     }
     if(opcg_done == 0)
     {
+        //asm("li %r0, PAU_DPLL_START_CLOCK_OPCG_FAIL\n");
+        //PAU_DPLL_START_CLOCK_OPCG_FAIL 0x5
+        asm("li %r1, 5\n");
         pk_halt();
     }
     //# status of region 8 - dpllpau, bit 12
@@ -313,6 +400,9 @@ void lockPauDpll(void)
     PPE_LVD(0x01030008, fetchData);
     if(((fetchData >> 32) & 0x00800000) == 0)
     {
+        //asm("li %r0, PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL\n");
+        // PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL 0x6
+        asm("li %r1, 6\n");
         pk_halt();
     }
     //# Check for clocks running NSL
@@ -320,6 +410,9 @@ void lockPauDpll(void)
     PPE_LVD(0x01030009, fetchData);
     if(((fetchData >> 32) & 0x00800000) == 0)
     {
+        //asm("li %r0, PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL\n");
+        // PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL 0x6
+        asm("li %r1, 6\n");
         pk_halt();
     }
     //# Check for clocks running ARY
@@ -327,6 +420,9 @@ void lockPauDpll(void)
     PPE_LVD(0x0103000A, fetchData);
     if(((fetchData >> 32) & 0x00800000) == 0)
     {
+        //asm("li %r0, PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL\n");
+        // PAU_DPLL_CLOCK_RUNNING_STATUS_FAIL 0x6
+        asm("li %r1, 6\n");
         pk_halt();
     }
     //# Clear clock region
@@ -346,7 +442,7 @@ void lockPauDpll(void)
 
     //////////////////////////////////PAU DPLL LOCK////////////////////////////////////
     //# Check for PAU DPLL lock, check if bit 63 is set
-    //# SCOMOUT  01060055 0AA0000000000009
+    //# SCOMOUT  01060055 09D0000000000009
     for(uint32_t cnt=0; cnt<0x2750; cnt++)
     {
         PPE_LVD(0x01060055, fetchData);
@@ -358,6 +454,9 @@ void lockPauDpll(void)
     }
     if(pau_lock == 0)
     {
+        //asm("li %r0, PAU_DPLL_LOCK_FAIL\n");
+        //PAU_DPLL_LOCK_FAIL 0x07
+        asm("li %r1, 7\n");
         pk_halt();
     }
 
@@ -395,15 +494,23 @@ int  main(int argc, char **argv)
     SBEM_ENTER(SBEM_FUNC);
     int rc = 0;
     uint64_t loadData = 0;
+    uint64_t scratchMsgReg = 0;
     sbe_local_LFR lfrReg;
     uint64_t scratchReg6 = 0;
     uint64_t scratchReg8 = 0;
     uint64_t spiClockReg = 0;
+    uint64_t data = 0;
+    uint64_t securityReg = 0;
+    SHA512_t result;
+    SHA512truncated_t truncatedResult;
+    securityState_PCR6_t securityStatePCR6;
+    securityState_PCR1_t securityStatePCR1;
+
     do
     {
         // Update the Code Flow status in messaging register 50009
-        uint64_t loadValue = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
-        PPE_STVD(0x50009, loadValue);
+        scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
+        PPE_STVD(0x50009, scratchMsgReg);
 
         //Fetch the default clock divider from LFR
         PPE_LVD(0xc0002040, lfrReg);
@@ -428,6 +535,10 @@ int  main(int argc, char **argv)
             PPE_LVD(0x5003D, scratchReg6);
             if((!((scratchReg6 >> BIT15_SHIFT) & BIT0_MASK)) && ((scratchReg8 >> BIT5_SHIFT) & BIT0_MASK)) //PAU Path
             {
+                // Update the Code Flow status in messaging register 50009
+                uint64_t scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_PAU_DPLL_LOCK_MSG)<<32;
+                PPE_STVD(0x50009, scratchMsgReg);
+
                 if(!SBE::isSimicsRunning())
                 {
                     lockPauDpll();
@@ -449,7 +560,7 @@ int  main(int argc, char **argv)
                 PPE_LVD(0xc0083, spiClockReg);
                 spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                                 ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
-                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
                                 ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                                 ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
                 PPE_STVD(0xc0083, spiClockReg);
@@ -471,7 +582,7 @@ int  main(int argc, char **argv)
             PPE_LVD(0xc0083, spiClockReg);
             spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                             ((uint64_t)tpmSpiClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
                             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
             PPE_STVD(0xc0083, spiClockReg);
@@ -519,18 +630,19 @@ int  main(int argc, char **argv)
 
         sbemSetSecureAccessBit();
 
+        // Check SBE Role
         g_sbeRole = checkSbeRole();
+
+        // Update the Code Flow status in messaging register 50009
+        uint64_t scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_TPM_INIT_SEQUENCE_MSG)<<32;
+        PPE_STVD(0x50009, scratchMsgReg);
+
+        // Startup TPM Sequence for Master Chip, Poison for Alt-master and Deconfig Bit for Secondary chips
         rc = performTPMSequences();
         if (rc)
         {
             SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", rc);
         }
-
-        SHA512_t result;
-        uint64_t data;
-        SHA512truncated_t truncatedResult;
-        securityState_PCR6_t securityStatePCR6;
-        securityState_PCR1_t securityStatePCR1;
 
         //Write extendSecurityStatePCR6 into measurement register x10010
         securityStatePCR6.update(g_sbeRole);
@@ -542,8 +654,9 @@ int  main(int argc, char **argv)
         memcpy(&data, (uint8_t *)&securityStatePCR1, sizeof(securityState_PCR1_t));
         putscom_abs(OTPROM_MEASUREMENT_REG2, data);
 
+        PPE_LVD(0x10005, securityReg);
         //Skip if error/rc in TPM sequence.
-        if((g_sbeRole == SBE_ROLE_MASTER) && (!(rc)))
+        if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
         {
             //Extend HW key hash to PCR6 and PCR1 if SBE role is master.
             if(getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS) != 0x00)
@@ -555,17 +668,21 @@ int  main(int argc, char **argv)
                 SBEM_ERROR(".sb_settings XIP section not found. HW key hash not found");
                 SBEM_ERROR("Extending 0x00 into TPM_PCR6 and TPM_PCR1");
             }
+            // TODO - Please handle the return RC and update scratch and deconfig TPM
             tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
+            // TODO - Please handle the return RC and update scratch and deconfig TPM
             tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
 
             //Extend Security state to PCR6.i.e Jumper State and MSV.
             memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
             memcpy(truncatedResult, &securityStatePCR6, sizeof(securityStatePCR6));
+            // TODO - Please handle the return RC and update scratch and deconfig TPM
             tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
 
             //Extend Security state to PCR1.
             memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
             memcpy(truncatedResult, &securityStatePCR1, sizeof(securityStatePCR1));
+            // TODO - Please handle the return RC and update scratch and deconfig TPM
             tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
         }
 
@@ -574,28 +691,31 @@ int  main(int argc, char **argv)
         if(getXipSize(P9_XIP_SECTION_SBE_SB_VERIFICATION) != 0x00)
         {
             SBEM_INFO("Measure/Calculate SHA512 of .sb_verification XIP Section");
-            SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
+            // TODO - Fix Sha512, Presently it is going to append zeros.
+            //SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
             memcpy(truncatedResult, &result[sizeof(SHA512truncated_t)], sizeof(SHA512truncated_t));
+
+            //Write truncated hash of SBE verification code to measurement register
+            //4-7 (x10014-x10017).
+            writeTruncatedVerificationImageHash(truncatedResult);
+
+            //Skip if error/rc in TPM sequence.
+            if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
+            {
+                //Extend MSB 32 Bytes of result into TPM PCR0 and PCR6 if SBE
+                //role is master.
+                //TODO:Handle TPM fail cases.
+                // TODO - Please handle the return RC and update scratch and deconfig TPM
+                tpmExtendPCR(TPM_PCR0, truncatedResult, sizeof(SHA512truncated_t));
+                // TODO - Please handle the return RC and update scratch and deconfig TPM
+                tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
+            }
         }
         else
         {
             SBEM_ERROR(".sb_verification XIP section not found. Verification code not found.");
             SBEM_ERROR("SHA512 not calculated for .sb_verification XIP section.");
         }
-        //Write truncated hash of SBE verification code to measurement register
-        //4-7 (x10014-x10017).
-        writeTruncatedVerificationImageHash(truncatedResult);
-
-        //Skip if error/rc in TPM sequence.
-        if((g_sbeRole == SBE_ROLE_MASTER) && (!(rc)))
-        {
-            //Extend MSB 32 Bytes of result into TPM PCR0 and PCR6 if SBE
-            //role is master.
-            //TODO:Handle TPM fail cases.
-            tpmExtendPCR(TPM_PCR0, truncatedResult, sizeof(SHA512truncated_t));
-            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
-        }
-
     }while(0);
 
     SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
