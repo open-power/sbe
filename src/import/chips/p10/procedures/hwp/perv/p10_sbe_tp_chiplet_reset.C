@@ -61,6 +61,11 @@ enum P10_SBE_TP_CHIPLET_RESET_Private_Constants
     START_CMD = 0x1,
     CLOCK_TYPES_ALL = 0x7,
     NEST_PDLY_SETTING = 0x7,
+    SPIMST_CLOCK_CONFIG_BYPASS = 0x0044000000000000,
+    SPIMST0_CLOCK_CONFIG = 0xC0003,
+    SPIMST_CONFIG1_LOCK = 0x8000000000000000,
+    SPIMST_CONFIG1_UNLOCK = 0x0000000000000000,
+    SPIMST0_CONFIG1 = 0xC0002,
 };
 
 fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
@@ -345,6 +350,45 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     FAPI_DBG("Setup hang counters for Perv chiplet");
     FAPI_TRY(p10_perv_sbe_cmn_setup_hangpulse_counters(l_tpchiplet, false, BASE_ADDRESS, PRE_DIVIDER,
              SETUP_HANG_COUNTERS_PERV));
+
+    // ensure that SPI clock divider is set correctly to permit HWP access when running at bypass speed
+    // if not at bypass, we assume that SBE has locked the DPLL and established the correct clock
+    // divider to permit VPD access
+    if (fapi2::is_platform<fapi2::PLAT_CRONUS>())
+    {
+        fapi2::buffer<uint64_t> l_root_ctrl3 = 0, l_spimst_config1 = 0;
+        FAPI_TRY(fapi2::getScom(i_target_chip, perv::FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_root_ctrl3));
+
+        for (int offset = 0; offset < 0x80; offset += 0x20)
+        {
+            FAPI_DBG("Bust any stale SPI controller locks");
+            FAPI_TRY(fapi2::getScom(i_target_chip, SPIMST0_CONFIG1 + offset, l_spimst_config1));
+
+            if (l_spimst_config1.getBit<0>())
+            {
+                if (offset >= 0x40)
+                {
+                    // On engines 2 and 3, bust locks regardless of DPLL bypass
+                    l_spimst_config1.clearBit<0>();
+                    FAPI_TRY(fapi2::putScom(i_target_chip, SPIMST0_CONFIG1 + offset, l_spimst_config1));
+                }
+                else
+                {
+                    // If engine 0 or 1 is locked, we rather skip it since it belongs
+                    // to the SBE and busting its lock will kill the SBE.
+                    continue;
+                }
+            }
+
+            if (l_root_ctrl3.getBit<perv::FSXCOMP_FSXLOG_ROOT_CTRL3_TP_PAU_DPLL_BYPASS_EN_DC>())
+            {
+                FAPI_DBG("Initialize SCK clock divider for bypass");
+                FAPI_TRY(fapi2::putScom(i_target_chip, SPIMST0_CONFIG1 + offset, SPIMST_CONFIG1_LOCK));
+                FAPI_TRY(fapi2::putScom(i_target_chip, SPIMST0_CLOCK_CONFIG + offset, SPIMST_CLOCK_CONFIG_BYPASS));
+                FAPI_TRY(fapi2::putScom(i_target_chip, SPIMST0_CONFIG1 + offset, SPIMST_CONFIG1_UNLOCK));
+            }
+        }
+    }
 
     FAPI_INF("p10_sbe_tp_chiplet_reset: Exiting ...");
 
