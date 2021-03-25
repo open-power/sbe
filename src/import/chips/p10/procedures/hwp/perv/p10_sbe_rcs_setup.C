@@ -51,7 +51,7 @@
 
 enum P10_SBE_RCS_SETUP_Private_Constants
 {
-    RCS_CONTRL_DC_CFAM_RESET_VAL = 0x0010000000000000,
+    RCS_CONTRL5_DC_CFAM_RESET_VAL = 0x0010000000000000,
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
@@ -68,6 +68,110 @@ static fapi2::ReturnCode p10_sbe_rcs_setup_test_latches(
     uint8_t attr_cp_refclock_select,
     bool set_rcs_clock_test_in);
 
+//---------------------------------------------------------------------------------
+// Function to make sure RCS exits on the correct side
+//---------------------------------------------------------------------------------
+fapi2::ReturnCode p10_sbe_rcs_check_side(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+    uint8_t i_cp_refclck_select)
+{
+    using namespace scomt;
+    using namespace scomt::proc;
+    using namespace scomt::perv;
+
+    fapi2::buffer<uint64_t> l_data64_rcsns;
+    fapi2::buffer<uint64_t> l_data64_rc5;
+    bool     l_aside = 0, l_bside = 0;
+
+    FAPI_DBG("Entering RCS check side...");
+
+    //read back the RCS sens register
+    GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
+
+    FAPI_DBG("rcs sens register %#018lX", l_data64_rcsns);
+
+    //Check if the A-side or B-side is selected
+    l_aside = l_data64_rcsns.getBit<12>();
+    l_bside = l_data64_rcsns.getBit<13>();
+
+    if(((i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
+        (i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED)) &&
+       (l_bside))
+    {
+        l_data64_rc5.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_FORCE_BYPASS_CLKSEL_DC(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+        // force a stuck 0 error on the B-side
+        l_data64_rc5.flush<0>();
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SWO_FORCE_LOW(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+    }
+    else if(((i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1) ||
+             (i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED)) &&
+            (l_aside))
+    {
+        l_data64_rc5.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_FORCE_BYPASS_CLKSEL_DC(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+        // force a stuck 0 error on the A-side
+        l_data64_rc5.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SWO_FORCE_LOW(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+    }
+
+    // clear the FORCE_LOW before we clear the errors
+    l_data64_rc5.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_SWO_FORCE_LOW(1, l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+    FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+    if((i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
+       (i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED))
+    {
+        l_data64_rc5.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_FORCE_BYPASS_CLKSEL_DC(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+    }
+    else if((i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1) ||
+            (i_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED))
+    {
+        l_data64_rc5.flush<0>();
+        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+        SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_FORCE_BYPASS_CLKSEL_DC(1, l_data64_rc5);
+        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    }
+
+    FAPI_DBG("Clear RCS errors");
+    l_data64_rc5.flush<0>().setBit<6, 2>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
+
+    FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+
+fapi_try_exit:
+    return fapi2::current_err;
+
+}
 //---------------------------------------------------------------------------------
 // Function to find the deskew val from the input string of error bits
 //---------------------------------------------------------------------------------
@@ -110,10 +214,10 @@ void p10_get_deskew_dd2(
         }
     }
 
-    if ( l_streak == 32)  //This represents  a case where no error was found, trivially assign the
-        //o_deskewVal to zero
+    if ( l_streak == 32)  //This represents  a case where no error was found.  This should
+        // never happen, so we will treat this as a fail
     {
-        o_deskewVal = 0;
+        o_deskewVal = -1;
     }
     else if ( l_streakMax >= 3 ) //If three consecutive non-error bits were found
     {
@@ -202,7 +306,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     uint32_t l_clkBErrVals = 0, l_shiftedBErrVals = 0;
     const uint16_t l_max_deskews = 16;
     uint64_t l_deskew_array[l_max_deskews] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
-    int      l_max_loop = 5;                   //The number of times PLL reset will be tried
+    int      l_max_loop = 20;                  //The number of times PLL reset will be tried
     int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
     int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
 
@@ -216,7 +320,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
         for( int l_deskewIndex = 0 ; l_deskewIndex < l_max_deskews; l_deskewIndex++)
         {
             //Initialize the RC5 to ASSERT RESET and BYPASS (Add:2925)
-            l_data64_rc5 = 0xC000000200000000ull;
+            l_data64_rc5 = 0x0406000200000000ull;
             FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
 
@@ -227,7 +331,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_DESKEW_SEL_B(0xF, l_deskew_buf);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_CLEAR_WO_CLEAR(i_target_chip, l_deskew_buf));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //Initialize the DESKEW value
             l_data64_rc6.flush<0>();
@@ -235,24 +339,11 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip));
             SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_A(l_deskew_buf, l_data64_rc6);
             SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_B(l_deskew_buf, l_data64_rc6);
+            SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_RCS_CONTROL_7_0(0x0B,
+                    l_data64_rc6);       //set SEL_RES and pulse_width chicken switch
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip, l_data64_rc6));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
-
-            //take RCS out of RESET
-            l_data64_rc5.flush<0>();
-            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
-            SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
-            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
-
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
-
-            //clear BYPASS
-            l_data64_rc5.flush<0>();
-            SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
-            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
-
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             FAPI_DBG("Clear RCS errors");
             l_data64_rc5.flush<0>();
@@ -261,13 +352,13 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             SET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_CLEAR_CLK_ERROR_B(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //Do not clear l_data64_rc5 here
             FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //read back the RCS sens register
             GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
@@ -275,8 +366,8 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             FAPI_DBG("deskew loop 0x%02X, rcs sens register %#018lX", l_deskewIndex, l_data64_rcsns);
 
             //Check if there was a clock error
-            l_clkErrA = l_data64_rcsns.getBit<6>();
-            l_clkErrB = l_data64_rcsns.getBit<8>();
+            l_clkErrA = l_data64_rcsns.getBit<6>() | l_data64_rcsns.getBit<7>();
+            l_clkErrB = l_data64_rcsns.getBit<8>() | l_data64_rcsns.getBit<9>();
 
             //The clock errors encountered for each deskew will be put into a bit string with
             //0th deskew forming the leftmost bit, the 1st deskew forming the 2nd bit from left and
@@ -300,6 +391,26 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
         if((l_goodDeskewA == INVALID_DESKEW) || (l_goodDeskewB == INVALID_DESKEW))
         {
             FAPI_INF("Valid deskew not found, loop count 0x%02x", l_index);
+
+            //reset the RCS PLL before entering the new loop
+            l_data64_rc3.flush<0>();
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI(i_target_chip));
+
+            if(l_goodDeskewA == INVALID_DESKEW)
+            {
+                SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW1_RESET_DC(l_data64_rc3);
+            }
+
+            if(l_goodDeskewB == INVALID_DESKEW)
+            {
+                SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW2_RESET_DC(l_data64_rc3);
+            }
+
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target_chip, l_data64_rc3));
+
+            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target_chip));
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc3));
         }
         else
         {
@@ -308,16 +419,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             break;
         }
 
-        //reset the RCS PLL before entering the new loop
-        l_data64_rc3.flush<0>();
-        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_FSI(i_target_chip));
-        SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW1_RESET_DC(l_data64_rc3);
-        SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW2_RESET_DC(l_data64_rc3);
-        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target_chip, l_data64_rc3));
 
-        fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
-        FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target_chip));
-        FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc3));
     }// End of loop to find the deskew
 
     GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
@@ -348,33 +450,26 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     SET_P10_20_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_DESKEW_SEL_B(l_deskew_buf, l_data64_rc5);
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL6_SET_WO_OR(i_target_chip, l_data64_rc5));
 
-    //Put RCS into RESET
-    l_data64_rc5.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
-    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_RESET_DC(l_data64_rc5);
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
-
-    //set RCS BYPASS
-    l_data64_rc5.flush<0>();
-    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
-
-    //take RCS out of RESET
-    l_data64_rc5.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
-    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
-
-    //clear BYPASS
-    l_data64_rc5.flush<0>();
-    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+    FAPI_DBG("Clear RCS errors");
+    l_data64_rc5.flush<0>().setBit<6, 2>();
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
+    FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
     //set the sel_del val
     l_data64_rc5.flush<0>();
     FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
     SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SEL_DEL(l_data64_rc5);
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+    FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+    //clear the BLOCK_SWO bit
+    l_data64_rc5.flush<0>();
+    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
+    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_BLOCK_SWO(l_data64_rc5);
+    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
+
+    FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
     FAPI_INF("p10_sbe_rcs_dd2_deskew_calibrate: Exiting ...");
 
@@ -436,14 +531,14 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
             SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_RESET_DC(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //clear BYPASS
             l_data64_rc5.flush<0>();
             SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_TPFSI_RCS_BYPASS_DC(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             FAPI_DBG("Clear RCS errors");
             l_data64_rc5.flush<0>();
@@ -452,13 +547,13 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
             SET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_CLEAR_CLK_ERROR_B(l_data64_rc5);
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //Do not clear l_data64_rc5 here
             FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip));
             FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
-            fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
             //read back the RCS sens register
             GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
@@ -502,7 +597,7 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
         SET_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_TP_PLLCLKSW2_RESET_DC(l_data64_rc3);
         FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR(i_target_chip, l_data64_rc3));
 
-        fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
         FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_FSI(i_target_chip));
         FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc3));
     }// End of loop to find the deskew
@@ -599,14 +694,14 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
             fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0));
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_RW, l_data64_rc3));
 
-    if((l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
-       (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1) ||
-       (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED) ||
-       (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED))
+    if(((l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED)) && (!l_rcs_hw545231))
     {
 
         FAPI_DBG("Set up RCS configuration for sync mode, preserve bypass select bits");
-        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, RCS_CONTRL_DC_CFAM_RESET_VAL));
+        FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, RCS_CONTRL5_DC_CFAM_RESET_VAL));
 
         for(int i = 0; i < POLL_COUNT; i++)
         {
@@ -679,15 +774,35 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR, l_data64_rc3));
 
+        FAPI_DBG("Check what side RCS is on");
+        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_rcs_status));
+
+        if(!l_rcs_hw545231)
+        {
+            //set the BLOCK_SWO bit for dd2 BEFORE coming out of RESET and BYPASS
+            FAPI_DBG("Setting the BLOCK_SWO bit before exiting RESET and BYPASS");
+            l_data64_rc5.flush<0>();
+            FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+            SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_BLOCK_SWO(l_data64_rc5);
+            FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+
+            FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+        }
+
         FAPI_DBG("Drop RCS reset");
         l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_RESET_DC>(); // rc5 bit0 = 0
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
-        fapi2::delay(RCS_RESET_NS_DELAY, RCS_RESET_SIM_CYCLE_DELAY);
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
         FAPI_DBG("RCS out of bypass");
         l_data64_rc5.flush<0>().setBit<FSXCOMP_FSXLOG_ROOT_CTRL5_TPFSI_RCS_BYPASS_DC>();
         FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
+
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+        FAPI_DBG("Check what side RCS is on");
+        FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_rcs_status));
 
         //Run the deskew algorithm to calibrate the RCS FPLL
         if(l_rcs_hw545231)
@@ -696,10 +811,12 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         }
         else
         {
+            FAPI_DBG("Run DD2 Deskew algo in RCS sync mode");
             FAPI_TRY(p10_sbe_rcs_dd2_deskew_calibrate(i_target_chip));
+
         }
 
-        fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY);
+        FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
         FAPI_DBG("Clear RCS errors");
         l_data64_rc5.flush<0>().setBit<6, 2>();
@@ -754,6 +871,8 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         }
 
+        // check to make sure we come out of RCS setup on the correct side
+        FAPI_TRY(p10_sbe_rcs_check_side(i_target_chip, l_cp_refclck_select));
 
     }
 
