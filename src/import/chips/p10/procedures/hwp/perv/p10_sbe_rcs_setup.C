@@ -283,8 +283,9 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             //so on.
             l_clkAErrVals += l_clkErrA << (15 - l_deskew_buf);
             l_clkBErrVals += l_clkErrB << (15 - l_deskew_buf);
-            FAPI_DBG("deskew loop 0x%02X, l_clkErrA 0x%02X, l_clkErrB 0x%02X, l_clkAErrVals 0x%02X, l_clkBErrVals 0x%02X",
-                     l_deskewIndex, l_clkErrA, l_clkErrB, l_clkAErrVals, l_clkBErrVals);
+            FAPI_DBG("deskew loop 0x%02X, l_clkErrA 0x%02X, l_clkErrB 0x%02X",
+                     l_deskewIndex, l_clkErrA, l_clkErrB);
+            FAPI_DBG("l_clkAErrVals 0x%02X, l_clkBErrVals 0x%02X", l_clkAErrVals, l_clkBErrVals);
 
         }//end of deskew range for
 
