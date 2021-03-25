@@ -1039,6 +1039,24 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         }
     }
 
+    // read_scratch13_reg -- TPM SPI settings
+    {
+        fapi2::buffer<uint64_t> l_read_scratch13_reg = 0;
+        fapi2::ATTR_TPM_SPI_BUS_DIV_Type l_attr_tpm_spi_bus_div = 0;
+
+        if (l_read_scratch8_reg.getBit<SCRATCH13_REG_VALID_BIT>())
+        {
+            FAPI_DBG("Reading Scratch 13 mailbox register");
+            FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_13_RW, l_read_scratch13_reg),
+                     "Error reading Scratch 13 mailbox register");
+
+            FAPI_DBG("Setting up ATTR_TPM_SPI_BUS_DIV");
+            l_read_scratch13_reg.extract<ATTR_TPM_SPI_BUS_DIV_STARTBIT, ATTR_TPM_SPI_BUS_DIV_LENGTH>(l_attr_tpm_spi_bus_div);
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_TPM_SPI_BUS_DIV, i_target_chip, l_attr_tpm_spi_bus_div),
+                     "Error from FAPI_ATTR_SET (ATTR_TPM_SPI_BUS_DIV)");
+        }
+    }
+
     FAPI_INF("p10_sbe_attr_setup: Exiting ...");
 
 fapi_try_exit:
