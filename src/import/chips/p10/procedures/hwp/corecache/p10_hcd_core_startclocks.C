@@ -200,6 +200,11 @@ p10_hcd_core_startclocks(
     // shared for both stop11 and stop3 path
     FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
 
+    //Enable the hardware filter upon any stop exit including mpipl
+    //so that any regular wakeup at runtime will not be interrupting QME constantly
+    FAPI_DBG("Drop REG_WKUP_FILTER_DIS via QME_SCSR[14]");
+    FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_CLEAR, MMIO_LOAD32H( BIT32(14) ) ) );
+
 #ifndef __PPE_QME
     FAPI_DBG("Only Drop QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE for Istep4");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_OR, MMIO_LOAD32H( BIT32(1) ) ) );
