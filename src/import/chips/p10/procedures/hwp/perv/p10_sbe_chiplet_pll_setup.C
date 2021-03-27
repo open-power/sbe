@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -99,6 +99,10 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
                                          fapi2::TARGET_FILTER_ALL_IOHS | fapi2::TARGET_FILTER_ALL_PCI),
                                  fapi2::TARGET_STATE_FUNCTIONAL);
 
+        auto l_pre_delay_iohs = false;
+        auto l_pre_delay_mc = false;
+        auto l_pre_delay_pci = false;
+
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133,
                                i_target_chip,
                                l_filter_pll_hw540133));
@@ -128,26 +132,37 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
             FAPI_TRY(hw540133::apply_workaround(l_mc_iohs, hw540133::iohs_plls));
             FAPI_TRY(hw540133::apply_workaround(l_mc_mc, hw540133::mc_plls));
         }
+        else
+        {
+            l_pre_delay_iohs = true;
+        }
 
         if (l_filter_pll_hw540133)
         {
             FAPI_TRY(hw540133::apply_workaround(l_mc_pci, hw540133::pci_plls));
+        }
+        else
+        {
+            if (!l_pre_delay_iohs && !l_pre_delay_mc)
+            {
+                l_pre_delay_pci = true;
+            }
         }
 
         FAPI_DBG("Check PLL lock for IOHS, MC, PCI chiplets");
         // This smells like three separate timeouts, and it kinda is, but in the good case
         // the second and third poll call will exit very quickly since their PLLs had ample
         // time to lock.
-        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_iohs, 0xC000000000000000ULL, l_data64);
+        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_iohs, 0xC000000000000000ULL, l_pre_delay_iohs, l_data64);
 
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_pci, 0xC000000000000000ULL, l_data64);
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_mc, 0xC000000000000000ULL, l_pre_delay_mc, l_data64);
         }
 
         if (l_rc == fapi2::FAPI2_RC_SUCCESS)
         {
-            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_mc, 0xC000000000000000ULL, l_data64);
+            l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_mc_pci, 0xC000000000000000ULL, l_pre_delay_pci, l_data64);
         }
 
         if (l_rc == fapi2::FAPI2_RC_FALSE)

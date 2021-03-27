@@ -647,7 +647,8 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
         .writeBit<0>(l_cp_refclck_select != fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED)
         .writeBit<1>(l_cp_refclck_select != fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED);
 
-        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_pll_expect, l_pll_status);
+        l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_pll_expect, (l_filter_pll_hw540133 == 0)
+                                              && (l_pll_expect != 0), l_pll_status);
         FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
                     fapi2::RCS_PLL_LOCK_ERR()
                     .set_TP_PLL_LOCK_REG(l_pll_status)
