@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemsecuritysetting.H $                 */
+/* $Source: src/sbefw/measurement/sbemutil.C $                            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,14 +22,60 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "sbemtrace.H"
-#include "fapi2.H"
 #include "sbemutil.H"
-#include "ppe42_scom.h"
-#include "p10_scom_perv.H"
-#include "sbeglobals.H"
-#include "p10_sbe_scratch_regs.H"
+#include "fapi2.H"
+#include "sbemtrace.H"
+#include "sbeDecompression.h"
 
-using namespace fapi2;
+extern "C"
+{
 
-void sbemSetSecureAccessBit(void);
+/*
+ * API to jump to verification code.
+ */
+void jump2verificationImage(uint32_t i_destAddr)
+{
+    asm volatile (
+                     "mr %0, %1" : : "i" (6), "r" (i_destAddr) : "memory"
+                 );
+    asm(
+            "mtctr %r6\n"
+            "bctr\n"
+       );
+}
+
+/*
+ * API to jump to the boot seeprom.
+ */
+void jump2bootImage()
+{
+    asm(
+            "lis %r4, 0xFF80\n"
+            "lvd %d0, 0(%r4)\n"
+            "lis %r2 , 0x5849\n"
+            "ori %r2 , %r2 , 0x5020\n"
+            "lis %r3 , 0x5345\n"
+            "ori %r3 , %r3, 0x504d\n"
+            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
+            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
+            "ori %r4, %r4, 8\n"
+            "lvd %d0 , 0(%r4)\n"
+            "mtctr %r1\n"
+            "bctr\n"
+            "magic_failed:\n"
+            "trap\n"
+       );
+}
+} // end extern "C"
+
+int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
+{
+    uint32_t rc = 0;
+    do {
+         uint8_t rc = decompress((uint8_t *)i_srcAddr, (uint8_t *)i_destAddr);
+         if (rc != 0 )
+           break;
+       } while(0);
+
+    return rc;
+}

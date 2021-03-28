@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemsecuritysetting.H $                 */
+/* $Source: src/sbefw/measurement/sbemthreadroutine.H $                   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2021                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,14 +22,28 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "sbemtrace.H"
-#include "fapi2.H"
-#include "sbemutil.H"
-#include "ppe42_scom.h"
-#include "p10_scom_perv.H"
-#include "sbeglobals.H"
-#include "p10_sbe_scratch_regs.H"
+#ifndef __SBEM_THREAD_ROUTINE_H
+#define __SBEM_THREAD_ROUTINE_H
 
-using namespace fapi2;
+#include "sbesecuritycommon.H"
 
-void sbemSetSecureAccessBit(void);
+/**
+ * @brief Write truncated verification hash into OTPROM Regs
+ *        x10014,x10015,x10016,x10017
+ *
+ *  @param[in]  truncatedResult - SHA512 Truncated result.
+ */
+void writeTruncatedVerificationImageHash(SHA512truncated_t truncatedResult);
+
+/**
+ * @brief sbemSecureBoot_routine
+ *    One shot thread.
+ *    The major responsibilities of this thread are :
+ *        - Perform Secure boot flow.
+ *        - Jump to verification image.
+ *
+ *  @param[in]  i_pArg - Any buffer needed to be passed to the thread routine
+ */
+void sbemthreadroutine(void *i_pArg);
+
+#endif

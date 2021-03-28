@@ -27,13 +27,6 @@
 $procNr = -1
 foreach $proc in (get-component-list -all proc_p10) {
 
-    #TODO: Slave proc fails to boot with latest measurement code. Below code needs
-    #to be removed when issue is fixed by simics team.
-    if $proc == backplane0.dcm[0].chip[1] {
-        echo "Skipping chip[1]"
-        exit 0
-    }
-
     $procNr = $procNr + 1
     echo "**************** Run sbe testcases for " + $proc + "****************"
     $proc.pib_cmp.pib_psu->tppsu_tpbr_interrupt_msg_available=[NIL]

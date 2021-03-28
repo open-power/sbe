@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbeutil.C $                             */
+/* $Source: src/sbefw/measurement/sbemutil.H $                            */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -21,25 +22,30 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "sbeutil.H"
-#include "fapi2.H"
-#include "sbemtrace.H"
+#ifndef SBEM_UTIL_H
+#define SBEM_UTIL_H
 
-namespace SBE
-{
-    bool isSimics() __attribute__((alias("__isSimicsRunning")));
-    extern "C" void __isSimicsRunning() __attribute__ ((noinline));
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    void __isSimicsRunning()
-    {
-        asm volatile("li 3, 0");
-        SBE_MAGIC_INSTRUCTION(MAGIC_SIMICS_CHECK);
-    }
+#include "pk.h"
+#include "pk_api.h"
 
-    bool isSimicsRunning()
-    {
-        static bool simics = isSimics();
-        return simics;
-    }
+extern void jump2verificationImage(uint32_t i_destAddr);
+extern void jump2bootImage();
+#ifdef __cplusplus
 }
+#endif
 
+/**
+ * @brief Load verification image from source address into
+ *        destination address after decompressing .
+ *
+ *  @param[in] *i_srcAddr - Source address
+ *
+ *  @param[in] *i_destAddr - Destination address
+ */
+int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr);
+
+#endif //SBEM_UTIL_H

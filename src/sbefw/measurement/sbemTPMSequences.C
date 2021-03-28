@@ -32,7 +32,7 @@
 #include "p10_sbe_spi_cmd.H"
 #include "sbemtrace.H"
 #include "endian.h"
-#include "sbeutil.H"
+#include "sbemutil.H"
 #include "sbe_link.H"
 #include "sbeXipUtils.H"
 #include "sbestates.H"

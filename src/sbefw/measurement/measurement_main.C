@@ -24,15 +24,12 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include "sbemtrace.H"
-#include "sbemsecuritysetting.H"
 #include "sbeglobals.H"
-#include "sbeDecompression.h"
-#include "sbesecuritycommon.H"
-#include "sbeTPMCommand.H"
-#include "sbeRoleIdentifier.H"
-#include "sbemPcrStates.H"
-#include "sbeOtpromMeasurementReg.H"
 #include "sbe_link.H"
+#include "sbemthreadroutine.H"
+#include "sbeexeintf.H"
+#include "sbeutil.H"
+#include "sbeRoleIdentifier.H"
 
 extern "C" {
 #include "pk_api.h"
@@ -40,32 +37,38 @@ extern "C" {
 ////////////////////////////////////////////////////////////////
 //// @brief Stacks for Non-critical Interrupts ( timebase, timers )
 ////////////////////////////////////////////////////////////////
-#define INITIAL_PK_TIMEBASE   0
+#define INITIAL_PK_TIMEBASE                            0
+#define MEASUREMENT_NONCRITICAL_STACK_SIZE             512
 //Keep stack size greater than SPI_READ_SIZE_BYTES.
-#define MEASUREMENT_NONCRITICAL_STACK_SIZE      12288
-#define SPI_CLOCK_DELAY_SHIFT                   44
-#define SPI_CLOCK_DIVIDER_SHIFT                 52
-#define SPI_CLOCK_DIVIDER_DELAY_MASK            0x00000FFFFFFFFFFF
-#define DEFAULT_SPI_CLOCK_DELAY                 0x80
-#define BIT15_SHIFT                             0x30
-#define BIT5_SHIFT                              0x3A
-#define BIT0_MASK                               1
-#define ECC_SPIMM_ADDR_CORRECTION_DIS           1
-#define SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT     33
-#define ECC_CONTROL_TRANSPARENT_READ            1
-#define SPI_ECC_CONTROL_SHIFT                   35
-#define DD1                                     1
-#define DD2                                     2
-#define EC_MAJOR_VERSION_BIT_SHIFT              36
-#define TPM_DECONFIG_BIT_SHIFT                  51
+#define MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE      12288
 
-// TODO - Need to define a Header file for this and remove extern
-extern uint32_t performTPMSequences();
+#define SPI_CLOCK_DELAY_SHIFT                          44
+#define SPI_CLOCK_DIVIDER_SHIFT                        52
+#define SPI_CLOCK_DIVIDER_DELAY_MASK                   0x00000FFFFFFFFFFF
+#define DEFAULT_SPI_CLOCK_DELAY                        0x80
+#define BIT15_SHIFT                                    0x30
+#define BIT5_SHIFT                                     0x3A
+#define BIT0_MASK                                      1
+#define ECC_SPIMM_ADDR_CORRECTION_DIS                  1
+#define SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT            33
+#define ECC_CONTROL_TRANSPARENT_READ                   1
+#define SPI_ECC_CONTROL_SHIFT                          35
+#define DD1                                            1
+#define DD2                                            2
+#define EC_MAJOR_VERSION_BIT_SHIFT                     36
 
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
+uint8_t measurmentSecureBoot_stack[MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE];
+
+///////////////////////////////////////////////////////////////////
+//// @brief PkThread structure for SBE Measurement thread .
+////////////////////////////////////////////////////////////////////
+PkThread sbem_thread;
+
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbemfreqency = SBE_REF_BASE_FREQ_HZ;
-uint32_t g_sbeRole;
+sbe_local_LFR lfrReg;
+uint32_t g_sbeRole = 0xff;
 
 extern "C"
 {
@@ -85,6 +88,64 @@ extern uint64_t _sbss_end __attribute__ ((section (".sbss")));
 // or linker script to zero init sbss section. This way we will be future
 // garded if pk  boot uses some static/global data  initialised to
 // false in future.
+
+////////////////////////////////////////////////////////////////
+// @brief  createAndResumeThreadHelper
+//            - Create and resume the given thread
+//
+// @param[in/out] io_thread  A pointer to an PkThread structure to initialize
+// @param[in]     i_thread_routine The subroutine that implements the thread
+// @param[in/out] io_arg     Private data to be passed as the argument to the
+//                              thread routine when it begins execution
+// @param[in]     i_stack    The stack space of the thread
+// @param[in]     i_stack_size The size of the stack in bytes
+// @param[in]     i_priority The initial priority of the thread
+//
+// @return        PK_OK Successfully created and resumed the thread
+//
+// @return        PK_INVALID_THREAD_AT_CREATE io_thread is null
+// @return        PK_INVALID_ARGUMENT_THREAD1 i_thread_routine is null
+// @return        PK_INVALID_ARGUMENT_THREAD2 i_priority is invalid
+// @return        PK_INVALID_ARGUMENT_THREAD3 the stack area wraps around
+//                                      the end of memory.
+// @return        PK_STACK_OVERFLOW           The stack area at thread creation
+//                                      is smaller than the min safe size
+// @return        PK_INVALID_THREAD_AT_RESUME1 io_thread is null (unlikely)
+// @return        PK_INVALID_THREAD_AT_RESUME2 The thread is not active,
+//                                      i.e. has completed or been deleted,
+// @return        PK_PRIORITY_IN_USE_AT_RESUME Another thread is already
+//                                      mapped at the priority of the thread
+////////////////////////////////////////////////////////////////
+uint32_t createAndResumeThreadHelper(PkThread    *io_pThread,
+                                PkThreadRoutine   i_thread_routine,
+                                void             *io_pArg,
+                                PkAddress         i_stack,
+                                size_t            i_stack_size,
+                                sbeThreadPriorities  i_priority)
+{
+    int l_rc = PK_OK;
+
+    // Thread creation
+    l_rc =  pk_thread_create(io_pThread,
+                             i_thread_routine,
+                             io_pArg,
+                             i_stack,
+                             i_stack_size,
+                             (PkThreadPriority)i_priority);
+    if(l_rc == PK_OK)
+    {
+        // resume the thread once created
+        l_rc = pk_thread_resume(io_pThread);
+    }
+
+    // Check for errors creating or resuming the thread
+    if(l_rc != PK_OK)
+    {
+        SBE_ERROR ("Failure creating/resuming thread, rc=[%d]", l_rc);
+    }
+
+    return l_rc;
+}
 
 void __eabi()
 {
@@ -106,57 +167,7 @@ void __eabi()
         }
     } while (false);
 }
-
-/*
- ** API to jump to verification code.
- */
-void jump2verificationImage(uint32_t i_destAddr)
-{
-    asm volatile (
-                     "mr %0, %1" : : "i" (6), "r" (i_destAddr) : "memory"
-                 );
-    asm(
-            "mtctr %r6\n"
-            "bctr\n"
-       );
-}
-
-/*
- *  ** API to jump to the boot seeprom.
- *   */
-void jump2bootImage()
-{
-    asm(
-            "lis %r4, 0xFF80\n"
-            "lvd %d0, 0(%r4)\n"
-            "lis %r2 , 0x5849\n"
-            "ori %r2 , %r2 , 0x5020\n"
-            "lis %r3 , 0x5345\n"
-            "ori %r3 , %r3, 0x504d\n"
-            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
-            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
-            "ori %r4, %r4, 8\n"
-            "lvd %d0 , 0(%r4)\n"
-            "mtctr %r1\n"
-            "bctr\n"
-"magic_failed:\n"
-            "trap\n"
-       );
-}
 } // end extern "C"
-
-// Load section to destination address.
-int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
-{
-    uint32_t rc = 0;
-    do {
-         uint8_t rc = decompress((uint8_t *)i_srcAddr, (uint8_t *)i_destAddr);
-         if (rc != 0 )
-           break;
-       } while(0);
-
-    return rc;
-}
 
 // Setup the SPI Clock Divider per the new clock and update LFR
 void setupSpiClockDividerAndLFRPerPAUDPLL()
@@ -472,19 +483,6 @@ void lockPauDpll(void)
     //////////////////////////////////PAU DPLL LOCK////////////////////////////////////
 }
 
-void writeTruncatedVerificationImageHash(SHA512truncated_t truncatedResult)
-{
-    uint64_t hashData = 0x00;
-    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 0], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG4), hashData);
-    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 1], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG5), hashData);
-    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 2], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG6), hashData);
-    memcpy(&hashData, &truncatedResult[sizeof(uint64_t) * 3], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG7), hashData);
-}
-
 ////////////////////////////////////////////////////////////////
 // @brief - main : Measurement Application main
 ////////////////////////////////////////////////////////////////
@@ -492,6 +490,7 @@ int  main(int argc, char **argv)
 {
     #define SBEM_FUNC "Measurement main"
     SBEM_ENTER(SBEM_FUNC);
+
     int rc = 0;
     uint64_t loadData = 0;
     uint64_t scratchMsgReg = 0;
@@ -499,12 +498,6 @@ int  main(int argc, char **argv)
     uint64_t scratchReg6 = 0;
     uint64_t scratchReg8 = 0;
     uint64_t spiClockReg = 0;
-    uint64_t data = 0;
-    uint64_t securityReg = 0;
-    SHA512_t result;
-    SHA512truncated_t truncatedResult;
-    securityState_PCR6_t securityStatePCR6;
-    securityState_PCR1_t securityStatePCR1;
 
     do
     {
@@ -617,6 +610,10 @@ int  main(int argc, char **argv)
             PPE_STVD(0xc0083, spiClockReg);
         }
 #endif
+        //Check SBE Role
+        g_sbeRole = checkSbeRole();
+        SBEM_INFO("SBE Role is %x", g_sbeRole);
+
         rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
                 MEASUREMENT_NONCRITICAL_STACK_SIZE,
                 INITIAL_PK_TIMEBASE, // initial_timebase
@@ -626,125 +623,27 @@ int  main(int argc, char **argv)
             SBEM_ERROR(SBEM_FUNC "pk_initialize failed with rc 0x%08X", rc);
             break;
         }
+
         SBEM_INFO("Completed PK init for Measurement with Freq [0x%08X]", g_sbemfreqency);
 
-        sbemSetSecureAccessBit();
-
-        // Check SBE Role
-        g_sbeRole = checkSbeRole();
-
-        // Update the Code Flow status in messaging register 50009
-        uint64_t scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_TPM_INIT_SEQUENCE_MSG)<<32;
-        PPE_STVD(0x50009, scratchMsgReg);
-
-        // Startup TPM Sequence for Master Chip, Poison for Alt-master and Deconfig Bit for Secondary chips
-        rc = performTPMSequences();
+        //Initialize secure boot thread
+        rc = createAndResumeThreadHelper(&sbem_thread,
+                sbemthreadroutine,
+                (void *)0,
+                (PkAddress)measurmentSecureBoot_stack,
+                MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE,
+                THREAD_PRIORITY_5);
         if (rc)
         {
-            SBEM_ERROR(SBEM_FUNC "verifySPIandTPM failed with rc 0x%08X", rc);
+            SBEM_ERROR(SBEM_FUNC "Initialize secure boot thread failed with rc 0x%08X", rc);
+            break;
         }
 
-        //Write extendSecurityStatePCR6 into measurement register x10010
-        securityStatePCR6.update(g_sbeRole);
-        memcpy(&data, (uint8_t *)&securityStatePCR6, sizeof(securityState_PCR6_t));
-        putscom_abs(OTPROM_MEASUREMENT_REG0, data);
+        SBEM_INFO("sbemSecureBoot_thread thread initilised");
 
-        //Write extendSecurityStatePCR1 into measurement register x10012
-        securityStatePCR1.update(g_sbeRole);
-        memcpy(&data, (uint8_t *)&securityStatePCR1, sizeof(securityState_PCR1_t));
-        putscom_abs(OTPROM_MEASUREMENT_REG2, data);
+        pk_start_threads();
 
-        PPE_LVD(0x10005, securityReg);
-        //Skip if error/rc in TPM sequence.
-        if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
-        {
-            //Extend HW key hash to PCR6 and PCR1 if SBE role is master.
-            if(getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS) != 0x00)
-            {
-                memcpy(truncatedResult, (uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + sizeof(SHA512truncated_t)), sizeof(SHA512truncated_t));
-            }
-            else
-            {
-                SBEM_ERROR(".sb_settings XIP section not found. HW key hash not found");
-                SBEM_ERROR("Extending 0x00 into TPM_PCR6 and TPM_PCR1");
-            }
-            // TODO - Please handle the return RC and update scratch and deconfig TPM
-            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
-            // TODO - Please handle the return RC and update scratch and deconfig TPM
-            tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
-
-            //Extend Security state to PCR6.i.e Jumper State and MSV.
-            memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
-            memcpy(truncatedResult, &securityStatePCR6, sizeof(securityStatePCR6));
-            // TODO - Please handle the return RC and update scratch and deconfig TPM
-            tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
-
-            //Extend Security state to PCR1.
-            memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
-            memcpy(truncatedResult, &securityStatePCR1, sizeof(securityStatePCR1));
-            // TODO - Please handle the return RC and update scratch and deconfig TPM
-            tpmExtendPCR(TPM_PCR1, truncatedResult, sizeof(SHA512truncated_t));
-        }
-
-        //Measure/Calculate SHA512 of .sb_verification XIP Section
-        memset(truncatedResult, 0x00, sizeof(SHA512truncated_t));
-        if(getXipSize(P9_XIP_SECTION_SBE_SB_VERIFICATION) != 0x00)
-        {
-            SBEM_INFO("Measure/Calculate SHA512 of .sb_verification XIP Section");
-            // TODO - Fix Sha512, Presently it is going to append zeros.
-            //SHA512_XIP_section(P9_XIP_SECTION_SBE_SB_VERIFICATION, &result);
-            memcpy(truncatedResult, &result[sizeof(SHA512truncated_t)], sizeof(SHA512truncated_t));
-
-            //Write truncated hash of SBE verification code to measurement register
-            //4-7 (x10014-x10017).
-            writeTruncatedVerificationImageHash(truncatedResult);
-
-            //Skip if error/rc in TPM sequence.
-            if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
-            {
-                //Extend MSB 32 Bytes of result into TPM PCR0 and PCR6 if SBE
-                //role is master.
-                //TODO:Handle TPM fail cases.
-                // TODO - Please handle the return RC and update scratch and deconfig TPM
-                tpmExtendPCR(TPM_PCR0, truncatedResult, sizeof(SHA512truncated_t));
-                // TODO - Please handle the return RC and update scratch and deconfig TPM
-                tpmExtendPCR(TPM_PCR6, truncatedResult, sizeof(SHA512truncated_t));
-            }
-        }
-        else
-        {
-            SBEM_ERROR(".sb_verification XIP section not found. Verification code not found.");
-            SBEM_ERROR("SHA512 not calculated for .sb_verification XIP section.");
-        }
-    }while(0);
-
-    SBEM_INFO("LFR = [0x%04X 0x%02X] SBE Freq = 0x%08X", lfrReg.spi_clock_divider, lfrReg.round_trip_delay, g_sbemfreqency);
-
-    SBEM_INFO("Measurment Main is Completed.Loading L1 Loader of Boot Seeprom");
-
-#if 0
-    // Load .sb_verification section into PIBMEM.
-    P9XipHeader *hdr = getXipHdr();
-    P9XipSection* pSection = &hdr->iv_section[P9_XIP_SECTION_SBE_SB_VERIFICATION];
-    uint32_t dsize = pSection->iv_size;
-    if(dsize)
-    {
-        uint32_t verificationOffset = pSection->iv_offset;;
-        uint32_t verificationAddress = (g_headerAddr + verificationOffset);
-        P9XipHeader *vhdr = (P9XipHeader *)(verificationAddress);
-        P9XipSection* pVBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
-        uint64_t *srcAddr = (uint64_t *)(pVBase->iv_offset + (uint32_t)vhdr);
-        SBEM_INFO("Source addr is 0x%08X", srcAddr);
-        loadSectionForVerification(srcAddr, (uint64_t *)(vhdr->iv_L1LoaderAddr));
-        SBEM_INFO("Completed Loading of .sb_verification into PIBMEM. Verify the image.");
-        jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
-    }
-    else
-#endif
-    {
-        SBEM_INFO("No verification image, jump to boot");
-        jump2bootImage();
-    }
+    }while(false);
 
     SBEM_EXIT(SBEM_FUNC);
     return rc;
