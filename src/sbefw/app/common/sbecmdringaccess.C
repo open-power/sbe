@@ -274,7 +274,7 @@ uint32_t sbeGetRingWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
     if ( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) &&
-         (i_putStream.isStreamRespHeader()) )
+         (i_putStream.isStreamRespHeader( respHdr.rcStatus(),l_ffdc.getRc())) )
     {
         l_rc  = i_putStream.put(l_bitSentCnt);
         if( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc) )

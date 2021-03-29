@@ -109,7 +109,7 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
 #if 0
             hwp_array_istream istream(req.custom_control_data, req.hdr.custom_data_length);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
-            if(i_putStream.isStreamRespHeader())
+            if(i_putStream.isStreamRespHeader(respHdr.rcStatus(),ffdc.getRc()))
                 i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
 #endif
         }
@@ -139,7 +139,7 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
 
             seeprom_hwp_data_istream istream(control_data, control_data_size);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
-            if(i_putStream.isStreamRespHeader())
+            if(i_putStream.isStreamRespHeader(respHdr.rcStatus(),ffdc.getRc()))
                 i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes
         }
 
@@ -159,7 +159,7 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
     if( ( SBE_SEC_OPERATION_SUCCESSFUL == rc ) &&
-        ( i_putStream.isStreamRespHeader()) )
+        ( i_putStream.isStreamRespHeader(respHdr.rcStatus(),ffdc.getRc())) )
     {
         rc = sbeDsSendRespHdr( respHdr, &ffdc,
                                i_getStream.getFifoType() );

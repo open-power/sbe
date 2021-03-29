@@ -133,6 +133,14 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
     {
+        // Set FFDC failed command information and
+        // Sequence Id is 0 by default for Fifo interface
+        iv_chipOpffdc.setCmdInfo(0, SBE_CMD_CLASS_ARRAY_ACCESS, SBE_CMD_CONTROL_FAST_ARRAY);
+        // Add HWP specific ffdc data length
+        iv_chipOpffdc.lenInWords = 0;
+        iv_oStream.setFifoRc(FAPI2_RC_SUCCESS);
+        iv_oStream.setPriSecRc(rc);
+
         // Update address, length and stream header data vai FIFO
         iv_tocRow.tocHeader.address = iv_hdctRow->cmdFastArray.strEqvHash32;
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
@@ -350,6 +358,13 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     #define SBE_FUNC " writeGetRingPacketToFifo "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    // Set FFDC failed command information and
+    // Sequence Id is 0 by default for Fifo interface
+    iv_chipOpffdc.setCmdInfo(0, SBE_CMD_CLASS_RING_ACCESS, SBE_CMD_GETRING);
+    // Add HWP specific ffdc data length
+    iv_chipOpffdc.lenInWords = 0;
+    iv_oStream.setFifoRc(FAPI2_RC_SUCCESS);
+    iv_oStream.setPriSecRc(rc);
 
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetRing.strEqvHash32;
@@ -990,7 +1005,9 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         else
         {
             if( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM) ||
-                (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA) )
+                (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA) ||
+                (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ||
+                (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY) )
             {
                 iv_chipOpffdc.setRc(iv_oStream.getFifoRc());
                 // Update FFDC lenth + PrimarySecondary(32 bits) RC lenth
