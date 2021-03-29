@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -217,7 +217,7 @@ uint32_t sbeSramAccess_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
             }
         }
 
-        if(i_putStream.isStreamRespHeader())
+        if(i_putStream.isStreamRespHeader(l_respHdr.rcStatus(),l_ffdc.getRc()))
         {
             uint32_t l_len = 1;
             // first enqueue the length of data actually written

@@ -158,7 +158,7 @@ uint32_t sbeControlTraceArrayWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
     if ( (SBE_SEC_OPERATION_SUCCESSFUL == l_rc ) &&
-         (i_putStream.isStreamRespHeader()) )
+         (i_putStream.isStreamRespHeader(respHdr.rcStatus(),l_ffdc.getRc())) )
     {
         SBE_INFO(SBE_FUNC " l_NumWordsRead [%d]", l_NumWordsRead);
         l_len = sizeof(l_NumWordsRead)/sizeof(uint32_t);

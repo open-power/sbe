@@ -595,7 +595,7 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
     // instead give the control back to the command processor thread
-    if(i_putStream.isStreamRespHeader())
+    if(i_putStream.isStreamRespHeader(respHdr.rcStatus(),ffdc.getRc()))
     {
         if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
         {
