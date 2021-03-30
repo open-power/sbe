@@ -52,7 +52,8 @@ typedef struct securityState_PCR6
 typedef struct securityState_PCR1
 {
     uint8_t  jumperState;
-    uint8_t  isPrimary;
+    uint8_t  isPrimary:4;
+    uint8_t  isMpipl:4;
     uint8_t  mSeepromLock;
     uint8_t  minimumSecureVersion;
     uint32_t mSeepromVersion;
@@ -62,6 +63,7 @@ typedef struct securityState_PCR1
     {
         jumperState = 0;
         isPrimary = 0;
+        isMpipl = 0;
         mSeepromLock = 0;
         minimumSecureVersion = 0;
         mSeepromVersion = 0;
