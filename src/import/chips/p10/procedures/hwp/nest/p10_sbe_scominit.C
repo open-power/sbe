@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -36,9 +36,12 @@
 //------------------------------------------------------------------------------
 #include <p10_sbe_scominit.H>
 #include <p10_fbc_utils.H>
+#include <multicast_group_defs.H>
 
 #include <p10_scom_perv.H>
 #include <p10_scom_proc.H>
+#include <p10_scom_eq.H>
+#include <p10_scom_c.H>
 
 //------------------------------------------------------------------------------
 // Constant definitions
@@ -308,6 +311,64 @@ fapi2::ReturnCode p10_sbe_scominit_trace(const fapi2::Target<fapi2::TARGET_TYPE_
     return fapi2::current_err;
 }
 
+/// @brief Configures the core LPAR mode prior to powering on the cores
+/// @param[in] i_target       Reference to processor chip target
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p10_sbe_scominit_core_lpar(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+
+    using namespace scomt;
+    using namespace scomt::eq;
+    using namespace scomt::c;
+
+    FAPI_DBG("Entering ...");
+
+    fapi2::buffer<uint64_t> l_qme_scrb;
+    fapi2::buffer<uint64_t> l_scsr;
+    auto l_eq_mc  = i_target.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_ALL_EQ);
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_CORE_LPAR_MODE_Type l_core_lpar_mode;
+
+
+    fapi2::ATTR_CHIP_EC_FEATURE_DYN_CORE_LPAR_Type l_ec_dyn_core_lpar;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DYN_CORE_LPAR, i_target, l_ec_dyn_core_lpar));
+
+    //Skip if we are in DD1 hw
+    if (!l_ec_dyn_core_lpar)
+    {
+        return fapi2::current_err;
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CORE_LPAR_MODE, FAPI_SYSTEM, l_core_lpar_mode));
+
+    if (l_core_lpar_mode == fapi2::ENUM_ATTR_CORE_LPAR_MODE_LPAR_PER_CORE)
+    {
+
+        FAPI_TRY(PREP_QME_SCRB_WO_OR(l_eq_mc),
+                 "Error from prep (QME_SCRB_WO_OR)");
+        l_qme_scrb.setBit<20, 4>();
+        FAPI_TRY(PUT_QME_SCRB_WO_OR(l_eq_mc, l_qme_scrb),
+                 "Error from putScom (QME_SCRB_WO_OR)");
+    }
+
+    for ( auto l_core_target : i_target.getChildren<fapi2::TARGET_TYPE_CORE>( fapi2::TARGET_STATE_FUNCTIONAL ) )
+    {
+        if (l_core_lpar_mode == fapi2::ENUM_ATTR_CORE_LPAR_MODE_LPAR_PER_CORE)
+        {
+            FAPI_TRY(PREP_QME_SCSR_SCOM2(l_core_target),
+                     "Error from prep (QME_SCSR_SCOM2)");
+            SET_P10_20_QME_SCSR_SINGLE_LPAR_MODE(l_scsr);
+            FAPI_TRY(PUT_QME_SCSR_SCOM2(l_core_target, l_scsr),
+                     "Error from putScom (QME_SCSR_SCOM2)");
+        }
+    }
+
+fapi_try_exit:
+    FAPI_DBG("Exiting ...");
+    return fapi2::current_err;
+}
+
+
 /// Main function, see description in header
 fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
@@ -317,6 +378,7 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
     FAPI_TRY(p10_sbe_scominit_int(i_target), "Error from p10_sbe_scominit_int");
     FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars");
     FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace");
+    FAPI_TRY(p10_sbe_scominit_core_lpar(i_target), "Error from p10_sbe_scominit_core_lpar");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");

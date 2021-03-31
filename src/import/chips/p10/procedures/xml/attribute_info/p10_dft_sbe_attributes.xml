@@ -608,6 +608,10 @@
 	<name>ATTR_PROC_FORCE_MC_PLL_BANDSEL</name>
   </entry>
   <entry>
+    <name>ATTR_CHIP_EC_FEATURE_DYN_CORE_LPAR</name>
+    <virtual/>
+  </entry>
+  <entry>
     <name>ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE</name>
     <value>0x00</value>
     <value>0x00</value>
