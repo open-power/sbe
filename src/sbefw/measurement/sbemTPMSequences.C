@@ -159,9 +159,11 @@ fapi2::ReturnCode tpmSequenceToStartup()
         }
         uint32_t tpmRc = (tpmStartCommand[6] << 24) | (tpmStartCommand[7] << 16) |  (tpmStartCommand[8] << 8) | tpmStartCommand[9];
         SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
-        if(tpmRc)
+        if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM startup command failed.");
+            // TODO Handle TPM failure FFDC
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
     }while(0);
@@ -208,9 +210,11 @@ fapi2::ReturnCode tpmSequenceToDetectPCRs(bool &pcrAllocation)
         }
         uint32_t tpmRc = (tpmCapPCR[6] << 24) | (tpmCapPCR[7] << 16) |  (tpmCapPCR[8] << 8) | tpmCapPCR[9];
         SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
-        if(tpmRc)
+        if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC " tpmSequenceToDetectPCRs command failed.");
+            // TODO Handle TPM failure FFDC
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
     }while(0);
@@ -249,9 +253,11 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
         }
         uint32_t tpmRc = (tpmAllocatePCR[6] << 24) | (tpmAllocatePCR[7] << 16) |  (tpmAllocatePCR[8] << 8) | tpmAllocatePCR[9];
         SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
-        if(tpmRc)
+        if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC " tpmSequenceToAllocatePCRs command failed.");
+            // TODO Handle TPM failure FFDC
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
     }while(0);
@@ -274,6 +280,9 @@ fapi2::ReturnCode setTPMDeconfigBit()
         if(rc)
         {
             SBEM_ERROR(SBEM_FUNC " putscom failed on OTP_SECURITY_SWITCH with rc 0x%08X", rc);
+            // If we are unsuccessful in setting the deconfig bit we are in an
+            // untrusted unsecure state, we must halt
+            pk_halt();
             break;
         }
     }while(0);
@@ -325,7 +334,7 @@ fapi2::ReturnCode performTPMSequences(uint32_t sbeRole)
             break;
         }
 
-        SBEM_INFO(SBEM_FUNC "Perfrom TPM sequence to Read Vendor and DeviceID");
+        SBEM_INFO(SBEM_FUNC "Perform TPM sequence to Read Vendor and DeviceID");
         rc = tpmSequenceToReadDIDAndVendor();
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -32,10 +33,10 @@
 /// Timeout names and durations are as described in the TCG specification
 enum tpm_timeouts
 {
-    TPM_TIMEOUT_A = 750, ///< 750ms
-    TPM_TIMEOUT_B = 2000, ///< 2000ms
-    TPM_TIMEOUT_C = 750, ///< 750ms
-    TPM_TIMEOUT_D = 750, ///< 750ms
+    TPM_TIMEOUT_A = 750000, ///< 750ms in usecs
+    TPM_TIMEOUT_B = 2000000, ///< 2000ms in usecs
+    TPM_TIMEOUT_C = 750000, ///< 750ms in usecs
+    TPM_TIMEOUT_D = 750000, ///< 750ms in usecs
 };
 
 /// TPM Registers
@@ -49,7 +50,7 @@ enum tpm_reg
 /// TPM Driver values
 enum
 {
-    MAX_STSVALID_POLLS = 50, ///< Max poll of 50ms (5*10ms)
+    MAX_STSVALID_POLLS = 50000, ///< Max poll of 50ms (5*10ms) in usecs
 };
 
 /**

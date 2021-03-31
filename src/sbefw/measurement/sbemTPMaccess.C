@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,6 +27,41 @@
 
 static const size_t TPM_MAX_SPI_TRANSMIT_SIZE = 64;
 
+fapi2::ReturnCode tpmReadSTSRegValid(SpiControlHandle &handle, tpm_sts_reg_t & o_stsReg)
+{
+    #define SBEM_FUNC " tpmReadSTSRegValid "
+    SBEM_ENTER(SBEM_FUNC);
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    uint32_t polls = 0;
+    do
+    {
+        uint32_t tpmLocality = 0;      // TPM locality (0-4)
+        uint32_t offsetAddr = TPM_INT_STATUS_0;  // Relative address to read from TPM.
+        uint32_t readBytes = 1;
+        rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&o_stsReg);
+        if(rc != fapi2::FAPI2_RC_SUCCESS)
+        {
+            SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed while reading status with rc 0x%08X", rc);
+            break;
+        }
+        SBEM_INFO(SBEM_FUNC "TPM status register value is 0x%02X", o_stsReg.value);
+        if((polls > MAX_STSVALID_POLLS) && !(o_stsReg.fields.stsValid))
+        {
+            SBEM_INFO(SBEM_FUNC "TPM timeout waiting for stsValid");
+            rc = fapi2::FAPI2_RC_FALSE;
+            break;
+        }
+        else if(!o_stsReg.fields.stsValid)
+        {
+            fapi2::delay(1000, 1000);
+            polls++;
+        }
+    }while(!o_stsReg.fields.stsValid);
+    SBEM_EXIT(SBEM_FUNC);
+    return rc;
+    #undef SBEM_FUNC
+}
+
 fapi2::ReturnCode tpmIsExpecting(SpiControlHandle &handle, bool &isExpect )
 {
    #define SBEM_FUNC " tpmIsExpecting "
@@ -35,15 +71,12 @@ fapi2::ReturnCode tpmIsExpecting(SpiControlHandle &handle, bool &isExpect )
     tpm_sts_reg_t status;
     do
     {
-        uint32_t tpmLocality = 0;      // TPM locality (0-4)
-        uint32_t offsetAddr = TPM_INT_STATUS_0;  // Relative address to read from TPM.
-        uint32_t readBytes = 1;
 
         SBEM_INFO(SBEM_FUNC "Read TPM Status Register.");
-        rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&status);
+        rc = tpmReadSTSRegValid(handle, status);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
-            SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed while reading TPM Status register with rc 0x%08X", rc);
+            SBEM_ERROR(SBEM_FUNC "tpmReadSTSRegValid failed while reading TPM Status register with rc 0x%08X", rc);
             break;
         }
         SBEM_INFO(SBEM_FUNC "TPM read data is 0x%02X", status.value);
@@ -67,15 +100,12 @@ fapi2::ReturnCode tpmIsDataAvail(SpiControlHandle &handle, bool &dataAvail )
     tpm_sts_reg_t status;
     do
     {
-        uint32_t tpmLocality = 0;      // TPM locality (0-4)
-        uint32_t offsetAddr = TPM_INT_STATUS_0;  // Relative address to read from TPM.
-        uint32_t readBytes = 1;
 
         SBEM_INFO(SBEM_FUNC "Read TPM Status Register.");
-        rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&status);
+        rc = tpmReadSTSRegValid(handle, status);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
-            SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed while reading TPM Status register with rc 0x%08X", rc);
+            SBEM_ERROR(SBEM_FUNC "tpmReadSTSRegValid failed while reading TPM Status register with rc 0x%08X", rc);
             break;
         }
         SBEM_INFO(SBEM_FUNC "TPM read data is 0x%02X", status.value);
@@ -153,23 +183,20 @@ fapi2::ReturnCode tpmPollForCommandReady(SpiControlHandle &handle)
     SBEM_ENTER(SBEM_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
     tpm_sts_reg_t status;
+    bool isCommandReady = false;
     do
     {
-        uint32_t tpmLocality = 0;      // TPM locality (0-4)
-        uint32_t offsetAddr = TPM_INT_STATUS_0;  // Relative address to read from TPM.
-        uint32_t readBytes = 1;
-
-        for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay += 10)
+        for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay ++)
         {
-            rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&status);
-            if( (rc != fapi2::FAPI2_RC_SUCCESS) || ((rc == fapi2::FAPI2_RC_SUCCESS) && (status.fields.isCommandReady)) )
+            rc = tpmIsCommandReady(handle, isCommandReady);
+            if( (rc != fapi2::FAPI2_RC_SUCCESS) ||
+                ((rc == fapi2::FAPI2_RC_SUCCESS) && (isCommandReady)) )
             {
-                SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure either failed while reading TPM Status register with rc 0x%08X or cmdReady %d",
+                SBEM_ERROR(SBEM_FUNC "tpmIsCommandReady either failed while reading TPM Status register with rc 0x%08X or cmdReady %d",
                                      rc, status.fields.isCommandReady);
                 break;
             }
-            //TODO Add delay.
-            //fapi2::delay(1000000, 1000000);
+            fapi2::delay(1000, 1000);
         }
 
         if((rc == fapi2::FAPI2_RC_SUCCESS) && (!status.fields.isCommandReady))
@@ -188,21 +215,19 @@ fapi2::ReturnCode tpmPollForCommandReady(SpiControlHandle &handle)
             {
                 // Ok, poll again
                 // Operation TIMEOUT_B defined by TCG spec for command ready
-                bool isCommandReady = false;
-                for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay += 10)
+                for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay ++)
                 {
                     rc = tpmIsCommandReady(handle, isCommandReady);
-                    if((rc != fapi2::FAPI2_RC_SUCCESS) && ((rc == fapi2::FAPI2_RC_SUCCESS) && (isCommandReady)))
+                    if((rc != fapi2::FAPI2_RC_SUCCESS) ||
+                       ((rc == fapi2::FAPI2_RC_SUCCESS) && (isCommandReady)))
                     {
                         break;
                     }
-                    // TODO Add delay.
-                    //fapi2::delay(1000000, 1000000);
+                    fapi2::delay(1000, 1000);
                 }
             }
-            
         }
-        if((rc == fapi2::FAPI2_RC_SUCCESS) && (!status.fields.isCommandReady))
+        if((rc == fapi2::FAPI2_RC_SUCCESS) && (!isCommandReady))
         {
             rc = fapi2::FAPI2_RC_FALSE;
             break;
@@ -267,41 +292,6 @@ fapi2::ReturnCode tpmWriteTpmGo(SpiControlHandle &handle)
     #undef SBEM_FUNC
 }
 
-fapi2::ReturnCode tpmReadSTSRegValid(SpiControlHandle &handle, tpm_sts_reg_t & o_stsReg)
-{
-    #define SBEM_FUNC " tpmReadSTSRegValid "
-    SBEM_ENTER(SBEM_FUNC);
-    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
-    uint32_t polls = 0;
-    do
-    {
-        uint32_t tpmLocality = 0;      // TPM locality (0-4)
-        uint32_t offsetAddr = TPM_INT_STATUS_0;  // Relative address to read from TPM.
-        uint32_t readBytes = 1;
-        rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&o_stsReg);
-        if(rc != fapi2::FAPI2_RC_SUCCESS)
-        {
-            SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed while reading status with rc 0x%08X", rc);
-            break;
-        }
-        SBEM_INFO(SBEM_FUNC "TPM status register value is 0x%02X", o_stsReg.value);
-        if((polls > MAX_STSVALID_POLLS) && !(o_stsReg.fields.stsValid))
-        {
-            SBEM_INFO(SBEM_FUNC "TPM timeout waiting for stsValid");
-            rc = fapi2::FAPI2_RC_FALSE;
-            break;
-        }
-        else if(!o_stsReg.fields.stsValid)
-        {
-            fapi2::delay(1000000, 1000000);
-            polls++;
-        }
-    }while(!o_stsReg.fields.stsValid);
-    SBEM_EXIT(SBEM_FUNC);
-    return rc;
-    #undef SBEM_FUNC
-}
-
 fapi2::ReturnCode tpmPollForDataAvail(SpiControlHandle &handle)
 {
     #define SBEM_FUNC " tpmPollForDataAvail "
@@ -312,20 +302,21 @@ fapi2::ReturnCode tpmPollForDataAvail(SpiControlHandle &handle)
     {
         // Use the longer timeout B here since some of the TPM commands may take
         // more than timeout A to complete
-        for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay += 10)
+        for (uint32_t delay = 0; delay < TPM_TIMEOUT_B; delay ++)
         {
             rc = tpmReadSTSRegValid(handle, status);
-            if( (rc != fapi2::FAPI2_RC_SUCCESS) || ((rc == fapi2::FAPI2_RC_SUCCESS) && (status.fields.dataAvail)))
+            if( (rc != fapi2::FAPI2_RC_SUCCESS) ||
+                ((rc == fapi2::FAPI2_RC_SUCCESS) && (status.fields.dataAvail)))
             {
                 SBEM_ERROR(SBEM_FUNC "Either tpmReadSTSRegValid failed while with rc 0x%08X or data is available %d", rc, status.fields.dataAvail);
                 break;
             }
-            if((rc != fapi2::FAPI2_RC_SUCCESS) && (rc == fapi2::FAPI2_RC_FALSE))
+            if((rc == fapi2::FAPI2_RC_FALSE))
             {
                 SBEM_ERROR(SBEM_FUNC "Polling loop within tpmReadSTSRegValid timed out");
                 rc = fapi2::FAPI2_RC_SUCCESS;
             }
-            fapi2::delay(1000000, 1000000);
+            fapi2::delay(1000, 1000);
         }
         if((rc == fapi2::FAPI2_RC_SUCCESS) && (!status.fields.dataAvail))
         {
@@ -339,7 +330,7 @@ fapi2::ReturnCode tpmPollForDataAvail(SpiControlHandle &handle)
 }
 
 fapi2::ReturnCode tpmReadFifo(SpiControlHandle &handle,
-                              void * o_buffer, 
+                              void * o_buffer,
                               uint32_t & io_buflen)
 {
     #define SBEM_FUNC " tpmReadFifo "
@@ -378,8 +369,8 @@ fapi2::ReturnCode tpmReadFifo(SpiControlHandle &handle,
         }
         else if(burstCount == 0)
         {
-            //TODO: Add some delay
-            delay += 10;
+            fapi2::delay(1000, 1000);
+            delay ++;
             continue;
         }
         // Read some data.
@@ -468,8 +459,8 @@ fapi2::ReturnCode tpmReadFifo(SpiControlHandle &handle,
 }
 
 fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
-                              void * i_buffer, 
-                              uint32_t i_buflen)
+                               void * i_buffer,
+                               uint32_t i_buflen)
 {
     #define SBEM_FUNC " tpmWriteFifo "
     SBEM_ENTER(SBEM_FUNC);
@@ -493,8 +484,8 @@ fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
         }
         else if(burstCount == 0)
         {
-            //TODO: Add delay to allow the TPM time.
-            delay += 10;
+            fapi2::delay(1000, 1000);
+            delay ++;
             continue;
         }
 
@@ -502,6 +493,13 @@ fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
         if (burstCount > TPM_MAX_SPI_TRANSMIT_SIZE)
         {
             burstCount = TPM_MAX_SPI_TRANSMIT_SIZE;
+        }
+
+        // Limit TPM writes to 2 bytes and write information in chunks if
+        // necessary
+        if(burstCount > 2)
+        {
+            burstCount = 2;
         }
 
         //Send in some data
@@ -559,22 +557,23 @@ fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
             }
             else if(burstCount == 0)
             {
-                //TODO: Add delay
-                delay += 10;
+                fapi2::delay(1000, 1000);
+                delay += 1;
                 continue;
             }
-            // Send in some data
-             delay = 0;
-             curBytePtr = &(bytePtr[curByte]);
-             SBEM_INFO(SBEM_FUNC "tpmWriteReg final byte, 0x%02X", *curBytePtr);
-             uint32_t tpmLocality = 0;               // TPM locality (0-4)
-             uint32_t offsetAddr = TPM_DATA_FIFO_0;  // Relative address to read from TPM.
-             rc = spi_tpm_write_with_wait(handle, tpmLocality, offsetAddr, tx_len, curBytePtr);
-             if( rc != fapi2::FAPI2_RC_SUCCESS )
-             {
-                 SBEM_ERROR(SBEM_FUNC "spi_tpm_write_with_wait failed with rc 0x%08X", rc);
-             }
-             break;
+            // Send in final byte
+            delay = 0;
+            curBytePtr = &(bytePtr[curByte]);
+            SBEM_INFO(SBEM_FUNC "tpmWriteReg final byte, 0x%02X", *curBytePtr);
+            uint32_t tpmLocality = 0;               // TPM locality (0-4)
+            uint32_t offsetAddr = TPM_DATA_FIFO_0;  // Relative address to read from TPM.
+            tx_len = 1;
+            rc = spi_tpm_write_with_wait(handle, tpmLocality, offsetAddr, tx_len, curBytePtr);
+            if( rc != fapi2::FAPI2_RC_SUCCESS )
+            {
+                SBEM_ERROR(SBEM_FUNC "spi_tpm_write_with_wait failed with rc 0x%08X", rc);
+            }
+            break;
         }while(delay < TPM_TIMEOUT_D);
     }
     do
@@ -589,7 +588,7 @@ fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
         {
             SBEM_INFO(SBEM_FUNC "Check if TPM is expecting more data.");
             rc = tpmIsExpecting(handle, expect);
-            if(( rc != fapi2::FAPI2_RC_SUCCESS) && (expect))
+            if(( rc != fapi2::FAPI2_RC_SUCCESS) || (expect))
             {
                 SBEM_ERROR(SBEM_FUNC "tpmIsExpecting failed or expecting more data with rc 0x%08X %d", rc, expect);
                 rc = fapi2::FAPI2_RC_FALSE;

@@ -61,9 +61,11 @@ fapi2::ReturnCode tpmPoisonPCR()
         // Get the command response code.
         uint32_t tpmRc = (tpmGetRN[6] << 24) | (tpmGetRN[7] << 16) |  (tpmGetRN[8] << 8) | tpmGetRN[9];
         SBEM_INFO(SBEM_FUNC "TPM2_GetRandom response code is 0x%08X", tpmRc);
-        if(tpmRc)
+        if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM2_GetRandom response code is non zero.");
+            // TODO Handle TPM failure FFDC
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
         for(uint32_t i = 0; i < 8; i++)
@@ -99,12 +101,12 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         uint8_t tpmExtendPCR[72] = {0x80, 0x02, 0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0x01, 0x82, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x40, 0x00, 0x00, 0x09, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x0B};
-        // Add 32 byte random number to the tpmExtendPCR after offset 33. 33-64 ---> Random number
+        // Add 32 byte input hashKey to the tpmExtendPCR after offset 33. 33-64 ---> hashKey
         uint32_t offset = 33;
         uint32_t pcrOffset = 13;
         for(uint32_t i = 0; i < size; i ++)
         {
-            SBEM_INFO(SBEM_FUNC "tpmGetRN at %d is 0x%02X", i , *(hashKey + i));
+            SBEM_INFO(SBEM_FUNC "tpmExtendPCR at %d is 0x%02X", i , *(hashKey + i));
             tpmExtendPCR[offset + i] = *(hashKey + i);
         }
         uint32_t buflen = 72;
@@ -125,9 +127,11 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         // Get the command response code.
         uint32_t tpmRc = (tpmExtendPCR[6] << 24) | (tpmExtendPCR[7] << 16) |  (tpmExtendPCR[8] << 8) | tpmExtendPCR[9];
         SBEM_INFO(SBEM_FUNC "TPM2_Extend PCR response code is 0x%08X", tpmRc);
-        if(tpmRc)
+        if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM2_Extend PCR response code is non zero for PCR %d.", pcrNum);
+            // TODO Handle TPM failure FFDC
+            rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
 
