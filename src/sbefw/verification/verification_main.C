@@ -24,20 +24,36 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include "sbevtrace.H"
-#include "sbesecureboot.H"
-#include "sbeXipUtils.H"
+#include "sbevthreadroutine.H"
+#include "ppe42_scom.h"
+#include "sbeglobals.H"
+#include "sbeexeintf.H"
+#include "sbe_link.H"
+#include "sbeRoleIdentifier.H"
+
 extern "C" {
 #include "pk_api.h"
 }
+
 ////////////////////////////////////////////////////////////////
 //// @brief Stacks for Non-critical Interrupts ( timebase, timers )
 ////////////////////////////////////////////////////////////////
 #define INITIAL_PK_TIMEBASE   0
 #define VERIFICATION_NONCRITICAL_STACK_SIZE 512
+//Keep stack size greater than SPI_READ_SIZE_BYTES.
+#define VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE 12288
 
-#define SBE_PK_BASE_FREQ_HZ (133 * 1000 * 1000)/ 4
+// SBE Frequency to be used to initialise PK
+uint32_t g_sbevfreqency = SBE_REF_BASE_FREQ_HZ;
 
 uint8_t verification_Kernel_NC_Int_stack[VERIFICATION_NONCRITICAL_STACK_SIZE];
+uint8_t verificationSecureBoot_stack[VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE];
+
+///////////////////////////////////////////////////////////////////
+//// @brief PkThread structure for SBE Verification thread .
+////////////////////////////////////////////////////////////////////
+PkThread sbev_thread;
+uint32_t g_sbevRole;
 
 extern "C"
 {
@@ -78,29 +94,65 @@ void __eabi()
     } while (false);
 }
 
-/*
- *  ** API to jump to the boot seeprom.
- *   */
-void jump2boot()
-{
-    asm(
-            "lis %r4, 0xFF80\n"
-            "lvd %d0, 0(%r4)\n"
-            "lis %r2 , 0x5849\n"
-            "ori %r2 , %r2 , 0x5020\n"
-            "lis %r3 , 0x5345\n"
-            "ori %r3 , %r3, 0x504d\n"
-            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
-            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
-            "ori %r4, %r4, 8\n"
-            "lvd %d0 , 0(%r4)\n"
-            "mtctr %r1\n"
-            "bctr\n"
-"magic_failed:\n"
-            "trap\n"
-       );
-}
 } // end extern "C"
+
+////////////////////////////////////////////////////////////////
+// @brief  createAndResumeThreadHelper
+//            - Create and resume the given thread
+//
+// @param[in/out] io_thread  A pointer to an PkThread structure to initialize
+// @param[in]     i_thread_routine The subroutine that implements the thread
+// @param[in/out] io_arg     Private data to be passed as the argument to the
+//                              thread routine when it begins execution
+// @param[in]     i_stack    The stack space of the thread
+// @param[in]     i_stack_size The size of the stack in bytes
+// @param[in]     i_priority The initial priority of the thread
+//
+// @return        PK_OK Successfully created and resumed the thread
+//
+// @return        PK_INVALID_THREAD_AT_CREATE io_thread is null
+// @return        PK_INVALID_ARGUMENT_THREAD1 i_thread_routine is null
+// @return        PK_INVALID_ARGUMENT_THREAD2 i_priority is invalid
+// @return        PK_INVALID_ARGUMENT_THREAD3 the stack area wraps around
+//                                      the end of memory.
+// @return        PK_STACK_OVERFLOW           The stack area at thread creation
+//                                      is smaller than the min safe size
+// @return        PK_INVALID_THREAD_AT_RESUME1 io_thread is null (unlikely)
+// @return        PK_INVALID_THREAD_AT_RESUME2 The thread is not active,
+//                                      i.e. has completed or been deleted,
+// @return        PK_PRIORITY_IN_USE_AT_RESUME Another thread is already
+//                                      mapped at the priority of the thread
+////////////////////////////////////////////////////////////////
+uint32_t createAndResumeThreadHelper(PkThread    *io_pThread,
+                                PkThreadRoutine   i_thread_routine,
+                                void             *io_pArg,
+                                PkAddress         i_stack,
+                                size_t            i_stack_size,
+                                sbeThreadPriorities  i_priority)
+{
+    int rc = PK_OK;
+
+    // Thread creation
+    rc =  pk_thread_create(io_pThread,
+                             i_thread_routine,
+                             io_pArg,
+                             i_stack,
+                             i_stack_size,
+                             (PkThreadPriority)i_priority);
+    if(rc == PK_OK)
+    {
+        // resume the thread once created
+        rc = pk_thread_resume(io_pThread);
+    }
+
+    // Check for errors creating or resuming the thread
+    if(rc != PK_OK)
+    {
+        SBEV_ERROR ("Failure creating/resuming thread, rc=[%d]", rc);
+    }
+
+    return rc;
+}
 
 ////////////////////////////////////////////////////////////////
 // @brief - main : Verification Application main
@@ -109,32 +161,67 @@ int  main(int argc, char **argv)
 {
     #define SBEV_FUNC "Verification main"
     SBEV_ENTER(SBEV_FUNC);
-    int l_rc = 0;
+    int rc = 0;
+    uint64_t rootCtrlReg3 = 0;
+    sbe_local_LFR lfrReg;
 
-    uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG)<<32;
-    PPE_STVD(0x50009, loadValue);
-
-    l_rc = pk_initialize((PkAddress)verification_Kernel_NC_Int_stack,
-                         VERIFICATION_NONCRITICAL_STACK_SIZE,
-                         INITIAL_PK_TIMEBASE, // initial_timebase
-                         SBE_PK_BASE_FREQ_HZ );
-    if (l_rc)
+    do
     {
-         return 0;
-    }
-    SBEV_INFO("Completed PK initialization for Verification");
-#if 0
-    SBEV_INFO("Verify SBE-FW secure header.");
-    verifyFWSecureHdr();
-    SBEV_INFO("Completed SBE-FW secure header verification.");
+        uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG)<<32;
+        PPE_STVD(0x50009, loadValue);
 
-    SBEV_INFO("Verify HBBL secure header.");
-    verifyHBBLSecureHdr();
-    SBEV_INFO("Completed HBBL secure header verification.");
-#endif
-    SBEV_INFO("Jump to Boot.");
+        // Load the LFR, to fetch the Pib clock frequency
+        PPE_LVD(0xc0002040, lfrReg);
 
-    jump2boot();
+        //Check SBE Role
+        g_sbevRole = checkSbeRole();
+        SBEV_INFO(SBEV_FUNC "SBE Role is %x", g_sbevRole);
+
+        // Check root control register3 bit25 if the PAU DPLL in bypass or not.
+        // If not bypass then we use LFR frequency, if bypass then
+        // use 133MHz chip frequency
+        PPE_LVD(0x50013, rootCtrlReg3);
+        if(!(rootCtrlReg3 & MASK_BIT25))
+        {
+            g_sbevfreqency = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init
+            SBEV_INFO(SBEV_FUNC "PK Frequency Initialised to PAU Clock");
+        }
+        else
+        {
+            SBEV_INFO(SBEV_FUNC "PK Frequency Initialised to Ref Clock");
+            // g_sbevfrequency is already default initialised to ref clock frequency
+        }
+
+        rc = pk_initialize((PkAddress)verification_Kernel_NC_Int_stack,
+                VERIFICATION_NONCRITICAL_STACK_SIZE,
+                INITIAL_PK_TIMEBASE, // initial_timebase
+                g_sbevfreqency );
+        if (rc)
+        {
+            SBEV_ERROR(SBEV_FUNC "PK Initialization failed in Verification Image");
+            break;
+        }
+        SBEV_INFO(SBEV_FUNC "Completed PK initialization for Verification Image");
+
+        //Initialize secure boot thread
+        rc = createAndResumeThreadHelper(&sbev_thread,
+                sbevthreadroutine,
+                (void *)0,
+                (PkAddress)verificationSecureBoot_stack,
+                VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE,
+                THREAD_PRIORITY_5);
+        if (rc)
+        {
+            SBEV_ERROR(SBEV_FUNC "Initialize verification secure boot thread failed with rc 0x%08X", rc);
+            break;
+        }
+
+        SBEV_INFO(SBEV_FUNC "sbevSecureBoot_thread thread initilised");
+
+        pk_start_threads();
+
+    }while(false);
+
     SBEV_EXIT(SBEV_FUNC);
     return 0;
 }

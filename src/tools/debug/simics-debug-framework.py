@@ -257,6 +257,14 @@ def collectTrace ( procNr, nodeNr=0 ):
     fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
+  elif ( opMode == 0x07 ):
+    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    syms = measureSyms
+    stringFile = "sbeMeasurementStringFile"
+  elif ( opMode == 0x08 ):
+    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    syms = measureSyms
+    stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x0C ):
     fileName = "sbe_verification_seeprom" + `procNr` + "_tracMERG"
     syms = verifySyms

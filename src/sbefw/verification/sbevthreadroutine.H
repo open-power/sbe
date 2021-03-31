@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemPcrStates.H $                       */
+/* $Source: src/sbefw/verification/sbevthreadroutine.H $                  */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2021                             */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,58 +21,20 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*
- *  @file: ppe/sbe/sbefw/measurement/sbemPcrStates.H
+#ifndef __SBEV_THREAD_ROUTINE_H
+#define __SBEV_THREAD_ROUTINE_H
+
+/**
+ * @brief sbevSecureBoot_routine
+ *    One shot thread.
+ *    The major responsibilities of this thread are :
+ *        - Perform Secure boot verification flow.
+ *        - Verify HBBL secure header.
+ *        - Verify FW secure header.
+ *        - Jump to boot image.
  *
- *  @brief This file contains basic structures to create PCR definitions
- *
+ *  @param[in]  i_pArg - Any buffer needed to be passed to the thread routine
  */
-#ifndef __SBEM_PCR_STATES_H
-#define __SBEM_PCR_STATES_H
-
-#include <stdint.h>
-#include "ppe42_string.h"
-
-typedef struct securityState_PCR6
-{
-    uint8_t jumperState;
-    uint8_t minimumSecureVersion;
-    uint8_t reserved[6];
-
-    //Constructor
-    securityState_PCR6()
-    {
-        jumperState = 0;
-        minimumSecureVersion = 0;
-        memset(reserved, 0x0, 6 * sizeof(uint8_t));
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR6_t;
-
-typedef struct securityState_PCR1
-{
-    uint8_t  jumperState;
-    uint8_t  isPrimary:4;
-    uint8_t  isMpipl:4;
-    uint8_t  mSeepromLock;
-    uint8_t  minimumSecureVersion;
-    uint32_t mSeepromVersion;
-
-    //Constructor
-    securityState_PCR1()
-    {
-        jumperState = 0;
-        isPrimary = 0;
-        isMpipl = 0;
-        mSeepromLock = 0;
-        minimumSecureVersion = 0;
-        mSeepromVersion = 0;
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR1_t;
+void sbevthreadroutine(void *i_pArg);
 
 #endif

@@ -35,6 +35,17 @@
 #include <stdint.h>
 #include "p10_ipl_image.H"
 #include "ROM.H"
+#include "sbesecuritycommon.H"
+
+#define VERIFY_HW_SIG_A_HBBL         0                          //Verify HW Signature A incase of HBBL secure Hdr
+#define VERIFY_HW_SIG_C_SBE_FW       2                          //Verify HW Signature C incase of SBE_FW secure Hdr
+
+typedef struct secureHdrResponse
+{
+    SHA512truncated_t SHA512TruncatedResult;
+    uint32_t          flags;
+    uint8_t           statusCode;
+}secureHdrResponse_t;
 
 /**
  * @brief Verify Secure container.
@@ -47,20 +58,13 @@
  *
  * @return Secure container verification response/result/status_code.
  */
-ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int hw_sig_to_verify);
+ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int hw_sig_to_verify, SHA512_t *SHA512Result);
 
 /**
- * @brief Verify HBBL Secure Header.
+ * @brief Verify Secure Header.
  *
  * @return Secure container verification response/result/status_code
  */
-ROM_response verifyHBBLSecureHdr();
-
-/**
- * @brief Verify SBE-FW Secure Header.
- *
- * @return Secure container verification response/result/status_code
- */
-ROM_response verifyFWSecureHdr();
+ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_sig_to_verify, secureHdrResponse_t *secureHdrResponse);
 
 #endif /* __SBEFW_SBESECUREBOOT_H */

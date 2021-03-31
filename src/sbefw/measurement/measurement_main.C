@@ -583,33 +583,7 @@ int  main(int argc, char **argv)
         }
         //////////////////////////////////// Lock PAU DPLL ////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
-#if 0
-        //Check root control register3 bit25 if the PAU DPLL in bypass or not.
-        //If not bypass then we can use the 1968MHz chip frequency, if bypass then
-        //use 133MHz chip frequency
-        PPE_LVD(0x50013, rootCtrlReg3);
-        if(!(rootCtrlReg3 & MASK_BIT25))
-        {
-            g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ;
-            lfrReg.spi_clock_divider = 48; // Hard-coded basis (1968/40 - 1)
-            // Update LFR to match up to the new divider
-            PPE_STVD(0xc0002040, lfrReg);
 
-        }
-        else
-        {
-            // g_sbemfrequency and lfr.spi_clock_divider are already updated with
-            // 133Mhz and 4 respectively. Just update the TPM Spi clock at this
-            // point so that TPM can be accessible.
-
-            //SPI4
-            spiClockReg = 0;
-            PPE_LVD(0xc0083, spiClockReg);
-            spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_MASK) |
-                    ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) );
-            PPE_STVD(0xc0083, spiClockReg);
-        }
-#endif
         //Check SBE Role
         g_sbeRole = checkSbeRole();
         SBEM_INFO("SBE Role is %x", g_sbeRole);
@@ -624,8 +598,8 @@ int  main(int argc, char **argv)
             break;
         }
 
-        SBEM_INFO("Completed PK init for Measurement with Freq [0x%08X]", g_sbemfreqency);
-        SBEM_INFO("LFR = [0x%04X 0x%02X]", lfrReg.spi_clock_divider, lfrReg.round_trip_delay);
+        SBEM_INFO(SBEM_FUNC "Completed PK init for Measurement Image with Freq [0x%08X]", g_sbemfreqency);
+        SBEM_INFO(SBEM_FUNC "LFR clock divider and round trip delay = [0x%04X 0x%02X]", lfrReg.spi_clock_divider, lfrReg.round_trip_delay);
         //Initialize secure boot thread
         rc = createAndResumeThreadHelper(&sbem_thread,
                 sbemthreadroutine,

@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemPcrStates.H $                       */
+/* $Source: src/sbefw/verification/sbevutil.H $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2021                             */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,58 +21,20 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*
- *  @file: ppe/sbe/sbefw/measurement/sbemPcrStates.H
- *
- *  @brief This file contains basic structures to create PCR definitions
- *
- */
-#ifndef __SBEM_PCR_STATES_H
-#define __SBEM_PCR_STATES_H
+#ifndef SBEV_UTIL_H
+#define SBEV_UTIL_H
 
-#include <stdint.h>
-#include "ppe42_string.h"
-
-typedef struct securityState_PCR6
-{
-    uint8_t jumperState;
-    uint8_t minimumSecureVersion;
-    uint8_t reserved[6];
-
-    //Constructor
-    securityState_PCR6()
-    {
-        jumperState = 0;
-        minimumSecureVersion = 0;
-        memset(reserved, 0x0, 6 * sizeof(uint8_t));
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR6_t;
-
-typedef struct securityState_PCR1
-{
-    uint8_t  jumperState;
-    uint8_t  isPrimary:4;
-    uint8_t  isMpipl:4;
-    uint8_t  mSeepromLock;
-    uint8_t  minimumSecureVersion;
-    uint32_t mSeepromVersion;
-
-    //Constructor
-    securityState_PCR1()
-    {
-        jumperState = 0;
-        isPrimary = 0;
-        isMpipl = 0;
-        mSeepromLock = 0;
-        minimumSecureVersion = 0;
-        mSeepromVersion = 0;
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR1_t;
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+#include "pk.h"
+#include "pk_api.h"
+
+extern void jump2boot();
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //SBEV_UTIL_H

@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemPcrStates.H $                       */
+/* $Source: src/sbefw/verification/sbevutil.C $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2021                             */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,58 +21,33 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
+
+#include "sbevutil.H"
+
+extern "C"
+{
+
 /*
- *  @file: ppe/sbe/sbefw/measurement/sbemPcrStates.H
- *
- *  @brief This file contains basic structures to create PCR definitions
- *
- */
-#ifndef __SBEM_PCR_STATES_H
-#define __SBEM_PCR_STATES_H
-
-#include <stdint.h>
-#include "ppe42_string.h"
-
-typedef struct securityState_PCR6
+ *  ** API to jump to the boot seeprom.
+ *   */
+void jump2boot()
 {
-    uint8_t jumperState;
-    uint8_t minimumSecureVersion;
-    uint8_t reserved[6];
+    asm(
+            "lis %r4, 0xFF80\n"
+            "lvd %d0, 0(%r4)\n"
+            "lis %r2 , 0x5849\n"
+            "ori %r2 , %r2 , 0x5020\n"
+            "lis %r3 , 0x5345\n"
+            "ori %r3 , %r3, 0x504d\n"
+            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
+            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
+            "ori %r4, %r4, 8\n"
+            "lvd %d0 , 0(%r4)\n"
+            "mtctr %r1\n"
+            "bctr\n"
+"magic_failed:\n"
+            "trap\n"
+       );
+}
 
-    //Constructor
-    securityState_PCR6()
-    {
-        jumperState = 0;
-        minimumSecureVersion = 0;
-        memset(reserved, 0x0, 6 * sizeof(uint8_t));
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR6_t;
-
-typedef struct securityState_PCR1
-{
-    uint8_t  jumperState;
-    uint8_t  isPrimary:4;
-    uint8_t  isMpipl:4;
-    uint8_t  mSeepromLock;
-    uint8_t  minimumSecureVersion;
-    uint32_t mSeepromVersion;
-
-    //Constructor
-    securityState_PCR1()
-    {
-        jumperState = 0;
-        isPrimary = 0;
-        isMpipl = 0;
-        mSeepromLock = 0;
-        minimumSecureVersion = 0;
-        mSeepromVersion = 0;
-    }
-
-    void update(uint32_t sbe_role);
-
-}securityState_PCR1_t;
-
-#endif
+} // end extern "C"
