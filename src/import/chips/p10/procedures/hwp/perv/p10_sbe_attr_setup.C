@@ -203,28 +203,59 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
     }
 
     // apply GARD information to MC0..3
-    for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
-            (fapi2::TARGET_FILTER_ALL_MC),
-            fapi2::TARGET_STATE_PRESENT))
     {
-        uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_attr_proc_sbe_master_chip = fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_FALSE;
+        auto l_mc_chiplets = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                                 static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_MC), fapi2::TARGET_STATE_PRESENT);
+        fapi2::buffer<uint32_t> l_good_mcs = 0, l_garded_mcs = 0;
+        bool l_preserve_first_good = false;
 
-        FAPI_DBG("MC%d, gard mask: 0x%X",
-                 l_unit_num,
-                 i_scratch2_reg.getBit(static_cast<uint32_t>(MC_GARD_STARTBIT) + l_unit_num));
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip, l_attr_proc_sbe_master_chip));
 
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
-        FAPI_DBG("  PG before: 0x%08X", l_pg);
-
-
-        if (i_scratch2_reg.getBit(static_cast<uint32_t>(MC_GARD_STARTBIT) + l_unit_num))
+        // Collect gard and PG information for all MC
+        for (const auto& l_perv : l_mc_chiplets)
         {
-            l_pg = 0xFFFFFFFF;
+            uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
+            fapi2::ATTR_PG_Type l_pg;
+            bool l_garded = i_scratch2_reg.getBit(static_cast<uint32_t>(MC_GARD_STARTBIT) + l_unit_num);
+
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
+            FAPI_DBG("MC%d, garded: %d, PG before: 0x%08X", l_unit_num, l_garded, l_pg);
+
+            l_good_mcs.writeBit(l_pg != 0xFFFFFFFF, l_unit_num);
+            l_garded_mcs.writeBit(l_garded, l_unit_num);
         }
 
-        FAPI_DBG("  PG after: 0x%08X", l_pg);
-        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+        // Make sure that one good MC stays ungarded since we need one for HB
+        FAPI_DBG("Good MCs: 0x%08X, garded MCs: 0x%08X", l_good_mcs, l_garded_mcs);
+
+        if ((l_attr_proc_sbe_master_chip == fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_TRUE) &&
+            (l_good_mcs & ~l_garded_mcs) == 0)
+        {
+            FAPI_DBG("Garding would leave no good MCs enabled, forcing first good MC on");
+            l_preserve_first_good = true;
+        }
+
+        // Reprocess, deconfigure any that are unneeded
+        for (const auto& l_perv : l_mc_chiplets)
+        {
+            uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
+            fapi2::ATTR_PG_Type l_pg;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
+
+            if (l_preserve_first_good && l_good_mcs.getBit(l_unit_num))
+            {
+                FAPI_DBG("Preserving MC%d", l_unit_num);
+                l_preserve_first_good = false;
+            }
+            else if (l_garded_mcs.getBit(l_unit_num))
+            {
+                FAPI_DBG("Garding MC%d", l_unit_num);
+                l_pg = 0xFFFFFFFF;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+        }
     }
 
     {
@@ -483,6 +514,26 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      "Error from FAPI_ATTR_SET (ATTR_SYSTEM_IPL_PHASE)");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
                      "Error from FAPI_ATTR_SET (ATTR_CONTAINED_IPL_TYPE");
+        }
+
+        if (l_read_scratch8_reg.getBit<SCRATCH6_REG_VALID_BIT>())
+        {
+            fapi2::buffer<uint64_t> l_read_scratch6_reg = 0;
+            fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_attr_proc_sbe_master_chip = fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_FALSE;
+
+            FAPI_DBG("Reading Scratch 6 mailbox register");
+            FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW, l_read_scratch6_reg),
+                     "Error reading Scratch 6 mailbox register");
+
+            FAPI_DBG("Setting up ATTR_PROC_SBE_MASTER_CHIP");
+
+            if (l_read_scratch6_reg.getBit<ATTR_PROC_SBE_MASTER_CHIP_BIT>())
+            {
+                l_attr_proc_sbe_master_chip = fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_TRUE;
+            }
+
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip, l_attr_proc_sbe_master_chip),
+                     "Error from FAPI_ATTR_SET (ATTR_PROC_SBE_MASTER_CHIP)");
         }
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_attr_system_ipl_phase),
@@ -791,7 +842,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
             fapi2::ENUM_ATTR_PROC_FABRIC_TOPOLOGY_MODE_MODE0;
         fapi2::ATTR_PROC_FABRIC_BROADCAST_MODE_Type l_attr_proc_fabric_broadcast_mode =
             fapi2::ENUM_ATTR_PROC_FABRIC_BROADCAST_MODE_1HOP_CHIP_IS_GROUP;
-        fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_attr_proc_sbe_master_chip = fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_FALSE;
         fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID_Type l_attr_proc_fabric_topology_id = 0;
 
         if (l_read_scratch8_reg.getBit<SCRATCH6_REG_VALID_BIT>())
@@ -928,16 +978,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      "Error from FAPI_ATTR_SET (ATTR_PROC_FABRIC_TOPOLOGY_MODE)");
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_FABRIC_BROADCAST_MODE, FAPI_SYSTEM, l_attr_proc_fabric_broadcast_mode),
                      "Error from FAPI_ATTR_SET (ATTR_PROC_FABRIC_BROADCAST_MODE)");
-
-            FAPI_DBG("Setting up ATTR_PROC_SBE_MASTER_CHIP");
-
-            if (l_read_scratch6_reg.getBit<ATTR_PROC_SBE_MASTER_CHIP_BIT>())
-            {
-                l_attr_proc_sbe_master_chip = fapi2::ENUM_ATTR_PROC_SBE_MASTER_CHIP_TRUE;
-            }
-
-            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_SBE_MASTER_CHIP, i_target_chip, l_attr_proc_sbe_master_chip),
-                     "Error from FAPI_ATTR_SET (ATTR_PROC_SBE_MASTER_CHIP)");
 
             FAPI_DBG("Setting up ATTR_PROC_FABRIC_TOPOLOGY_ID");
 
