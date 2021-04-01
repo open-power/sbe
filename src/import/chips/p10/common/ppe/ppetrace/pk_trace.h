@@ -38,6 +38,10 @@
     #include "driver.h"
 #endif
 
+#ifdef hz
+    #undef hz
+#endif
+
 #ifndef PK_TRACE_VERSION
     #define PK_TRACE_VERSION 2
 #endif
