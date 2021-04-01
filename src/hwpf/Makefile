@@ -31,7 +31,7 @@ OBJS = $(addprefix $(OBJDIR)/, $(SBEM_FAPI2PLATLIB_OBJECTS))
 LIBNAME = libfapi2measurement
 else ifeq ($(img_mem), verification)
 export SUB_OBJDIR = /fapi2_verification
-GCC-DEFS += -D__SBEMFW_MEASUREMENT__=1
+GCC-DEFS += -D__SBEVFW_VERIFICATION__=1
 OBJS = $(addprefix $(OBJDIR)/, $(SBEM_FAPI2PLATLIB_OBJECTS))
 LIBNAME = libfapi2verification
 else ifeq ($(img_mem), seeprom)

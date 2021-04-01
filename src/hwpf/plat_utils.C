@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 #include <fapi2_attribute_service.H>
 #include <attribute_ids.H>
 #include <return_code.H>
@@ -42,6 +42,7 @@
 #include <sbeglobals.H>
 
 extern uint32_t g_sbemfreqency;
+extern uint32_t g_sbevfreqency;
 
 namespace fapi2
 {
@@ -63,6 +64,8 @@ namespace fapi2
     {
 #ifdef __SBEMFW_MEASUREMENT__
         uint32_t sbeFrequency = g_sbemfreqency;
+#elif __SBEVFW_VERIFICATION__
+        uint32_t sbeFrequency = g_sbevfreqency;
 #else
         uint32_t sbeFrequency = SBE_GLOBAL->sbefreq;
 #endif
@@ -136,7 +139,7 @@ namespace fapi2
         return FAPI2_RC_SUCCESS;
     }
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
     ///
     /// @brief Queries the ATTR_NAME and ATTR_EC attributes
     ///

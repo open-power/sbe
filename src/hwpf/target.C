@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #include <fapi2.H>
 #include <assert.h>
 #include <fapi2_target.H>
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 #include <plat_target_utils.H>
 #include <p10_scom_pibms.H>
 #include <p10_scom_perv_9.H>
@@ -79,11 +79,11 @@ extern fapi2attr::OCMBChipAttributes_t*  G_ocmb_chip_attributes_ptr;
 
 #endif // __SBEFW_SEEPROM__
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__)  && !defined(__SBEVFW_VERIFICATION__)
 //TODO - This will be removed once this address is
 //define in P10 scom definition.
 #define EXPORT_REGL_STATUS 0x10009ull
-#endif  // not __SBEMFW_MEASUREMENT__
+#endif  // not __SBEMFW_MEASUREMENT__ or __SBEVFW_VERIFICATION__
 
 namespace fapi2
 {
@@ -136,7 +136,7 @@ ReturnCode plat_setMcMap(const std::vector< MulticastGroupMapping > &i_mappings)
 }
 #endif // __SBEFW_SEEPROM__
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 template<TargetType K>
 plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 {
@@ -232,7 +232,7 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     l_handle.fields.functional = true;
     return l_handle;
 }
-#endif // not __SBEMFW_MEASUREMENT__
+#endif // not __SBEMFW_MEASUREMENT__ or __SBEVFW_VERIFICATION__
 
 #if defined __SBEFW_SEEPROM__
 //TODO - Clean-up this function, since most of the things are in
@@ -979,7 +979,7 @@ fapi_try_exit:
 
 #endif // __SBEFW_PIBMEM__
 
-#if defined __SBEMFW_MEASUREMENT__
+#if defined(__SBEMFW_MEASUREMENT__) || defined(__SBEVFW_VERIFICATION__)
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> plat_getChipTarget()
     {
          // Get the chip default specific target
@@ -990,6 +990,6 @@ fapi_try_exit:
          // Get the chip specific target
          return (TARGET_TYPE_PROC_CHIP);
     }
-#endif // end of __SBEMFW_MEASUREMENT__
+#endif // end of __SBEMFW_MEASUREMENT__ or __SBEVFW_VERIFICATION__
 
 } // fapi2

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #include "hw_access.H"
 #include "plat_hw_access.H"
 #include "p10_scom_addr.H"
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 #include <p10_putRingUtils.H>
 #include <p10_plat_ring_traverse.H>
 #endif
@@ -42,7 +42,7 @@ uint32_t getRemainder(uint32_t num, uint32_t divisor)
 namespace fapi2
 {
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 
 #define FASTINIT_SUPPORT 0x00080000
 
@@ -218,7 +218,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
     FAPI_DBG("getEffectiveAddress(): input target=0x%.8x and address=0x%.8x Translated Addr = 0x%08X", i_target.value, i_addr, translatedAddr);
     return translatedAddr;
 }
-#endif // __SBEMFW_MEASUREMENT__
+#endif // __SBEMFW_MEASUREMENT__ && __SBEVFW_VERIFICATION__
 
 static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
 {
@@ -374,7 +374,7 @@ fapi2::ReturnCode getscom_abs_wrap(const void *i_target,
 {
     uint32_t l_pibRc = 0;
     uint32_t l_addr = i_addr;
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
     l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target, i_addr);
 #endif
     l_pibRc = getscom_abs(l_addr, o_data);
@@ -391,7 +391,7 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
 {
     uint32_t l_pibRc = 0;
     uint32_t l_addr = i_addr;
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
     l_addr = getEffectiveAddress(*(plat_target_handle_t*)i_target,i_addr);
 #endif
     l_pibRc = putscom_abs(l_addr, i_data);
@@ -403,7 +403,7 @@ fapi2::ReturnCode putscom_abs_wrap(const void *i_target,
 }
 
 
-#ifndef __SBEMFW_MEASUREMENT__
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 fapi2::ReturnCode putscom_under_mask(const void *i_target,
                                      uint32_t i_addr,
                                      uint64_t i_data,
