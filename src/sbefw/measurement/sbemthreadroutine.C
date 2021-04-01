@@ -131,6 +131,22 @@ void sbemthreadroutine(void *i_pArg)
         }
         writeTruncatedVerificationImageHash(sha512truncatedVerification);
 
+        // Grab HW key hash from sb_settings
+        memset(sha512truncated, 0x00, sizeof(SHA512truncated_t));
+        if(getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS) != 0x00)
+        {
+            memcpy(sha512truncated, (uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS)), sizeof(SHA512truncated_t));
+        }
+        else
+        {
+            SBEM_ERROR(SBEM_FUNC ".sb_settings XIP section not found. HW key hash not found. Extending 0x00 into TPM_PCR6 and TPM_PCR1");
+        }
+
+        // Write the first 8 bytes of the HW key hash into measurement reg 1
+        data = 0;
+        memcpy(&data, sha512truncated, sizeof(uint64_t));
+        putscom_abs(OTPROM_MEASUREMENT_REG1, data);
+
         // Read the Security Switch Register for the TPM Deconfig Bit incase TPM is already
         // deconfigured at this point
         PPE_LVD(0x10005, securityReg);
@@ -138,17 +154,7 @@ void sbemthreadroutine(void *i_pArg)
         //Skip if error/rc/deconfig bit set in TPM sequence.
         if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
         {
-            memset(sha512truncated, 0x00, sizeof(SHA512truncated_t));
             //Extend HW key hash to PCR6 and PCR1 if SBE role is master.
-            if(getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS) != 0x00)
-            {
-                memcpy(sha512truncated, (uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + sizeof(SHA512truncated_t)), sizeof(SHA512truncated_t));
-            }
-            else
-            {
-                SBEM_ERROR(SBEM_FUNC ".sb_settings XIP section not found. HW key hash not found. Extending 0x00 into TPM_PCR6 and TPM_PCR1");
-            }
-
             SBEM_INFO("Extending HW key hash into TPM_PCR6");
             rc = tpmExtendPCR(TPM_PCR6, sha512truncated, sizeof(SHA512truncated_t));
             if(rc)
@@ -157,6 +163,7 @@ void sbemthreadroutine(void *i_pArg)
                 tpmRespCode = SBEM_TPM_EXTEND_HW_KEY_HASH_PCR6_FAILURE;
                 break;
             }
+
             SBEM_INFO("Extending HW key hash into TPM_PCR1");
             rc = tpmExtendPCR(TPM_PCR1, sha512truncated, sizeof(SHA512truncated_t));
             if(rc)
