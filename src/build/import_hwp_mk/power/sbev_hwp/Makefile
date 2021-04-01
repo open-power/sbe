@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/power/verif_hwp/Makefile $
+# $Source: src/build/import_hwp_mk/power/sbev_hwp/Makefile $
 #
 # OpenPOWER sbe Project
 #
@@ -25,30 +25,30 @@
 # "*.mk" file in this directory.
 
 #all generated files from this makefile will end up in obj/*
-export SUB_OBJDIR = /$(IMPORT_OBJDIR)/verif_hwp
+export SUB_OBJDIR = /$(IMPORT_OBJDIR)/sbev_hwp
 
 include img_defs.mk
-include verifhwpfiles.mk
+include sbevhwpfiles.mk
 
 export VPATH = $(SPI_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR)
 
-OBJVERIFHWPFILES := $(addprefix $(OBJDIR-VERIF-HWP)/, $(VERIFHWP_OBJECTS))
+OBJSBEVHWPFILES := $(addprefix $(OBJDIR-SBEV-HWP)/, $(SBEVHWP_OBJECTS))
 
-.PHONY: clean verif_hwp
+.PHONY: clean sbev_hwp
 
-libverif_hwp.a: verif_hwp
-	$(AR) crs $(OBJDIR-VERIF-HWP)/libverif_hwp.a $(OBJDIR-VERIF-HWP)/*.o
+libsbev_hwp.a: sbev_hwp
+	$(AR) crs $(OBJDIR-SBEV-HWP)/libsbev_hwp.a $(OBJDIR-SBEV-HWP)/*.o
 
-verif_hwp: $(OBJVERIFHWPFILES)
+sbev_hwp: $(OBJSBEVHWPFILES)
 
-$(OBJVERIFHWPFILES) $(OBJVERIFHWPFILES:.o=.d): | $(OBJDIR-VERIF-HWP)
+$(OBJSBEVHWPFILES) $(OBJSBEVHWPFILES:.o=.d): | $(OBJDIR-SBEV-HWP)
 
-$(OBJDIR-VERIF-HWP):
-	mkdir -p $(OBJDIR-VERIF-HWP)
+$(OBJDIR-SBEV-HWP):
+	mkdir -p $(OBJDIR-SBEV-HWP)
 
 clean:
-	rm -fr $(OBJDIR-VERIF-HWP)
+	rm -fr $(OBJDIR-SBEV-HWP)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(OBJVERIFHWPFILES:.o=.d)
+include $(OBJSBEVHWPFILES:.o=.d)
 endif

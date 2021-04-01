@@ -1,7 +1,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/build/import_hwp_mk/power/verif_hwp/verifhwpfiles.mk $
+# $Source: src/build/import_hwp_mk/power/sbev_hwp/sbevhwpfiles.mk $
 #
 # OpenPOWER sbe Project
 #
@@ -28,10 +28,10 @@
 ##########################################################################
 # Object Files
 ##########################################################################
-VERIFHWP-CPP-SOURCES = p10_sbe_spi_cmd.C
-VERIFHWP-C-SOURCES =
-VERIFHWP-S-SOURCES =
+SBEVHWP-CPP-SOURCES = p10_sbe_spi_cmd.C
+SBEVHWP-C-SOURCES =
+SBEVHWP-S-SOURCES =
 
-VERIFHWP_OBJECTS += $(VERIFHWP-CPP-SOURCES:.C=.o)
-VERIFHWP_OBJECTS += $(VERIFHWP-C-SOURCES:.c=.o)
-VERIFHWP_OBJECTS += $(VERIFHWP-S-SOURCES:.S=.o)
+SBEVHWP_OBJECTS += $(SBEVHWP-CPP-SOURCES:.C=.o)
+SBEVHWP_OBJECTS += $(SBEVHWP-C-SOURCES:.c=.o)
+SBEVHWP_OBJECTS += $(SBEVHWP-S-SOURCES:.S=.o)
