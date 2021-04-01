@@ -42,8 +42,8 @@
 
 typedef struct secureHdrResponse
 {
-    SHA512truncated_t SHA512TruncatedResult;
-    uint32_t          flags;
+    SHA512truncated_t sha512Truncated;
+    uint32_t          flag;
     uint8_t           statusCode;
 }secureHdrResponse_t;
 
@@ -56,9 +56,17 @@ typedef struct secureHdrResponse
  *
  * @param hw_sig_to_verify The hardware signature that has to be verified(Among the 3 HW signaturs that are present)
  *
- * @return Secure container verification response/result/status_code.
+ * @param *SHA512Result The calculated payload hash (SBE_FW or HBBL Payload hash)
+ *
+ * @param flag Prefix Hdr flag
+ *
+ * @return Secure container verification response.
  */
-ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int hw_sig_to_verify, SHA512_t *SHA512Result);
+ROM_response ROM_verify( ROM_container_raw* container,
+                         ROM_hw_params* params,
+                         int hw_sig_to_verify,
+                         SHA512_t *SHA512Result,
+                         uint32_t *flag);
 
 /**
  * @brief Verify Secure Header.

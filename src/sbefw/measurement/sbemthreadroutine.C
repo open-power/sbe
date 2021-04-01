@@ -25,7 +25,6 @@
 
 #include "sbemtrace.H"
 #include "sbesecuritycommon.H"
-#include "sbemsecuritysetting.H"
 #include "sbeTPMCommand.H"
 #include "sbemPcrStates.H"
 #include "sbeOtpromMeasurementReg.H"
@@ -33,12 +32,11 @@
 #include "sbemutil.H"
 #include "tpmStatusCodes.H"
 #include "sbemTPMSequences.H"
-
-#define TPM_DECONFIG_BIT_SHIFT 51
+#include "p10_scom_perv.H"
 
 extern uint32_t g_sbeRole;
 
-void writeTruncatedVerificationImageHash(SHA512truncated_t i_shaResult)
+static void writeTruncatedVerificationImageHash(SHA512truncated_t &i_shaResult)
 {
     uint64_t hashData = 0;
     memcpy(&hashData, &i_shaResult[sizeof(uint64_t) * 0], sizeof(uint64_t));
@@ -61,7 +59,8 @@ void sbemthreadroutine(void *i_pArg)
 
     int rc = 0;
     uint64_t data = 0;
-    uint64_t securityReg = 0;
+    fapi2::buffer<uint64_t> securityReg = 0;
+    fapi2::buffer<uint64_t> cbs_cs_reg = 0;
     uint64_t scratchMsgReg = 0;
     SHA512_t sha512Verification;
     SHA512truncated_t sha512truncated;
@@ -72,15 +71,12 @@ void sbemthreadroutine(void *i_pArg)
 
     do
     {
-        //TODO: This needs to be moved into verification flow.
-        sbemSetSecureAccessBit();
-
         // Update the Code Flow status in messaging register 50009
         scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_TPM_INIT_SEQUENCE_MSG)<<32;
         PPE_STVD(0x50009, scratchMsgReg);
 
         // Reset the MAILBOX_SCRATCH_REG_11.
-        PPE_STVD(0x50182, securityReg);
+        PPE_STVD(0x50182, data);
 
         // Startup TPM Sequence for Master Chip, Poison for Alt-master and Deconfig Bit for Secondary chips
         rc = performTPMSequences(g_sbeRole);
@@ -149,10 +145,10 @@ void sbemthreadroutine(void *i_pArg)
 
         // Read the Security Switch Register for the TPM Deconfig Bit incase TPM is already
         // deconfigured at this point
-        PPE_LVD(0x10005, securityReg);
+        getscom_abs(0x10005, &securityReg());
 
         //Skip if error/rc/deconfig bit set in TPM sequence.
-        if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg >> TPM_DECONFIG_BIT_SHIFT)) )
+        if((g_sbeRole == SBE_ROLE_MASTER) && (!(securityReg.getBit<TPM_DECONFIG_BIT>())) )
         {
             //Extend HW key hash to PCR6 and PCR1 if SBE role is master.
             SBEM_INFO("Extending HW key hash into TPM_PCR6");
@@ -268,6 +264,12 @@ void sbemthreadroutine(void *i_pArg)
         {
             //TODO - Remove this Jump. Jump to only Verification image even if it is bad
             SBEM_INFO("Bad verification image, jump to boot 0x%08X", vhdr->iv_L2LoaderAddr);
+            //Disable Security for Lab, so that it can access the seeproms for write
+            getscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
+            SBEM_INFO(SBEM_FUNC "CBS_Control_status register [0x%08X %08X]",
+                ((cbs_cs_reg >> 32) & 0xFFFFFFFF), (cbs_cs_reg & 0xFFFFFFFF));
+            cbs_cs_reg.clearBit<scomt::perv::FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
+            putscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, cbs_cs_reg());
             jump2bootImage();
         }
     }
@@ -277,6 +279,12 @@ void sbemthreadroutine(void *i_pArg)
         // into verification, if verification fails then flash the boot seeprom again with correct
         // verification image.
         SBEM_INFO("No verification image, jumping to boot, crorecover boot seeprom image again");
+        //Disable Security for Lab, so that it can access the seeproms for write
+        getscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
+        SBEM_INFO(SBEM_FUNC "CBS_Control_status register [0x%08X %08X]",
+            ((cbs_cs_reg >> 32) & 0xFFFFFFFF), (cbs_cs_reg & 0xFFFFFFFF));
+        cbs_cs_reg.clearBit<scomt::perv::FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
+        putscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, cbs_cs_reg());
         jump2bootImage();
     }
 

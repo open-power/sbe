@@ -184,7 +184,7 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
     # Sign the .hbbl binary
     echo "Sign .hbbl section"
-    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token SBE_HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
+    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
 
     #Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
     echo "Strip SBE_HBBL.header content"

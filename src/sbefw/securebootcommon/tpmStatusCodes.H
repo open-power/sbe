@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -40,6 +41,18 @@ enum sbemTPMRespCode
     SBEM_TPM_EXTEND_SECURITY_STATE_PCR1_FAILURE              = 0x0A,
     SBEM_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR0_FAILURE     = 0x0B,
     SBEM_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR6_FAILURE     = 0x0C,
+    SBEV_TPM_EXTEND_SBE_FW_PAYLOAD_IMAGE_HASH_PCR0_FAILURE   = 0x0D,
+    SBEV_TPM_EXTEND_HBBL_PAYLOAD_IMAGE_HASH_PCR0_FAILURE     = 0x0E,
+    SBEV_TPM_EXTEND_SECURITY_SWITCH_REG_PCR1_FAILURE         = 0x0F,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR0_FAILURE                   = 0x10,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR1_FAILURE                   = 0x11,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR2_FAILURE                   = 0x12,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR3_FAILURE                   = 0x13,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR4_FAILURE                   = 0x14,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR5_FAILURE                   = 0x15,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR6_FAILURE                   = 0x16,
+    SBEV_TPM_EXTEND_SEPERATOR_PCR7_FAILURE                   = 0x17,
+
 };
 
 #endif

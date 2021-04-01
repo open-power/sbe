@@ -37,7 +37,6 @@
 
 fapi2::ReturnCode tpmPoisonPCR();
 
-
 /**
  * @brief This function peforms the sequencing to do extend on the TPM.
  * @param[in] pcrNum   PCT to be extended.
@@ -49,4 +48,11 @@ fapi2::ReturnCode tpmPoisonPCR();
  */
 
 fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size);
+
+/*
+ *  @brief Set TPM deconfig bit.
+ *
+ */
+fapi2::ReturnCode setTPMDeconfigBit();
+
 #endif

@@ -39,7 +39,7 @@ NUM_CORES = simenv.num_cores_per_chip
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 print("SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH)
-# "Export SBE_TOOL_PATH" as OS environment variable. 
+# "Export SBE_TOOL_PATH" as OS environment variable.
 os.environ['SBE_TOOLS_PATH'] = SBE_TOOLS_PATH
 
 testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
@@ -98,7 +98,7 @@ def register_sbe_debug_framework_tools():
                 doc = "")
     new_command("sbe-updatepg",updateAttrPG,
                 args = [arg(str_t, "eccFile"), arg(int_t, "coreNr", "?", 2)],
-                alias = "supdatepg", 
+                alias = "supdatepg",
                 type = ["sbe-commands"],
                 short = "Runs the debug framework for update EQ PG Attr ",
                 doc = "")

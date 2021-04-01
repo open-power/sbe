@@ -96,8 +96,8 @@
 #define SBE_LOADER_BASE_LENGTH (0x2C00 - 0x80)
 
 // Base Loader start address
-#define SBE_VERIFICATION_PIBMEM_ORIGIN 0xFFF90000
-#define SBE_VERIFICATION_PIBMEM_LENGTH (SBE_BASE_LENGTH - 0x10000)
+#define SBE_VERIFICATION_PIBMEM_ORIGIN 0xFFFA0000
+#define SBE_VERIFICATION_PIBMEM_LENGTH (SBE_BASE_LENGTH - 0x20000)
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20
@@ -154,6 +154,10 @@
 #define SBE_CODE_MEASURMENT_SHA512_COMPLETE 0x09
 // Code reached to Verification Image Main Flow
 #define SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG 0x0A
+// Code reached to Verification Image SBE_FW Secure header complete
+#define SBE_CODE_VERIFICATION_SBEFW_SECURE_HDR_DONE 0x0B
+// Code reached to Verification Image HBBL Secure header complete
+#define SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE 0x0C
 // Code reached to BOOT SEEPROM loader L1
 #define SBE_CODE_BOOT_SEEPROM_L1_LOADER_MSG 0x0D
 // Code reached to BOOT PIBMEM Loader L2

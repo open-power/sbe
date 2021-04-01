@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2019,2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,8 @@
 # IBM_PROLOG_END_TAG
 
 export SUB_OBJDIR = /sbefw/verification
+export VPATH = $(SBE_FW_DIR)/core
+
 OBJS = $(addprefix $(OBJDIR)/, $(VERIFICATION_OBJECTS))
 LIBNAME = libVerification
 

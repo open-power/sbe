@@ -28,14 +28,6 @@
 #include "sbesecuritycommon.H"
 
 /**
- * @brief Write truncated verification hash into OTPROM Regs
- *        x10014,x10015,x10016,x10017
- *
- *  @param[in]  truncatedResult - SHA512 Truncated result.
- */
-void writeTruncatedVerificationImageHash(SHA512truncated_t truncatedResult);
-
-/**
  * @brief sbemSecureBoot_routine
  *    One shot thread.
  *    The major responsibilities of this thread are :

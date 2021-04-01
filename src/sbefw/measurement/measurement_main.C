@@ -89,6 +89,28 @@ extern uint64_t _sbss_end __attribute__ ((section (".sbss")));
 // garded if pk  boot uses some static/global data  initialised to
 // false in future.
 
+void __eabi()
+{
+    do
+    {
+        // Initialise sbss section
+        uint64_t *startAddr = &_sbss_start;
+        while ( startAddr != &_sbss_end )
+        {
+            *startAddr = 0;
+            startAddr++;
+        }
+        // Call global constructors
+        void(**ctors)() = &ctor_start_address;
+        while( ctors != &ctor_end_address)
+        {
+            (*ctors)();
+            ctors++;
+        }
+    } while (false);
+}
+} // end extern "C"
+
 ////////////////////////////////////////////////////////////////
 // @brief  createAndResumeThreadHelper
 //            - Create and resume the given thread
@@ -123,51 +145,29 @@ uint32_t createAndResumeThreadHelper(PkThread    *io_pThread,
                                 size_t            i_stack_size,
                                 sbeThreadPriorities  i_priority)
 {
-    int l_rc = PK_OK;
+    int rc = PK_OK;
 
     // Thread creation
-    l_rc =  pk_thread_create(io_pThread,
+    rc =  pk_thread_create(io_pThread,
                              i_thread_routine,
                              io_pArg,
                              i_stack,
                              i_stack_size,
                              (PkThreadPriority)i_priority);
-    if(l_rc == PK_OK)
+    if(rc == PK_OK)
     {
         // resume the thread once created
-        l_rc = pk_thread_resume(io_pThread);
+        rc = pk_thread_resume(io_pThread);
     }
 
     // Check for errors creating or resuming the thread
-    if(l_rc != PK_OK)
+    if(rc != PK_OK)
     {
-        SBE_ERROR ("Failure creating/resuming thread, rc=[%d]", l_rc);
+        SBE_ERROR ("Failure creating/resuming thread, rc=[%d]", rc);
     }
 
-    return l_rc;
+    return rc;
 }
-
-void __eabi()
-{
-    do
-    {
-        // Initialise sbss section
-        uint64_t *startAddr = &_sbss_start;
-        while ( startAddr != &_sbss_end )
-        {
-            *startAddr = 0;
-            startAddr++;
-        }
-        // Call global constructors
-        void(**ctors)() = &ctor_start_address;
-        while( ctors != &ctor_end_address)
-        {
-            (*ctors)();
-            ctors++;
-        }
-    } while (false);
-}
-} // end extern "C"
 
 // Setup the SPI Clock Divider per the new clock and update LFR
 void setupSpiClockDividerAndLFRPerPAUDPLL()

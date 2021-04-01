@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemTPMSequences.H $                    */
+/* $Source: src/sbefw/verification/sbevPcrStates.H $                      */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
-/* [+] International Business Machines Corp.                              */
+/* Contributors Listed Below - COPYRIGHT 2021                             */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -23,25 +22,25 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#ifndef SBEM_TPM_SEQUENCE_H
-#define SBEM_TPM_SEQUENCE_H
+#ifndef __SBEV_PCR_STATES_H
+#define __SBEV_PCR_STATES_H
 
-/**
- *  @brief perform TPM sequences in the measurment flow.
- *
- *  @param[in] sbeRole The Role of SBE. master/alt-master/slave
- *
- */
+#include <stdint.h>
+#include "ppe42_string.h"
+#include "sbesecuritycommon.H"
 
-fapi2::ReturnCode performTPMSequences(uint32_t sbeRole);
+typedef struct securitySwitchReg_PCR1
+{
+    uint32_t securitySwitch;
 
-/**
- *  @brief set TPM response code in the scratch register.
- *
- *  @param[in] failCode TPM response code.
- *
- */
+    //Constructor
+    securitySwitchReg_PCR1()
+    {
+        securitySwitch = 0;
+    }
 
-fapi2::ReturnCode setTPMFailureRespCode(uint32_t failCode);
+    void update(uint64_t securitySwitchReg);
 
-#endif //SBEM_TPM_SEQUENCE_H
+}securitySwitchReg_PCR1_t;
+
+#endif

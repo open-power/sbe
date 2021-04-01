@@ -53,6 +53,7 @@ uint8_t verificationSecureBoot_stack[VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE]
 //// @brief PkThread structure for SBE Verification thread .
 ////////////////////////////////////////////////////////////////////
 PkThread sbev_thread;
+
 uint32_t g_sbevRole;
 
 extern "C"

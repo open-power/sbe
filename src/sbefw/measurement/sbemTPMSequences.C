@@ -266,31 +266,6 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
     #undef SBEM_FUNC
 }
 
-fapi2::ReturnCode setTPMDeconfigBit()
-{
-    #define SBEM_FUNC " setTPMDeconfigBit "
-    SBEM_ENTER(SBEM_FUNC);
-    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
-    do
-    {
-        // putscom 0x10005 0x00080000_00000000
-        Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
-        constexpr uint64_t tpmDeconfigMask = 0x0008000000000000ULL;
-        rc = putscom_abs_wrap (&target, OTP_SECURITY_SWITCH, tpmDeconfigMask);
-        if(rc)
-        {
-            SBEM_ERROR(SBEM_FUNC " putscom failed on OTP_SECURITY_SWITCH with rc 0x%08X", rc);
-            // If we are unsuccessful in setting the deconfig bit we are in an
-            // untrusted unsecure state, we must halt
-            pk_halt();
-            break;
-        }
-    }while(0);
-    SBEM_EXIT(SBEM_FUNC);
-    return rc;
-    #undef SBEM_FUNC
-}
-
 fapi2::ReturnCode setTPMFailureRespCode(uint32_t failCode)
 {
     #define SBEM_FUNC " setTPMFailureRespCode "

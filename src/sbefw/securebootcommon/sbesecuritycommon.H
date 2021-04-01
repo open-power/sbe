@@ -39,6 +39,8 @@
 #include "p10_ipl_image.H"
 #include "sbeXipUtils.H"
 
+#define TPM_DECONFIG_BIT 12
+
 typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
 
 //TPM PCR
@@ -49,6 +51,27 @@ typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
 #define TPM_PCR4 0x04
 #define TPM_PCR5 0x05
 #define TPM_PCR6 0x06
+#define TPM_PCR7 0x07
+
+//Secure boot status Mailbox scratch 11 (SCOM x50182)
+typedef union secureBootStatus
+{
+    uint64_t statusReg;
+    struct
+    {
+        uint8_t reserved;
+        uint8_t tpmStatus;
+        uint8_t hbblSecureHdrStatus;
+        uint8_t sbeFWSecureHdrStatus;
+        uint32_t unused;
+    }status;
+
+    //Constructor
+    secureBootStatus()
+    {
+        statusReg = 0x00;
+    };
+}secureBootStatus_t;
 
 /**
  * @brief Perform SHA512 update for particular XIP section.

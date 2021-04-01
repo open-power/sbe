@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/measurement/sbemsecuritysetting.H $                 */
+/* $Source: src/sbefw/verification/sbevsecuritysetting.H $                */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,14 +21,8 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "sbemtrace.H"
 #include "fapi2.H"
-#include "sbemutil.H"
-#include "ppe42_scom.h"
-#include "p10_scom_perv.H"
-#include "sbeglobals.H"
-#include "p10_sbe_scratch_regs.H"
 
 using namespace fapi2;
 
-void sbemSetSecureAccessBit(void);
+void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureBackDoorFlag);

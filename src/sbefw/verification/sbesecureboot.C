@@ -37,11 +37,12 @@
 #include "plat_hwp_data_stream.H"
 #include "fapi2.H"
 #include "sbeXipUtils.H"
+#include "sbeutil.H"
 
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }
 
-#define HBBL_SECURE_HDR_COMPONENT_ID 0x5342455f4842424cUll      //Component ID:SBE_HBBL
+#define HBBL_SECURE_HDR_COMPONENT_ID 0x4842424C00000000Ull      //Component ID:HBBL
 #define FW_SECURE_HDR_COMPONENT_ID   0x5342455f46570000Ull      //Component ID:SBE_FW
 #define VERIFY_SW_SIG_P              0                          //Verify SW Signature P incase of both HBBL and SBE_FW secure Hdr.
 
@@ -156,12 +157,20 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
         if((no_of_keys - key_count) == sig_to_verify)
         {
             SBEV_INFO("Verifying signature: %d",(no_of_keys-key_count));
-            //if (ec_verify (keys, digest, sigs)<1)
-            //TODO: remove below line after testing is done and uncomment above
-            //line. ECDSA takes time .
-            if (1<1)
+            //TODO:Enable below piec of code for HW.
+            //Curently Seeing stack corruption issues in SHA512 if
+            //ECDSA Enabled
+            return 1;
+            if(!SBE::isSimicsRunning())
             {
-                return 0;
+                if (ec_verify (keys, digest, sigs)<1)
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                SBEV_INFO("Skipping ECDSA - Simics running");
             }
         }
         else
@@ -227,7 +236,11 @@ static void populateHWParams(ROM_hw_params* params)
     #undef SBEV_FUNC
 }
 
-ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int hw_sig_to_verify, SHA512_t *SHA512Result)
+ROM_response ROM_verify( ROM_container_raw* container,
+                         ROM_hw_params* params,
+                         int hw_sig_to_verify,
+                         SHA512_t *SHA512Result,
+                         uint32_t *flag)
 {
     #define SBEV_FUNC " ROM_verify "
     SBEV_ENTER(SBEV_FUNC);
@@ -286,6 +299,8 @@ ROM_response ROM_verify(ROM_container_raw* container, ROM_hw_params* params, int
     SBEV_INFO("Prefix Hdr: code start offset : %d", get64(&prefix->code_start_offset));
     SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
     SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
+    //Return the Prefix Hdr flag
+    *flag = get32(&prefix->flags);
 
     // test for valid prefix header signatures (all)
     hw_data = (ROM_prefix_data_raw*)(prefix->ecid + prefix->ecid_count*ECID_SIZE);
@@ -447,9 +462,9 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
     SBEV_INFO("Secure Header:Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(secureHdrXipSection), getXipSize(secureHdrXipSection));
     ROM_container_raw* container = (ROM_container_raw *)getXipOffsetAbs(secureHdrXipSection);
 
-    status = ROM_verify(container, &l_hw_parms, hw_sig_to_verify, &digest);
+    status = ROM_verify(container, &l_hw_parms, hw_sig_to_verify, &digest, &secureHdrResponse->flag);
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
-    SBE_DEBUG("Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
+    SBEV_DEBUG("Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 
     if(status == ROM_FAILED && secureHdrResponse->statusCode == HEADER_HASH_TEST)
     {
@@ -473,7 +488,7 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
 
     }
 
-    memcpy(&secureHdrResponse->SHA512TruncatedResult, digest, sizeof(SHA512truncated_t));
+    memcpy(&secureHdrResponse->sha512Truncated, digest, sizeof(SHA512truncated_t));
 
     SBEV_EXIT(SBEV_FUNC);
     return status;
