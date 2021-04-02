@@ -265,11 +265,15 @@ def collectTrace ( procNr, nodeNr=0 ):
     fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
-  elif ( opMode == 0x0C ):
+  elif ( opMode == 0x09 ):
+    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    syms = measureSyms
+    stringFile = "sbeMeasurementStringFile"
+  elif ( opMode == 0x0A ):
     fileName = "sbe_verification_seeprom" + `procNr` + "_tracMERG"
     syms = verifySyms
     stringFile = "sbeVerificationStringFile"
-  elif ( opMode == 0x0B ):
+  elif ( opMode == 0x0F ):
     fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
     syms = bootSyms
     stringFile = "sbeStringFile_"+get_dd_level(procNr, nodeNr)
