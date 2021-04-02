@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -569,7 +569,7 @@ def usage():
     print(
     '''
 usage: testarg.py [-h] [-l '''+str(LEVELS_ARRAY)+''']
-[-t {AWAN,HW,FILE}] [-i {SBE,MSBE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
+[-t {AWAN,HW,FILE}] [-i {SBE,MSBE,VSBE}] [-n NODE] [-p PROC] [-s SYMBOL] [-f FILE_PATH]
 
 SBE Dump Parser
 
@@ -580,7 +580,7 @@ optional arguments:
   -t, --target          Target type
                         {AWAN,HW,FILE}
   -i, --image_type      Seeprom Image type
-                        {SBE,MSBE}
+                        {SBE,MSBE,VSBE}
   -n, --node NODE       Node Number
   -p, --proc PROC       Proc Number
   -d, --ddlevel         DD Specific image identifier
@@ -621,10 +621,10 @@ def main( argv ):
                 print("target should be one of {AWAN,HW,FILE}")
                 exit(1)
         elif opt in ('-i', '--image_type'):
-            if arg in ('SBE', 'MSBE'):
+            if arg in ('SBE', 'MSBE', 'VSBE'):
                 image_type = arg
             else:
-                print("target should be one of {SBE,MSBE}")
+                print("Image should be one of {SBE,MSBE,VSBE}")
                 exit(1)
         elif opt in ('-n', '--node'):
             try:
@@ -692,6 +692,10 @@ def main( argv ):
         sbe_tracMERG_file = "sbe_measurement_seeprom_" + str(proc) + "_tracMERG"
         sbe_string_file = stringFile = "sbeMeasurementStringFile"
         sbe_syms_file = "sbe_measurement_seeprom.syms"
+    elif ( image_type == 'VSBE' ):
+        sbe_tracMERG_file = "sbe_verification_" + str(proc) + "_tracMERG"
+        sbe_string_file = stringFile = "sbeVerificationStringFile"
+        sbe_syms_file = "sbe_verification.syms"
     else:
         sbe_tracMERG_file = "sbe_"+str(node)+"_"+str(proc)+"_tracMERG"
         sbe_string_file = "sbeStringFile_"+ddsuffix
