@@ -184,7 +184,8 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     //  # in the measurement seeprom.
     //  # (7B0/40 - 1) = 48 = 0x30 -> SPI Seeprom Clock Divider
     //  # (7B0/192) - 1) = 10 -> SPI TPM Clock Divider
-    //  # Pick up the clock delay from LFR
+    //  # Pick up the clock delay from LFR (Presently hard-coded to 7)
+    //  # clock delay in clock control reg bits 12-19 will look like 0000_0001
     uint32_t spiSeepromClockDivider = 48;
     uint32_t spiTpmClockDivider = 10;
 
@@ -201,7 +202,7 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     PPE_LVD(spiAddr, loadData);
     loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
             ((uint64_t)spiTpmClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
+            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 7)) |
             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
     PPE_STVD(spiAddr, loadData);
@@ -550,10 +551,13 @@ int  main(int argc, char **argv)
             {
                 // We can assume all other SPIs are configured here in Otprom with
                 // 133Mhz and 4 respectively, We just need to set the TPM SPI Clock Register
+                // We are keeping the clock delay to default which is in LFR i.e. 1, we are expected
+                // to fail with this configuration, but that is ok, since if TPM communication fails,
+                // we will do the deconfig of the TPM.
                 PPE_LVD(0xc0083, spiClockReg);
                 spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                                 ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
-                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
+                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
                                 ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                                 ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
                 PPE_STVD(0xc0083, spiClockReg);
@@ -575,7 +579,7 @@ int  main(int argc, char **argv)
             PPE_LVD(0xc0083, spiClockReg);
             spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                             ((uint64_t)tpmSpiClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 3)) |
+                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 7)) |
                             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
             PPE_STVD(0xc0083, spiClockReg);
