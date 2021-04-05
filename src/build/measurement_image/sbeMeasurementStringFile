@@ -1,0 +1,1092 @@
+#FSP_TRACE_v2|||Fri Apr 23 08:28:36 CDT 2021|||BUILD:/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO
+548766194||%s||tiny_syslogd.c
+940769291||I> tpmSequenceToReadDIDAndVendor TPM read data is 0x%02X||sbemTPMSequences.C
+940769530||Multiplexing error or timeout from spi_wait_for_idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940769559||p10_query_host_meminfo:: Core Scratch 1 says HRMOR is 0, something is wrong, bailing out of function.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940769614||E>istepWithProcSyncQuiesceStateForced the System Checkstop to indicate sync_quiesce_states failure!!||ipl_table.C
+940769616||I>sbemSecureBoot_thread thread initilised||measurement_main.C
+940769665||E>maskSpecialAttn  Failed to write P10_SPATTN_MASK_WO(0x20040052)||sbecmdiplcontrol.C
+940769757||p10_query_host_meminfo: Unable to access core scratch reg 1 on master core||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940769765||I>sbeGetFfdc FAPI RC is %x||sbecmdgeneric.C
+940769795||spi_wait_for_idle wait timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940769824||I> sbeStopClocks_Wrap Calling p10_hcd_eq_stopclocks, Cache||sbecmdmpipl.C
+940769868||RCS_CLOCK error : Clock B is bad||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940769930||E>istepWithCoreL2Flush p10_query_corecachemma_access_state failed,  RC=[0x%08X]||ipl_table.C
+940769942||I> performTPMSequences Perfrom TPM sequence to access the TPM locality||sbemTPMSequences.C
+940769967||PGPE fails to put the system in safe mode||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_suspend_powman.C
+940770080||I>sbeStartCntlDmt3. p10_sbe_fbc_apply_rt_settings with %d XScoms||sbecmdcntrldmt.C
+940770112||E>collectMpiplHwDump Unsupported/Invalid HbMem Address[0x%08X %08X]||sbeCollectDump.C
+940770135||I> collectMPIPLHWDumpEntriesPHYP allocated HW Dump adress=0x%.8x%.8x and Size=0x%.8x%.8x||sbecmdmpipl.C
+940770165||I>sbeStartCntlDmt4. Powering Down Backing Caches ..||sbecmdcntrldmt.C
+940770173||Multiplexing Error in spi_wait_for_idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940770277||E>assertion failed: i_targetNum < OCMB_TARGET_COUNT||target.C
+940770303||Port multiplexer setting error set in wait_for_seq_index_pass||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940770598||I> Allocated memory is less, truncating the access||sbeMemAccessInterface.C
+940770609||I>sbePSUSendResponse FFDC memory - addr[0x%08X%08X] size[%d]bytes||sbeHostUtils.C
+940770613||NMMU1 unit is required by PAU unit config, but it is disabled in module VPD||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_attr_setup.C
+940770631||I>Scanning PAU DPLL on DD1||measurement_main.C
+940770638||PHB%i: PCI Nest FIR Register did not clear.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_suspend_io.C
+940770686||ERAT was not idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940770689||CLOCK STOP STATUS FOR SL TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940770841||E> sbeUpFifoDeq_mult  Actual length:0x%08X Expected len:0x%08X, Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940770853||I> sbeHandlePsuResponse PSU ChipOp Done||sbecmdprocessor.C
+940770938||E> tpmReadFifo tpmReadBurstCount failed with rc 0x%08X||sbeTPMaccess.C
+940770948||Data to be written is too long for secure mode. Expected %u bytes or less, received %u bytes.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940770969||I> tpmSequenceToDetectPCRs Call TPM_CAP_PCRS||sbemTPMSequences.C
+940770996||E>sbeControlDeadmanTimer Failed to Sent Ack to Host over SBE_SBE2PSU_DOORBELL_SET_BIT1||sbecmdcntrldmt.C
+940771086||E>istepWithCoreL3Flush p10_l3_flush failed, RC=[0x%08X]||ipl_table.C
+940771105||I> tpmSequenceToAllocatePCRs TPM rc is 0x%08X||sbemTPMSequences.C
+940771125||Error in spi_wait_for_tdr_empty||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940771167||Invalid XSCOM BAR configuration!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_scominit.C
+940771240||I> processPbaRequest inject Mode is set||sbecmdmemaccess.C
+940771363||Perv Vital clocks are off||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940771385||ERROR: PMSR_SHIFT_INACTIVE Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_l2_purge.C
+940771465||E> sbemthreadroutine Failed to set the scratch reg with the response code, rc 0x%08X||sbemthreadroutine.C
+940771511||E> sbemthreadroutine tpmExtendPCR failed while extending SecurityState into PCR6||sbemthreadroutine.C
+940771539||E>Unsupported TargetType=[0x%08X] ChipletId=[0x%08X]||sbecmdmpipl.C
+940771619||I> tpmTransmit TPM TRANSMIT START buflen 0x%08X and cmdlen 0x%08X||sbeTPMaccess.C
+940771640||Error from p10_sbe_stop_hb||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940771686||I>Measurement Image Version [0x%08X]||sbemPcrStates.C
+940771723||OCC GPE0 could not be halted during reset operation.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940771725||Invalid QME access denied||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_qme_sram_access.C
+940771732||E> tpmReadFifo spi_tpm_read_secure failed while reading data from FIFO with rc 0x%08X||sbeTPMaccess.C
+940771767||I>SbeRegAccess::stateTransition Event Received %d CurrState 0x%08X StartCnt%d EndCnt%d||sberegaccess.C
+940771785||E>assertion failed: 0 != iv_maxGranule||sbeMemAccessInterface.C
+940771787||ERROR: Failed to setup channel %d to linear mode.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_linear.C
+940771897||E> sbeGetTIInfo GetScom failed for address 0x20028486||sbecmdmpipl.C
+940771924||E>istepStopClockMpipl Failed p10_stopclocks() procedure, RC=0x%.8x||ipl_table.C
+940771940||E>timerService::startTimer  Pk Timer Schedule failed, RC=[%d]||sbeTimerSvc.C
+940771965||LPC bus is held in reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_lpc_init.C
+940772079||Bad reference clock: A functional/required: %d/%d  B functional/required: %d/%d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_clock_test_cmn.C
+940772206||E>Input Length:0x%.8x is not 8 byte aligned||sbecmdsram.C
+940772229||E> tpmExtendPCR tpmTransmit failed with rc 08%08X||sbeTPMCommand.C
+940772328||I>DUMP GETTRACEARRAY: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940772336||Error in spi_wait_for_write_complete||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940772385||E>Error in parsing HDCT.bin||sbeCollectDump.C
+940772404||E>uartInit uart device not found!||sbeConsole.C
+940772474||ERROR: L3 Clock Sync Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_cache_startclocks.C
+940772508||E> sbeDownFifoEnq_mult sbeDownFifoGetStatus failed, l_rc=[0x%08X] Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940772691||E>sbeGetDump Dump collection failed for dumpType 0x%08X||sbecmddump.C
+940772988||E>SbeRegAccess::SbeRegAccess Failed reading mailbox reg 3, RC: 0x%08X.||sberegaccess.C
+940773126||E>sbeUpdateOCMBTargetFailed to extract SBE_HOST_PSU_MBOX_REG1, SBE_HOST_PSU_MBOX_REG2 and SBE_HOST_PSU_MBOX_REG3 %d||sbecmdgeneric.C
+940773138||Invalid TOR Version 0x%04x||p10_plat_ring_traverse.C
+940773178||p10_query_host_meminfo: Core Scratch 1 says HRMOR is 0, which is wrong||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940773199||i2cSetBusVariables: Polling interval 0x%08X %08X||plat_i2c_access.C
+940773246||E>sbeReadMemInvalid data. offset:0x%08X size:0x%08X||sbecmdgeneric.C
+940773284||Unsupported IOHS PLL bucket value!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_pll_initf.C
+940773332||Timeout for thread action to complete, poll count expired.EC_PC_PMC_THREAD_INFO reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940773371||E>sbePsuGetCapabilities failed in writing to host memory||sbecmdgeneric.C
+940773374||E>SbeRegAccess::updateSbeStep Failed to update SBE step to messaging register. RC: 0x%08X||sberegaccess.C
+940773379||Invalid value %d for number of lock manipulation attempts||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940773387||> p10_pm_pba_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940773404||E>sbeMemAccessInterface::setup setup Failed for address iv_addr [0x%08x%08x]||sbeMemAccessInterface.C
+940773414||E>sbeHandleIstep Failed. rc[0x%X]||istep.C
+940773457||E>assertion failed: (SBE_HOST_PSU_MBOX_REG4 <= i_addr) && (SBE_HOST_PSU_MBOX_REG7 >= (i_addr + i_count - 1))||sbeHostUtils.C
+940773459||E>assertion failed: max_size() > size()||target.C
+940773479||PBA BCDE Stop Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940773484||I> sbemthreadroutine Setting the TPM response code into Scratch Reg 11||sbemthreadroutine.C
+940773594||Target base address is not cacheline aligned!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_load_bootloader.C
+940773628||I>Xip section details:Start Offset: [0x%08X] Size: [0x%08X]||sbesecuritycommon.C
+940773685||I>getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X||sbeCollectDump.C
+940773696||p10_adu_setup: there was an invalid argument passed in when building flag.  Check error trace!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940773775||I> tpmWriteFifo Everything but the last byte sent||sbeTPMaccess.C
+940773788||p10_query_host_meminfo: Core Scratch 1 says Host memory size is 0, which is wrong||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940773795||Backing cache power down procedure failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_powerdown_backing_caches.C
+940773799||insertFromRight(): Len > input buffer||target.C
+940773831||I>SBE_SECURITY greylist t1[%d]||sbeSecurity.C
+940773855||E>sbefifo_hwp_data_ostream::put() PBA write failed in accessWithBuffer||plat_hwp_data_stream.C
+940773872||I> performTPMSequences Perfrom TPM sequence to Start TPM||sbemTPMSequences.C
+940773916||I>sbeSecurityListBinDumpSecurity Dump Addr [0x%08X][%08X]||sbecmdgeneric.C
+940773967||I>sbeStartCntlDmtExecuting p10_block_wakeup_intr_hwp for Core[%d]||sbecmdcntrldmt.C
+940774047||E> sbePutReg  ram_setup failed. threadNr:0x%02xcoreId:0x%02x||sbecmdregaccess.C
+940774060||E>Secuity validation failed for executing istep Skipping istep or MPIPL via istep not allowed in secure mode. nextMajorIstep:%u nextMinorIstep:%u||istep.C
+940774139||I>SBESecureMemRegionManager::remove After deletion : iv_regionsOpenCnt[%d]||sbeSecureMemRegionManager.C
+940774262||E> sbeReadPsu2SbeMbxReg getscom_abs failed,l_rc=[0x%08X], i_addr=[0x%08X]||sbeHostUtils.C
+940774295||Type of reg (0x%.8X) is not supported||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940774347||E>uartPutChar failure to read LSR||sbeConsole.C
+940774422||E>Unknown command type: %X||sbeCollectDump.C
+940774467||spi_wait_for_rdr_full wait timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940774488||E> sbeWriteSbe2PsuMbxReg  Failed to Sent Ack to Host over SBE_SBE2PSU_DOORBELL_SET_BIT0||sbeHostUtils.C
+940774499||PBA BCUE Stop Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940774527||E>writeGetMemPBAPacketToFifo Core Scratch 1 says HRMOR/HB SIZE is 0||sbeCollectDump.C
+940774529||I> tpmReadFifo data should not be available anymore (response size in response: 0x%04X)||sbeTPMaccess.C
+940774534||E> performTPMSequences tpmSequenceToAllocatePCRs Failed with rc 0x%08X||sbemTPMSequences.C
+940774576||I> tpmReadFifo tpmReadFifo: timeout||sbeTPMaccess.C
+940774623||I>Measurement_main SBE Role is %x||measurement_main.C
+940774646||ERROR:CHIPLET OPCG DONE NOT SET AFTER CLOCK START STOP CMD||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940774656||<< p10_cl2_l3_cleanup...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940774841||Deskew caliberation failed on B-side||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940774859||Unsupported HW540133 workaround selection!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940775089||E>sbeSecurityListBinDump Failed to extract SBE_HOST_PSU_MBOX_REG1||sbecmdgeneric.C
+940775116||> p10_pm_xgpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940775123||TopologyId=%d Address obtained =0x%.8x%.8x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_sync_quiesce_states.C
+940775180||E> sbeDumpArchRegs failed to write FFDC length||sbearchregdump.C
+940775345||I>sbeStartCntlDmt1. Entering Check Master Stop 15 Loop ..||sbecmdcntrldmt.C
+940775354||First byte of 0x%lx does not = 0x%lx, address is not valid for IBM I2C scom||plat_i2c_access.C
+940775495||E> sbeDumpArchRegs failed to write failure FFDC to hostboot||sbearchregdump.C
+940775521||Purge did not complete in time.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l3_flush.C
+940775841||I>Workaround applied : TOD Status Forced to be OFF||sbecmdmpipl.C
+940775864||E> sbePutRingFromImagePSU Invalid target type [0x%04x]||sbecmdringaccess.C
+940775870||E> sbeCommandReceiver_routine Perform FIFO Reset failed, l_rc=[0x%08X]||sbecmdreceiver.C
+940775883||I> sbeCntlInst Continuing in case of HW Errors As user has passed to ignore errors.||sbecmdcntlinst.C
+940775980||E> sbePutReg  ram_cleanup failed. threadNr:0x%02x coreId:0x%02x||sbecmdregaccess.C
+940776007||Total Bits decoded %d||p10_putRingUtils.C
+940776012||I>MinimumSecureVersion: [%d]  Jumper State: [%d]||sbemPcrStates.C
+940776057||E>sbePsuGetCapabilities  Failed to write to SBE_HOST_PSU_MBOX_REG6||sbecmdgeneric.C
+940776062||I>Dump Type Map is %x||sbecmddump.C
+940776122||One or more DPLLs failed to lock! exp/got: PAU DPLL: %d/%d  NEST DPLL: %d/%d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_npll_setup.C
+940776261||setupClockController failed||plat_hw_access.C
+940776289||ERROR:Pfet not configures for ChipletID : %#010lX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tp_chiplet_reset.C
+940776307||Error from p10_thread_control (query, pre-stop)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_stop_hb.C
+940776328||>>p10_cl2_l3_cleanup||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940776503|| Execution mode %s||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940776513||>> pm_occ_gpe_reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940776526||E>sbeStartCntlDmt p10_sbe_check_master_stop15 failedon core[%d]||sbecmdcntrldmt.C
+940776528||I>sbeSetFFDCAddr Global hostFFDCAddr size[0x%08X] Address[0x%08X%08X]||sbecmdgeneric.C
+940776540||p10_thread_control_stop: ERROR: Thread Stop issued, but the threads are running. Stop might have failed for threads 0x%x, RAS_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940776583||E> tpmWriteFifo tpmReadBurstCount failed with rc 0x%08X||sbeTPMaccess.C
+940776639||E>istepWithProcSyncQuiesceStatep10_sbe_sync_quiesce_states LQA SBE System Quiesce failed,Either System Quiesce Achieved not true or procedure failed RC=[0x%08X]||ipl_table.C
+940776658||RamCore Destructor error: Ram is still in active state!!!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940776806||HWP execution is supported only on SBE master chip!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_sbe_core_spr_setup.C
+940776925||E>sbeStartCntlDmtFailed in sbeFetchAndApplyXSCOMInit()Number of Xscom entries[0x%08X][%08X] Address[0x%08X][%08X]||sbecmdcntrldmt.C
+940776964||E>sbeDownFifoSignalEot sbeDownFifoGetStatus failed, l_rc=[0x%08X], Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940777035||E> sbeDumpArchRegs  ram_cleanup failed. threadNr:0x%02X coreChipletId:0x%02X||sbearchregdump.C
+940777182||UMAC was not done dispatching slots to drain of CRBs||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940777190||I> sbeCntlInst mode[0x%02X] coreId[0x%02X] threadId[0x%02X] threadOps[0x%04X]||sbecmdcntlinst.C
+940777277||Core clock %d is already stopped||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940777282||I> Read TPM_DID_VID_0 (Vendor and device ID offset xF00)||sbemTPMSequences.C
+940777291||Unsupported PLL bucket value!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_npll_initf.C
+940777460||i2cGetScom for IBM_SCOM address failed with rc 0x%08X||plat_i2c_access.C
+940777769||ERROR: CHTM Purge Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_chtm_purge.C
+940777824||p10_query_host_meminfo: Unable to determine hostboot state||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940777943||E>stopClockS0Failed in stopClockS0():,fapiRc=0x%.8x||sbecmdmpipl.C
+940777971||p10_query_host_meminfo: size of hostboot memory[0x%08X], HRMOR[0x%08X%08X]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940778005||I>sbeTimerExpiryCallback Updating door bell bit 14||sbecmdCntrlTimer.C
+940778050||I> tpmIsExpecting TPM read data is 0x%02X||sbeTPMaccess.C
+940778085||I>updatePhbFunctionalState PEC TargetId[0x%08X] : PHB TargetId[0x%08X] is functional||sbecmdiplcontrol.C
+940778114||>> pgpe_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940778128||E> sbeGetHWReg Invalid target type[0x%04X] target instance[0x%02X]||sbecmdregaccess.C
+940778166||E>sbeSetSystemFabricMap Failed to extract SBE_HOST_PSU_MBOX_REG1||sbecmdgeneric.C
+940778289||p10_tp_stopclocks: Calling TP stopclocks for SBE regions in SBE mode is INVALID\n\t --> Skipping TP Stopclocks for SBE regions..! <--||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_tp_stopclocks.C
+940778437||I> performTPMSequences Perfrom TPM sequence to detect allocated PCRs||sbemTPMSequences.C
+940778465||I> sbeCntlInst De-assert succeeded for core[0x%2x]||sbecmdcntlinst.C
+940778536||I>Writing extendSecurityStatePCR6 details [0x%08X 0x%08X] into Register [0x%08X]||sbemthreadroutine.C
+940778551||I>sbeStartCntlDmt2. Check Master Stop 15 Loop Passed??: %d||sbecmdcntrldmt.C
+940778716||E> collectMPIPLHWDumpEntriesFailed to fetch the Dump metadata at the offset:0x%.8x%.8x!!||sbecmdmpipl.C
+940778792||Master core: %d found more than once in set of active cores!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940778865||E>pk_semaphore_pend failed, rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d||sbeConsole.C
+940778875||I> sbeDumpArchRegs Based on metadata architected data save address =0x%.8x%.8x||sbearchregdump.C
+940778937||> p10_pm_ocb_indir_setup_circular||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_circular.C
+940778981||E>sbeFifoQuiescesbeDsSendRespHdr failed. rc[0x%X]||sbecmdgeneric.C
+940779037||Address exceeds supported fabric real address range!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940779076||E> tpmIsCommandReady spi_tpm_read_secure failed while reading TPM Status register with rc 0x%08X||sbeTPMaccess.C
+940779201||Error from spi_set_write_enable||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940779274||Error from p10_thread_control (stop)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_stop_hb.C
+940779279||I> checkIndirectAndDoScom Performing Direct scom.||sbescom.C
+940779296||I>DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940779348||E>uartInit failure to write scratch for uart detection||sbeConsole.C
+940779436||Core/Cache Clock Control Failed in ARY thold||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_clock_control.C
+940779642||p10_query_host_meminfo:: Core Scratch 1 says hostboot memory size is 0, something is wrong, bailing out of function.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940779665||E> sbePsuGetHWReg Invalid target type[0x%04X] target instance[0x%02X]||sbecmdregaccess.C
+940779675||I>collectAsyncHwpFfdcCollecting DMT Async FFDC for RC 0x%08x||sbeFFDC.C
+940779872||<< qme_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940779947||E>assertion failed: false||sbecmdprocessor.C
+940779987||Error in wait_for_seq_index_pass, rc: 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940780213||I> sbeStopClocks_Wrap Calling p10_hcd_core_stopclocks, Core||sbecmdmpipl.C
+940780222||platPutI2c Input OCMB target passed is 0x%08X||plat_i2c_access.C
+940780253||Parallel Scan Error For Ring 0x%02x||p10_putRingUtils.C
+940780350||I>Allcoated size for architected data collection is zero||sbecmddump.C
+940780402||Invalid QME Start address||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_qme_sram_access.C
+940780403||E>sbeSecurityGreyListDumpFailed to send GreyListDump to hostboot||sbeSecurity.C
+940780505||E> tpmSequenceToDetectPCRs tpmTransmit failed with rc 08%08X||sbemTPMSequences.C
+940780577||ERROR:OPCG DONE BIT NOT SET||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940780597||I>SBE Role is Master||sbeRoleIdentifier.C
+940780671||E> sbePutHWReg Invalid OCMB Instance ID 0x%08X||sbecmdregaccess.C
+940780733||E>assertion failed: pauFreqMhz||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/sbefw/core/sbeutil.C
+940780761||>> pba_slave_reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940780801||E> sbeHandleS0 Failed in Core/Cache StopClock S0 Interface||sbes0handler.C
+940780879||E>assertion failed: 0 != i_pool->refCount||pool.C
+940780970||insertFromRight(): (Target Start + Len) is out of bounds||target.C
+940781062||E> collectMPIPLHWDumpEntriesInvalid Metadata address from Stash [0x%08X %08X]||sbecmdmpipl.C
+940781063||ERROR: Core Resclk Change Done Entry Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_stopgrid.C
+940781119||E> tpmSequenceToDetectPCRs  tpmSequenceToDetectPCRs command failed.||sbemTPMSequences.C
+940781159||I> tpmIsDataAvail TPM read data is 0x%02X||sbeTPMaccess.C
+940781194||Error from force_band (COMBO_BANDSEL, chiplet: %02d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940781208||One of the OTLs are not in the reset state||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940781212||ROTATE operation failed  due to timeout||p10_putRingUtils.C
+940781395||CFAM access unsupported on PPE platform!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_scratch_regs.C
+940781414||I>sbeMemAccessInterface::setupHwp returned iv_maxGranule=[0x%08X]||sbeMemAccessInterface.C
+940781443||getScom Done: Address:[0x%08X%08X]: Data Read[0x%08X%08X]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940781490||One or more filter PLLs failed to lock! expected 0x%X, got 0x%X (bits: PLLTODFLT, PLLNESTFLT, PLLIOFLT, PLLIOSSFLT)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_npll_setup.C
+940781497||I> tpmReadSTSRegValid TPM status register value is 0x%02X||sbeTPMaccess.C
+940781507||Exception or interrupt happened during ramming. EC_PC_FIR_RAM_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940781521||E>sbeGetFfdc Failed in sendOverFIFO, rc[0x%08X]||sbecmdgeneric.C
+940781583||PARTIAL TRACE ENTRY. HASH_ID = %d||pk_trace_core.c
+940781704||E>assertion failed: (i_plat_type != PPE_TARGET_TYPE_CORE) || (i_core_select != 0)
+940781736||E>sbeCntrlTimer  g_hostTimerSvc.stopTimer failed||sbecmdCntrlTimer.C
+940781784||E>istepStartMpiplupdatePhbFunctionalState failed||ipl_table.C
+940781809||Header mismatch: %016llx != %016llx||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940781834||I> processPbaRequest Fast Mode is set||sbecmdmemaccess.C
+940781846||E>Failed in P10 GETSRAM , ChipletId:[0x%.8x]  mode [0x%.8X]||sbecmdsram.C
+940781851||I>SCRTATCH_REG 8 is 0x%08X %08X||sbeRoleIdentifier.C
+940781868||I>Invalid Architected Dump collection address:0x%.8x%.8x||sbecmddump.C
+940781880||E> sbeHandleFifoResponse sbeDownFifoEnq_mult failure, l_rc[0x0%08X]||sbecmdprocessor.C
+940781962||E>sbefifo_hwp_data_ostream::put(): 1 word sbeDownFifoEnq_mult failed||plat_hwp_data_stream.C
+940782027||I>Jumper State: [%d] Primary Proc: [%d]  MeasurementSeepromLock: [%d] Minimum Secure Version: [%d]||sbemPcrStates.C
+940782290||E>Failed in applying TOD workaround in MPIPL Path||sbecmdmpipl.C
+940782463||I>Write 002h to TPM_ACCESS_0 (0000h) to request access to locality 0||sbemTPMSequences.C
+940782498||I>sbeCollectDeadmanFfdcFFDC Reason: 0x%08X States - Curr: %d Prev: %d||sbecmdcntrldmt.C
+940782543||OCC GPE1 could not be halted during reset operation.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940782600||E>specialWakeUpCoreDeAssert special wakeup putscom failed||sbecmdcntlinst.C
+940782616||E> sbeCntlInst De-asssert failed for core[0x%2x]||sbecmdcntlinst.C
+940782673||I> tpmPoisonPCR TPM transmit data is 0x%02X||sbeTPMCommand.C
+940782719||Primary trace mux is set to %d, but %d is needed for requested trace bus||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940782731||I> sbeIsCmdAllowedAtState SBE State [0x%08X] Fence State[0x%04X]||chipop_handler.C
+940782787||I> tpmSequenceToAllocatePCRs Call TPM_CAP_PCRS||sbemTPMSequences.C
+940782905||Deskew caliberation failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940782949||ERROR: L2 Purge Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_l2_purge.C
+940783042||E>istepWithCoreStart istepWithCoreStart failed, RC=[0x%08X]||ipl_table.C
+940783044||E> sbeDownFifoEnq_mult sbeDownFifoEnq failed, l_rc[0x%08X], Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940783051||I> tpmIsExpecting isExpect is %d||sbeTPMaccess.C
+940783111||E> tpmSequenceToReadDIDAndVendor spi_tpm_read_secure failed with rc 08%08X||sbemTPMSequences.C
+940783159||I>Extending .sb_verification XIP Section hash into TPM_PCR0||sbemthreadroutine.C
+940783232||E> sbePsuExitCacheContainedModeFailed in p10_sbe_exit_cache_contained() Addr[0x%08X%08X] Number of Xscom entries[0x%08X] and Step:STOP_HB| REVERT_MCS_SETUP||sbecmdexitcachecontained.C
+940783361||Read CHECKWORD (%016x) data incorrect and total bit decoded 0x%016x||p10_putRingUtils.C
+940783406||E> sbePutScomUnderMask modifyData[0x%08X%08X] maskData[0x%08X%08X]||sbecmdscomaccess.C
+940783467||E> sbemthreadroutine Failed to set the deconfig bit with rc 0x%08X||sbemthreadroutine.C
+940783607||I>Extending extendSecurityStatePCR6 details into TPM_PCR6||sbemthreadroutine.C
+940783664||I> tpmWriteFifo tpmWriteReg final byte, 0x%02X||sbeTPMaccess.C
+940783718||I>sbeStashKeyAddrPairKey[0x%08X] Addr[0x%08X %08X]||sbecmdgeneric.C
+940783751||Invalid Offset To Chiplet Section 0x%08x Magic Word 0x%08x||p10_plat_ring_traverse.C
+940783800||E>sbeFifoQuiesceAsync thread suspend failed. pkRc:%u||sbecmdgeneric.C
+940783931||Invalid Atomic Operation type (%d)||sbecmddump.C
+940783969||Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), step sequence||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940784126||Topology SCOM vector size check fail.  Expected: %u; Actual: %u||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_fbc_core_topo.C
+940784234||E>timerService::stopTimer  Pk Timer cancel failed, RC=[%d]||sbeTimerSvc.C
+940784302||p10_hcd_eq_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940784366||validateXramAccessParms: XRAM Iop_top and/or Phy values are invalid. i_top %d, i_phy %d.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_iop_xram_utils.C
+940784521||Unsupported flag specified for PBA access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmempba_utils.C
+940784587||Error in PBA FIR, with address error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940784618||Could not find MC that was setup||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_revert_sbe_mcs_setup.C
+940784692||RCS_CLOCK error : Clock A is bad||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940784762||E> tpmTransmit tpmReadFifo failed with rc 0x%08X||sbeTPMaccess.C
+940784916||E>i2cWaitForCmdComp timedout waiting for cmd completion||plat_i2c_access.C
+940784974||p10_hcd_cache_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940785029||E> tpmExtendPCR TPM2_Extend PCR response code is non zero for PCR %d.||sbeTPMCommand.C
+940785042||PBA Setup Failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940785048||Unsupported MC PLL bucket value!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_pll_initf.C
+940785185||The first core found in fused mode was not an even core||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_select_ex.C
+940785189||I>collectMpiplHwDumpClockOn Total Bytes HW dump written [0x%08X]||sbeCollectDump.C
+940785212||E> sbePsuGetHWReg get hw reigster operation failed, hwRegAddr[0x%08X %08X]||sbecmdregaccess.C
+940785258||E> sbeWriteSbe2PsuMbxReg putscom_abs failed,l_rc=[0x%08X], i_addr=[0x%08X]||sbeHostUtils.C
+940785278||I>SBE is running on simics||sbemain.C
+940785356||E>assertion failed: multicast_group_map[i_group] != MC_UNDEFINED||target.C
+940785419||spi_wait_for_tdr_empty wait timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940785435||Invalid parameter passed to block wakeup procedure||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_block_wakeup_intr.C
+940785469||E>istepWithCoreL2Flush p10_l2_flush failed, RC=[0x%08X]||ipl_table.C
+940785665||I>istepWithProcQuiesceLQASetOTP_SECURITY_SWITCH Data [0x%08X][%08X]||ipl_table.C
+940785693||E>Failed to read SPR/GPR Register:threadNr:0x%xcoreChipletId:0x%02x, regNr:%u regType:%u||sbearchregdump.C
+940785853||E>Failed to force system checkstop to indicate failure in exit cache contained mode:fapiRc=0x%.8x||sbecmdexitcachecontained.C
+940785867||p10_thread_control_start: ERROR: Cannot issue Thread Start because the threads aren't in maint mode (threads=%x), RAS_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940785922||E>sbefifo_hwp_data_ostream::put(): 1 word PBA write failed in accessWithBuffer||plat_hwp_data_stream.C
+940785981||E>Failed in p10_hcd_core_stopclocks(), fapiRc=0x%.8x, Target=0x%.8x||sbecmdmpipl.C
+940786051||I>sbeCntrlTimer Stop Timer.||sbecmdCntrlTimer.C
+940786102||p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible. Stopping TP only.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940786110||E> sbeDumpArchRegs Invalid Dump address from Stash [0x%08X %08X]||sbearchregdump.C
+940786118||Polling timeout waiting on push non-full||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_access.C
+940786236||I>Measurement_main Completed PK init for Measurement Image with Freq [0x%08X]||measurement_main.C
+940786278||E> sbeGetHWReg sbeGetScom failed, scomAddr[0x%08X %08X]||sbecmdregaccess.C
+940786286||I> sbeGetRingWrap Ring Address 0x%08X User Ring Mode 0x%04X Length in Bits 0x%08X||sbecmdringaccess.C
+940786291||ERROR: ECL2 Clock Sync Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_startclocks.C
+940786358||Returning original SCOM fail rc||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940786416||E>sbeGetFfdc Failed in sbeDsSendRespHdr, rc[0x%08X]||sbecmdgeneric.C
+940786449||E> sbeUpFifoDeq_mult Parity error while reading FIFO. FIFO status: 0x%08X, Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940786465||I>Dump FastArray: control_set[0x%08X], chipUnitNum [0x%08X]||sbeCollectDump.C
+940786505||Core/Cache Clock Control Failed in NSL thold||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_clock_control.C
+940786641||Error from p10_sbe_instruct_start||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940786671||E>updatePhbFunctionalState Failed to read data for PEC-%d[0x%08X] Chiplet Config1 register||sbecmdiplcontrol.C
+940786808||E> sbeSyncCommandProcessor_routine sbeDestRuntimeSetup failed||sbecmdprocessor.C
+940786940||I>getSram address:[0x%08X] mode:[0x%08X]||sbeCollectDump.C
+940786969||< p10_pm_pba_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940787188||Failed to clear scan region/type||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940787209||No data provided for PUT operation||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_access.C
+940787226||E>SBESecureMemRegionManager::remove SBE_SEC_MEM_REGION_NOT_FOUND||sbeSecureMemRegionManager.C
+940787328||Port multiplexer setting error set in spi_wait_for_tdr_empty||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940787335||Invalid byte count specified for DMA partial write access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmemproc_utils.C
+940787426||E> sbeDumpArchRegs Failed to write Proc header to hostboot||sbearchregdump.C
+940787453||OCBDR%d getscom error;  rc = 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_access.C
+940787512||ERROR: ECL2 Clock Sync Drop Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_stopgrid.C
+940787514||E>SbeRegAccess::setSbeReady Failed to update SBE ready state to messaging register. RC: 0x%08X||sberegaccess.C
+940787544||I>CBS_ENVSTAT_REG value is 0x%08X %08X||sbeRoleIdentifier.C
+940787625||E>p10_sbe_tracearray failed||sbecmdtracearray.C
+940787628||functional state is 0x%02X||target.C
+940787701||E>uartPutChar failure to write THR||sbeConsole.C
+940787714||Invalid QME Start address alignment||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_qme_sram_access.C
+940787806||Odd core within fused set is not functional||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_select_ex.C
+940787825||E> sbeGetHWReg i2cGetScom failed, scomAddr[0x%08X %08X]||sbecmdregaccess.C
+940787852||E> collectMPIPLHWDumpEntriesFailed in collectMpiplHwDump().MPIPL will continue||sbecmdmpipl.C
+940787855||I>collectMpiplHwDumpHbMem Address[0x%08X %08X]||sbeCollectDump.C
+940787977||< p10_pm_ocb_indir_setup_linear||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_linear.C
+940787994||LPC access timed out||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_lpc_utils.C
+940788048||E>uartPutChar FIFO timeout.||sbeConsole.C
+940788107||E> tpmIsExpecting tpmReadSTSRegValid failed while reading TPM Status register with rc 0x%08X||sbeTPMaccess.C
+940788123||E>Measurement_main Initialize secure boot thread failed with rc 0x%08X||measurement_main.C
+940788244||i_purge_type is not a compatible type||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l3_flush.C
+940788326||Error from p10_revert_sbe_mcs_setup||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940788421||E>sbeCntrlTimer  g_hostTimerSvc.startTimer failed||sbecmdCntrlTimer.C
+940788438||I> sbeControlTraceArrayWrap l_NumWordsRead [%d]||sbecmdtracearray.C
+940788486||Port multiplexer setting error set in spi_wait_for_idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940788607||CBS_ACK is not HIGH with in expected time||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_common_stopclocks.C
+940788687||E> sbeModifyScom sbeModifyScom Invalid OpMode||sbecmdscomaccess.C
+940788711||p10_thread_control_step: ERROR: Thread Step failed.Complete bits aren't set after %d poll atempts. WARNING: RAS_STATUS bit still in single instruction mode. Threads 0x%x, RAS_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940788748||E> sbePsuExitCacheContainedMode Failed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]||sbecmdexitcachecontained.C
+940788750||platGetI2c: Input OCMB target passed is 0x%08X||plat_i2c_access.C
+940788885||I>sbeStartCntlDmtWaiting ~1 s before next poll on core(s) ..||sbecmdcntrldmt.C
+940788890||E>istepMpiplSetFunctionalState Failed to read Scratch Reg1||ipl_table.C
+940788924||E> tpmWriteFifo spi_tpm_write_with_wait failed with rc 0x%08X||sbeTPMaccess.C
+940789019||E> sbeHandleFifoResponse Operation failure, l_primStatus[0x%08X], l_secStatus[0x%08X]||sbecmdprocessor.C
+940789142||E> sbePsuExitCacheContainedModeFailed in p10_getmempba() ,Addr[0x%08X%08X] bytes[0x%08X]||sbecmdexitcachecontained.C
+940789163||I>Measurement_main TPM SPI Clock divider and round trip delay and Frequency = [0x%04X 0x%02X 0x%02X]||measurement_main.C
+940789179||E> tpmSequenceToAllocatePCRs  tpmSequenceToAllocatePCRs command failed.||sbemTPMSequences.C
+940789205||0x%08X got an i2c timeout during FW_STATUS loop %u. Ignoring and continuing...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940789458||%s. Byte %d, Data returned: %d for 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940789554||E> sbePutReg  get_reg failed. threadNr:0x%xcoreId:0x%02x, regNr:%u regType:%u||sbecmdregaccess.C
+940789573||I>LCO Mode is set with Core Id[%d]||sbecmdmemaccess.C
+940789738||E> tpmSequenceToAllocatePCRs tpmTransmit failed with rc 08%08X||sbemTPMSequences.C
+940790027||E>assertion failed: (g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0||sbecmdgeneric.C
+940790035||E>SBESecureMemRegionManager::add SBE_SEC_MAXIMUM_MEM_REGION_EXCEEDED||sbeSecureMemRegionManager.C
+940790037||E> sbePutReg  Invalid request. coreId 0x%02x threadNr:0x%x regType:0x%02x numRegs:0x%02x||sbecmdregaccess.C
+940790045||E>sbeStashKeyAddrPair Failed to extract SBE_HOST_PSU_MBOX_REG1/SBE_HOST_PSU_MBOX_REG2||sbecmdgeneric.C
+940790090||I> sbeSyncCommandProcessor_routine Destination bit tells us to go to runtime||sbecmdprocessor.C
+940790103||E>SBESecureMemRegionManager::add SBE_SEC_MEM_REGION_AMEND_ATTEMPTED||sbeSecureMemRegionManager.C
+940790152||ERROR: Core/Cache Clock Control Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_clock_control.C
+940790228||I> tpmExtendPCR Extend PCR %d||sbeTPMCommand.C
+940790304||E>sbeStartCntlDmt Failed to send response to Hostboot||sbecmdcntrldmt.C
+940790351||E> sbeModifyScom sbeModifyScom modifyData[0x%08X%08X]||sbecmdscomaccess.C
+940790364||E>resetCrespErrLatch Failed to reset Cresp error latch||sbecmdiplcontrol.C
+940790419||Cache clock %d is already stopped||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940790448||E> sbeControlFastArrayWrap Control data size in request is nonzero, but custom control data is not selected.||sbecmdfastarray.C
+940790511||I>SbeRegAccess::SbeRegAccess MBX_reg8 read : 0x%08X||sberegaccess.C
+940790625||E>istepWithProcQuiesceLQASetPutScom failed for OTP_SECURITY_SWITCH(0x10005)||ipl_table.C
+940790628||E>Failed to fetch the TIMA data! Continuing to collect SPR/GPR data||sbearchregdump.C
+940790682||E> tpmWriteFifo TPM is not expecting any further data, expect is %d||sbeTPMaccess.C
+940790794||E>sbePSUSendResponse Failed to write to SBE_HOST_PSU_MBOX_REG4||sbeHostUtils.C
+940790841||I> tpmIsDataAvail dataAvail is %d||sbeTPMaccess.C
+940790937||Invalid Ring Id 0x%04x||p10_plat_ring_traverse.C
+940790984||E> sbeControlFastArrayWrap Control data size in request does not match calculated size. length field: 0x%08x, calc length: 0x%08x||sbecmdfastarray.C
+940790986||I>sendOverHostIntf [%d] bytes sent||sbeFFDC.C
+940791079||I> tpmPoisonPCR TPM2_GetRandom response code is 0x%08X||sbeTPMCommand.C
+940791165||Invalid transaction size: iv_transSize %d||sbecmddump.C
+940791191||Error in PBA FIR, without address error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940791445||E>uartPutChar LSR read error.||sbeConsole.C
+940791544||!!! xgpe_start not supported on SBE platform||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940791579||>>cleanup_cl2_l3_states||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940791587||E> sbeHandleSuspendIO  Update PHB Functional State failed||sbecmdiplcontrol.C
+940791683||E> checkIndirectAndDoScom pib error reading status register||sbescom.C
+940791862||I> sbeSyncCommandProcessor_routine Processing command from client :0x%01X||sbecmdprocessor.C
+940791875||SCOM : pcb pib error, pibRc[0x%08X] Translated_ScomAddr[0x%08X]ScomData[0x%08X%08X]||plat_hw_access.C
+940791893||I>minimum secure version = 0x%02X||ipl_table.C
+940791940||E>assertion failed: i_targetNum < CORE_TARGET_COUNT||target.C
+940792072||E>sbeDsSendRespHdr  FAPI RC:0x%08X||sbeFifoMsgUtils.C
+940792126||E>timerService::startTimer  Pk Timer Create failed, RC=[%d]||sbeTimerSvc.C
+940792174||E>Chip-Op CmdClass[0x%02X] Cmd[0x%02X] not allowed secondary status[0x%04X] State - [0x%02X]||sbecmdreceiver.C
+940792207||E> sbeDumpArchRegs Failed to fetch the Dump metadata at the offset:0x%.8x%.8x!!||sbearchregdump.C
+940792286||E>sbeTimerExpiryCallback  Failed to Write SBE_SBE2PSU_DOORBELL_SET_BIT14||sbecmdCntrlTimer.C
+940792447||E> sbeDumpArchRegs Failed in checkCoreStateForRam Core[%d],GroupId[%d], ChipId[%d]||sbearchregdump.C
+940792459||E> continueMpiplIstepsExecute Failed in Master ContinueMpipl Isteps Major[%d] Minor[%d]||sbecmdmpipl.C
+940792538||E> checkCoreStateForRam Failed to read SSHSRC for Core[%d]||sbearchregdump.C
+940792542||E> performTPMSequences tpmSequenceToStartup Failed with rc 0x%08X||sbemTPMSequences.C
+940792594||E> sbeEnterMpipl Failed in Mpipl Start in ChipOp Mode||sbecmdmpipl.C
+940792776||E> sbeDownFifoEnq_mult Received reset request and the Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940792853||I> sbePutScomUnderMask maskData[0x%08X%08X]||sbecmdscomaccess.C
+940793141||ERROR: Core/Cache PFET Control Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_power_control.C
+940793178||I> sbeStopClocks_WrapTargetType 0x%04X ChipletId 0x%02X||sbecmdmpipl.C
+940793270||I>istepNoOp||ipl_table.C
+940793293||E>sbeHandleIstep  Invalid Istep. major:0x%08x minor:0x%08x||istep.C
+940793378||I>SBE_SECURITY whitelist t1[%d] t2[%d] t3[0x%d]||sbeSecurity.C
+940793417||E>assertion failed: ((i_chipletNumber >= IOHS_CHIPLET_OFFSET) && (i_chipletNumber < (IOHS_CHIPLET_OFFSET + IOHS_TARGET_COUNT)))||target.C
+940793440||I>timerService::stopTimer  Timer is not running||sbeTimerSvc.C
+940793456||I>SbeRegAccess::SbeRegAccess MBX_reg3 from scratch : 0x%08X||sberegaccess.C
+940793551||ERROR; Unknown mode passed to proc_ocb_init. Mode %x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_init.C
+940793554||Attempting to ram without setup before. Reg type: %u, Reg num: %u, Allow Mult: %u||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940793577||NEST Frequency is 0x%08X||plat_i2c_access.C
+940793653||E> sbePutScomUnderMask scom failed, ScomAddress[0x%08X%08X]||sbecmdscomaccess.C
+940793667||E> sbeGetRingWrap  getRing_granule_data failed. RingAddress:0x%08X RingMode:0x%04x||sbecmdringaccess.C
+940793727||I> sbeCommandReceiver_routine SBE FIFO reset received||sbecmdreceiver.C
+940793761||I>sbefifo_hwp_data_ostream() Contructor||sbecmddump.C
+940793814||I> sbeHandleFifoResponse ChipOp Done||sbecmdprocessor.C
+940793906||p10_hcd_mma_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940793910||E> sbeCntlInst Assert failed for core[0x%2x]||sbecmdcntlinst.C
+940794055||I> tpmTransmit Set write command ready||sbeTPMaccess.C
+940794106||I> sbePsuGetHWReg  getHwReg Addr[0x%08X %08X]||sbecmdregaccess.C
+940794150||Error: Chiplet is being added into more than 4 groups||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940794354||E>assertion failed: index < size()||target.C
+940794402||E> sbemthreadroutine SHA512 not calculated for .sb_verification XIP section.||sbemthreadroutine.C
+940794505||Error from p10_sbe_instruct_start for MasterCore in Fused Core mode||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940794575||I>collectAsyncHwpFfdcNo specific Async FFDC to collect||sbeFFDC.C
+940794596||Need configuration not satisfied||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_select_ex.C
+940794698||I>putscom address:[0x%08X], maskType:[0x%08X], mask:[0x%08X%08X]||sbeCollectDump.C
+940794776||validateXramAccessParms: Access size (%u) is invalid.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_iop_xram_utils.C
+940794804||E> collectMPIPLHWDumpEntriesPHYP has not allocated memory for collection of HW Dump Data!Collection of HW dump content is skipped,clocks will be stopped||sbecmdmpipl.C
+940794947||Suspend Power Management failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_suspend_powman.C
+940794997||I>Paired Core:0x%.8x marked non-functional due to local checkstop pressence||sbecmdcntlinst.C
+940795034||E> sbemthreadroutine tpmExtendPCR failed while extending extending Verification image hash key into PCR6||sbemthreadroutine.C
+940795066||Attempting to ram to inactive thread and HW542214 is present||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940795171||I>GetMemPBA:hostboot memory[0x%08X%08X] and Length[0x%08X], MBsize[0x%08X]||sbeCollectDump.C
+940795183||I>Measurement_main Simics Path of Skipping PAU DPLL||measurement_main.C
+940795347||Secondary trace mux is set to %d, but %d is needed for requested trace bus\nPrimary trace mux is set to %d, but %d is needed for requested trace bus||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940795353||E> sbeGetReg  ram_setup failed. threadNr:0x%02xcoreId:0x%02x||sbecmdregaccess.C
+940795436||E> sbePsuGetHWReg i2cGetScom failed with RC 0x%8x , scomAddr[0x%08X %08X]||sbecmdregaccess.C
+940795476||>> xgpe_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940795478||Core present but non functional %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940795511||input out-of-bounds! (bit + count - 1) > %d||target.C
+940795536||I> sbeControlFastArrayWrap targetType [0x%04X] chipletId [0x%02X] control_set [0x%02X] custom_data_length [0x%08X]||sbecmdfastarray.C
+940795553||Timed out waiting for OPCG_DONE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940795603||wait_for_seq_index_pass(%d) wait timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940795745||E>sbeControlDeadmanTimer Failed sbeStartCntlDmt||sbecmdcntrldmt.C
+940795811||E>SbeRegAccess::setMpIplModeFailed read PERV_SCRATCH_REGISTER_3_SCOM RC: 0x%08X||sberegaccess.C
+940795869||DMA channels were not drained||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940795944||E> sbeSyncCommandProcessor_routine Unexpected interrupt communicated to the processor thread. Interrupt source: 0x%02X 0x%02X||sbecmdprocessor.C
+940795947||Engine : 0x%02X, Device Address: 0x%02X, Func State 0x%04X||target.C
+940795950||E> sbePutRing  RS4 palyload size is wrong.size(entries):0x%08x||sbecmdringaccess.C
+940796062||I> tpmReadFifo TPM is expecting more data even though we think we are done||sbeTPMaccess.C
+940796145||I>Allcoated size for HW dump data collection is zero||sbecmddump.C
+940796339||Fabric is not initialized or running||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940796489||<< p10_pm_occ_gpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940796588||E>Failed in p10_hcd_eq_stopclocks(), fapiRc=0x%.8x,Target=0x%.8x||sbecmdmpipl.C
+940796751||E> sbeCommandReceiver_routine Unexpected failure, l_rcPk=[%d], SBE_GLOBAL->sbeSemCmdProcess.count=[%d], l_rc=[%d]||sbecmdreceiver.C
+940796822||E>sbeControlDeadmanTimer Failed sbeStopCntlDmt||sbecmdcntrldmt.C
+940796825||E>specialWakeUpCoreAssert special wakeup done timeout||sbecmdcntlinst.C
+940796835||I>istep 5.1 HB Dump mem Region [0x%08X%08X]||ipl_table.C
+940796836||E> sbeControlFastArrayWrap Fastarray request is too large.request size: 0x%08x, max size: 0x%08x||sbecmdfastarray.C
+940796912||E> sbeHandleFifoResponse sbeDownFifoSignalEot failure, l_rc[0x0%08X]||sbecmdprocessor.C
+940797027||E> sbeSyncCommandProcessor_routine pk_semaphore_pend failed, l_rcPk=%d, SBE_GLOBAL->sbeSemCmdRecv.count=%d||sbecmdprocessor.C
+940797066||insertFromRight(): Target Start is out of bounds||target.C
+940797129||<< pba_halt ...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940797183||E>Invalid Parameters, CoreId[%d] ThreadOps[%d] mode[%d] ThreadId[%d]||sbecmddump.C
+940797213||E> sbePutHWReg i2cPutScom failed, scomAddr[0x%08X %08X]||sbecmdregaccess.C
+940797304||E> sbemthreadroutine .sb_verification XIP section not found. Verification code not found.||sbemthreadroutine.C
+940797334||Failed To Traverse To Correct Ring. Found 0x%04x Expected  0x%04x||p10_plat_ring_traverse.C
+940797564||E>assertion failed: l_pFuncP||sbecmdprocessor.C
+940797602||Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), last lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940797616||I>sbeStartCntlDmtCheck Master Stop 15 Loop Iteration #%d||sbecmdcntrldmt.C
+940797649||E>SBESecureMemRegionManager::isAccessAllowed Non secure access to memory blocked Addr[0x%08X%08X] Size[0x%08X]||sbeSecureMemRegionManager.C
+940797670||I>Completed Boot PK init with Freq [0x%08X]||sbemain.C
+940797699||I>Address:0x%.8x%.8x Length=0x%.8x||sbecmdsram.C
+940797839||Insufficient backing caches found||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_select_ex.C
+940797843||E>sbeSecurityListBinDumpFailed to send security table data to hostboot||sbecmdgeneric.C
+940797909||Error in OCB Status/Control Register State||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940797996||Pervasive stop control (pb_stop) is asserted, so fabric init will not run!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_fabricinit.C
+940798088||I>sbeDmtPkExpiryCallbackDMT Callback Timer has expired..No-Checkstop on the system for nowand FFDC will not be collected.||sbecmdcntrldmt.C
+940798141||> p10_pm_ocb_indir_setup_linear||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_linear.C
+940798194||E>assertion failed: NULL != i_hwp||ipl_table.C
+940798199||I> sbeSyncCommandProcessor_routine Continuous IPL Mode set... IPLing||sbecmdprocessor.C
+940798265||Waiting for stop 11 to enter for core %d of quad %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_powerdown_backing_caches.C
+940798368||E> tpmTransmit tpmWriteCommandReady failed with rc 0x%08X||sbeTPMaccess.C
+940798373||E> Num of backing cache is less than 2. Cannot proceed with IPL||ipl_table.C
+940798657||i2cSetBusVariables: Bus speed 0x%08X %08X||plat_i2c_access.C
+940798672||E>assertion failed: n < max_size()||target.C
+940798882||I> tpmExtendPCR TPM transmit data is 0x%02X||sbeTPMCommand.C
+940798888||Thread to perform ram is inactive. EC_PC_PMC_THREAD_INFO reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940798952||< p10_pm_xgpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940798986||I>DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940799049||I> tpmReadFifo  Read %d byte from FIFO||sbeTPMaccess.C
+940799111||I2C Status error||plat_i2c_access.C
+940799173||I> tpmIsCommandReady TPM isCommand Ready is %d||sbeTPMaccess.C
+940799241||E>assertion failed: NULL != o_pData||sbeFifoMsgUtils.C
+940799259||I>Measurement_main HW Path of setting PAU DPLL||measurement_main.C
+940799270||I>SbeRegAccess::stateTransition Updating State as %d||sberegaccess.C
+940799290||I>DUMP Chip ATTR_EC =[ %02X]||sbecmddump.C
+940799317||ERROR: Bad Queue Length Passed to Procedure => %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_init.C
+940799338||Checking tp chiplet accessible returned error, can't call stopclocks fpr tp chiplet||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_tp_stopclocks.C
+940799397||I> tpmSequenceToDetectPCRs TPM rc is 0x%08X||sbemTPMSequences.C
+940799442||I>SCRATCH_REG 6 is 0x%08X %08X||sbeRoleIdentifier.C
+940799481||I>seepromVersion = 0x%08X||ipl_table.C
+940799779||E>sbeDsSendRespHdr  PriStatus:0x%08X SecStatus:0x%08X Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940799790||E>main plat_TargetsInit failed||sbemain.C
+940799846||I>SBE Role is Alt-Master||sbeRoleIdentifier.C
+940799874||Payload size is invalid!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_load_bootloader.C
+940799957||E> sbeControlFastArrayWrap HWP failure:targetType [0x%04X] chipletId [0x%02X] control_set [0x%02X]||sbecmdfastarray.C
+940799993||E> sbeCommandReceiver_routine sbeUpFifoDeq_mult failure with SBE FIFO, l_rc=[0x%08X]||sbecmdreceiver.C
+940800077||Unsupported PCI PLL bucket value!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_pll_initf.C
+940800188||E> tpmSequenceToAccessLocality0 spi_tpm_write_with_wait failed with rc 08%08X||sbemTPMSequences.C
+940800189||E> sbePutHWReg sbePutHWReg failure data, scomAddr[0x%08X %08X], scomData[0x%08X %08X]||sbecmdregaccess.C
+940800193||Error from p10_thread_control (query, post-stop)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_stop_hb.C
+940800201||E>istepWithCore istepWithCore failed, RC=[0x%08X]||ipl_table.C
+940800349||E> sbeHandleS0 Failed in Continue Mpipl S0 Interface, SBE Role[%d]||sbes0handler.C
+940800358||E>Failed to read INT_PC_REGS_ERR0_CFG0(0x02010ac0)||sbearchregdump.C
+940800574||I>SbeRegAccess::SbeRegAccess MBX_reg3 from Attribute : 0x%08X||sberegaccess.C
+940800665||E> sbeDumpArchRegs Failed to write thread header to hostboot||sbearchregdump.C
+940800691||E> sbeGetHWReg Invalid OCMB Instance ID 0x%08X||sbecmdregaccess.C
+940800736||E>sbePSUSendResponse primaryStatus:0x%08X secondaryStatus:0x%08X||sbeHostUtils.C
+940800776||>> qme_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940800817||E> sbe_interrupt_handler pk_semaphore_post failed, rc=[%d]||sbeirq.C
+940800875||RAS_STATUS Reg [0x%08X %08X]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940800957||E>sbeAsyncCommandProcessor pk_semaphore_pend failed, l_rcPk=-%04x||sbecmdprocessor.C
+940801128||I>sbeStartCntlDmtPoll on core [%d]||sbecmdcntrldmt.C
+940801132||E>sbeHostSyncFabTopologyId Failed to extract SBE_HOST_PSU_MBOX_REG1 Cannot sync fabric topology table||sbecmdgeneric.C
+940801169||SPI status register state bits check validation failed.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940801203||E> performTPMSequences tpmSequenceToAccessLocality0 Failed with rc 0x%08X||sbemTPMSequences.C
+940801215||<< p10_pm_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_suspend_powman.C
+940801290||ERROR: There was an error doing the checkstop, it may not have gone through||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940801293||E>i2cWaitForFifo timedout waiting for fifo condition||plat_i2c_access.C
+940801367||<< pm_occ_gpe_reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940801477||E>assertion failed: ((i_chipletNumber >= PAUC_CHIPLET_OFFSET) && (i_chipletNumber < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))||target.C
+940801625||I>SbeRegAccess::SbeRegAccess Read mailbox registers: mbx8: 0x%08X, mbx3: 0x%08X, mbx6: 0x%08X||sberegaccess.C
+940801642||E>No verification image, Halting PPE, crorecoversbe boot seeprom again using Secure Jumper||sbemthreadroutine.C
+940801645||I>sizeHostMem:[0x%08X], hrmor:[0x%08X%08X]||sbeCollectDump.C
+940801735||E>istepWithCoreCLeanup p10_cl2_l3_cleanup failed, RC=[0x%08X]||ipl_table.C
+940801829||<< xgpe_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940801849||I>DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940801903||I> sbeSyncCommandProcessor_routine Continuous IPL mode not set, will wait for commands...||sbecmdprocessor.C
+940801921||E>sbeStartCntlDmt g_sbe_pk_dmt_timer.startTimer failed, TimerVal [0x%08X]||sbecmdcntrldmt.C
+940801992||E>sbeCntrlTimer  Failed to extract SBE_HOST_PSU_MBOX_REG1||sbecmdCntrlTimer.C
+940802002||E> tpmWriteFifo tpmIsExpecting failed with rc 0x%08X||sbeTPMaccess.C
+940802077||ERROR:CHIPLET NOT ALIGNED||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940802087||I> sbeSyncCommandProcessor_routine Hreset, going back to the state before reset||sbecmdprocessor.C
+940802107||PBA Slave Reset Timout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940802118||E> tpmReadSTSRegValid spi_tpm_read_secure failed while reading status with rc 0x%08X||sbeTPMaccess.C
+940802122||Error writing data via SPI||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940802180||Error while preparing for SPI write||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940802263||E>Input address:0x%.8x%.8x is not 8 byte aligned||sbecmdsram.C
+940802267||E> tpmTransmit tpmWriteTpmGo failed with rc 0x%08X||sbeTPMaccess.C
+940802316||RCS_UNLOCKDET error : Clock B is not locked||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940802367||I> sbeMemAccess_Wrap Address Upper[0x%08X] Lower[0x%08X] Flags[0x%08X] Length[0x%08X]||sbecmdmemaccess.C
+940802437||I> sbeSyncCommandProcessor_routine Mpipl reset, going back to the state before reset||sbecmdprocessor.C
+940802527||E>i2cRegisterOp Reg[%02x] Engine[%02x] ReadNotWrite[%d]||plat_i2c_access.C
+940802600||Error from p10_sbe_purge_hb||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940802611||E>Failed to get the master core target % d||sbecmdcntrldmt.C
+940802645||I>Special Wakeup is NOOP on simics for Stop Instructions||sbecmdcntlinst.C
+940802695||PBI Write Idle never happened||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940802790||Error from force_band (iCOMBO_FIRST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940802794||E>sbeHandleIstep FIFO dequeue failed, rc[0x%X]||istep.C
+940802812||Error from force_band (COMBO_FIRST_LOCKING_BANDSEL, chiplet: %02d), no lock found||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940802844||Thread to perform ram is not stopped. RAS_STATUS register : 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940802940||E> sbeCommandReceiver_routine  SBE HB FIFO reset received||sbecmdreceiver.C
+940803178||I> setTPMFailureRespCode failCode passed is 0x%08X||sbemTPMSequences.C
+940803270||PBI Master Machines are not idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940803295||Error from p10_l3_flush (active core: %d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_purge_hb.C
+940803401||E> sbeCommandReceiver_routine Command validation failed||sbecmdreceiver.C
+940803473||E> sbeHostHaltReq sbeDsSendRespHdr failed. rc[0x%X]||sbehostfifomsg.C
+940803584||%s. Out of bounds indexing (with %d) on a list of size %d for 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940803626||>> p10_pm_occ_gpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940803671||I>Measurement_main LFR clock divider and round trip delay = [0x%04X 0x%02X]||measurement_main.C
+940803694||I>Current Proc is slave. Do not access TPM||sbemTPMSequences.C
+940803930||CLOCK STOP STATUS FOR ARY TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940803982||<< pgpe_halt...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940803990||I>writePutScomPacketToFifo putscom scom value: 0x%.8X%.8X||sbeCollectDump.C
+940804033||Error reading from the PBA via the OCB||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940804121||I>Caller disabled collection of Architected data via Bit15(0x5003A)||ipl_table.C
+940804191||Hard-coding BOOT PAU DPLL in no-bypass mode||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_scratch_regs.C
+940804195||E> sbeHandleS0 Failed in Start Mpipl S0 Interface||sbes0handler.C
+940804205||E>Failed to write to INT_PC_REGS_ERR0_CFG0(0x02010ac0)||sbearchregdump.C
+940804321||E>sbeHostSyncFabTopologyIdFailed to fetch the Fabric System Topology ID,fapiRc =0x%.8x||sbecmdgeneric.C
+940804343||Error in resetting the PBA Slave Reset register||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940804344||E> sbeDumpArchRegs  ram_setup failed. threadNr:0x%2XcoreChipletId:0x%02X Proc:0x%02X||sbearchregdump.C
+940804347||Slave 0x%x still busy after reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940804420||I> sbeControlTraceArrayWrap targetType [0x%04X] chipletId [0x%02X] traceArrayId [0x%04X] operation [0x%04X]||sbecmdtracearray.C
+940804432||I> processAduRequest Total length Pushed for ChipOp [%d]||sbecmdmemaccess.C
+940804437||I>In Proc Target||sbecmdmpipl.C
+940804451||insert(): (Target Start + Len) is out of bounds||target.C
+940804459||E>sbePsuGetCapabilities  Failed to write to SBE_HOST_PSU_MBOX_REG5||sbecmdgeneric.C
+940804479||E>assertion failed: (SBE_HOST_PSU_MBOX_REG0 <= i_addr) && (SBE_HOST_PSU_MBOX_REG3 >= (i_addr + i_count - 1))||sbeHostUtils.C
+940804781||ERROR: Failed to setup channel %d to circular mode.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_circular.C
+940804792||E> sbeGetTIInfo Failed in p10_getmempba() ,Addr[0x%08X%08X] bytes[0x%08X]||sbecmdmpipl.C
+940804821||Assert TFAC_RESET via PCR_TFCSR[1]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940804868||E>istepMpiplSetFunctionalState Scratch Reg 1 is invalid not applying gard records in MPIPL path||ipl_table.C
+940804922||Failing RC (0x%016X, RC 0x%02X) from command 0x%02X for 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940804956||< p9_pm_ocb_indir_setup_circular||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_setup_circular.C
+940805000||spi_read_secure: (ecc) Read length is greater than 40 bytes, which cannot be done in a secure read. i_length = %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940805029||E>sbeDoContinuousIpl Failed istep execution in plck mode: Major: %d, Minor: %d||ipl.C
+940805136||insert(): Target Start is out of bounds||target.C
+940805199||I> tpmWriteFifo Check if TPM is expecting more data.||sbeTPMaccess.C
+940805302||I> sbe_interrupt_handler i_irq=[0x%02X]||sbeirq.C
+940805450||E>Failed in p10_sbe_check_master():rc=0x%.8x||ipl_table.C
+940805479||I>sbeMemAccessInterface::setup():iv_addr [0x%08x%08x]||sbeMemAccessInterface.C
+940805505||I>Extending extendSecurityStatePCR1 details into TPM_PCR1||sbemthreadroutine.C
+940805539||UMAC status control quiesce failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940805569||Unknown Mode Passed To p10_pm_qme_init. Mode %x ....||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940805607||I> tpmSequenceToAllocatePCRs TPM transmit data is 0x%02X||sbemTPMSequences.C
+940805608||I>SBE_SECURITY access[%d] allowed[%d] addr[0x%08x]||sbeSecurity.C
+940805638||I>sbeExecuteIstep Major number:0x%x minor number:0x%x||ipl.C
+940805653||I> tpmSequenceToStartup Send the startup command to TPM.||sbemTPMSequences.C
+940805668||p10_tp_stopclocks returned error when stopping clocks for sbe region||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_tp_stopclocks.C
+940805669||E> sbeValidateCmdClass SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED i_cmdClass[0x%02X], i_cmdOpcode[0x%02X]||chipop_handler.C
+940805705||E>istepWithCoreStateStop all core instructions is failed, RC=[0x%08X]||ipl_table.C
+940805754||I>SBESecureMemRegionManager::add after addition iv_regionsOpenCnt [%d]||sbeSecureMemRegionManager.C
+940805860||Ran out of lock attempts or failed to pick lock||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940805897||Error from force_band (COMBO_FIRST_LOCKING_BANDSEL, chiplet: %02d), step sequence||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940806018||I>Architected data will be copied into Stash Dump Address offset:[0x%08X %08X]||sbearchregdump.C
+940806043||E> tpmPollForCommandReady tpmIsCommandReady either failed while reading TPM Status register with rc 0x%08X or cmdReady %d||sbeTPMaccess.C
+940806085||E> tpmWriteCommandReady spi_tpm_write_with_wait failed while setting isCommandReady bit with rc 0x%08X||sbeTPMaccess.C
+940806108||>> findRS4InImageAndApply||plat_ring_traverse.C
+940806134||Invalid PBA Operation type (%d)||sbecmddump.C
+940806167||I> tpmReadFifo Read %d byte||sbeTPMaccess.C
+940806309||I> tpmSequenceToStartup TPM transmit data is 0x%02X||sbemTPMSequences.C
+940806331||I> collectMPIPLHWDumpEntriesClocks not stopped by collectMpiplHwDump(),Attempt Stop clocks for all Core and cache, for MPIPL to continue||sbecmdmpipl.C
+940806358||Attempting to ram during recovery. EC_PC_FIR_RAM_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940806378||E>SbeRegAccess::updateAsyncFFDCBit Failed to update SBE Aync bit in message register. RC: 0x%08X||sberegaccess.C
+940806381||Error from force_band (COMBO_LAST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940806388||platGetI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set||plat_i2c_access.C
+940806399||I> sbemthreadroutine Verification Image found in the Boot Seeprom Image||sbemthreadroutine.C
+940806436||I> sbeStopClocks_WrapCalling p10_stopclocks HWP with Proc Target FLag ALL||sbecmdmpipl.C
+940806447||i2cSetBusVariables: Time out count 0x%08X %08X||plat_i2c_access.C
+940806479||Error finding the master fused core partner target!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_sbe_core_spr_setup.C
+940806564||E>timerService::startTimer  Timer already started||sbeTimerSvc.C
+940806568||Address is not cacheline aligned||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940806693||E>sbePSUSendResponse FAPI RC:0x%08X||sbeHostUtils.C
+940806694||I> setTPMFailureRespCode Final Mailbox scratch data is 0x%08X %08X||sbemTPMSequences.C
+940806870||E>sbeGetDump Unsupported/Invalid clock state %x||sbecmddump.C
+940806896||Port multiplexer setting error set in spi_wait_for_rdr_full||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940807030||E>sbeDownFifoSignalEot  Write EOT failed, rc=[0x%08X] Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940807063||I>sendOverHostIntf isSendInternalFFDCSet()=false, not generating SBE InternalFFDC||sbeFFDC.C
+940807112||E>sbeStartCntlDmtFailed to Write SBE_SBE2PSU_DOORBELL_SET_BIT2||sbecmdcntrldmt.C
+940807150||E> performTPMSequences tpmSequenceToReadDIDAndVendor Failed with rc 0x%08X||sbemTPMSequences.C
+940807163||RCS_UNLOCKDET error : Clock A is not locked||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940807263||E> p10_fbc_utils_get_chip_base_address failed||ipl_table.C
+940807269||I> performTPMSequences Perfrom TPM sequence to allocate PCRs||sbemTPMSequences.C
+940807310||I>writeDumpPacketRowToFifo command Id [0x%08X] is not supported.||sbeCollectDump.C
+940807325||I>istepCheckSbeMaster Sbe role [%x]||ipl_table.C
+940807376||E> sbeDumpArchRegs failed to write the last frame to hostboot||sbearchregdump.C
+940807378||I>dumpStopClocks: dumpStopClocks clockTypeTgt[0x%04X],chipUnitNum[0x%08X],chipletStart[0x%02x], chipletEnd{0x%02x}||sbeCollectDump.C
+940807443||Invalid OCC SRAM access mode (%d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_putsram.C
+940807465||Address exceeds supported fabric real address range||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940807646||I>Scanning PAU DPLL on DD2||measurement_main.C
+940807671||I>sbeStartCntlDmtMPIPL Path: Skip Powering Down Backing Caches!||sbecmdcntrldmt.C
+940807791||E>specialWakeUpCoreAssert EQ:0x%.8x ,Failed to read scomt::eq::QME_SCOM_XIDBGPRO to detect if QME is halted||sbecmdcntlinst.C
+940807827||Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), last lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940808027||Error from p10_sbe_instruct_start for MasterCore Pair Target in Fused Core mode||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940808064||GET-CFAM ACCESS via SBE is NOOP!||target.C
+940808087||Core/Cache Clock Control Failed in SL thold||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_clock_control.C
+940808109||E> sbeGetRingWrap  getRing_verifyAndcleanup failed. RingAddress:0x%08X RingMode:0x%04x||sbecmdringaccess.C
+940808363||E>assertion failed: ((i_chipletNumber >= EQ_CHIPLET_OFFSET) && (i_chipletNumber < (EQ_CHIPLET_OFFSET + EQ_TARGET_COUNT)))||target.C
+940808412||Unknown mode 0x%08llx passed to p10_pm_pba_init.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940808478||I> sbeHostHaltReq Fifo Type is:[%02X]||sbehostfifomsg.C
+940808516||E> sbeMemAccess_Wrap processPbaRequest failed||sbecmdmemaccess.C
+940808538||Unsupported flag specified for ADU access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmemproc_utils.C
+940808570||XGPE Reset timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940808609||E>Core=0x%.8x , Failed to update QME_SCSR||sbecmdcntlinst.C
+940808621||E> collectMPIPLHWDumpEntriesInternal Error in collectMPIPLHWDumpEntries() MPIPL will continue!||sbecmdmpipl.C
+940808758||E> performTPMSequences Failed to set the deconfig bit with rc 0x%08X||sbemTPMSequences.C
+940808790||E>istepMpiplSetFunctionalState Failed hwp p10_sbe_select_ex_hwp||ipl_table.C
+940808946||E> checkCoreStateForRam Failed to read scomt::c::QME_SCSR for Core[%d]||sbearchregdump.C
+940808948||E>maskSpecialAttn  Failed to read P10_SPATTN_MASK_RO(0x20040002)||sbecmdiplcontrol.C
+940809198||<< p10_pm_qme_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940809330||E> tpmPollForDataAvail Polling loop within tpmReadSTSRegValid timed out||sbeTPMaccess.C
+940809353||E>stopAllCoreInstructionsFailure in maskSpecialAttn()||sbecmdcntlinst.C
+940809461||getScom error: Core %d, addr 0x%.16llX, skip this core.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_query_corecachemma_access_state.C
+940809477||E> tpmReadFifo Either tpmIsDataAvail failed with rc 0x%08X or dataAvail is %d||sbeTPMaccess.C
+940809485||I>Extending .sb_verification XIP Section hash into TPM_PCR6||sbemthreadroutine.C
+940809597||E>sendSecurityListDumpToHBFailed to write SecData Dump to hostboot||sbeSecurity.C
+940809614||I>Verification Image Source addr in Boot Seeprom is [0x%08X]||sbemthreadroutine.C
+940809792||I> tpmIsDataAvail Read TPM Status Register.||sbeTPMaccess.C
+940809875||E> sbemthreadroutine performTPMSequences failed with rc 0x%08X. Deconfigured TPM and updated scratch 11||sbemthreadroutine.C
+940809929||E>Failed in checkCoreCheckStopAndUpdateFuncState() ,RC=0x%.8x||sbecmdcntlinst.C
+940809974||I>updatePkFreqRefClk Setting new frequency:0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/sbefw/core/sbeutil.C
+940810094||Invalid byte count specified for cache-inhibited access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmemproc_utils.C
+940810150||E>sbeCntrlTimer  Not a valid flag 0x%4X||sbecmdCntrlTimer.C
+940810161||I>sbeUpFifoAckEot||sbecmddump.C
+940810347||I>sbeSetFFDCAddr Global hostPassCmdAddr size[0x%08X] Address[0x%08X%08X]||sbecmdgeneric.C
+940810370||Invalid flag specified for ADU access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmemproc_utils.C
+940810423||Timeout for ram to complete, poll count expired. EC_PC_FIR_RAM_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940810498||I>sendOverFIFONumber of words sent [%d]||sbeFFDC.C
+940810581||I>DUMP GETRING: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940810587||No PBA error found, returning original SCOM fail rc||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940810607||E>uartInit failure step [%d]||sbeConsole.C
+940810796||I> tpmWriteFifo Send the final byte||sbeTPMaccess.C
+940810839||Error from p10_pba_coherent_check_status, returning original SCOM fail rc||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940810858||E>sbePsuQuiesceFailed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]||sbecmdgeneric.C
+940810955||E>sbeReadMemFailed to extract SBE_HOST_PSU_MBOX_REG1 and SBE_HOST_PSU_MBOX_REG2||sbecmdgeneric.C
+940810980||Invalid Operation type (%d)||sbecmddump.C
+940810981||p10_stopclocks : At least one of the SBE or PIB or NET clocks is NOT running.  May not be able to use the PCB fabric to access chiplets.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940810996||!! pba_start not supported on SBE platform.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940811057||Timeout waiting for recovery to clear Core FIR, FIR: 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940811145||i2cPutScom for IBM SCOM Address failed with rc 0x%08X||plat_i2c_access.C
+940811207||Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), step sequence||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940811227||INTP master or slave is not IDLE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940811237||Insufficient active cores found||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_select_ex.C
+940811300||E> checkIndirectAndDoScom Invalid scom address [0x%08X]||sbescom.C
+940811302||Error from force_band (LAST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940811344||E>istepStartMpiplresetCrespErrLatch failed||ipl_table.C
+940811391||Previous purge request has not completed error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l3_flush.C
+940811436||Error from p10_l3_flush (backing cache: %d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_purge_hb.C
+940811447||Master core: %d not found in set of active cores!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940811476||I> tpmIsExpecting Read TPM Status Register.||sbeTPMaccess.C
+940811477||E>sbeMemAccessInterface::accessGranule access HWP failed||sbeMemAccessInterface.C
+940811579||E> tpmIsDataAvail tpmReadSTSRegValid failed while reading TPM Status register with rc 0x%08X||sbeTPMaccess.C
+940811601||E>collectMpiplHwDump Dump collection failed for Clock State:[0x%02],HbMem Address[0x%08X %08X]||sbeCollectDump.C
+940811618||E>sbeControlDeadmanTimer Not a valid command||sbecmdcntrldmt.C
+940811772||E> tpmSequenceToStartup TPM startup command failed.||sbemTPMSequences.C
+940811823||E> sbeIRQSetup pk_irq_handler_set failed, IRQ=[0x%02X], rc=[%d]||sbeirq.C
+940811855||spi_tpm_write_with_wait: Error doing secure write.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940811879||!! qme_start not supported on SBE platform.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940811953||E>assertion failed: (i_count >0 ) && (NULL != i_pData)||sbeHostUtils.C
+940811960||Address is not 8B aligned for cache-inhibited or atomic access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940811966||This bus (0x%04x) is not available for this PAUC target.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940812007||CLOCK STOP STATUS FOR NSL TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940812054||E> tpmPollForCommandReady tpmWriteCommandReady failed with rc 0x%08X||sbeTPMaccess.C
+940812109||E> tpmTransmit tpmPollForCommandReady failed with rc 0x%08X||sbeTPMaccess.C
+940812115||E>Error Initializing a thread, rc=[%d]||sbemain.C
+940812265||I>sbeHostSyncFabTopologyIdAddress to fetch Fabric Topology Table ID values [0x%08X][%08X]||sbecmdgeneric.C
+940812281||E>updateAndSendSecTOCHdrFailed to write accessWithBuffer to hostboot||sbeSecurity.C
+940812396||Core %d appears in set of both active cores and backing caches!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940812403||I>updatePhbFunctionalState PEC-%d:[0x%08X] data HI:0x%08X, data LO:0x%08X||sbecmdiplcontrol.C
+940812544||E> sbemthreadroutine tpmExtendPCR failed while extending extending Verification image has key into PCR0||sbemthreadroutine.C
+940812602||E>TPM has timed out||sbeTPMaccess.C
+940812610||E>Failed in p10_stopclocks(), Proc, Flag ALL, fapiRc=0x%.8x||sbecmdmpipl.C
+940812713||I> sbeCntlInst Assert succeeded for core[0x%2x]||sbecmdcntlinst.C
+940812956||insert(): (Source Start + Len) is out of bounds||target.C
+940813015||E> sbeCntlInst Failed for Core[%d] ThreadMask [%d] Cmd[%d] Mode[%d]||sbecmdcntlinst.C
+940813023||Proc Chip with Effective Topology Id :0x%.8x is not Quiesced||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_sync_quiesce_states.C
+940813136||ERROR: Shadow Disable FTC/PP/DPT Shadow State Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_shadows_disable.C
+940813367||E>sbeStartCntlDmt Failed to extract SBE_HOST_PSU_MBOX_REG1/2/3||sbecmdcntrldmt.C
+940813372||E>main plat_AttrInit failed||sbemain.C
+940813473||Invalid fabric broadcast mode!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_scominit.C
+940813507||E>getTargetListcommand Id [0x%02X] Type[0x%02X] not supported||sbeCollectDump.C
+940813574||p10_stopclocks : WARNING::VITAL clocks can't be stopped in SBE mode\n\t --> Skipping VITAL Stopclocks..! <--||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940813580||Max attempts exceeded checking OPCG_DONE||p10_putRingUtils.C
+940813592||I>validateIstep prevMajorNumber:%u prevMinorNumber:%u||istep.C
+940813687||ERROR: FDCR Update Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_shadows_disable.C
+940813736||PUT-CFAM ACCESS via SBE is NOOP!||target.C
+940813798||Previous purge request has not completed for target||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l2_flush.C
+940813840||I>Length of data sent through FIFO 0x%08X||sbecmdmpipl.C
+940813842||p10_thread_control_step: ERROR: Thread cannot be stepped because they are not ready to step (threads=%x), RAS_STATUS reg 0x%.16llX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940813960||Polling timeout reached waiting for CCALCOMP on PLL!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940813967||I> tpmExtendPCR TPM2_Extend PCR response code is 0x%08X||sbeTPMCommand.C
+940813972||Attempting to ram opcode without enable RAM mode before||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940813976||Specified trace bus could not be converted to required target type 0x%X, the supplied target is of type 0x%X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940813977||p10_stopclocks : The PIB/PCB is being bypassed, so only the TP chiplet is accessible.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940814034||E> sbe_interrupt_handler Unknown IRQ, assert||sbeirq.C
+940814135||E>uartPutChar LSR_BAD data error.||sbeConsole.C
+940814189|| stop 11  entered for core %d of quad %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_powerdown_backing_caches.C
+940814348||Error from p10_pba_coherent_check_status, returning PBA rc||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940814396||CLOCK RUNNING STATUS FOR SL TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940814418||Error from p10_sbe_exit_cache_contained_validate_inputs||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940814556||E>specialWakeUpCoreAssert special wakeup putscom failed||sbecmdcntlinst.C
+940814588||Unexpected state in ADU Status Registers||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940814613||E>Failed to read TIMA offset:%d, Thread:%d, core:0x%.8x||sbearchregdump.C
+940814646||CBS_ACK is not LOW with in expected time||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_common_stopclocks.C
+940814662||E> sbeHandleS0 Failed to collect ArchRegDump S0 Interface||sbes0handler.C
+940814695||ERROR:PLL LOCK NOT SET||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_pll_setup.C
+940814735||NULL header data in RS4 image||p10_putRingUtils.C
+940814739||E> performTPMSequences Failed to set the scratch reg with the response code, rc 0x%08X||sbemTPMSequences.C
+940814771||> p10_pm_pgpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940814814||PAUC chiplets may not be deconfigured for current IPL type!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_scratch_regs.C
+940814820||Error from force_band (CALIBRATED_BANDSEL_M1, chiplet: %02d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940814838||E> tpmReadBurstCount spi_tpm_read_secure failed while reading burst count with rc 0x%08X||sbeTPMaccess.C
+940814943||E> tpmWriteTpmGo spi_tpm_write_with_wait failed while setting tpmGo bit with rc 0x%08X||sbeTPMaccess.C
+940815004||UMAC was not stopped from fetching new CRBs||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940815097||platPutI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set.||plat_i2c_access.C
+940815238||E>sbeStartCntlDmt p10_block_wakeup_intr() failed for Core[%d]||sbecmdcntrldmt.C
+940815270||E>assertion failed: n < size()||target.C
+940815283||p10_hcd_core_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940815446||OCMB Param[%d] is 0x%02X||target.C
+940815610||Error in spi_check_write_enable||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940815650||spi_read_secure: Read length is greater than 40 bytes, which cannot be done in a secure read. i_length = %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940815710||E>Internal Failure detected in sbeDumpArchRegs()MPIPL will still be continued!||ipl_table.C
+940815866||I>SBESecureMemRegionManager::isAccessAllowed foundRegion Mem[0x%08X%08X], size[0x%08X]||sbeSecureMemRegionManager.C
+940815879||E> sbePutRingFromImagePSU putRing HWP failure - MSG - Target Type [0x%04x] Ring ID [0x%04x] Ring Mode [0x%04x] Chiplet ID [0x%04x]||sbecmdringaccess.C
+940816019||Invalid trace bus specified: 0x%X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940816055||ERROR: L3 Purge Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_l3_purge.C
+940816109||Attempting to ram (put_reg) to inactive thread and HW542214 is present||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940816120||E>Address:0x%.8x%.8x Length=0x%.8x||sbecmdsram.C
+940816149||insert(): Source Start is out of bounds||target.C
+940816159||E>Unsupported Perv TargetType=[0x%08X] Chiplet Id=[0x%08X]||sbecmdmpipl.C
+940816220||E> sbeModifyScom sbeModifyScom putscom failed, ScomAddress[0x%08X%08X]||sbecmdscomaccess.C
+940816236||I>tiDataLoc is 0x%08X%08X and core target is 0x%08X||sbecmdmpipl.C
+940816259||Attempting to ram without setup before||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940816293||PFET_SEQ_STATE not 0||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_corecache_power_control.C
+940816350||E> setTPMFailureRespCode  putscom failed on MAILBOX_SCRATCH_REG_11 with rc 0x%08X||sbemTPMSequences.C
+940816535||No Configured Cores in this Proc, Not Continue on Booting QMEs||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940816582||E>sbeGetDump Unsupported/Invalid dump type %x||sbecmddump.C
+940816597||I>Invalid HW Dump collection address:0x%.8x%.8x||sbecmddump.C
+940816623||Expected Illegal STOP Level to be Reached||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_query_core_stop_state.C
+940816865||E>uartInit failure to read scratch for uart detection||sbeConsole.C
+940816876||I> sbemthreadroutine Setting the TPM deconfig bit||sbemthreadroutine.C
+940816896||Failed to stop holding trace_run off||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940816934||I> tpmSequenceToDetectPCRs TPM transmit data is 0x%02X||sbemTPMSequences.C
+940816955||I> sbeHostHaltReq PK HALT||sbehostfifomsg.C
+940817090||E>sbePsuQuiesceasync thread suspend failed. pkRc:%u||sbecmdgeneric.C
+940817106||I> performTPMSequences PCR Allocation is set to %d||sbemTPMSequences.C
+940817124||E> collectMPIPLHWDumpEntriesFailed in Core/Cache StopClock||sbecmdmpipl.C
+940817154||I>istepWithProcSyncQuiesceStatep10_sbe_sync_quiesce_states LQA SBE System Quiesce done||ipl_table.C
+940817236||E>Failed to read INT_PC_REGS_ERR0_CFG0(0x02010ac0ull)||sbearchregdump.C
+940817265||Failed to obtain adu lock due to fapiPutScom error (PU_ALTD_CMD_REG)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940817418||One or both RCS PLLs failed to lock! exp/got: PLL_A: %d/%d  PLL_B: %d/%d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940817466||Failed in p10_adu_setup (addr: 0x%08x%08x)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_apply_xscom_inits.C
+940817512||I>getSram value:[0x%08X%08X]||sbeCollectDump.C
+940817535||I>Completed Loading of .sb_verification into PIBMEM, Jump to Verification Image||sbemthreadroutine.C
+940817557||Failed in p10_adu_access (addr: 0x%08x%08x)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_apply_xscom_inits.C
+940817615||E>sbeHandleIstep  sbeExecuteIstep() Failed. major:0x%08x minor:0x%08x||istep.C
+940817700||I>EKB Commit ID: 0x%.8x%.8x||sbecmddump.C
+940817788||E> processAduRequest Invalid length[%d] - supported values[1/2/4/multiples of 8]||sbecmdmemaccess.C
+940817836||I> tpmWriteFifo TPM should be expecting more data from the command||sbeTPMaccess.C
+940817851||I>Core:0x%.8x  is  in STOP 0/1:0x%.8x||sbecmdcntlinst.C
+940817962||E> tpmReadFifo tpmPollForDataAvail failed with rc 0x%08X||sbeTPMaccess.C
+940818069||E> setTPMDeconfigBit  putscom failed on OTP_SECURITY_SWITCH with rc 0x%08X||sbeTPMCommand.C
+940818200||First byte of read data was expected to be 0x%lx but byte read = 0x%x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940818222||E>assertion failed: 0||sbeirq.C
+940818245||E>Failure creating/resuming thread, rc=[%d]||measurement_main.C
+940818391||E>chipUnitType [0x%02X] and Id[0x%02X] are not supported||sbeCollectDump.C
+940818448||Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), first lock attempt||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940818520||E>main Failed to initialize SbeRegAccess.||sbemain.C
+940818576||E> sbeGetRingWrap  getRing_setup failed. RingAddress:0x%08X RingMode:0x%04x||sbecmdringaccess.C
+940818603||PSIHBCR inbound queue not empty||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940818607||>>> pba_bc_stop...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940818654||E> sbeGetReg  ram_cleanup failed. threadNr:0x%xcoreId:0x%02x||sbecmdregaccess.C
+940818688||E>sbefifo_hwp_data_ostream::put() sbeDownFifoEnq_mult failed||plat_hwp_data_stream.C
+940818689||>> p10_pm_qme_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940818768||E> sbeCntlInst ValidateAndMapInputArgs failed||sbecmdcntlinst.C
+940818923||Invalid Offset To Ring In SBE Image 0x%08x||p10_plat_ring_traverse.C
+940819168||E>sbeExecuteIstep  FAPI RC:0x%08X||ipl.C
+940819174||The write requested is not byte aligned, exiting||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940819193||E>sbeSetFFDCAddrFailed to extract SBE_HOST_PSU_MBOX_REG1 and SBE_HOST_PSU_MBOX_REG2||sbecmdgeneric.C
+940819254||ERROR; Unknown mode passed to p10_pm_xgpe_init . Mode %x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940819279||E> sbeUpFifoDeq_mult sbeUpFifoDeq failed, l_rc=[0x%08X], Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940819304||E> sbeGetReg  Invalid request. coreId: 0x%02x threadNr:0x%02x regType:0x%01x numRegs:0x%02x||sbecmdregaccess.C
+940819446||I>sbeManageMemAccessRegion Addr[0x%08x%08x] size[0x%08x] flags[0x%04x]||sbecmdmemaccess.C
+940819467||port is 0x%02X||target.C
+940819506||E>NULL pool idx:%u||pool.C
+940819605||I> tpmWriteFifo tpmWriteFifo: send some data %d tx_len||sbeTPMaccess.C
+940819607||I> tpmExtendPCR tpmExtendPCR at %d is 0x%02X||sbeTPMCommand.C
+940819715||PROC chip with Effective Fabric Topology ID:0x%.8x is functional||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_sync_quiesce_states.C
+940819729||I>Writing extendSecurityStatePCR1 details [0x%08X 0x%08X] into Register [0x%08X]||sbemthreadroutine.C
+940819757||I>processInputDataToIterate: o_core=0x%.8x o_coreCntMax=0x%.8x o_threadMask=0x%.8x||sbeSpMsg.C
+940819796||CLOCK RUNNING STATUS FOR ARY TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940819935||I>writePutScomPacketToFifo maskType[0x%02X], data [0x%08X %08X]||sbeCollectDump.C
+940819981||Unknown mode 0x%X passed to p10_pm_occ_gpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_occ_gpe_init.C
+940819990||E>specialWakeUpCoreDeAssert special wakeup getscom failed||sbecmdcntlinst.C
+940820298||I>uartInit UART device initialized.||sbeConsole.C
+940820394||i2cSetBusVariables: Bit rate Divisor 0x%08X||plat_i2c_access.C
+940820411||E>sbeUpdateOCMBTargetFailed to write SBE_HOST_PSU_MBOX_REG4. rc[0x%X]||sbecmdgeneric.C
+940820559||i2cPutScom for Micor Chip Address failed with rc 0x%08X||plat_i2c_access.C
+940820571||I> collectMPIPLHWDumpEntriesBytes collected=0x%.8x||sbecmdmpipl.C
+940820582||Failed To Complete Parallel Scan||p10_putRingUtils.C
+940820712||E>sbeGetFfdc Failed. rc[0x%X]||sbecmdgeneric.C
+940820766||Unable to find fused core partner for target of RAM operation||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940820809||Executing p10_pm_xgpe_init in mode %s||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_xgpe_init.C
+940820830||Reaching Unexpected STOP Level||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_query_core_stop_state.C
+940820847||Error in spi_wait_for_rdr_full||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940820853||E> sbeGetReg  get_reg failed. threadNr:0x%02x coreId:0x%02x, regNr:%u regType:%u||sbecmdregaccess.C
+940820859||E> sbemthreadroutine tpmExtendPCR failed while extending HW key hash into PCR1||sbemthreadroutine.C
+940820872||I> tpmPoisonPCR Call PM2_GetRandom||sbeTPMCommand.C
+940820919||E> sbemthreadroutine .sb_settings XIP section not found. HW key hash not found. Extending 0x00 into TPM_PCR6 and TPM_PCR1||sbemthreadroutine.C
+940821025||E> tpmPoisonPCR tpmTransmit failed with rc 08%08X||sbeTPMCommand.C
+940821162||E> sbeModifyScom sbeModifyScom getscom failed, ScomAddress[0x%08X %08X]||sbecmdscomaccess.C
+940821305||Polling timeout on command 0x%02X (still FW_BUSY) for 0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/ocmb/explorer/procedures/hwp/memory/lib/i2c/exp_i2c.C
+940821318||E>istepWithProcSyncQuiesceStatep10_sbe_sync_quiesce_states failed, RC=[0x%08X]||ipl_table.C
+940821338|| Disable the IMA function by clearing 20018680[3]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940821357||I>Skipping UART_INIT on slave chip||ipl_table.C
+940821379||E>sbeDmtPkExpiryCallbackPutScom failed: REG TP_TCN1_N1_LOCAL_FIR||sbecmdcntrldmt.C
+940821418||E> sbePsuExitCacheContainedModeFailed in p10_sbe_apply_xscom_inits():numOfPairs=%d||sbecmdexitcachecontained.C
+940821421||E> sbePutHWReg Invalid target type[0x%04X] target instance[0x%02X]||sbecmdregaccess.C
+940821491||E> sbeDumpArchRegs failed in register content to hostboot||sbearchregdump.C
+940821714||I> tpmSequenceToDetectPCRs TPM expected data is 0x%02X||sbemTPMSequences.C
+940821731||Invalid TSIZE (%d)||sbecmddump.C
+940821733||Error from force_band (FIRST_LOCKING_BANDSEL, chiplet: %02d), no lock found||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940821815||E> collectAllHDCTEntries  Dump collection failed||sbeCollectDump.C
+940821821||I> tpmTransmit Read the response from TPM FIFO||sbeTPMaccess.C
+940822151||Address is not cacheline aligned!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940822163||Master core: %d pair in fused mode not found in set of active cores!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940822214||Error from p10_core_scom||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_core_scominit.C
+940822303||Core: %d thread: %d did not reach expected state after stop request!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_stop_hb.C
+940822388||ERROR: Magic number not matching||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_npll_setup.C
+940822525||E>istepMpiplQuadPoweroffp10_hcd_ecl2_l3_poweroff() failed, fapiRc=[0x%08X]||ipl_table.C
+940822589||VAS quiesce timed out||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940822650||I>uart disabled||sbeConsole.C
+940822664||ERROR; Unknown mode passed to pstate_gpe_init. Mode %x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940822699||CHECKWORD DATA mismatch||p10_putRingUtils.C
+940822717||I> sbeCommandReceiver_routine SBE HB FIFO reset received||sbecmdreceiver.C
+940822733||I>DUMP GETSRAM: NonFunctional Target UnitNum[0x%08X]||sbeCollectDump.C
+940822798||E>istepWithCoreL3Flush p10_query_corecachemma_access_state failed,  RC=[0x%08X]||ipl_table.C
+940822814||ERROR: NCU Purge Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_ncu_purge.C
+940822887||E> sbeCntlInst Breaking out, since User has selected the mode to exit on first error.||sbecmdcntlinst.C
+940822894||p10_tp_stopclocks returned error when stopping clocks for regions all except SBE [perv, sbe, pib, occ, net, pll regions]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_tp_stopclocks.C
+940822916||I>SHA512 of .sb_verification XIP Section is %x %x %x %x||sbemthreadroutine.C
+940822958||PSTATE GPE Reset timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940822978||%-10s %d: 0x%016lX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_ocb_indir_access.C
+940823062||ERROR:SRAM_ABIST_DONE_BIT_NOT_SET||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940823112||p10_vital_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940823123||!! pba_slave_setup not supported on SBE platform.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940823144||I> sbeDumpArchRegs Stash Dump Addr = [0x%08X %08X]||sbearchregdump.C
+940823176||E>istepWithGoodEqMCORCore istepWithGoodEqMCORCore failed, RC=[0x%08X]||ipl_table.C
+940823246||instance is 0x%02X||target.C
+940823292||Address error detected by ADU Status Register||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_adu_utils.C
+940823367||Error finding the master core target!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_sbe_core_spr_setup.C
+940823368||E> tpmSequenceToStartup tpmTransmit failed with rc 08%08X||sbemTPMSequences.C
+940823468||E>istepWithGoodEqMCCore istepWithGoodEqMCCore failed, RC=[0x%08X]||ipl_table.C
+940823520||E>SbeRegAccess::SbeRegAccess Failed reading sbe messaging reg., RC: 0x%08X.||sberegaccess.C
+940823525||I> tpmTransmit isCmdReady is %d||sbeTPMaccess.C
+940823619||<<cleanup_cl2_l3_states||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940823649||Both L3 and L2 units %d are powered off and clock off||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940823710||Error from p10_sbe_apply_xscom_inits||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_exit_cache_contained.C
+940823718||E>assertion failed: (i_count >0 ) && (NULL != o_pData)||sbeHostUtils.C
+940823914||E>Failed to write to INT_PC_REGS_ERR0_CFG0(0x02010ac0ull)||sbearchregdump.C
+940824006||I>Stopping Instructions is NOOP in the MPIPL path||sbecmdcntlinst.C
+940824139||QME SRAM is not accessible , need to be retried||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_qme_sram_access.C
+940824242||I> processPbaRequest Total length Pushed for ChipOp [%d]||sbecmdmemaccess.C
+940824459||!!! pgpe_start not supported on SBE platform||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940824486||ERROR: Calibration not done, bit16 not set||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_chiplet_init.C
+940824586||I> tpmReadSTSRegValid TPM timeout waiting for stsValid||sbeTPMaccess.C
+940824590||Invalid p10_thread_control command: %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/core/p10_thread_control.C
+940824651||E> sbeContinueMpipl Failed in Continue Mpipl in ChipOp Mode, SBE Role[%d]||sbecmdmpipl.C
+940824719||I>topologyMode=%d , topologyId=0x%.8x , o_procGroupId=0x%.8x and  o_chipId = 0x%x||sbearchregdump.C
+940824729||E>sbeSecurityWhiteBlackListDumpFailed to send Black/WhiteListDump to hostboot||sbeSecurity.C
+940824753||Multiplexing error in spi_wait_for_idle||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940824796||I>QME assocaited with the core=0x%.8x is HALTED||sbecmdcntlinst.C
+940824803||E> checkIndirectAndDoScom Indirect scom timeout.||sbescom.C
+940824850||Proc Chip with Effective Topology Id :0x%.8x has LQA set||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_sync_quiesce_states.C
+940824870||I> tpmIsCommandReady TPM read data is 0x%02X||sbeTPMaccess.C
+940824913||E>sbePsuQuiesce Failed to Sent Ack to Host over SBE_SBE2PSU_DOORBELL_SET_BIT1||sbecmdgeneric.C
+940824943||E> sbeCommandReceiver_routine sbeUpFifoDeq_mult failure with SBE_HB FIFO, l_rc=[0x%08X]||sbecmdreceiver.C
+940824966||E>OCMB Parameters can not be NULL||target.C
+940824979||E>SbeRegAccess::updateSbeState Failed to update state to messaging register. RC: 0x%08X||sberegaccess.C
+940824984||Clocking ABIST cycles timed out||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940825018||Invalid ram thread specified.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940825086||Error from force_band (STATIC_BANDSEL, chiplet: %02d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940825100||I>Extending HW key hash into TPM_PCR1||sbemthreadroutine.C
+940825254||E> tpmTransmit tpmWriteFifo failed with rc 0x%08X||sbeTPMaccess.C
+940825321||Too many care data words for internal buffer||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940825391||Block wakeup procedure failed||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_block_wakeup_intr.C
+940825407||E> sbeControlFastArrayWrap Control Set not valid [%d]||sbecmdfastarray.C
+940825518||E> collectMPIPLHWDumpEntriesFailed to update the Dump metadata at the offset:0x%.8x%.8x!!||sbecmdmpipl.C
+940825576||There was an invalid argument passed in when building PBA flag.  Check error trace!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940825582||I>SBESecureMemRegionManager::remove Deleting region i[%d], Mem[0x%08X%08X], size[0x%08X]||sbeSecureMemRegionManager.C
+940825680||I>sbeUpFifoPerformReset||sbecmddump.C
+940825770||E> sbeGetScom sbeGetScom failed, scomAddr[0x%08X%08X]||sbecmdscomaccess.C
+940825842||Error while executing post write checking||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940826014||Header check failed! Read header: 0x%08X%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940826133||I> performTPMSequences Poison TPM incase of ALT master||sbemTPMSequences.C
+940826155||validateXramAccessParms: XRAM offset must be < 32K and 8-byte aligned: Offset 0x%.16llX.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_iop_xram_utils.C
+940826180||Executing p10_pm_pgpe_init in mode %s||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940826211||E>Failed in collectMPIPLHWDumpEntries(),cannot continue MPIPL!||sbecmdmpipl.C
+940826324||I>ChipletId:[0x%.8x] McastAccess:[%d] mode [0x%.8X]||sbecmdsram.C
+940826459||E>specialWakeUpCoreAssert Core:0x%.8x ,Failed to read QME_SCSR to determine stop state||sbecmdcntlinst.C
+940826495||I> tpmSequenceToStartup TPM rc is 0x%08X||sbemTPMSequences.C
+940826586||I> writeGetRingPacketToFifo Ring Address 0x%08X User Ring Mode 0x%04X Length in Bits 0x%08X Length in Bits(8 Byte aligned) 0x%08X||sbeCollectDump.C
+940826597||I>All HDCT entries parsed for Clock State: %d||sbeCollectDump.C
+940826608||Specified trace bus requires target type 0x%X, but the supplied target is of type 0x%X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940826669||I> tpmTransmit Buffer length after response is 0x%08X||sbeTPMaccess.C
+940826767||Warning: ABIST_DONE not seen! Your dump is probably fine, but this is unexpected.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_fastarray.C
+940826801||I>SBE Role is Secondary||sbeRoleIdentifier.C
+940826869||E> performTPMSequences tpmSequenceToDetectPCRs Failed with rc 0x%08X||sbemTPMSequences.C
+940826898||STOP Reset Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940827053||i2cGetScom for Micro Chip Addresss failed with rc 0x%08X||plat_i2c_access.C
+940827071||I>Allocated address:0x%.8x%.8x is not 128 bytes aligned||sbecmddump.C
+940827161||Core position %d CL2 state  %d L3 state %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940827206||I>updatePkFreqPauDpll Setting new frequency:0x%08X||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/sbefw/core/sbeutil.C
+940827576||PHB%i: PBCQ CQ Status did not clear.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_suspend_io.C
+940827670||STOP 11 enter operation failed for backing core %d of quad %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_powerdown_backing_caches.C
+940827760||I>SBESecureMemRegionManager::add Adding region Mem[0x%08X%08X], size[0x%08X]||sbeSecureMemRegionManager.C
+940827768||<<< pba_bc_stop...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940827872||p10_query_host_meminfo:: getScom failed to read hostboot state from multicast_core_target, bailing out of function.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/memory/p10_query_host_meminfo.C
+940827975||Purge engine busy (reg_busy = %d, busy_on_this = %d, sm_busy = %d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l2_flush.C
+940828031||p10_cplt_stopclocks returned error||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_cplt_stopclocks.C
+940828037||E> tpmWriteFifo tpmIsExpecting failed or expecting more data with rc 0x%08X %d||sbeTPMaccess.C
+940828106||I> tpmTransmit isCmdReady is set. Go write the command to FIFO.||sbeTPMaccess.C
+940828122||OCMB target created is 0x%08X||target.C
+940828161||I>Measure/Calculate SHA512 of .sb_verification XIP Section||sbemthreadroutine.C
+940828308||I> checkIndirectAndDoScom Performing Indirect scom. Type :%u||sbescom.C
+940828342||E>stopAllCoreInstructionsp10_thread_control stop Failed for Core ALL Thread  RC[0x%08X],CoreTarget=0x%.8x||sbecmdcntlinst.C
+940828388||ERROR:Pfet not configured for ChipletID : %#010lX||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tp_chiplet_reset.C
+940828425||E>pk_semaphore_post failed, rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d||sbeConsole.C
+940828480||Reset the core timefac to INACTIVE via PC.COMMON.TFX[1]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_cl2_l3_cleanup.C
+940828499||E>SbeRegAccess::SbeRegAccess Failed reading mailbox reg 8, RC: 0x%08X.||sberegaccess.C
+940828637||I>RUN_SYSTEM_RESET System is going for manual Reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/sbefw/core/sbeutil.C
+940828806||I>isSecondaryBootsSeeprom [0x%02x]||sbesecuritycommon.C
+940828977||E>Failed to configure the  Debug address register forThread:%d, core:0x%.8x||sbearchregdump.C
+940829045||p10_stopclocks : TP chiplet dont have favourable conditions to access Clock Controller registers.||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940829055||E> checkIndirectAndDoScom Read not allowed in new form||sbescom.C
+940829057||E>Measurement_main pk_initialize failed with rc 0x%08X||measurement_main.C
+940829060||Invalid flag specified for PBA access||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_getputmempba_utils.C
+940829209||E> sbePsuGetHWReg Failed to extract SBE_HOST_PSU_MBOX_REG1 and SBE_HOST_PSU_MBOX_REG2||sbecmdregaccess.C
+940829252||E>assertion failed: NULL != iv_poolPtr||target.C
+940829339||Requested pervasive chiplet ID not functional on target chip||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_putsram.C
+940829460||I> checkCoreStateForRam Core[%d] StopState[%d] and isRamming[%d]||sbearchregdump.C
+940829669||I> sbeControlFastArrayWrapStart Offset [0x%08X] Size [0x%08X]||sbecmdfastarray.C
+940829777||I> collectMPIPLHWDumpEntriesMetadata Address = [0x%08X %08X]||sbecmdmpipl.C
+940829814||Invalid LPC BAR configuration!||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_scominit.C
+940829823||I> sbeSyncCommandProcessor_routine Command processesed. l_rc=[0x%04X]||sbecmdprocessor.C
+940829829||E>sbeGetCapabilities Failed. rc[0x%X]||sbecmdgeneric.C
+940830036||<< pba_slave_reset||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940830046||E> performTPMSequences tpmPoisonPCR failed with rc 0x%08X||sbemTPMSequences.C
+940830081||I> writeGetTracearrayPacketToFifo  targetType [0x%04X] chipletId [0x%02X] traceArrayId [0x%04X] operation [0x%04X]||sbeCollectDump.C
+940830111||Error writing to the PBA via the OCB||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_pba_coherent_utils.C
+940830139||E>istepMpiplSetFunctionalState Failed to read Scratch RegR8, rc=0x%.8x||ipl_table.C
+940830157||p10_stopclocks : Perv Vital clocks are off, so stopclocks cant go ahead||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_stopclocks.C
+940830213||E>istepWithProcQuiesceLQASetGetScom failed for OTP_SECURITY_SWITCH(0x10005)||ipl_table.C
+940830376||CLOCK RUNNING STATUS FOR NSL TYPE NOT MATCHING WITH EXPECTED REGIONS VALUE||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_perv_sbe_cmn.C
+940830568||E> tpmPoisonPCR tpmExtendPCR failed with rc 08%08X||sbeTPMCommand.C
+940830640||E> tpmPollForDataAvail Either tpmReadSTSRegValid failed while with rc 0x%08X or data is available %d||sbeTPMaccess.C
+940830698||E>stopAllCoreInstructions p10_query_corecachemma_access_state failed,  RC=[0x%08X],EqTarget=0x%.8x||sbecmdcntlinst.C
+940830767||Error from p10_l2_flush (active core: %d)||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_purge_hb.C
+940830830||I>isCommandReady Bit is not set. Set and poll||sbeTPMaccess.C
+940830859||E> sbeMemAccess_Wrap processAduRequest failed||sbecmdmemaccess.C
+940830873||E>Failed to force system checkstop to indicate failure inp10_sbe_sync_quiesce_states HWP||ipl_table.C
+940830961||I> sbeValidateCmdClass i_cmdClass[0x%02X], i_cmdOpcode[0x%02X]||chipop_handler.C
+940830969||E> sbemthreadroutine tpmExtendPCR failed while extending HW key hash into PCR6||sbemthreadroutine.C
+940830979||> p10_query_core_stop_state[Expected STOP Level: %d]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_query_core_stop_state.C
+940830993||I> performTPMSequences Perform TPM sequence to Read Vendor and DeviceID||sbemTPMSequences.C
+940831045||Multiplexing Error in spi_wait_for_tdr_empty||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940831066||Attempting to call ram_cleanup without calling ram_setup before||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_ram_core.C
+940831092||< p10_pm_pgpe_init||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pgpe_init.C
+940831219||I2C Interrupt Status error||plat_i2c_access.C
+940831256||spi_tpm_read_secure: Failed address 0x%04X read at %d bytes out of %d total||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/spi/p10_sbe_spi_cmd.C
+940831279||I>sbeSetSystemFabricMapSytem Fabric Map [0x%08X][%08X]||sbecmdgeneric.C
+940831326||%s operation failed for core %d of quad %d||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_block_wakeup_intr.C
+940831426||I> tpmReadFifo||sbeTPMaccess.C
+940831465||E>sbeStartCntlDmtFailed in p10_sbe_powerdown_backing_caches()||sbecmdcntrldmt.C
+940831473||E> tpmTransmit tpmIsCommandReady failed with rc 0x%08X||sbeTPMaccess.C
+940831575||ERROR; Unknown Mode Passed To qme_init. Mode %x||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_qme_init.C
+940831590||E>User size[0x%08X] exceeds the Host Pass Through Mode size[0x%08X] Start Index[0x%08X %08X]||sbecmdmemaccess.C
+940831666||E> sbeHandleSuspendIO p10_suspend_io hwp failed||sbecmdiplcontrol.C
+940831674||E> sbemthreadroutine tpmExtendPCR failed while extending extending SecurityState into PCR1||sbemthreadroutine.C
+940831678||E> sbeUpFifoDeq_mult sbeUpFifoAckEot failed,l_rc=[0x%08X], Fifo Type is:[%02X]||sbeFifoMsgUtils.C
+940831801||E> sbePutRing  p10_putRingUtils failed.RingMode:0x%04x||sbecmdringaccess.C
+940831858||E> sbePutScom sbePutScom failure data, scomAddr[0x%08X%08X], scomData[0x%08X%08X]||sbecmdscomaccess.C
+940831896||E>Failed to get the fused core targets % d||sbecmdcntrldmt.C
+940831915||ERROR: PowerBus Purge Done Timeout||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/corecache/p10_hcd_powerbus_purge.C
+940831953||I>sbeStartCntlDmt5. Waking up HB master core ..||sbecmdcntrldmt.C
+940831958||I>updatePkFreqPauDpll Attr PAU Frequency in MHz [0x%08X]||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/sbefw/core/sbeutil.C
+940832073||INT scrub operation still busy||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_sbe_check_quiesce.C
+940832097||Trace array is still running -- If you think you stopped it, maybe the controlling debug macro is slaved to another debug macro?||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_tracearray.C
+940832098||E> sbeStopClocks_WrapInvalid TargetType[0x%04X] ChipletId[0x%02X]||sbecmdmpipl.C
+940832113||E> sbeCommandReceiver_routine SBE FIFO reset received||sbecmdreceiver.C
+940832166||I>Previous State:0x%.8x%.8x Current State:0%.8x%.8x||sbeSpMsg.C
+940832169||I>uartInit ATTR_LPC_CONSOLE_CNFG not set||sbeConsole.C
+940832500||E> tpmPoisonPCR TPM2_GetRandom response code is non zero.||sbeTPMCommand.C
+940832507||E> sbePsuExitCacheContainedModeFailed in p10_sbe_exit_cache_contained() Addr[0x%08X%08X] Number of Xscom entries[0x%08X]||sbecmdexitcachecontained.C
+940832529||I> sbePsuExitCacheContainedMode Addr[0x%08X%08X] ,NO. of Xscom entries[0x%08X] and Exit cache contained Step[0x%08X]||sbecmdexitcachecontained.C
+940832686||E>pk_semaphore_create, rc=[%d]||sbemain.C
+940832732||No functional MC unit target found on master chip||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_revert_sbe_mcs_setup.C
+940832793||Deskew caliberation failed on A-side||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/p10_sbe_rcs_setup.C
+940832803||E> sbePsuExitCacheContainedModeFailed in sbeFetchAndApplyXSCOMInit() Addr[0x%08X%08X] Number of Xscom entries[0x%08X]||sbecmdexitcachecontained.C
+940832935||E> sbePutRingFromImagePSU Failed to extract SBE_HOST_PSU_MBOX_REG1 and SBE_HOST_PSU_MBOX_REG2||sbecmdringaccess.C
+940832972||E>sbeCntrlTimer  Failed to Sent Ack to Host over SBE_SBE2PSU_DOORBELL_SET_BIT1||sbecmdCntrlTimer.C
+940833055||E> p10_sbe_load_bootloader failed||ipl_table.C
+940833125||I>Measurement_main MPIPL Path, TPM Freq[0x%02X] TPM Divider[0x%04X] TPM Delay[0x%02X] Pau Freq[0x%04X]||measurement_main.C
+940833174||Purge failed. L2_L2MISC_L2CERRS_PRD_PURGE_CMD_REG_ERR set||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/nest/p10_l2_flush.C
+940833198||I>Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X]||sbecmddump.C
+940833316||I>sbeStopCntlDmt Stop Timer.||sbecmdcntrldmt.C
+940833431||E>SbeRegAccess::setMpIplModeFailed to set/clear MPIPL flag in mbx reg. 3. RC: 0x%08X||sberegaccess.C
+940833499||Error from force_band (COMBO_LAST_LOCKING_BANDSEL, chiplet: %02d), step sequence||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/perv/hw540133.C
+940833565||E>writeGetMemPBAPacketToFifo Core Scratch 1 says HRMOR is 0||sbeCollectDump.C
+940833579||E>sbePsuGetCapabilities  incorrect memory allocation||sbecmdgeneric.C
+940833767||E> startMpiplIstepsExecute Failed in StartMpipl Minor Isteps[%d]||sbecmdmpipl.C
+940833914||E> sbeReadPsu2SbeMbxReg  Failed to Sent Ack to Host over SBE_SBE2PSU_DOORBELL_SET_BIT1||sbeHostUtils.C
+940834022||I> tpmTransmit Set the tpmGo bit||sbeTPMaccess.C
+940834028||>> pba_halt ...||/tmp/power-jenkins.swg-devops/jenkins-slave/workspace/PSE-JET/EKB/Auto-Release-HW-Image/checkNewCommit-buildRelease/REPO_DEST_PROJ/PPE/label/rhel7/ppe/src/import/chips/p10/procedures/hwp/pm/p10_pm_pba_init.C
+940834090||E>Failed in P10 PUTSRAM , ChipletId:[0x%.8x] McastAccess:[%d] mode [0x%.8X]||sbecmdsram.C
+940834177||E> sbeControlFastArrayWrapInvalid target - Type [0x%04x] Chiplet [0x%02X]||sbecmdfastarray.C
+940834189||I>SBE_SECURITY blacklist t1[%d] t2[%d] t3[0x%d]||sbeSecurity.C
+940834202||E> tpmPollForDataAvail Timeout polling for dataAvail!||sbeTPMaccess.C
+940834238||E> sbePsuExitCacheContainedModeFailed in p10_sbe_exit_cache_contained() Addr[0x%08X%08X] Number of Xscom entries[0x%08X] and Step:PURGE_HB | RESUME_HB||sbecmdexitcachecontained.C
+940834303||E> sbeStopClocks_Wrap Stopclocks failed for TargetType [0x%04X] ChipletId [0x%02X]||sbecmdmpipl.C
+940834423||I>sendOverFIFO isSendInternalFFDCSet()=false, not generating SBE InternalFFDC||sbeFFDC.C
+940834441||E> sbeDestRuntimeSetup performAttrSetup failed||sbecmdprocessor.C
+940834494||E> sbeControlTraceArrayWrapInvalid target type [0x%04x]||sbecmdtracearray.C
+940834510||I>sbeAsyncCommandProcessor Thread started||sbecmdprocessor.C
+940834541||E>assertion failed: !l_rc||sbeirq.C
+940834670||I>Core:0x%.8x marked non-functional due to local checkstop pressence||sbecmdcntlinst.C
+940834794||First byte of 0x%lx == 0x%lx, address is not valid for microchip I2C scom||plat_i2c_access.C
+940834802||E>sbeManageMemAccessRegionFailed to extract SBE_HOST_PSU_MBOX_REG1 and SBE_HOST_PSU_MBOX_REG2||sbecmdmemaccess.C

@@ -300,6 +300,9 @@ all:
 ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 1)
 	$(MAKE) measurement_branch
 endif
+ifeq ($(MEASUREMENT_IMAGE_SUPPORTED), 0)
+	$(MAKE) use_locked_measurement
+endif
 ifeq ($(VERIFICATION_IMAGE_SUPPORTED), 1)
 	$(MAKE) verification_branch
 endif
@@ -361,6 +364,10 @@ add_VerifyLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixedtoc
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .strings
 
+# Copy golden/locked measurement from local PPE Repository into image directory
+copy_measure_image:
+	cp $(MEAS_IMAGE_DIR)/* $(IMG_DIR)
+
 boot_branch:
 	$(MAKE) $(OBJDIR)
 	$(MAKE) attribute_parse
@@ -408,6 +415,9 @@ measurement_branch:
 	$(MAKE) measure_symbols
 	$(MAKE) measure_tracehash
 	$(MAKE) measure_report
+
+use_locked_measurement:
+	$(MAKE) copy_measure_image
 
 verification_branch:
 	$(MAKE) $(OBJDIR)

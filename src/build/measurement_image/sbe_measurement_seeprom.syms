@@ -1,0 +1,747 @@
+fff800c0 t __alignment_exception
+ff880608 R ATTR_BOOT_FLAGS
+ff88060e R ATTR_CONTAINED_IPL_TYPE
+ff880690 R ATTR_CONTAINED_LOAD_PATH
+ff880604 R ATTR_CORE_LPAR_MODE
+ff880610 R ATTR_DISABLE_HBBL_VECTORS
+ff880638 R ATTR_FREQ_PAU_MHZ
+ff880648 R ATTR_FUSED_CORE_MODE
+ff880650 R ATTR_HOSTBOOT_HRMOR_OFFSET
+ff88060c R ATTR_IS_MPIPL
+ff880600 R ATTR_IS_SIMULATION
+ff880672 R ATTR_LPC_CONSOLE_INITIALIZED
+ff880649 R ATTR_MEM_MIRROR_PLACEMENT_POLICY
+ff880680 R ATTR_NUM_KEY_ADDR_PAIR
+ff880614 R ATTR_PROC_FABRIC_BROADCAST_MODE
+ff880615 R ATTR_PROC_FABRIC_TOPOLOGY_ID_TABLE
+ff880613 R ATTR_PROC_FABRIC_TOPOLOGY_MODE
+ff880660 R ATTR_PROC_LPC_BAR_BASE_ADDR_OFFSET
+ff880658 R ATTR_PROC_XSCOM_BAR_BASE_ADDR_OFFSET
+ff88060f R ATTR_RUNN_MODE
+ff880678 R ATTR_SBE_ADDR_KEY_STASH_ADDR
+ff880668 R ATTR_SBE_BOOTLOADER_OFFSET
+ff880670 R ATTR_SBE_BOOT_SIDE
+ff88064c R ATTR_SBE_HBBL_EXCEPTION_INSTRUCT
+ff880698 R ATTR_SBE_HW_KEY_HASH_ADDR
+ff880640 R ATTR_SBE_MASTER_HRMOR_ADDRESS
+ff880694 R ATTR_SBE_MEASUREMENT_SEEPROM_VERSION
+ff8806a0 R ATTR_SBE_MINIMUM_SECURE_VERSION
+ff880611 R ATTR_SBE_SELECT_EX_POLICY
+ff880688 R ATTR_SBE_SYS_CONFIG
+ff880602 R ATTR_SECTOR_BUFFER_STRENGTH
+ff880671 R ATTR_SECURE_SETTINGS
+ff880603 R ATTR_SECURITY_ENABLE
+ff880601 R ATTR_SECURITY_MODE
+ff88060d R ATTR_SYSTEM_IPL_PHASE
+ff880681 R ATTR_SYSTEM_SUSPEND_OCC_MODE
+ff880612 R ATTR_XSTOP_ON_SPATTN
+ff8800b8 r _baseloader_section
+00000e88 A _base_offset
+fff80000 t _base_origin
+ff8800ac r _base_section
+00007ce8 A _base_size
+ff880164 r __build_date
+ff8801b8 r __build_head_commit
+ff880198 r __build_host
+ff88016c r __build_tag
+ff880168 r __build_time
+ff880188 r __build_user
+fff803bc t call_external_irq_handler
+fff80408 t check_for_bh
+fff80438 t check_for_ctx_switch
+fff803e8 t check_for_ext_interrupt
+fff8044c t check_for_idle_thread
+fff803fc t check_interrupted_bh
+fff80434 t check_thread_mode
+00000001 a CHIP_TARGET_COUNT
+00000000 a CHIP_TARGET_OFFSET
+ff880560 00000008 t __compare_failed
+ff8802a0 t copy_loop
+ff880388 t copy_loop_init
+00000020 a CORE_TARGET_COUNT
+0000001e a CORE_TARGET_OFFSET
+fff86950 0000001c r CSWTCH.21
+fff86654 R ctor_end_address
+fff86648 R ctor_start_address
+fff80320 t ctx_check_discard
+fff80354 t ctx_interrupt_check
+fff8045c t ctx_pop
+fff80454 t ctx_pop_with_sprg0
+fff8038c t ctx_push_complete
+fff8032c T __ctx_switch
+00000000 a d0
+0000000a a d10
+0000000a a d10
+0000000a a d10
+0000000a a d10
+0000000a a d10
+0000000a a d10
+0000000a a d10
+0000001c a d28
+0000001c a d28
+0000001c a d28
+0000001c a d28
+0000001c a d28
+0000001c a d28
+0000001c a d28
+0000001d a d29
+0000001d a d29
+0000001d a d29
+0000001d a d29
+0000001d a d29
+0000001d a d29
+0000001d a d29
+00000003 a d3
+00000003 a d3
+00000003 a d3
+00000003 a d3
+00000003 a d3
+00000003 a d3
+00000003 a d3
+0000001e a d30
+0000001e a d30
+0000001e a d30
+0000001e a d30
+0000001e a d30
+0000001e a d30
+0000001e a d30
+0000001f a d31
+0000001f a d31
+0000001f a d31
+0000001f a d31
+0000001f a d31
+0000001f a d31
+0000001f a d31
+00000004 a d4
+00000004 a d4
+00000004 a d4
+00000004 a d4
+00000004 a d4
+00000004 a d4
+00000004 a d4
+00000005 a d5
+00000005 a d5
+00000005 a d5
+00000005 a d5
+00000005 a d5
+00000005 a d5
+00000005 a d5
+00000006 a d6
+00000006 a d6
+00000006 a d6
+00000006 a d6
+00000006 a d6
+00000006 a d6
+00000006 a d6
+00000007 a d7
+00000007 a d7
+00000007 a d7
+00000007 a d7
+00000007 a d7
+00000007 a d7
+00000007 a d7
+00000008 a d8
+00000008 a d8
+00000008 a d8
+00000008 a d8
+00000008 a d8
+00000008 a d8
+00000008 a d8
+00000009 a d9
+00000009 a d9
+00000009 a d9
+00000009 a d9
+00000009 a d9
+00000009 a d9
+00000009 a d9
+ff880020 r __dataAddr
+ff8800a0 r _data_section
+fff86970 d _DATA_SECTION_BASE
+fff80060 t __data_storage
+fff80270 t dec_handler
+fff80100 t __dec_interrupt
+ff880320 t delay_loop
+fff82948 00000080 T __divsi3
+fff80bac 0000006c T __eabi
+00000020 a EQ_CHIPLET_OFFSET
+00000008 a EQ_TARGET_COUNT
+00000016 a EQ_TARGET_OFFSET
+fff800a0 t __external_interrupt_vector
+00000000 a .ext_irqs_defd
+00000000 a .ext_irqs_enable
+00000000 a .ext_irqs_polarity
+00000000 a .ext_irqs_type
+00000000 a .ext_irqs_valid
+ff8800e8 r _fa_ec_cl2_far_section
+ff8800f4 r _fa_ec_mma_far_section
+ff880100 r _fa_ring_ovrd_section
+fff802b4 t fit_handler
+fff80120 t __fit_interrupt
+00000600 R _fixed_offset
+ff880600 r _fixed_origin
+ff88004c r _fixed_section
+000000a1 A _fixed_size
+000006a8 R _fixed_toc_offset
+ff8806a8 r _fixed_toc_origin
+ff880058 r _fixed_toc_section
+00000120 A _fixed_toc_size
+fff80390 t __get_ext_irq
+fff82a10 00000014 T getscom_abs
+ff880530 00000010 t __getscom_bootloader
+fff879f0 G g_ext_irqs_enable
+fff879e0 G g_ext_irqs_polarity
+fff879e8 G g_ext_irqs_type
+fff814dc 00000008 t _GLOBAL__sub_I_measurment_Kernel_NC_Int_stack
+fff8279c 00000024 t _GLOBAL__sub_I_sbe_Kernel_NCInt_stack
+fff864d0 0000000c t _GLOBAL__sub_I__ZN5fapi211current_errE
+fff86990 00001038 G g_pk_trace_buf
+fff879c8 00000018 G g_pk_trace_timer
+fff87ce0 00000004 G g_sbemfreqency
+fff87cdc 00000004 G g_sbeRole
+ff880600 R G_system_attributes
+         U G_system_attributes_ptr
+ff8800dc r _hbbl_section
+ff880118 r _hdct_section
+ff880030 r __header_64_reserved
+ff880183 r __header_8_reserved
+00000000 R _header_offset
+ff880000 r _header_origin
+ff880040 r _header_section
+000001c9 A _header_size
+ff8801c1 r __header_string_reserved
+ff880180 r __header_version
+fff80934 00000048 T __hwmacro_setup
+ff880160 r __image_size
+fff80080 t __instruction_storage
+00000018 a IOHS_CHIPLET_OFFSET
+00000008 a IOHS_TARGET_COUNT
+0000000e a IOHS_TARGET_OFFSET
+00000000 a .irq_mask
+fff82690 0000000c T __isSimicsRunning
+fff82618 00000054 T jump2verificationImage
+ff880328 t jump_to_kernel
+fff86690 00000280 R K512
+ff880018 r __kernelAddr
+fff80380 t kernel_stack_check
+ff880244 00000110 t __l1Loader
+ff880008 r __L1_LoaderAddr
+ff880010 r __L2_LoaderAddr
+fff8652c t lab1
+fff86628 t lab10
+fff8663c t lab11
+fff86548 t lab2
+fff86580 t lab3
+fff86594 t lab4
+fff865ac t lab5
+fff865c0 t lab6
+fff865c8 t lab7
+fff865f0 t lab8
+fff86610 t lab9
+fff8a998 00000008 S lfrReg
+ff880028 r __link_address
+00000200 T _loader_text_offset
+ff880200 t _loader_text_origin
+ff88007c r _loader_text_section
+00000368 A _loader_text_size
+         U LOG_CACHE_LINE_SIZE
+         U .L.SHA512_Final
+         U .L.SHA512_Hash
+         U .L.SHA512_Init
+         U .L.SHA512_Update
+fff80020 t __machine_check
+ff880000 r __magic
+fff8111c 000003c0 T main
+00000060 a MAX_PERV_CHIPLETS
+0000000c a MC_CHIPLET_OFFSET
+00000004 a MC_TARGET_COUNT
+00000006 a MC_TARGET_OFFSET
+ff880000 a _measurement_origin
+00000e88 a _measurement_size
+00000ef2 a _measurement_size_with_elf_hdr
+fff8a518 00000200 S measurment_Kernel_NC_Int_stack
+fff87ce8 00002800 S measurmentSecureBoot_stack
+fff82af8 00000058 W memcpy
+fff82a24 000000d4 W memset
+00000004 a MI_TARGET_COUNT
+00000044 a MI_TARGET_OFFSET
+00000010 a _msr_ee_bit
+00000010 a _msr_ee_bit
+00000010 a _msr_ee_bit
+00000010 a _msr_ee_bit
+00000010 a _msr_ee_bit
+fff829c8 00000038 T __muldi3
+00000002 a NEST_CHIPLET_OFFSET
+00000002 a NEST_TARGET_COUNT
+00000002 a NEST_TARGET_OFFSET
+00000002 a NMMU_TARGET_COUNT
+00000048 a NMMU_TARGET_OFFSET
+0000001e a NON_CHIPLET_TARGET_OFFSET
+00000010 a OCMB_TARGET_COUNT
+00000051 a OCMB_TARGET_OFFSET
+ff8800d0 r _overrides_section
+ff880400 t parse_row
+00000010 a PAUC_CHIPLET_OFFSET
+00000004 a PAUC_TARGET_COUNT
+0000000a a PAUC_TARGET_OFFSET
+00000006 a PAU_TARGET_COUNT
+0000004a a PAU_TARGET_OFFSET
+00000008 a PEC_CHIPLET_OFFSET
+00000002 a PEC_TARGET_COUNT
+00000004 a PEC_TARGET_OFFSET
+0000001d a PERV_TARGET_COUNT
+00000001 a PERV_TARGET_OFFSET
+00000006 a PHB_TARGET_COUNT
+0000003e a PHB_TARGET_OFFSET
+ff880550 t __PIB_CLOCK_RUNNING_STATUS_FAIL
+fff80000 a _pibmem_origin
+ff880398 00000198 T _pibmemRepair
+ff880558 t __PIBMEM_REPAIR_COMPARE_HDR_FAIL
+00007ce8 a _pibmem_size
+ff880548 t __PIB_OPCG_LOCK_FAIL
+ff880088 r _pibrepr_data_section
+fff87c00 00000008 G _pk_bh_queue
+fff807bc 00000068 T __pk_boot
+fff82efc 00000040 T pk_complete
+00000000 a PK_CTX_BACK_CHAIN
+00000000 a PK_CTX_BACK_CHAIN
+00000000 a PK_CTX_BACK_CHAIN
+00000000 a PK_CTX_BACK_CHAIN
+00000000 a PK_CTX_BACK_CHAIN
+00000008 a PK_CTX_CR
+00000008 a PK_CTX_CR
+00000008 a PK_CTX_CR
+00000008 a PK_CTX_CR
+00000008 a PK_CTX_CR
+0000003c a PK_CTX_CTR
+0000003c a PK_CTX_CTR
+0000003c a PK_CTX_CTR
+0000003c a PK_CTX_CTR
+0000003c a PK_CTX_CTR
+00000010 a PK_CTX_GPR0
+00000010 a PK_CTX_GPR0
+00000010 a PK_CTX_GPR0
+00000010 a PK_CTX_GPR0
+00000010 a PK_CTX_GPR0
+00000014 a PK_CTX_GPR1
+00000014 a PK_CTX_GPR1
+00000014 a PK_CTX_GPR1
+00000014 a PK_CTX_GPR1
+00000014 a PK_CTX_GPR1
+00000034 a PK_CTX_GPR10
+00000034 a PK_CTX_GPR10
+00000034 a PK_CTX_GPR10
+00000034 a PK_CTX_GPR10
+00000034 a PK_CTX_GPR10
+00000048 a PK_CTX_GPR28
+00000048 a PK_CTX_GPR28
+00000048 a PK_CTX_GPR28
+00000048 a PK_CTX_GPR28
+00000048 a PK_CTX_GPR28
+0000004c a PK_CTX_GPR29
+0000004c a PK_CTX_GPR29
+0000004c a PK_CTX_GPR29
+0000004c a PK_CTX_GPR29
+0000004c a PK_CTX_GPR29
+00000018 a PK_CTX_GPR3
+00000018 a PK_CTX_GPR3
+00000018 a PK_CTX_GPR3
+00000018 a PK_CTX_GPR3
+00000018 a PK_CTX_GPR3
+00000050 a PK_CTX_GPR30
+00000050 a PK_CTX_GPR30
+00000050 a PK_CTX_GPR30
+00000050 a PK_CTX_GPR30
+00000050 a PK_CTX_GPR30
+00000054 a PK_CTX_GPR31
+00000054 a PK_CTX_GPR31
+00000054 a PK_CTX_GPR31
+00000054 a PK_CTX_GPR31
+00000054 a PK_CTX_GPR31
+0000001c a PK_CTX_GPR4
+0000001c a PK_CTX_GPR4
+0000001c a PK_CTX_GPR4
+0000001c a PK_CTX_GPR4
+0000001c a PK_CTX_GPR4
+00000020 a PK_CTX_GPR5
+00000020 a PK_CTX_GPR5
+00000020 a PK_CTX_GPR5
+00000020 a PK_CTX_GPR5
+00000020 a PK_CTX_GPR5
+00000024 a PK_CTX_GPR6
+00000024 a PK_CTX_GPR6
+00000024 a PK_CTX_GPR6
+00000024 a PK_CTX_GPR6
+00000024 a PK_CTX_GPR6
+00000028 a PK_CTX_GPR7
+00000028 a PK_CTX_GPR7
+00000028 a PK_CTX_GPR7
+00000028 a PK_CTX_GPR7
+00000028 a PK_CTX_GPR7
+0000002c a PK_CTX_GPR8
+0000002c a PK_CTX_GPR8
+0000002c a PK_CTX_GPR8
+0000002c a PK_CTX_GPR8
+0000002c a PK_CTX_GPR8
+00000030 a PK_CTX_GPR9
+00000030 a PK_CTX_GPR9
+00000030 a PK_CTX_GPR9
+00000030 a PK_CTX_GPR9
+00000030 a PK_CTX_GPR9
+0000000c a PK_CTX_KERNEL_CTX
+0000000c a PK_CTX_KERNEL_CTX
+0000000c a PK_CTX_KERNEL_CTX
+0000000c a PK_CTX_KERNEL_CTX
+0000000c a PK_CTX_KERNEL_CTX
+00000004 a PK_CTX_LINKAGE
+00000004 a PK_CTX_LINKAGE
+00000004 a PK_CTX_LINKAGE
+00000004 a PK_CTX_LINKAGE
+00000004 a PK_CTX_LINKAGE
+0000005c a PK_CTX_LR
+0000005c a PK_CTX_LR
+0000005c a PK_CTX_LR
+0000005c a PK_CTX_LR
+0000005c a PK_CTX_LR
+00000058 a PK_CTX_PREV_FRAME
+00000058 a PK_CTX_PREV_FRAME
+00000058 a PK_CTX_PREV_FRAME
+00000058 a PK_CTX_PREV_FRAME
+00000058 a PK_CTX_PREV_FRAME
+00000058 a PK_CTX_SIZE
+00000058 a PK_CTX_SIZE
+00000058 a PK_CTX_SIZE
+00000058 a PK_CTX_SIZE
+00000058 a PK_CTX_SIZE
+00000040 a PK_CTX_SRR0
+00000040 a PK_CTX_SRR0
+00000040 a PK_CTX_SRR0
+00000040 a PK_CTX_SRR0
+00000040 a PK_CTX_SRR0
+00000044 a PK_CTX_SRR1
+00000044 a PK_CTX_SRR1
+00000044 a PK_CTX_SRR1
+00000044 a PK_CTX_SRR1
+00000044 a PK_CTX_SRR1
+00000038 a PK_CTX_XER
+00000038 a PK_CTX_XER
+00000038 a PK_CTX_XER
+00000038 a PK_CTX_XER
+00000038 a PK_CTX_XER
+fff87cb4 00000004 G __pk_current_thread
+fff87cb8 00000004 G __pk_delayed_switch
+fff80538 0000001c T pk_deque_element_create
+fff8051c 0000001c T pk_deque_sentinel_create
+fff80264 T pk_halt
+fff80240 T __pk_idle_thread
+fff80254 T __pk_idle_thread_from_bootloader
+fff809dc 0000012c T pk_initialize
+fff8adbf A _PK_INITIAL_STACK
+fff8a9c0 s _PK_INITIAL_STACK_LIMIT
+fff87cc4 00000004 G __pk_kernel_stack
+fff87cc0 00000004 G __pk_kernel_stack_limit
+fff87ca4 00000004 G __pk_kernel_stack_size
+fff80b08 00000004 T __pk_main
+fff87cac 00000001 G __pk_next_priority
+fff87cb0 00000004 G __pk_next_thread
+fff80290 T __pk_next_thread_resume
+fff87c20 00000084 G __pk_priority_map
+fff804c4 00000058 T _pk_process_bh
+fff87cbc 00000004 G __pk_run_queue
+fff87cc8 00000004 G __pk_saved_sp
+fff82cc0 00000064 T __pk_schedule
+fff80824 000000a8 T __pk_schedule_hardware_timeout
+fff8097c 00000060 T pk_set_timebase_rshift
+fff80b0c 0000006c T __pk_stack_init
+fff82bbc 00000024 T __pk_start_threads
+fff82e38 00000038 T pk_start_threads
+fff83138 000000a8 T __pk_thread_context_initialize
+fff82f3c 000000cc T pk_thread_create
+fff82d24 0000007c T __pk_thread_delete
+fff87ca8 00000004 G __pk_thread_machine_context_default
+fff82be0 0000006c T __pk_thread_map
+fff82e70 0000008c T pk_thread_resume
+fff82da0 00000098 T __pk_thread_timeout
+fff82c4c 00000074 T __pk_thread_unmap
+fff80480 T pk_timebase32_get
+fff86974 00000004 D __pk_timebase_frequency_hz
+fff804a0 T pk_timebase_get
+fff86970 00000001 D __pk_timebase_rshift
+fff87c08 00000018 G __pk_time_queue
+fff87ccc 00000010 G pk_timer_bh
+fff80554 0000012c t __pk_timer_bh_handler
+fff80680 00000040 T __pk_timer_cancel
+fff83008 0000005c T pk_timer_create
+fff80718 00000028 T __pk_timer_handler
+fff806c0 00000058 T __pk_timer_schedule
+fff80740 0000007c T pk_timer_schedule
+fff83064 000000d4 T pk_trace_big
+fff80224 0000000c T pk_trace_set_freq
+fff801e4 00000040 T pk_trace_set_timebase
+fff80164 00000014 T pk_trace_timer_callback
+fff80178 0000006c T pk_trace_tiny
+fff8a990 00000008 S ppe42_64bit_timebase
+fff80464 00000008 T __ppe42_default_irq_handler
+fff8a978 00000004 S __ppe42_fit_arg
+fff8a984 00000004 S __ppe42_fit_routine
+fff879f8 00000208 G __ppe42_irq_handlers
+fff8046c 00000008 T __ppe42_phantom_irq_handler
+fff808cc 00000068 T __ppe42_system_setup
+fff8a988 00000008 S ppe42_tb_data
+fff86508 00000140 T __ppe42_udiv64
+fff8a97c 00000004 S __ppe42_watchdog_arg
+fff8a980 00000004 S __ppe42_watchdog_routine
+fff80414 t process_bottom_halves
+fff800e0 t __program_exception
+fff82a00 00000010 T putscom_abs
+ff880540 00000008 t __putscom_bootloader
+00000000 a r0
+00000000 a r0
+00000000 a r0
+00000000 a r0
+00000000 a r0
+00000000 a r0
+00000000 a r0
+00000001 a r1
+00000001 a r1
+00000001 a r1
+00000001 a r1
+00000001 a r1
+00000001 a r1
+00000001 a r1
+0000000a a r10
+0000000a a r10
+0000000a a r10
+0000000a a r10
+0000000a a r10
+0000000a a r10
+0000000a a r10
+0000001c a r28
+0000001c a r28
+0000001c a r28
+0000001c a r28
+0000001c a r28
+0000001c a r28
+0000001c a r28
+0000001d a r29
+0000001d a r29
+0000001d a r29
+0000001d a r29
+0000001d a r29
+0000001d a r29
+0000001d a r29
+00000003 a r3
+00000003 a r3
+00000003 a r3
+00000003 a r3
+00000003 a r3
+00000003 a r3
+00000003 a r3
+0000001e a r30
+0000001e a r30
+0000001e a r30
+0000001e a r30
+0000001e a r30
+0000001e a r30
+0000001e a r30
+0000001f a r31
+0000001f a r31
+0000001f a r31
+0000001f a r31
+0000001f a r31
+0000001f a r31
+0000001f a r31
+00000004 a r4
+00000004 a r4
+00000004 a r4
+00000004 a r4
+00000004 a r4
+00000004 a r4
+00000004 a r4
+00000005 a r5
+00000005 a r5
+00000005 a r5
+00000005 a r5
+00000005 a r5
+00000005 a r5
+00000005 a r5
+00000006 a r6
+00000006 a r6
+00000006 a r6
+00000006 a r6
+00000006 a r6
+00000006 a r6
+00000006 a r6
+00000007 a r7
+00000007 a r7
+00000007 a r7
+00000007 a r7
+00000007 a r7
+00000007 a r7
+00000007 a r7
+00000008 a r8
+00000008 a r8
+00000008 a r8
+00000008 a r8
+00000008 a r8
+00000008 a r8
+00000008 a r8
+00000009 a r9
+00000009 a r9
+00000009 a r9
+00000009 a r9
+00000009 a r9
+00000009 a r9
+00000009 a r9
+         U __reset_trap
+fff802a0 t restore_and_update_sprg0
+fff80430 t restore_interrupted_sp
+ff88010c r _ringidfeatlist_section
+ff8800c4 r _rings_section
+fff86648 r _RODATA_SECTION_BASE
+00000324 a _RODATA_SECTION_SIZE
+fff8a9b8 00000004 S sbeGlobal
+00008b70 A _sbe_image_size
+ff880078 a _sbe_image_start_addr
+00000078 a _sbe_image_start_offset
+fff814ec 00000008 T __sbe_machine_check_handler
+fff8a4e8 00000030 S sbem_thread
+fff814e4 00000008 T __sbe_register_saveoff
+ff880124 r _sbh_firmware_section
+ff880130 r _sbh_hbbl_section
+fff8a9c0 S _sbss_end
+00002cd8 a _sbss_size
+fff87ce8 S _sbss_start
+fff86648 r _SDA2_BASE_
+fff86970 d _SDA_BASE_
+fff80010 T __set_msr
+fff861c0 00000100 T SHA512_Final
+fff86020 0000005c T SHA512_Init
+fff86910 00000040 R sha512_initial_hash_value
+fff8607c 00000144 T SHA512_Update
+ff88042c t skip_parse_row
+ff8802c8 t skip_pibmem_init_memory_in_mpipl
+ff880274 t skip_pibmem_repair_in_mpipl
+00000001 a sp
+00000001 a sp
+00000001 a sp
+00000001 a sp
+00000001 a sp
+00000001 a sp
+00000001 a sp
+fff83380 000000f0 T spi_precheck
+fff83b28 00000114 T spi_read
+fff8416c 000000f0 T spi_tpm_read_secure
+fff84500 000000bc T spi_tpm_write_with_wait
+fff80374 t stack_good
+00000a2c R _strings_offset
+ff880a2c r _strings_origin
+ff880070 r _strings_section
+0000044e A _strings_size
+fff80374 t switch_to_kernel_stack
+ff880240 t __system_reset
+fff80040 T __system_reset
+00000001 a SYSTEM_TARGET_COUNT
+00000050 a SYSTEM_TARGET_OFFSET
+00000061 a TARGET_COUNT
+000006a8 R _text_offset
+ff8806a8 r _text_origin
+ff880094 r _text_section
+00000000 A _text_size
+ff880181 r __toc_normalized
+000007c8 R _toc_offset
+ff8807c8 r _toc_origin
+ff880064 r _toc_section
+00000264 A _toc_size
+ff880182 r __toc_sorted
+00000001 a TP_CHIPLET_OFFSET
+00000001 a TP_TARGET_COUNT
+00000001 a TP_TARGET_OFFSET
+fff864dc 0000002c T __udivdi3
+fff82b60 t udivmodsi4_loop
+fff82ba8 T __udivsi3
+0000000d a UNUSED_GPR13
+0000000d a UNUSED_GPR13
+0000000d a UNUSED_GPR13
+0000000d a UNUSED_GPR13
+0000000d a UNUSED_GPR13
+00000002 a UNUSED_GPR2
+00000002 a UNUSED_GPR2
+00000002 a UNUSED_GPR2
+00000002 a UNUSED_GPR2
+00000002 a UNUSED_GPR2
+ff880200 t __vectors
+fff80000 T __vectors
+fff80160 T __virtual_exception
+fff802e0 t watchdog_handler
+fff80140 t __watchdog_interrupt
+fff82420 000001f8 T _Z10decompressPhS_
+fff85978 00000010 T _Z10getXipSize20p9_xip_section_sbe_t
+fff80f44 000001d8 T _Z11lockPauDpllmh
+fff84e64 0000027c T _Z11tpmReadFifoR16SpiControlHandlePvRm
+fff8536c 00000164 T _Z11tpmTransmitR16SpiControlHandlePvRmm
+fff845bc 000000fc T _Z12checkSbeRolev
+fff85954 00000010 T _Z12getXipOffset20p9_xip_section_sbe_t
+fff854d0 0000024c T _Z12tpmExtendPCRmPhm
+fff8571c 000001d4 T _Z12tpmPoisonPCRv
+fff850e0 0000028c T _Z12tpmWriteFifoR16SpiControlHandlePvm
+fff84d3c 00000068 T _Z13tpmWriteTpmGoR16SpiControlHandle
+fff849d4 0000009c T _Z14tpmIsDataAvailR16SpiControlHandleRb
+fff84938 0000009c T _Z14tpmIsExpectingR16SpiControlHandleRb
+fff85964 00000014 T _Z15getXipOffsetAbs20p9_xip_section_sbe_t
+fff814f4 00000538 T _Z17sbemthreadroutinePv
+fff858f0 00000064 T _Z17setTPMDeconfigBitv
+fff84a70 00000098 T _Z17tpmIsCommandReadyR16SpiControlHandleRb
+fff84cb8 00000084 T _Z17tpmReadBurstCountR16SpiControlHandleRt
+fff84818 0000004c T _Z18SHA512_XIP_section20p9_xip_section_sbe_tPA64_h
+fff84864 000000d4 T _Z18tpmReadSTSRegValidR16SpiControlHandleR13tpm_sts_reg_t
+fff821f8 00000228 T _Z19performTPMSequencesm
+fff84da4 000000c0 T _Z19tpmPollForDataAvailR16SpiControlHandle
+fff81bb4 00000184 T _Z20tpmSequenceToStartupv
+fff84b08 00000068 T _Z20tpmWriteCommandReadyR16SpiControlHandle
+fff82138 000000c0 T _Z21setTPMFailureRespCodem
+fff846b8 00000160 T _Z22SHA512UpdateXipSection20p9_xip_section_sbe_tP11_SHA512_CTX
+fff84b70 00000148 T _Z22tpmPollForCommandReadyR16SpiControlHandle
+fff81d38 00000228 T _Z23tpmSequenceToDetectPCRsRb
+fff81f60 000001d8 T _Z25tpmSequenceToAllocatePCRsv
+fff85988 00000014 T _Z26getXipOffsetAbsMeasurement20p9_xip_section_sbe_t
+fff8266c 00000024 T _Z26loadSectionForVerificationPyS_
+fff80e64 000000e0 T _Z26scanInitDD1PauDpllTimeRingv
+fff80d80 000000e4 T _Z26scanInitDD2PauDpllTimeRingv
+fff80c18 00000068 T _Z27createAndResumeThreadHelperP8PkThreadPFvPvES1_mj19sbeThreadPriorities
+fff81af8 000000bc T _Z28tpmSequenceToAccessLocality0v
+fff81a2c 000000cc T _Z29tpmSequenceToReadDIDAndVendorv
+fff83de0 0000038c T _Z31spi_tpm_read_internal_with_waitR16SpiControlHandlemhPh
+fff8425c 000002a4 T _Z32spi_tpm_write_with_wait_internalR16SpiControlHandlemmhPKh
+fff80c80 00000100 T _Z36setupSpiClockDividerAndLFRPerPAUDPLLmh
+ff880354 t __zeroInitPibmemArea
+fff8a9b0 00000008 s _ZGVZN19SBEGlobalsSingleton11getInstanceEvE11iv_instance
+fff8a9a8 00000008 s _ZGVZN3SBE15isSimicsRunningEvE6simics
+fff83254 00000074 t _ZL14spi_set_ecc_onR16SpiControlHandle
+fff83954 000001d4 t _ZL15spi_read_secureR16SpiControlHandlemmPh22SPI_ECC_CONTROL_STATUS
+fff831e0 00000074 t _ZL15spi_set_ecc_offR16SpiControlHandle
+fff8599c 00000684 t _ZL16SHA512_TransformP11_SHA512_CTXPKy
+fff8367c 0000016c t _ZL17spi_wait_for_idleR16SpiControlHandle
+fff837e8 0000016c t _ZL21spi_wait_for_rdr_fullR16SpiControlHandle
+fff83510 0000016c t _ZL22spi_wait_for_tdr_emptyR16SpiControlHandle
+fff83c3c 000001a4 t _ZL27spi_wait_for_seq_index_passR16SpiControlHandlem.constprop.23
+fff832c8 00000070 t _ZL9is_ecc_onR16SpiControlHandleRb
+fff80b78 00000034 W _ZN13sbe_local_LFRC1Ev
+fff80b78 00000034 W _ZN13sbe_local_LFRC2Ev
+fff8283c 0000010c T _ZN18securityState_PCR16updateEm
+fff827c0 0000007c T _ZN18securityState_PCR66updateEm
+fff826e0 000000bc T _ZN19SBEGlobalsSingleton11getInstanceEv
+fff8269c 00000044 T _ZN3SBE15isSimicsRunningEv
+fff82690 0000000c T _ZN3SBE8isSimicsEv
+fff8a880 000000f8 S _ZN5fapi210g_FfdcDataE
+fff83338 00000048 W _ZN5fapi211convertTypeILNS_10TargetTypeE4ELNS_13MulticastTypeE0EEEyRKNS_6TargetIXT_EXT0_ENS_18plat_target_handleEEE
+fff8a9bc 00000004 S _ZN5fapi211current_errE
+fff86368 00000054 T _ZN5fapi216getscom_abs_wrapEPKvmPy
+fff863bc 00000050 T _ZN5fapi216putscom_abs_wrapEPKvmy
+fff864bc 00000008 T _ZN5fapi218plat_getChipTargetEv
+fff834c0 00000050 W _ZN5fapi220SBE_SPI_HANG_TIMEOUT15set_CHIP_TARGETINS_6TargetILNS_10TargetTypeE4ELNS_13MulticastTypeE0ENS_18plat_target_handleEEEEERS0_RKT_
+fff83470 00000050 W _ZN5fapi234SBE_SPI_INVALID_PORT_MULTIPLEX_SET15set_CHIP_TARGETINS_6TargetILNS_10TargetTypeE4ELNS_13MulticastTypeE0ENS_18plat_target_handleEEEEERS0_RKT_
+fff8640c 000000b0 T _ZN5fapi25delayEyyb
+fff862c0 000000a8 t _ZN5fapi2L17handle_scom_errorEmPyhb.isra.7
+fff864c4 0000000c T _ZNK5fapi218plat_target_handle17getFapiTargetTypeEv
+fff8a718 00000168 s _ZZN19SBEGlobalsSingleton11getInstanceEvE11iv_instance
+fff8a9a0 00000001 s _ZZN3SBE15isSimicsRunningEvE6simics

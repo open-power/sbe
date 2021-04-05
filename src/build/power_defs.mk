@@ -39,7 +39,11 @@ PERIODIC_IO_TOGGLE_SUPPORTED = 1
 
 SBE_CONSOLE_SUPPORT = 1
 #If MEASUREMENT_IMAGE_SUPPORTED is 1 then only sbe_measurement_seeprom image will creates
-export MEASUREMENT_IMAGE_SUPPORTED = 1
+
+#This is a terminology used in this makefile that only means the compilation of measurement
+#seeprom is blocked. But the over-all support of measurement seeprom is still there from the
+#locked/golden measurement image already present in the PPE repository
+export MEASUREMENT_IMAGE_SUPPORTED = 0
 
 #If VERIFICATION_IMAGE_SUPPORTED is 1 then only sbe_verification image will create
 export VERIFICATION_IMAGE_SUPPORTED = 1
