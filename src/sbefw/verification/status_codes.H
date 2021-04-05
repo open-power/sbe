@@ -88,6 +88,7 @@
 #define HEADER_ECID_TEST       0x0071
 #define HEADER_HASH_TEST       0x0072
 #define CODE_PROTECTION_TEST   0x0073
+#define COMPONENT_ID_TEST      0x0074
 
 #define ENTRY_VALID_TEST       0x0080
 

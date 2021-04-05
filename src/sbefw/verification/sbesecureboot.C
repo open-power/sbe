@@ -420,7 +420,7 @@ ROM_response ROM_verify( ROM_container_raw* container,
     else
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : invalid component ID . SBE Check");
-        return ROM_FAILED;
+        VERIFY_FAILED(COMPONENT_ID_TEST);
     }
     for (uint8_t i=0; i<sizeof(digest); i=i+4)
     {
@@ -466,7 +466,12 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
     SBEV_DEBUG("Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 
-    if(status == ROM_FAILED && secureHdrResponse->statusCode == HEADER_HASH_TEST)
+    if(status == ROM_DONE && secureHdrResponse->statusCode == COMPLETED)
+    {
+        // We only want to return a non-zero status on failure
+        secureHdrResponse->statusCode = 0;
+    }
+    else if(status == ROM_FAILED)
     {
         if(secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE)
         {
