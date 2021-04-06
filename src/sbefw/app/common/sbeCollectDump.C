@@ -220,7 +220,7 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         if(!iv_tocRow.tgtHndl.getFunctional())
         {
             // Update non functional state DUMP header
-            iv_tocRow.tocHeader.preReq = false;
+            iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
             SBE_INFO("DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
@@ -359,7 +359,7 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
     if(!iv_tocRow.tgtHndl.getFunctional())
     {
         // Update non functional state DUMP header
-        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETTRACEARRAY: NonFunctional Target UnitNum[0x%08X]",
@@ -461,13 +461,14 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     if(!iv_tocRow.tgtHndl.getFunctional())
     {
         // Update non functional state in DUMP header
-        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETRING: NonFunctional Target UnitNum[0x%08X]",
                   (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
         return rc;
     }
+
     uint32_t bitlength = iv_hdctRow->cmdGetRing.ringLen;
     //Stream out the actual ring length.
     iv_tocRow.tocHeader.dataLength = bitlength;
@@ -676,7 +677,7 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
         if(!iv_tocRow.tgtHndl.getFunctional())
         {
             // Update non functional state in DUMP header
-            iv_tocRow.tocHeader.preReq = false;
+            iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
             SBE_INFO("DUMP GETSRAM: NonFunctional Target UnitNum[0x%08X]",
@@ -751,7 +752,7 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         if(!iv_tocRow.tgtHndl.getFunctional())
         {
-            iv_tocRow.tocHeader.preReq = false; 
+            iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL; 
             SBE_INFO("DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]",
                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
@@ -827,7 +828,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     if(!iv_tocRow.tgtHndl.getFunctional())
     {
         // Update non functional state DUMP header
-        iv_tocRow.tocHeader.preReq = false;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]",
@@ -1046,7 +1047,7 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
         // write dump row header contents using FIFO
         fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
         iv_tocRow.tgtHndl = target;
-        iv_tocRow.tocHeader.preReq = true;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_PASSED;
         iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
         switch(iv_tocRow.tocHeader.cmdType)
         {

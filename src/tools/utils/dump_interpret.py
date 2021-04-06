@@ -125,10 +125,8 @@ class scomData():
     def __init__(self, dataHdr):
 
         #Data header
-        #1 byte of command status
-        tempcmdStatus = int.from_bytes(dataHdr[:1], "big")
-        #last bit of command status is preReq and rest all bits are unused or reserved
-        self.preReq = tempcmdStatus >> 7
+        #1byte of command of status is preReq
+        self.preReq = int.from_bytes(dataHdr[:1], "big")
 
         #1byte of command type
         try:

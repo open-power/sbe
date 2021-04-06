@@ -39,6 +39,15 @@
 static const uint32_t DUMP_CHIP_OP_FOOTER = 0x444F4E45;
 static const uint32_t FIFO_DOUBLEWORD_LEN = 2;
 
+//Dump Pre-req bits to updates for command status
+enum preReqCommandStatus : uint8_t
+{
+    PRE_REQ_PASSED          = 0x80, // Good Status
+    PRE_REQ_NON_FUNCTIONAL  = 0x40, // Non Functional
+    PRE_REQ_CLOCK_ON_STATE  = 0x20, // Clock On in ChipOp
+    PRE_REQ_CORE_STOP_STAGE = 0x10, // Target in Stop Stage
+};
+
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
 
 //Struct containing details of HDCT XIP section
@@ -119,7 +128,7 @@ typedef struct __attribute__((packed)) dumpHeader
     dumpHeader()
     {
         //TODO: Needs to be updated to right version
-        dataLayoutVersion = 0x01;
+        dataLayoutVersion = 0x02;
         chipTypeToEncode  = 0x05;  // P10 Chip Type [ 0x5 ]
                                    // More info @ dumpConstants.py
         // EC major level[1] | EC minor level[0]
@@ -140,8 +149,7 @@ typedef struct
 {
     struct __attribute__((packed))
     {
-        uint32_t preReq:1;
-        uint32_t reserved:7;
+        uint32_t preReq:8;
         uint32_t cmdType:8;
         uint32_t chipUnitType:8;
         uint32_t chipUnitNum:8;
@@ -155,9 +163,7 @@ typedef struct
 
     void tocHeaderInit(genericHdctRow_t* genericHdctRow)
     {
-        //TODO:Need to be filled with right value
-        tocHeader.preReq = true;
-        tocHeader.reserved = 0x0;
+        tocHeader.preReq = PRE_REQ_PASSED;
         tocHeader.cmdType = (uint8_t) genericHdctRow->genericHdr.command;
         tocHeader.chipUnitType = (uint8_t) genericHdctRow->genericHdr.chipUnitType;
     }
@@ -196,7 +202,6 @@ class sbeCollectDump
              iv_clockState = i_clockState;
              if (iv_clockState == SBE_DUMP_CLOCK_ON)
                  iv_clockOffEntryFlag = false;
-
              //Get the equivalent HDCT dump type based on the requested Dump type
              iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
              SBE_INFO("Dump Type Map is %x ", iv_hdctDumpTypeMap);
