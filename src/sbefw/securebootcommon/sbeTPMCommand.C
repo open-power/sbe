@@ -53,6 +53,7 @@ fapi2::ReturnCode tpmPoisonPCR()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < buflen; i++)
@@ -65,7 +66,7 @@ fapi2::ReturnCode tpmPoisonPCR()
         if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM2_GetRandom response code is non zero.");
-            // TODO Handle TPM failure FFDC
+            SET_TPM_RC(tpmRc);
             rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
@@ -119,6 +120,7 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < buflen; i++)
@@ -131,7 +133,7 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM2_Extend PCR response code is non zero for PCR %d.", pcrNum);
-            // TODO Handle TPM failure FFDC
+            SET_TPM_RC(tpmRc);
             rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }

@@ -45,31 +45,6 @@
 
 using namespace fapi2;
 
-fapi2::ReturnCode initializeTPM()
-{
-    #define SBEM_FUNC " initializeTPM "
-    SBEM_ENTER(SBEM_FUNC);
-    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
-    do
-    {
-        uint8_t spi_engine  = 4;
-        Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
-        SpiControlHandle handle = SpiControlHandle(i_target_chip, spi_engine);
-
-        //Init SPI.
-        //TODO:Use SBE method to initilize TPM.
-        rc = p10_spi_clock_init(handle);
-        if( rc != fapi2::FAPI2_RC_SUCCESS )
-        {
-            SBEM_ERROR(SBEM_FUNC "p10_spi_clock_init failed with rc 08%08X", rc);
-            break;
-        }
-    }while(0);
-    SBEM_EXIT(SBEM_FUNC);
-    return rc;
-    #undef SBEM_FUNC
-}
-
 fapi2::ReturnCode tpmSequenceToReadDIDAndVendor()
 {
     #define SBEM_FUNC " tpmSequenceToReadDIDAndVendor "
@@ -91,6 +66,7 @@ fapi2::ReturnCode tpmSequenceToReadDIDAndVendor()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "spi_tpm_read_secure failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < readBytes; i++)
@@ -125,6 +101,7 @@ fapi2::ReturnCode tpmSequenceToAccessLocality0()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "spi_tpm_write_with_wait failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
     }while(0);
@@ -151,6 +128,7 @@ fapi2::ReturnCode tpmSequenceToStartup()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < buflen; i++)
@@ -162,7 +140,7 @@ fapi2::ReturnCode tpmSequenceToStartup()
         if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC "TPM startup command failed.");
-            // TODO Handle TPM failure FFDC
+            SET_TPM_RC(tpmRc);
             rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
@@ -196,6 +174,7 @@ fapi2::ReturnCode tpmSequenceToDetectPCRs(bool &pcrAllocation)
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < buflen; i++)
@@ -213,7 +192,7 @@ fapi2::ReturnCode tpmSequenceToDetectPCRs(bool &pcrAllocation)
         if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC " tpmSequenceToDetectPCRs command failed.");
-            // TODO Handle TPM failure FFDC
+            SET_TPM_RC(tpmRc);
             rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }
@@ -245,6 +224,7 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
             SBEM_ERROR(SBEM_FUNC "tpmTransmit failed with rc 08%08X", rc);
+            SET_TPM_RC(rc);
             break;
         }
         for(uint32_t i = 0; i < buflen; i++)
@@ -256,7 +236,7 @@ fapi2::ReturnCode tpmSequenceToAllocatePCRs()
         if(tpmRc || buflen < 10)
         {
             SBEM_ERROR(SBEM_FUNC " tpmSequenceToAllocatePCRs command failed.");
-            // TODO Handle TPM failure FFDC
+            SET_TPM_RC(tpmRc);
             rc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
             break;
         }

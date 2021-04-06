@@ -28,6 +28,11 @@
 #include "fapi2.H"
 #include "stdint.h"
 
+#define SET_TPM_RC(tpmRc) \
+      uint64_t tpmFailureData = tpmRc; \
+      tpmFailureData = (tpmFailureData << 32) & 0xFFFFFFFF00000000; \
+      PPE_STVD(0x50185, tpmFailureData); \
+
 /**
  * @brief This function peforms the poisoning of the PCR.
  *
