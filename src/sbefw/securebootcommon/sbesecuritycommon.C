@@ -36,6 +36,7 @@
 #include "ppe42_string.h"
 #include "plat_hwp_data_stream.H"
 #include "p10_sbe_spi_cmd.H"
+#include "sbeglobals.H"
 
 #define SPI_READ_SIZE_BYTES 8192       //8Kb
 
@@ -44,12 +45,20 @@ void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context
     uint8_t buf[SPI_READ_SIZE_BYTES] __attribute__ ((aligned(8))) = {0x00};
     uint32_t xipSectionSize = getXipSize(xipSection);
     uint32_t xipSectionOffset = getXipOffset(xipSection);
+    sbe_local_LFR lfrReg;
 
     SBE_INFO("Xip section details:Start Offset: [0x%08X] Size: [0x%08X] ", xipSectionOffset, xipSectionSize);
 
+    // Load the LFR, to fetch if secondary boots seeprom is in use.
+    PPE_LVD(0xc0002040, lfrReg);
+
+    SBE_INFO("isSecondaryBootsSeeprom [0x%02x]", (uint8_t)lfrReg.sec_boot_seeprom);
+
     Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
-    //TODO:SPI Engine selection logic need to be implemented
-    SpiControlHandle handle = SpiControlHandle(i_target_chip, SPI_ENGINE_PRIMARY_BOOT_SEEPROM);
+    //If isSecondaryBootsSeeprom = 1 ==> Backup Boots Seeprom
+    //   isSecondaryBootsSeeprom = 0 ==> Primary Boots seeprom
+    SpiControlHandle handle = SpiControlHandle(i_target_chip,
+                          (lfrReg.sec_boot_seeprom ? SPI_ENGINE_BACKUP_BOOT_SEEPROM : SPI_ENGINE_PRIMARY_BOOT_SEEPROM));
 
     //Calculate SAH512 hash by reading chunks as per buf size
     while(xipSectionSize >= SPI_READ_SIZE_BYTES)

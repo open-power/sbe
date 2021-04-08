@@ -32,6 +32,22 @@ extern "C" {
 #include "pk.h"
 #include "pk_api.h"
 
+//Below macros are used in measurement_main.C
+#define SPI_CLOCK_DELAY_SHIFT                          44
+#define SPI_CLOCK_DIVIDER_SHIFT                        52
+#define SPI_CLOCK_DIVIDER_DELAY_MASK                   0x00000FFFFFFFFFFF
+#define DEFAULT_SPI_CLOCK_DELAY                        0x80
+#define BIT15_SHIFT                                    0x30
+#define BIT5_SHIFT                                     0x3A
+#define BIT0_MASK                                      1
+#define ECC_SPIMM_ADDR_CORRECTION_DIS                  1
+#define SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT            33
+#define ECC_CONTROL_TRANSPARENT_READ                   1
+#define SPI_ECC_CONTROL_SHIFT                          35
+#define DD1                                            1
+#define DD2                                            2
+#define EC_MAJOR_VERSION_BIT_SHIFT                     36
+
 extern void jump2verificationImage(uint32_t i_destAddr);
 extern void jump2bootImage();
 #ifdef __cplusplus
