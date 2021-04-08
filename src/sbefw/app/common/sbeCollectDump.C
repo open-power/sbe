@@ -1009,8 +1009,17 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             }
             case CMD_GETMEMPBA:
             {
-                rc = writeGetMemPBAPacketToFifo();
-                break;
+                // HbDump only for Master Proc based on the
+                // attribute ATTR_PROC_SBE_MASTER_CHIP value
+                Target<TARGET_TYPE_PROC_CHIP> procTarget = plat_getChipTarget();
+                fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type isMaster = false;
+                FAPI_ATTR_GET(ATTR_PROC_SBE_MASTER_CHIP,procTarget,isMaster);
+                if( isMaster )
+                {
+                    rc = writeGetMemPBAPacketToFifo();
+                    break;
+                }
+                continue;
             }
             case CMD_GETTRACEARRAY:
             {
