@@ -40,8 +40,8 @@ extern "C" {
 ////////////////////////////////////////////////////////////////
 #define INITIAL_PK_TIMEBASE                            0
 #define MEASUREMENT_NONCRITICAL_STACK_SIZE             512
-//Keep stack size greater than SPI_READ_SIZE_BYTES.
-#define MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE      12288
+//Keep stack size greater than SPI_READ_SIZE_BYTES
+#define MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE      10240
 
 uint8_t measurment_Kernel_NC_Int_stack[MEASUREMENT_NONCRITICAL_STACK_SIZE];
 uint8_t measurmentSecureBoot_stack[MEASUREMENT_THREAD_SECURE_BOOT_STACK_SIZE];
@@ -156,7 +156,7 @@ uint32_t createAndResumeThreadHelper(PkThread    *io_pThread,
 }
 
 // Setup the SPI Clock Divider per the new clock and update LFR
-void setupSpiClockDividerAndLFRPerPAUDPLL()
+void setupSpiClockDividerAndLFRPerPAUDPLL(uint32_t i_tpm_spi_clock_divider, uint8_t i_tpm_spi_clock_delay)
 {
     sbe_local_LFR lfrReg;
     uint64_t loadData = 0;
@@ -172,8 +172,12 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
     //  # (7B0/192) - 1) = 10 -> SPI TPM Clock Divider
     //  # Pick up the clock delay from LFR (Presently hard-coded to 7)
     //  # clock delay in clock control reg bits 12-19 will look like 0000_0001
+    //uint32_t spiTpmClockDivider = 10;
+    /////////////////////////  NEW Design //////////////////////
+    //  There is a tpm spi clock dial to control clock divider and clock delay from user
+    //  Passed here as Parameters from Scratch 13, instead of Hard-coding
     uint32_t spiSeepromClockDivider = 48;
-    uint32_t spiTpmClockDivider = 10;
+    //uint32_t spiTpmClockDivider = 10;
 
     for(spiAddr = 0xc0003; spiAddr<=0xc0063; spiAddr += 0x20)
     {
@@ -183,19 +187,19 @@ void setupSpiClockDividerAndLFRPerPAUDPLL()
                 ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) );
         PPE_STVD(spiAddr, loadData);
     }
-    // Update TPM SPI Clock Divider
+    // Update TPM SPI Clock Divider, use the clock dial
     spiAddr = 0xc0083;
     PPE_LVD(spiAddr, loadData);
     loadData = ( (loadData & SPI_CLOCK_DIVIDER_DELAY_MASK) |
-            ((uint64_t)spiTpmClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 7)) |
+            ((uint64_t)i_tpm_spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
+            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - i_tpm_spi_clock_delay)) |
             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
     PPE_STVD(spiAddr, loadData);
 
     // Update the LFR Clock divider and Hard-coded PAU Freq
     lfrReg.spi_clock_divider = spiSeepromClockDivider;
-    lfrReg.pau_freq_in_mhz = 0x7B0;
+    lfrReg.pau_freq_in_mhz = 0x7B0; // This is hard-coded when we run out of PAU DPLL
     PPE_STVD(0xc0002040, lfrReg); // New Divider and system freq updated into LFR
     //////////////////# SPI Clock Setting per the new Frequency - End /////////////////
 }
@@ -301,6 +305,10 @@ void scanInitDD1PauDpllTimeRing()
     PPE_LVD(0x0103F000, fetchData);
     if(fetchData != loadData)
     {
+        // asm("li %r0, PAU_DPLL_SCAN_HDR_COMPARE_FAIL\n"); -> wanting to use this,
+        // but because of compile failure hard-coding the values from sbe_link.H
+        // PAU_DPLL_SCAN_HDR_COMPARE_FAIL 0x04
+        asm("li %r1, 4\n");
         pk_halt();
     }
     //# clear scan region & type
@@ -310,7 +318,7 @@ void scanInitDD1PauDpllTimeRing()
 }
 
 // This function is to lock on the PAU DPLL from Ref clock
-void lockPauDpll(void)
+void lockPauDpll(uint32_t i_tpm_spi_clock_divider, uint8_t i_tpm_spi_clock_delay)
 {
     uint64_t loadData = 0;
     uint64_t fetchData = 0;
@@ -335,7 +343,7 @@ void lockPauDpll(void)
     //////////////////////////# Putring End for perv_dpll_time/////////////////////////
 
     // SPI Clock Setting per the new Frequency Start
-    setupSpiClockDividerAndLFRPerPAUDPLL();
+    setupSpiClockDividerAndLFRPerPAUDPLL(i_tpm_spi_clock_divider, i_tpm_spi_clock_delay);
 
     ///////////////////////////////////////////////////////////////////////////////////
     //# PAU DPLL: Initialize to mode1
@@ -475,7 +483,7 @@ void lockPauDpll(void)
 ////////////////////////////////////////////////////////////////
 int  main(int argc, char **argv)
 {
-    #define SBEM_FUNC "Measurement main"
+    #define SBEM_FUNC "Measurement_main "
     SBEM_ENTER(SBEM_FUNC);
 
     int rc = 0;
@@ -485,6 +493,7 @@ int  main(int argc, char **argv)
     uint64_t scratchReg6 = 0;
     uint64_t scratchReg8 = 0;
     uint64_t spiClockReg = 0;
+    sbe_scratch_reg13 scratchReg13;
 
     do
     {
@@ -492,7 +501,7 @@ int  main(int argc, char **argv)
         scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_PIBMEM_START_MSG)<<32;
         PPE_STVD(0x50009, scratchMsgReg);
 
-        //Fetch the default clock divider from LFR
+        //Fetch the default clock divider from LFR, whatever is updated by OTPROM
         PPE_LVD(0xc0002040, lfrReg);
 
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -510,40 +519,84 @@ int  main(int argc, char **argv)
         // all fields, nothing is missing, so that subsequent flow can depend on LFR
         if(!(lfrReg.mpipl)) // IPL Path
         {
-            // Fetch scratch register6, check if bit15 is unset along with scratch reg8 bit5
+            // Fetch scratch reg8 to validate other scratch registers
             PPE_LVD(0x5003F, scratchReg8);
+            // Fetch scratch register8 bit 13, to check if scratch 13 is valid to pick the TPM
+            // clock divder and clock delay settings
+            if((scratchReg8 >> BIT12_SHIFT) & BIT0_MASK) // Scratch Reg13 is Valid
+            {
+                // Pick up the TPM SPI clock divider and clock delay basis
+                PPE_LVD(0x50184, scratchReg13);
+                lfrReg.tpm_spi_clock_delay =  scratchReg13.tpm_spi_clock_delay;
+                // Re-calculate the Frequency from the clock divider, so that it can be user
+                // to re-calculate the clock divider in tp_switch_gear procedure,
+                // User is passing a clock divider let's say 0x15, from user point of view, with 1968MHz
+                // PAU base frequency, we will get a TPM SPI clock of 11Mhz, Here the assumpsion is user wants
+                // the TPM SPI clock to drive 11Mhz. In case the PAU frequency changes, we need to re-calculate
+                // the clock divider again to gain a TPM SPI clock as 11Mhsz
+                // freq in MHz = ((PAU/4)/2(divider+1)) = PAU/8(divider+1) = 1968/8(21+1) = approx 11/12MHz
+            }
+            else // Not valid Scratch Reg13
+            {
+                // Hard-code the TPM SPI clock settings to default values in case User Dial is not there
+                // Use 133Mhz PAU Ref clock, Filling it up here since it will be used everywhere. At this point
+                // LFR can be used to derive TPM SPI Clock divider, Assuming Ref clock at this point.
+                scratchReg13.tpm_spi_clock_delay = lfrReg.round_trip_delay; //Default to SPI Seeprom
+                scratchReg13.tpm_spi_clock_divider = lfrReg.spi_clock_divider; // Default to SPI Seeprom
+                lfrReg.tpm_spi_clock_delay =  scratchReg13.tpm_spi_clock_delay;
+            }
+            PPE_STVD(0xc0002040, lfrReg);
+
+            // Fetch scratch register8 bit 5, to check if scratch reg 6 bit15 is unset to boot
+            // using the PAU DPLL
             PPE_LVD(0x5003D, scratchReg6);
             if((!((scratchReg6 >> BIT15_SHIFT) & BIT0_MASK)) && ((scratchReg8 >> BIT5_SHIFT) & BIT0_MASK)) //PAU Path
             {
                 // Update the Code Flow status in messaging register 50009
                 uint64_t scratchMsgReg = (uint64_t)(SBE_CODE_MEASURMENT_PAU_DPLL_LOCK_MSG)<<32;
                 PPE_STVD(0x50009, scratchMsgReg);
-
+                if( !((scratchReg8 >> BIT12_SHIFT) & BIT0_MASK) ) // If Scratch 13 is not valid
+                {
+                    scratchReg13.tpm_spi_clock_divider = 0x15; // Hard-code to 12Mhz in case of Scratch Reg13 is not valid
+                    scratchReg13.tpm_spi_clock_delay = 0x7; // Hard code to 7 cycle delay
+                }
                 if(!SBE::isSimicsRunning())
                 {
-                    lockPauDpll();
+                    // Pass in the TPM Spi Clock divider and Clock delay
+                    lockPauDpll(scratchReg13.tpm_spi_clock_divider, scratchReg13.tpm_spi_clock_delay);
                     // The above function is going to return success, if not then pk_halt
                     g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ; // this is required for pk init
+                    SBEM_INFO(SBEM_FUNC "HW Path of setting PAU DPLL");
                 }
                 else
                 {
                     //In Simics Path, Simply set the SPI Clock and LFR with new clock dividers
                     // SPI Clock Setting per the new Frequency Start
-                    setupSpiClockDividerAndLFRPerPAUDPLL();
+                    setupSpiClockDividerAndLFRPerPAUDPLL(scratchReg13.tpm_spi_clock_divider, scratchReg13.tpm_spi_clock_delay);
                     g_sbemfreqency = SBE_PAU_DPLL_BASE_FREQ_HZ; // this is required for pk init
+                    SBEM_INFO(SBEM_FUNC "Simics Path of Skipping PAU DPLL");
                 }
+                // Read LFR again since it is going to change in the PAU DPLL function
+                PPE_LVD(0xc0002040, lfrReg);
+                lfrReg.tpm_spi_clock_freq_Mhz = 1968/(8*(scratchReg13.tpm_spi_clock_divider + 1));
+                lfrReg.tpm_spi_clock_delay = scratchReg13.tpm_spi_clock_delay;
+                PPE_STVD(0xc0002040, lfrReg);
             }
             else // Ref clock Path
             {
+                // Read LFR again since it is going to change
+                PPE_LVD(0xc0002040, lfrReg);
                 // We can assume all other SPIs are configured here in Otprom with
                 // 133Mhz and 4 respectively, We just need to set the TPM SPI Clock Register
-                // We are keeping the clock delay to default which is in LFR i.e. 1, we are expected
+                // and clock delay setting to what we have stored in the scratch13 above, we are expected
                 // to fail with this configuration, but that is ok, since if TPM communication fails,
                 // we will do the deconfig of the TPM.
+                lfrReg.tpm_spi_clock_delay = scratchReg13.tpm_spi_clock_delay;
+                lfrReg.tpm_spi_clock_freq_Mhz = (133/(8*(scratchReg13.tpm_spi_clock_divider + 1)));
                 PPE_LVD(0xc0083, spiClockReg);
                 spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
-                                ((uint64_t)lfrReg.spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
-                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.round_trip_delay)) |
+                                ((uint64_t)scratchReg13.tpm_spi_clock_divider << SPI_CLOCK_DIVIDER_SHIFT) |
+                                ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - scratchReg13.tpm_spi_clock_delay)) |
                                 ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                                 ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
                 PPE_STVD(0xc0083, spiClockReg);
@@ -561,23 +614,27 @@ int  main(int argc, char **argv)
             // Seeprom SPIs. We need not touch that again, but we need to set up the TPM SPIs
             // in case they are modified. We have the PAU system frequency in LFR, fetch that and
             // calculate TPM SPI Clock divider.
-            uint32_t tpmSpiClockDivider = ((lfrReg.pau_freq_in_mhz/192) - 1); // 24MHz = ((PAU/4)/2(N+1))
+            // Re-calculate from TPM SPI Clock divider from Frequency we have stored in LFR
+            //uint32_t tpmSpiClockDivider = ((lfrReg.pau_freq_in_mhz/192) - 1); // 24MHz = ((PAU/4)/2(N+1))
+            // divider = (PAU/24MHz*8) - 1
+            uint32_t tpmSpiClockDivider = ((lfrReg.pau_freq_in_mhz/(lfrReg.tpm_spi_clock_freq_Mhz * 8)) - 1);
             PPE_LVD(0xc0083, spiClockReg);
             spiClockReg = ( (spiClockReg & SPI_CLOCK_DIVIDER_DELAY_MASK) |
                             ((uint64_t)tpmSpiClockDivider << SPI_CLOCK_DIVIDER_SHIFT) |
-                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - 7)) |
+                            ((uint64_t)DEFAULT_SPI_CLOCK_DELAY << (SPI_CLOCK_DELAY_SHIFT - lfrReg.tpm_spi_clock_delay)) |
                             ((uint64_t)ECC_SPIMM_ADDR_CORRECTION_DIS << SPI_ECC_SPIMM_ADDR_CORRECTION_SHIFT) |
                             ((uint64_t)ECC_CONTROL_TRANSPARENT_READ << SPI_ECC_CONTROL_SHIFT) );
             PPE_STVD(0xc0083, spiClockReg);
             g_sbemfreqency = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init
+            SBEM_INFO(SBEM_FUNC "MPIPL Path, TPM Freq[0x%02X] TPM Divider[0x%04X] TPM Delay[0x%02X] Pau Freq[0x%04X]",
+                lfrReg.tpm_spi_clock_freq_Mhz, tpmSpiClockDivider, lfrReg.tpm_spi_clock_delay, lfrReg.pau_freq_in_mhz);
         }
         //////////////////////////////////// Lock PAU DPLL ////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
 
         //Check SBE Role
         g_sbeRole = checkSbeRole();
-        SBEM_INFO("SBE Role is %x", g_sbeRole);
-
+        SBEM_INFO(SBEM_FUNC "SBE Role is %x", g_sbeRole);
         rc = pk_initialize((PkAddress)measurment_Kernel_NC_Int_stack,
                 MEASUREMENT_NONCRITICAL_STACK_SIZE,
                 INITIAL_PK_TIMEBASE, // initial_timebase
@@ -587,9 +644,14 @@ int  main(int argc, char **argv)
             SBEM_ERROR(SBEM_FUNC "pk_initialize failed with rc 0x%08X", rc);
             break;
         }
+        // Read LFR again since it is going to change
+        PPE_LVD(0xc0002040, lfrReg);
+        uint32_t tempDivider = ((lfrReg.pau_freq_in_mhz/(lfrReg.tpm_spi_clock_freq_Mhz * 8)) - 1);
 
         SBEM_INFO(SBEM_FUNC "Completed PK init for Measurement Image with Freq [0x%08X]", g_sbemfreqency);
         SBEM_INFO(SBEM_FUNC "LFR clock divider and round trip delay = [0x%04X 0x%02X]", lfrReg.spi_clock_divider, lfrReg.round_trip_delay);
+        SBEM_INFO(SBEM_FUNC "TPM SPI Clock divider and round trip delay and Frequency = [0x%04X 0x%02X 0x%02X]",
+            tempDivider, lfrReg.tpm_spi_clock_delay, lfrReg.tpm_spi_clock_freq_Mhz);
         //Initialize secure boot thread
         rc = createAndResumeThreadHelper(&sbem_thread,
                 sbemthreadroutine,
@@ -604,7 +666,6 @@ int  main(int argc, char **argv)
         }
 
         SBEM_INFO("sbemSecureBoot_thread thread initilised");
-
         pk_start_threads();
 
     }while(false);

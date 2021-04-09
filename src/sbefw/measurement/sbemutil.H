@@ -38,6 +38,7 @@ extern "C" {
 #define SPI_CLOCK_DIVIDER_DELAY_MASK                   0x00000FFFFFFFFFFF
 #define DEFAULT_SPI_CLOCK_DELAY                        0x80
 #define BIT15_SHIFT                                    0x30
+#define BIT12_SHIFT                                    0x33
 #define BIT5_SHIFT                                     0x3A
 #define BIT0_MASK                                      1
 #define ECC_SPIMM_ADDR_CORRECTION_DIS                  1

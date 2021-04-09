@@ -38,7 +38,7 @@
 #include "p10_sbe_spi_cmd.H"
 #include "sbeglobals.H"
 
-#define SPI_READ_SIZE_BYTES 8192       //8Kb
+#define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size for SHA512
 
 void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context)
 {

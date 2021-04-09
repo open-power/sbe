@@ -180,18 +180,20 @@ extern SBEGlobalsSingleton* sbeGlobal;
 // hreset_done bit to indicate SBE finished Hreset flow and back up to receive
 // commands over fifo.
 typedef struct sbe_local_LFR {
-    uint32_t spi_clock_divider: 12; //Bit0-11 clock divider bits
-    uint32_t sec_boot_seeprom : 1;  //Bit 12 Set if sec boot sprm is in use
-    uint32_t sec_meas_seeprom : 1;  //Bit 13 Set if sec measure sprm is in use
-    uint32_t mpipl : 1;             //Bit 14 Set if mpipl is triggered
-    uint32_t ipl_reset : 1;         //Bit 15 Set if SBE is reset via 50008:bit12
-    uint32_t runtime_reset : 1;     //Bit 16 Set if SBE is reset via 50008:bit13
-    uint32_t hreset_done : 1;       //Bit 17 Set if HReset flow is done in FW
-    uint32_t mpipl_reset_done : 1;  //Bit 18 Set if Mpipl flow is done in FW
-    uint32_t secure_mode : 1;       //Bit 19 Secure mode bit indication from M.Seeprom to B.Seeprom
-    uint32_t round_trip_delay : 4;  //Bit 20-23 round trip delay
-    uint32_t bitsreserved : 8;      //Bit 24-31 Reserved
-    uint32_t pau_freq_in_mhz;       //Bit 32-63 PAU system frequency in MHz
+    uint32_t spi_clock_divider: 12;       //Bit0-11 clock divider bits
+    uint32_t sec_boot_seeprom : 1;        //Bit 12 Set if sec boot sprm is in use
+    uint32_t sec_meas_seeprom : 1;        //Bit 13 Set if sec measure sprm is in use
+    uint32_t mpipl : 1;                   //Bit 14 Set if mpipl is triggered
+    uint32_t ipl_reset : 1;               //Bit 15 Set if SBE is reset via 50008:bit12
+    uint32_t runtime_reset : 1;           //Bit 16 Set if SBE is reset via 50008:bit13
+    uint32_t hreset_done : 1;             //Bit 17 Set if HReset flow is done in FW
+    uint32_t mpipl_reset_done : 1;        //Bit 18 Set if Mpipl flow is done in FW
+    uint32_t secure_mode : 1;             //Bit 19 Secure mode bit indication from M.Seeprom to B.Seeprom
+    uint32_t round_trip_delay : 4;        //Bit 20-23 round trip delay
+    uint32_t tpm_spi_clock_freq_Mhz : 8;  //Bit 24-31 TPM Spi clock frequency in MHz
+    uint32_t tpm_spi_clock_delay : 4;     //Bit 32-35 TPM Spi clock delay encoded
+    uint32_t bitsreserved : 12;           //Bit 36-47 Reserved
+    uint32_t pau_freq_in_mhz : 16;        //Bit 48-63 PAU system frequency in MHz
 
     sbe_local_LFR()
     {
@@ -205,11 +207,32 @@ typedef struct sbe_local_LFR {
         mpipl_reset_done = 0;
         round_trip_delay = 0;
         secure_mode = 0;
+        pau_freq_in_mhz = 0;
+        tpm_spi_clock_freq_Mhz = 0;
+        tpm_spi_clock_delay = 0;
         // This is required else these gets initialised with dummy data
         bitsreserved = 0;
-        pau_freq_in_mhz = 0;
     }
 }sbe_local_LFR;
+
+// This is struct definition for scratch register 13, scom 50184, cfam 2984
+// This contains the TPM SPI Clock divider and clock delay setting from the
+// user as part of SBE config update istep. SBE should always check the valid
+// bit for this register in scratch reg8 to initialise SPI4 engine with these
+typedef struct sbe_scratch_reg13 {
+    uint32_t tpm_spi_clock_divider: 12;   // Bit0-11 clock divider Bits
+    uint32_t tpm_spi_clock_delay: 4;      // Bit12-15 round trip delay
+    uint32_t unused: 16;                  // unused
+    uint32_t reserved;                    // reserved
+
+    sbe_scratch_reg13()
+    {
+        tpm_spi_clock_divider = 0;
+        tpm_spi_clock_delay = 0;
+        unused = 0;
+        reserved = 0;
+    }
+}sbe_scratch_reg13;
 
 #endif //__SBE_GLOBALS_H
 

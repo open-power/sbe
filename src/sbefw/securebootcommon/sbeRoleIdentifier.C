@@ -35,37 +35,40 @@ using namespace fapi2;
 
 uint32_t checkSbeRole()
 {
-#define SBEM_FUNC " checkSbeRole "
+#define SBEM_FUNC "checkSbeRole "
     SBEM_ENTER(SBEM_FUNC);
-    fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
-    uint32_t sbeRole = SBE_ROLE_SLAVE;
+    fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
+    uint32_t sbeRole = SBE_ROLE_SLAVE; //1
     do
     {
-        Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
         fapi2::buffer<uint64_t> cbsreg;
         fapi2::buffer<uint64_t> scratchreg8;
         fapi2::buffer<uint64_t> scratchreg6;
-        l_rc = getscom_abs_wrap (&target, scomt::perv::FSXCOMP_FSXLOG_CBS_ENVSTAT_RO, &cbsreg());
-        SBE_INFO(SBE_FUNC "FSXCOMP_FSXLOG_CBS_ENVSTAT_RO value is 0x%08X %08X",
-            ((cbsreg >> 32) & 0xFFFFFFFF), (cbsreg & 0xFFFFFFFF));
+        rc = getscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_ENVSTAT_RO, &cbsreg());
+        SBE_INFO(SBE_FUNC "CBS_ENVSTAT_REG value is 0x%08X %08X", ((cbsreg >> 32) & 0xFFFFFFFF), (cbsreg & 0xFFFFFFFF));
 
         //Read Scratch register 8.
-        l_rc = getscom_abs_wrap (&target, scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW, &scratchreg8());
-        SBE_INFO(SBE_FUNC "SCRTATCH_REG 8 value is 0x%08X %08X",
+        rc = getscom_abs (scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_8_RW, &scratchreg8());
+        SBE_INFO(SBE_FUNC "SCRTATCH_REG 8 is 0x%08X %08X",
             ((scratchreg8 >> 32) & 0xFFFFFFFF), (scratchreg8 & 0xFFFFFFFF));
 
         if(scratchreg8.getBit<5>())
         {
             //Read Scratch Reg 6.
-            l_rc = getscom_abs_wrap (&target, scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW, &scratchreg6());
-            SBE_INFO(SBE_FUNC "SCRATCH_REG 6 value is 0x%08X %08X",
+            rc = getscom_abs (scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_6_RW, &scratchreg6());
+            SBE_INFO(SBE_FUNC "SCRATCH_REG 6 is 0x%08X %08X",
                       ((scratchreg6 >> 32) & 0xFFFFFFFF), (scratchreg6 & 0xFFFFFFFF));
             if ( scratchreg6.getBit<24>() )
             {
                 sbeRole = SBE_ROLE_MASTER;
                 if( !((cbsreg >> 32) & 0x8000000) )
                 {
+                    SBE_INFO(SBE_FUNC "SBE Role is Secondary");
                     sbeRole = SBE_ROLE_SLAVE;
+                }
+                else
+                {
+                    SBE_INFO(SBE_FUNC "SBE Role is Master");
                 }
             }
             else
@@ -73,7 +76,12 @@ uint32_t checkSbeRole()
                //ALT master
                if( ((cbsreg >> 32) & 0x8000000) )
                 {   
+                    SBE_INFO(SBE_FUNC "SBE Role is Alt-Master");
                     sbeRole = SBE_ROLE_ALT_MASTER;
+                }
+                else
+                {
+                    SBE_INFO(SBE_FUNC "SBE Role is Secondary");
                 }
             }
         }
@@ -81,7 +89,12 @@ uint32_t checkSbeRole()
         {
             if( (cbsreg >> 32) & 0x8000000 )
             {
+                SBE_INFO(SBE_FUNC "SBE Role is Master");
                 sbeRole = SBE_ROLE_MASTER;
+            }
+            else
+            {
+                SBE_INFO(SBE_FUNC "SBE Role is Secondary");
             }
         }
     }while(0);

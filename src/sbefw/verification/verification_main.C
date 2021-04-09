@@ -160,7 +160,7 @@ uint32_t createAndResumeThreadHelper(PkThread    *io_pThread,
 ////////////////////////////////////////////////////////////////
 int  main(int argc, char **argv)
 {
-    #define SBEV_FUNC "Verification main"
+    #define SBEV_FUNC "Verification_main "
     SBEV_ENTER(SBEV_FUNC);
     int rc = 0;
     uint64_t rootCtrlReg3 = 0;
@@ -185,7 +185,7 @@ int  main(int argc, char **argv)
         if(!(rootCtrlReg3 & MASK_BIT25))
         {
             g_sbevfreqency = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init
-            SBEV_INFO(SBEV_FUNC "PK Frequency Initialised to PAU Clock");
+            SBEV_INFO(SBEV_FUNC "PK Frequency Initialised to PAU Clock freq [0x%04X]", (uint16_t)lfrReg.pau_freq_in_mhz);
         }
         else
         {
