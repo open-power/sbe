@@ -105,12 +105,17 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
     uint8_t l_core_relative_pos  = i_core_unit_pos % 4;
     uint8_t l_core_clock_State = 0;
     uint8_t l_l3_clock_State = 0;
+    fapi2::ATTR_CHIP_EC_FEATURE_IMA_DISABLE_BIT_Type l_ima_dd2;
 
 
     do
     {
         auto l_eq_target = i_core_target.getParent<fapi2::TARGET_TYPE_EQ>();
+        auto l_proc_target = i_core_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
 
+        FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_EC_FEATURE_IMA_DISABLE_BIT,
+                                l_proc_target,
+                                l_ima_dd2));
         //verify L3/core clocks are on
         FAPI_TRY(GET_CLOCK_STAT_SL(l_eq_target, l_data));
 
@@ -169,11 +174,20 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
                     FAPI_TRY( fapi2::getScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
 
                     //HTMSC_MODE_CONTENT_SEL:Direct memory write =>0b11
-                    if (l_data.getBit<1>() & l_data.getBit<2>())
+                    if (l_ima_dd2 && l_data.getBit<3>())
                     {
-                        FAPI_IMP(" Disable the IMA function by clearing 20018680[4]");
-                        l_data.clearBit<NC_NCCHTM_NCCHTSC_HTM_MODE_CAPTURE>();
+                        FAPI_IMP(" Disable the IMA function by clearing 20018680[3]");
+                        l_data.clearBit<3>();
                         FAPI_TRY( fapi2::putScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
+                    }
+                    else
+                    {
+                        if ((l_data.getBit<1>() & l_data.getBit<2>()))
+                        {
+                            FAPI_IMP(" Disable the IMA function by clearing 20018680[4]");
+                            l_data.clearBit<NC_NCCHTM_NCCHTSC_HTM_MODE_CAPTURE>();
+                            FAPI_TRY( fapi2::putScom( i_core_target, NC_NCCHTM_NCCHTSC_HTM_MODE, l_data));
+                        }
                     }
 
                     l_data.flush<0>().setBit<0>();

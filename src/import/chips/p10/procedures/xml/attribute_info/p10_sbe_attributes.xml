@@ -633,6 +633,10 @@
     <virtual/>
   </entry>
   <entry>
+    <name>ATTR_CHIP_EC_FEATURE_IMA_DISABLE_BIT</name>
+    <virtual/>
+  </entry>
+  <entry>
     <name>ATTR_PROC_MC_PLL_BANDSEL_OVERRIDE</name>
     <value>0x00</value>
     <value>0x00</value>
