@@ -435,7 +435,7 @@
   <!-- sampled: mailbox 13 -->
   <entry>
     <name>ATTR_TPM_SPI_BUS_DIV</name>
-    <value>0x00A7</value>
+    <value>0x0157</value>
   </entry>
   <!-- calculated attributes (p10_sbe_select_ex) -->
   <entry>
