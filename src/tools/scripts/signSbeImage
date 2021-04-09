@@ -157,8 +157,10 @@ if [ -z $BUILD_TYPE ]; then
 fi
 
 if [ -z $SBE_IMG_DIR_OP ]; then
-    echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and signing scripts from /esw/bin/sb-signing/sb-signing-keys"
-    KEYS_DIR=/esw/bin/sb-signing/sb-signing-keys
+    echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and signing scripts from /afs/..."
+    OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
+    OP_BUILD_LEVEL=/latest_master-p10/
+    KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
     PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
 else
