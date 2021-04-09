@@ -121,6 +121,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
     unsigned int sck_clock_divider, tpm_sck_clock_divider;
     uint8_t l_attr_dpll_bypass;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    uint32_t tpm_spi_clock_delay = 7; //Hard-coded TPM SPI Delay for cronus
 
     FAPI_INF("p10_sbe_tp_switch_gears: Entering ...");
 
@@ -134,9 +135,10 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         FAPI_DBG("Program bit rate divisor and delay into multiple SPI masters :1.MEAS 2.BOOT0 3.BOOT1 4.MVPD/Keystore 5.TPM");
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_attr_freq_pau_mhz));
-        sck_clock_divider = ((l_attr_freq_pau_mhz / 40) - 1 );
+        sck_clock_divider = ((l_attr_freq_pau_mhz / 40) - 1 ); // freq = pau_freq/4*2*(divider + 1)
         FAPI_DBG("sck clock divider calculation for seeprom SPIs: %#018lX", sck_clock_divider);
 
+        // Hardcoded for Cronus Use-Case
         tpm_sck_clock_divider = ((l_attr_freq_pau_mhz / 192) - 1); // 24MHz = ((PAU/4)/2(N+1))
         FAPI_DBG("sck clock divider calculation for TPM SPI: %#018lX", tpm_sck_clock_divider);
 
@@ -148,12 +150,20 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
             // resetting the SPIms)
             // Not storing the TPM SPI clock divider above since we don't have free bits in LFR
             // We will have to calculate the TPM SPI clock divider everytime if we need it from
-            // ((PAU/192) - 1)
+            // ((PAU/freq_in_mhz * 8) - 1)
+            uint32_t tpm_spi_freq_mhz = 0;
+            tpm_spi_clock_delay = 0;
             FAPI_DBG("Update clock divider and receive delay in SBE LFR register");
             FAPI_TRY(fapi2::getScom(i_target_chip, SBE_LFR, l_data64));
+            // Fetch TPM Frequency from LFR from the dial
+            l_data64.extractToRight< 24, 8 >(tpm_spi_freq_mhz);
+            l_data64.extractToRight< 32, 4 >(tpm_spi_clock_delay);
+            tpm_sck_clock_divider =  ((l_attr_freq_pau_mhz / (tpm_spi_freq_mhz * 8)) - 1);
+            FAPI_INF("TPM SPI Clock Freq [0x%04X] TPM SPI Divider [0x%04X] TPM SPI Delay[0x%04X]",
+                     tpm_spi_freq_mhz, tpm_sck_clock_divider, tpm_spi_clock_delay);
             l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
             l_data64.insertFromRight< 20, 4 >(SPI_RECEIVE_DELAY_ENCODED);
-            l_data64.insertFromRight< 32, 32 >(l_attr_freq_pau_mhz); //Save this to be used in HReset/Mpipl Reset
+            l_data64.insertFromRight< 48, 16 >(l_attr_freq_pau_mhz); //Save this to be used in HReset/Mpipl Reset
             FAPI_TRY(fapi2::putScom(i_target_chip, SBE_LFR, l_data64));
         }
 
@@ -176,7 +186,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         uint32_t l_addr = 0x000C0083;
         FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
         l_data64.insertFromRight< 0, 12 >(tpm_sck_clock_divider);
-        l_data64.insertFromRight< 12, 8 >(SPI_RECEIVE_DELAY_DECODED);
+        l_data64.insertFromRight< 12, 8 >((0x80 >> tpm_spi_clock_delay));
         FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
 
         // adjust scan ratio
