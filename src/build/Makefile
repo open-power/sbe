@@ -56,8 +56,8 @@ endif
 #Mesurement SEEPROM version: Any change in measurement seeprom code the below version field
 #needs to be updated.
 #Example: 3.4 = \x00\03\x00\x04
-#Version = 4Bytes = 2.10 = "\x00\02\x00\x10"
-MEASUREMENT_SEEPROM_VER="\x00\x02\x00\x10"
+#Version = 4Bytes = 2.11 = "\x00\02\x00\x11"
+MEASUREMENT_SEEPROM_VER="\x00\x02\x00\x11"
 #4bytes reserved to keep the xip section 8 byte alligned
 MEASUREMENT_SEEPROM_RESERVED="\x00\x00\x00\x00"
 
@@ -356,8 +356,6 @@ $(M_FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(HWPERR_SRCDIR)/p10_sbe_spi
 add_VerifyLoaderAddr:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep _base_origin | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).out | grep __pk_boot | cut -f 1 -d " "`
-	## TODO - Remove this Addition into Verification Image L2 loader before Measurement Freeze. This is for backward compatibility
-	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin set L2_LoaderAddr 0x1
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixed
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .toc
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin delete .fixedtoc

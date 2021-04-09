@@ -230,9 +230,6 @@ void sbemthreadroutine(void *i_pArg)
         }
     }
 
-    //TODO: Once all systems are updated with latest measurement and boots
-    //seeprom jump2bootImage(); needs to be removed.We will have to jump to
-    //verification image.
     // Load .sb_verification section into PIBMEM.
     P9XipHeader *hdr = getXipHdr();
     P9XipSection* pSection = &hdr->iv_section[P9_XIP_SECTION_SBE_SB_VERIFICATION];
@@ -243,49 +240,20 @@ void sbemthreadroutine(void *i_pArg)
         uint32_t verificationOffset = pSection->iv_offset;;
         uint32_t verificationAddress = (g_headerAddr + verificationOffset);
         P9XipHeader *vhdr = (P9XipHeader *)(verificationAddress);
-        // TODO - remove before freezing the code, this is for backward compatibility
-        // There are boot seeprom reslease which has some version of verification image
-        // which won't be able to boot since it is just there for the sake of measurement
-        // sake, Now to distinguish between any such images and newer boot seeprom image,
-        // we have added a flah in L2_loader field in verification image which is currently
-        // unused.
-        uint32_t valid_verification = vhdr->iv_L2LoaderAddr;
-        if(valid_verification)
-        {
-            SBEM_INFO(SBEM_FUNC "Verification Image is Valid [%d] ", valid_verification);
-            P9XipSection* pVBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
-            uint64_t *srcAddr = (uint64_t *)(pVBase->iv_offset + (uint32_t)vhdr);
-            SBEM_INFO("Verification Image Source addr in Boot Seeprom is [0x%08X]", srcAddr);
-            loadSectionForVerification(srcAddr, (uint64_t *)(vhdr->iv_L1LoaderAddr));
-            SBEM_INFO("Completed Loading of .sb_verification into PIBMEM, Jump to Verification");
-            jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
-        }
-        else
-        {
-            //TODO - Remove this Jump. Jump to only Verification image even if it is bad
-            SBEM_INFO("Bad verification image, jump to boot 0x%08X", vhdr->iv_L2LoaderAddr);
-            //Disable Security for Lab, so that it can access the seeproms for write
-            getscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
-            SBEM_INFO(SBEM_FUNC "CBS_Control_status register [0x%08X %08X]",
-                ((cbs_cs_reg >> 32) & 0xFFFFFFFF), (cbs_cs_reg & 0xFFFFFFFF));
-            cbs_cs_reg.clearBit<scomt::perv::FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
-            putscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, cbs_cs_reg());
-            jump2bootImage();
-        }
+
+        P9XipSection* pVBase = &vhdr->iv_section[P9_XIP_SECTION_SBE_BASE];
+        uint64_t *srcAddr = (uint64_t *)(pVBase->iv_offset + (uint32_t)vhdr);
+        SBEM_INFO("Verification Image Source addr in Boot Seeprom is [0x%08X]", srcAddr);
+        loadSectionForVerification(srcAddr, (uint64_t *)(vhdr->iv_L1LoaderAddr));
+        SBEM_INFO("Completed Loading of .sb_verification into PIBMEM, Jump to Verification Image");
+        jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
     }
     else
     {
-        // TODO - Remove this Jump before Measurement Seeprom Freeze. Measurement should always jump
-        // into verification, if verification fails then flash the boot seeprom again with correct
-        // verification image.
-        SBEM_INFO("No verification image, jumping to boot, crorecover boot seeprom image again");
-        //Disable Security for Lab, so that it can access the seeproms for write
-        getscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
-        SBEM_INFO(SBEM_FUNC "CBS_Control_status register [0x%08X %08X]",
-            ((cbs_cs_reg >> 32) & 0xFFFFFFFF), (cbs_cs_reg & 0xFFFFFFFF));
-        cbs_cs_reg.clearBit<scomt::perv::FSXCOMP_FSXLOG_CBS_CS_SECURE_ACCESS_BIT>();
-        putscom_abs (scomt::perv::FSXCOMP_FSXLOG_CBS_CS, cbs_cs_reg());
-        jump2bootImage();
+        SBEM_ERROR("No verification image, Halting PPE, crorecoversbe boot seeprom again using Secure Jumper");
+        // If this happens in lab, we have to put jumper to recover the image, the security will
+        // be enabled by default here.
+        pk_halt();
     }
 
     SBEM_EXIT(SBEM_FUNC);
