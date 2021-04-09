@@ -235,24 +235,28 @@ p10_hcd_core_startclocks(
 
         l_scomData.flush<0>();
 
+        // The Pstates used need to account for the hardware behavior of the region
+        // index computation being RPx > RCPTR >= RPx+1 while the resonant circuits
+        // behave as RPx >= RCPTR > RPx+1.  Therefore, adding 1 to the Pstate moves
+        // the region slower by 16.667MHz to drop RPx+1 below the hardware threshold.
         for (i = 0; i < RESCLK_FREQ_REGIONS; i++)
         {
             switch(i)
             {
                 case(0):
-                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000);
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000) + 1;
                     l_scomData.insertFromRight(ps, QME_RCIMR_P0, QME_RCIMR_P0_LEN);
                     l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X0, QME_RCIMR_X0_LEN);
                     break;
 
                 case(1):
-                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000);
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000) + 1;
                     l_scomData.insertFromRight(ps, QME_RCIMR_P1, QME_RCIMR_P1_LEN);
                     l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X1, QME_RCIMR_X1_LEN);
                     break;
 
                 case(2):
-                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000);
+                    ps = p10_hcd_core_startclocks_ps_from_freq(RESCLK_INDEX[i + 1].freq * 1000) + 1;
                     l_scomData.insertFromRight(ps, QME_RCIMR_P2, QME_RCIMR_P2_LEN);
                     l_scomData.insertFromRight(RESCLK_INDEX[i].idx, QME_RCIMR_X2, QME_RCIMR_X2_LEN);
                     break;
