@@ -42,7 +42,7 @@ extern "C" {
  * Constants for SBE FW major and minor number
  */
 static const uint16_t SBE_FW_MAJOR_VERSION = 1;
-static const uint16_t SBE_FW_MINOR_VERSION = 2;
+static const uint16_t SBE_FW_MINOR_VERSION = 3;
 
 /**
  * @brief enums for SBE command classes
@@ -62,6 +62,7 @@ enum sbeCommandClass
     SBE_CMD_CLASS_MPIPL_COMMANDS         = 0xA9,
     SBE_CMD_CLASS_DUMP_COMMANDS          = 0xAA,
     SBE_CMD_CLASS_HOST_FIFO_COMMANDS     = 0xAB,
+    SBE_CMD_CLASS_PMIC_TELEMETRY         = 0xAC,
 };
 
 static const uint8_t SBE_CMD_UNKNOWN = 0x00;
@@ -160,10 +161,11 @@ enum sbeInstructionControlCommands
 */
 enum sbeGenericMessageCommands
 {
-    SBE_CMD_GET_SBE_FFDC          = 0x01, /* Get FFDC */
-    SBE_CMD_GET_SBE_CAPABILITIES  = 0x02, /* GET SBE capabilities */
-    SBE_CMD_GET_FREQ_SUPPORTED    = 0x03, /* Get Supported frequencies */
-    SBE_CMD_QUIESCE               = 0x06, /* Sbe Quiesce */
+    SBE_CMD_GET_SBE_FFDC            = 0x01, /* Get FFDC */
+    SBE_CMD_GET_SBE_CAPABILITIES    = 0x02, /* GET SBE capabilities */
+    SBE_CMD_GET_FREQ_SUPPORTED      = 0x03, /* Get Supported frequencies */
+    SBE_CMD_QUIESCE                 = 0x06, /* Sbe Quiesce */
+    SBE_CMD_GET_SBE_CAPABILITIES_2  = 0x07, /* GET SBE capabilities including new additions */
 };
 
 enum sbeMpIplCommands
@@ -191,6 +193,15 @@ enum sbeDumpCommands
 enum sbeHostFifoGenericCommands
 {
     SBE_CMD_HALT = 0x01, /* Halt request from Host Fifo */
+};
+
+/**
+ * @brief enums for PMIC telemetry Commands
+ *
+*/
+enum sbePmicTelemetryCommands
+{
+    SBE_CMD_PMIC_HEALTH_CHECK     = 0x01, /* Analyse and return PMIC health status */
 };
 
 /**
@@ -309,6 +320,7 @@ enum sbeSecondaryResponse
     SBE_SEC_OCMB_TARGET_NOT_PRESENT           = 0x45,
     SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL        = 0x46,
     SBE_SEC_INVALID_FASTARRAY_COLLECTION_INFO = 0x47,
+    SBE_SEC_PMIC_HEALTH_CHECK_FAILED          = 0x48,
 
 };
 
@@ -342,9 +354,17 @@ enum
     MPIPL_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 18,
     DUMP_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 20,
     HOST_FIFO_CAPABILITY_START_IDX = GENERIC_CAPABILTITY_START_IDX + 22,
-    
+
     // Keep in sync with the spec
     CAPABILITIES_LAST_INDEX_FIFO = 23,
+
+    // Capabilities which will go into GET_SBE_CAPABILITIES_2
+    GENERIC_CAPABILTITY2_START_IDX = 24,
+
+    PMIC_TELEMETRY_CAPABILITY_START_IDX = GENERIC_CAPABILTITY2_START_IDX + 0,
+
+    // Keep in sync with the spec
+    CAPABILITIES_2_LAST_INDEX_FIFO = 25,
 };
 /**
   * @brief capabilities enum values.
@@ -398,6 +418,7 @@ enum
     GET_SBE_FFDC_SUPPPORTED             = 0xA8000001,
     GET_SBE_CAPABILITIES_SUPPORTED      = 0xA8000002,
     SBE_QUIESCE_SUPPPORTED              = 0xA8000004,
+    GET_SBE_CAPABILITIES_2_SUPPORTED    = 0xA8000008,
     RESERVED_A8_CAPABILITIES            = 0xA8800000,
 
     ENTER_MPIPL_SUPPORTED               = 0xA9000001,
@@ -411,6 +432,9 @@ enum
 
     SBE_CMD_HALT_SUPPORTED              = 0xAB000001,
     RESERVED_AB_CAPABILITIES            = 0xAB800000,
+
+    SBE_CMD_PMIC_HEALTH_CHECK_SUPPORTED = 0xAC000001,
+    RESERVED_AC_CAPABILITIES            = 0xAC800000,
 };
 
 /**

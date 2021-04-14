@@ -153,7 +153,8 @@ void updateFifoCapabilities(uint32_t * capability)
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX] =
                                 GET_SBE_CAPABILITIES_SUPPORTED |
                                 GET_SBE_FFDC_SUPPPORTED |
-                                SBE_QUIESCE_SUPPPORTED;
+                                SBE_QUIESCE_SUPPPORTED |
+                                GET_SBE_CAPABILITIES_2_SUPPORTED;
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                 RESERVED_A8_CAPABILITIES;
 
@@ -174,6 +175,17 @@ void updateFifoCapabilities(uint32_t * capability)
                                 SBE_CMD_HALT_SUPPORTED;
     capability[HOST_FIFO_CAPABILITY_START_IDX+1] =
                                 RESERVED_AB_CAPABILITIES;
+
+}
+
+void updateFifoCapabilities2(uint32_t * capability)
+{
+    updateFifoCapabilities(capability);
+
+    capability[PMIC_TELEMETRY_CAPABILITY_START_IDX] =
+                SBE_CMD_PMIC_HEALTH_CHECK_SUPPORTED;
+    capability[PMIC_TELEMETRY_CAPABILITY_START_IDX + 1] =
+                RESERVED_AC_CAPABILITIES;
 
 }
 #endif //__SBEFW_SEEPROM__

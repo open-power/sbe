@@ -542,6 +542,8 @@ typedef struct
 // Maximum number of capabilities - max of FIFO and PSU capabilities
 static const uint32_t SBE_MAX_CAPABILITIES      = 24;
 
+static const uint32_t SBE_MAX_CAPABILITIES_2    = 26;
+
 /**
   * @brief structure for SBE Get Capabilities chipop (0xA802) contents.
   *
@@ -556,6 +558,19 @@ typedef struct sbeCapabilityRespMsg
     // ctor. constructor will initialise all values.
     sbeCapabilityRespMsg();
 }sbeCapabilityRespMsg_t;
+
+/**
+  * @brief structure for SBE Get Capabilities chipop (0xA807) contents.
+  *
+  */
+typedef struct sbeCapability2RespMsg : sbeCapabilityRespMsg
+{
+    uint32_t capability_2[SBE_MAX_CAPABILITIES_2 - SBE_MAX_CAPABILITIES];
+    // ctor. constructor will initialise all values.
+    sbeCapability2RespMsg() : sbeCapabilityRespMsg()
+    {
+    }
+}sbeCapability2RespMsg_t;
 
 //  TODO via RTC 128658
 //  We may be able to replace this structure by sbeRespGenHdr_t

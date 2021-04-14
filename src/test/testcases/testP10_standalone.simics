@@ -115,6 +115,7 @@ foreach $proc in (get-component-list -all proc_p10) {
         echo "*******************Run testGetCapabilities.py******************"
 
         run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
+        run-python-file targets/p10_standalone/sbeTest/testGetCapabilities2.py
 
         echo "*******************Run testSbeDump.py******************"
 
@@ -216,6 +217,10 @@ foreach $proc in (get-component-list -all proc_p10) {
         echo "*******************Run testPsuHostPassThrough.py*******************"
 
         run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+
+        echo "*******************Run testPmicHealthCheck.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPmicHealthCheck.py
 
 
         # note after testQuesce the SBE will be in the quiesce state

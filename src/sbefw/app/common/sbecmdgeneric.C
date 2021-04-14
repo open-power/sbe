@@ -57,6 +57,10 @@ static const uint32_t SBE_CAPABILITES_LEN_FIFO  =
             sizeof(sbeCapabilityRespMsg_t) -
             (sizeof(uint32_t) *
              (SBE_MAX_CAPABILITIES - CAPABILITIES_LAST_INDEX_FIFO - 1));
+static const uint32_t SBE_CAPABILITES_2_LEN_FIFO  =
+            sizeof(sbeCapability2RespMsg_t) -
+            (sizeof(uint32_t) *
+             (SBE_MAX_CAPABILITIES_2 - CAPABILITIES_2_LAST_INDEX_FIFO - 1));
 static const uint32_t SBE_CAPABILITES_LEN_PSU  =
             sizeof(sbeCapabilityRespMsg_t) -
             (sizeof(uint32_t) *
@@ -199,6 +203,52 @@ uint32_t sbeGetCapabilities (uint8_t *i_pArg)
         }
 
         len = SBE_CAPABILITES_LEN_FIFO / sizeof(uint32_t);
+        rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg, type);
+        if (rc)
+        {
+            break;
+        }
+
+        rc = sbeDsSendRespHdr(respHdr, NULL, type);
+    }while(0);
+
+    if( rc )
+    {
+        SBE_ERROR( SBE_FUNC"Failed. rc[0x%X]", rc);
+    }
+    return rc;
+    #undef SBE_FUNC
+}
+
+uint32_t sbeGetCapabilities2 (uint8_t *i_pArg)
+{
+    #define SBE_FUNC "sbeGetCapabilities2 "
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t len = 0;
+    sbeFifoType type;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    sbeCapability2RespMsg_t capMsg;
+    updateFifoCapabilities2(capMsg.capability);
+
+    do
+    {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
+        // @TODO via RTC : 130575
+        // Optimize both the RC handling and
+        // FIFO operation infrastructure.
+        if ( rc != SBE_SEC_OPERATION_SUCCESSFUL )
+        {
+            // Let command processor routine to handle the RC
+            break;
+        }
+
+        len = SBE_CAPABILITES_2_LEN_FIFO / sizeof(uint32_t);
         rc = sbeDownFifoEnq_mult ( len, ( uint32_t *) &capMsg, type);
         if (rc)
         {

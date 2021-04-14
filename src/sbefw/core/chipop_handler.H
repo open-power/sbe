@@ -230,7 +230,7 @@ constexpr bool validateCmdClassHash(uint8_t index) { \
 static_assert(validateCmdClassHash(0), "Bad chipop_table, check cmdclass hashes");
 
 #else //DFT
-#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0B))
+#define HASH_KEY(key) (key < 0xD1 ? (key-0xA1) : (key-0xD1+0x0C))
 
 #define CMD_CLASS_DEFAULT_INTIALISATION \
 constexpr cmdClass_t cmdClassArr[] = { \
@@ -245,6 +245,7 @@ constexpr cmdClass_t cmdClassArr[] = { \
     CMD_CLASS(A9), \
     CMD_CLASS(AA), \
     CMD_CLASS(AB), \
+    CMD_CLASS(AC), \
     CMD_CLASS(D1), \
     CMD_CLASS(D2), \
     CMD_CLASS(D3), \

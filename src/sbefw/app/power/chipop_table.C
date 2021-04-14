@@ -49,6 +49,7 @@
 #include "istep.H"
 #include "sbecmddump.H"
 #include "sbehostfifomsg.H"
+#include "sbecmdpmictelemetry.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -122,7 +123,12 @@ CMD_ARR(
     {sbeFifoQuiesce,
      SBE_CMD_QUIESCE,
      SBE_NO_FENCE,
-    }
+    },
+
+    {sbeGetCapabilities2,
+     SBE_CMD_GET_SBE_CAPABILITIES_2,
+     SBE_NO_FENCE,
+    },
 )
 
 //////////////////////////////////////////////////////////////
@@ -276,6 +282,20 @@ CMD_ARR(
      SBE_NO_FENCE,
     }
 )
+
+//////////////////////////////////////////////////////////////
+//// @brief g_sbePmicTelemetryCmd
+////
+////////////////////////////////////////////////////////////////
+CMD_ARR(
+    AC,
+    {sbePmicHealthCheck,
+     SBE_CMD_PMIC_HEALTH_CHECK,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING,
+    },
+)
+
 
 //////////////////////////////////////////////////////////////
 // @brief g_sbeCoreStateControlCmdArray

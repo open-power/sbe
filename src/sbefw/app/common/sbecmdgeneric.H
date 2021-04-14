@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -115,6 +115,15 @@ typedef struct
 void updateFifoCapabilities(uint32_t * capability);
 
 /**
+ * @brief Update Fifo capabilities including new PMIC telemtry capabilities
+ *
+ * @param[in] capability Pointer to capability array
+ *
+ * @return void
+ */
+void updateFifoCapabilities2(uint32_t * capability);
+
+/**
  * @brief Update PSU capabilities
  *
  * @param[in] capability Pointer to capability array
@@ -140,6 +149,15 @@ uint32_t sbeGetFfdc(uint8_t *i_pArg);
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeGetCapabilities(uint8_t *i_pArg);
+
+/**
+  * @brief SBE Generic capabilities including new additions (pmic telemetry) (0xA807)
+  *
+  * @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+  *
+  * @return    Rc from the FIFO access utility
+  */
+uint32_t sbeGetCapabilities2(uint8_t *i_pArg);
 
 /**
   * @brief SBE Fifo Quiesce (0xA806)

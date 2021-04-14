@@ -1,12 +1,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/test/testcases/testGetCapabilities.py $
+# $Source: src/test/testcases/testGetCapabilities2.py $
 #
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2015,2021
-# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ import testUtil
 err = False
 
 TESTDATA = [0,0,0,2,
-            0,0,0xA8,0x02 ]
+            0,0,0xA8,0x07 ]
 
 EXPDATA1 = [0xC0,0x0,0x00,0x3F,
            0xC8,0x0,0x0,0x0,
@@ -58,7 +57,9 @@ EXPDATA3 = [0xa8,0x0,0x0,0x0F, #getcapability/getSbeFFDC/quiesce/getcapability2
            0xab, 0, 0, 0x01, #Host fifo related
            0xab, 0x80, 0, 0]
 
-EXPDATA4 = [0xc0,0xde,0xa8,0x02,
+EXPDATA4 = [0xac, 0, 0, 0x01,       # PMIC telemetry
+            0xac, 0x80, 0, 0,
+            0xc0,0xde,0xa8,0x07,
             0x0,0x0,0x0,0x0,
             0x00,0x0,0x0,0x3]
 
