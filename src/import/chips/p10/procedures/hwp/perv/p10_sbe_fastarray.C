@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -374,8 +374,9 @@ fapi2::ReturnCode p10_sbe_fastarray(
     // features ORd in by the putRing triggered call to p10_ipl_customize below
     {
         fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC_Type l_attr_vec = { 0 };
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_target_chip = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_DYNAMIC_INIT_FEATURE_VEC,
-                               fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                               l_target_chip,
                                l_attr_vec));
     }
 #endif

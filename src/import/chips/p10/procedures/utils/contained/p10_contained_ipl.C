@@ -162,8 +162,10 @@ fapi_try_exit:
 ///
 /// @return FAPI2_RC_SUCCESS if success else error code
 ///
-static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
-        const bool i_is_dump_ipl)
+static fapi2::ReturnCode dyn_inits_setup(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
+    const bool i_runn,
+    const bool i_is_dump_ipl)
 {
 #ifndef DFT
     using namespace p10_dyninit_bitvec_utils;
@@ -174,7 +176,7 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
 
     // initialize bit vector from platform -- content will reflect
     // curent value of platform dynamic init feature vector attribute
-    FAPI_TRY(init_bitvec_from_plat(SYS, FEATURE, plat_feature_bvec));
+    FAPI_TRY(init_bitvec_from_plat(i_target, FEATURE, plat_feature_bvec));
     dump_bitvec(plat_feature_bvec);
 
     // adjust dynamic init features based on current state/paramters
@@ -222,7 +224,7 @@ static fapi2::ReturnCode dyn_inits_setup(const bool i_runn,
 
     // save state back to platform attribute
     dump_bitvec(plat_feature_bvec);
-    FAPI_TRY(save_bitvec_to_plat(SYS, plat_feature_bvec));
+    FAPI_TRY(save_bitvec_to_plat(i_target, plat_feature_bvec));
 
 fapi_try_exit:
     return fapi2::current_err;
@@ -475,7 +477,7 @@ extern "C" {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_target, active_bvec));
         FAPI_TRY(is_chc_ipl(chc));
         FAPI_TRY(is_runn_ipl(runn));
-        FAPI_TRY(dyn_inits_setup(runn, is_dump_ipl));
+        FAPI_TRY(dyn_inits_setup(i_target, runn, is_dump_ipl));
 
         if (!is_dump_ipl)
         {
