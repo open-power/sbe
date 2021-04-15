@@ -59,7 +59,7 @@ using namespace p10hcd;
 // total timeout = 10 milliseconds
 static const uint64_t POLLTIME_NS          = 1000000;
 static const uint64_t POLLTIME_MCYCLES     = 4000;
-static const uint32_t TRIES_BEFORE_TIMEOUT = 500;
+static const uint32_t TRIES_BEFORE_TIMEOUT = 600;
 
 #define EQ_CORE_MASK   0xF
 
@@ -200,9 +200,7 @@ p10_sbe_powerdown_backing_caches(
                         FAPI_IMP("Waiting for stop 11 to enter for core %d of quad %d", l_relative_core_pos, l_attr_chip_unit_eq_pos);
                         uint32_t l_stop11_state_entered = false;
 
-                        //RTC 247535: need to revisit again
-                        // for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
-                        do
+                        for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
                         {
                             FAPI_TRY(GET_QME_SSH_OTR(core, l_data64));
                             GET_QME_SSH_OTR_ACT_STOP_LEVEL(l_data64, l_ssh_data);
@@ -217,7 +215,6 @@ p10_sbe_powerdown_backing_caches(
 
                             fapi2::delay(POLLTIME_NS, POLLTIME_MCYCLES * 1000 * 1000);
                         }
-                        while(1);
 
                         if (!l_stop11_state_entered)
                         {
