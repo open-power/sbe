@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,9 @@
 // Includes
 //-----------------------------------------------------------------------------------
 #include <fapi2.H>
+#ifndef __PPE__
+    #include <map>
+#endif
 
 //-----------------------------------------------------------------------------------
 // Constant definitions
@@ -145,7 +148,6 @@ class RamCore
     private:
         fapi2::Target<fapi2::TARGET_TYPE_CORE> iv_target;  // core target
         uint8_t iv_thread;     // thread number
-        bool iv_ram_enable;    // ram mode is enabled
         bool iv_ram_scr0_save; // SCR0 is saved when setup
         bool iv_ram_setup;     // ram mode is enabled and register backup is done
         bool iv_ram_err;       // error happened during ram
@@ -157,6 +159,13 @@ class RamCore
         fapi2::buffer<uint64_t> iv_backup_scr0;  // SCR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr0;  // GPR0 register backup data
         fapi2::buffer<uint64_t> iv_backup_gpr1;  // GPR1 register backup data
+        // @brief Tracks the RAM mode enable for each Core.  The map value is
+        // a bit-mask with each bit representing a thread.
+#ifndef __PPE__
+        static std::map<fapi2::Target<fapi2::TARGET_TYPE_CORE>, uint32_t> iv_ram_mode_enable;
+#else
+        bool iv_ram_mode_enable;
+#endif
 
         //-----------------------------------------------------------------------------------
         /// @brief Generate predecode for the opcode to ramming
@@ -228,6 +237,13 @@ class RamCore
         //
         fapi2::ReturnCode ram_cleanup_internal();
 
+        //-----------------------------------------------------------------------------------
+        /// @brief Either enable or disable RAMing mode
+        /// @param[in] i_enable       => true to enable RAMing mode, false otherwise
+        /// @return FAPI2_RC_SUCCESS if success, else error code.
+        fapi2::ReturnCode ram_setup_mode_set(const bool i_enable);
+
 };
+
 
 #endif //_P10_RAM_CORE_H_

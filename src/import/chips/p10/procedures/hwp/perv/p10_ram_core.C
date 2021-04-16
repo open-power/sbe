@@ -178,6 +178,15 @@ const uint32_t HW533775_POLL_DELAY_HW_NS = 1000;
 const uint32_t HW533775_POLL_DELAY_SIM_CYCLES = 100000;
 
 //-----------------------------------------------------------------------------------
+// Static member declarations
+//-----------------------------------------------------------------------------------
+#ifndef __PPE__
+    // Bit map of threads which desire RAM mode to be enabled.  When the bit map reaches zero,
+    // the hardware RAM mode is disabled in the corresponding Core.
+    std::map<fapi2::Target<fapi2::TARGET_TYPE_CORE>, uint32_t> RamCore::iv_ram_mode_enable;
+#endif
+
+//-----------------------------------------------------------------------------------
 // Namespace declarations
 //-----------------------------------------------------------------------------------
 
@@ -194,7 +203,12 @@ RamCore::RamCore(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_target,
 {
     iv_target = i_target;
     iv_thread = i_thread;
-    iv_ram_enable    = false;
+#ifndef __PPE__
+    iv_ram_mode_enable.emplace(i_target, 0);
+    iv_ram_mode_enable[i_target] &= ~(1 << i_thread);
+#else
+    iv_ram_mode_enable = false;
+#endif
     iv_ram_scr0_save = false;
     iv_ram_setup     = false;
     iv_ram_err       = false;
@@ -722,6 +736,57 @@ fapi_try_exit:
 }
 
 // See doxygen comments in header file
+fapi2::ReturnCode RamCore::ram_setup_mode_set(const bool i_enable)
+{
+    fapi2::buffer<uint64_t> l_data = 0;
+    bool l_ram_mode_reg_write = true;
+#ifndef __PPE__
+    uint32_t l_new_ram_mode_enable = 0;
+#endif
+
+    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+
+    if (i_enable)
+    {
+        SET_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
+#ifndef __PPE__
+        l_new_ram_mode_enable = iv_ram_mode_enable[iv_target] | (1 << iv_thread);
+#endif
+    }
+    else
+    {
+        CLEAR_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
+#ifndef __PPE__
+        l_new_ram_mode_enable = iv_ram_mode_enable[iv_target] & ~(1 << iv_thread);
+
+        if (l_new_ram_mode_enable != 0)
+        {
+            // Don't disable RAM mode if some other threads still want it enabled.
+            l_ram_mode_reg_write = false;
+        }
+
+#endif
+    }
+
+    if (l_ram_mode_reg_write)
+    {
+        // set RAM_MODEREG via Scom to enable or disable RAM mode
+        FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    }
+
+    // Update tracking variable last in case the SCOM write above fails.
+#ifndef __PPE__
+    iv_ram_mode_enable[iv_target] = l_new_ram_mode_enable;
+#else
+    iv_ram_mode_enable = i_enable;
+#endif
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+
+// See doxygen comments in header file
 fapi2::ReturnCode RamCore::ram_setup_internal()
 {
     FAPI_DBG("Start ram setup internal");
@@ -729,12 +794,7 @@ fapi2::ReturnCode RamCore::ram_setup_internal()
     uint32_t l_opcode = 0;
     fapi2::ReturnCode rc_fapi(fapi2::FAPI2_RC_SUCCESS);
 
-    // set RAM_MODEREG via Scom to enable RAM mode
-    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
-    SET_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
-    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
-
-    iv_ram_enable = true;
+    FAPI_TRY(ram_setup_mode_set(true));
 
     //
     // backup Core registers SCR0/GPR0/GPR1 since they can be overwritten during the
@@ -887,10 +947,7 @@ fapi2::ReturnCode RamCore::ram_cleanup_internal()
     PREP_EC_PC_SCR0(iv_target);
     FAPI_TRY(PUT_EC_PC_SCR0(iv_target, iv_backup_scr0));
 
-    // set RAM_MODEREG Scom to clear RAM mode
-    FAPI_TRY(GET_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
-    CLEAR_EC_PC_FIR_RAM_MODEREG_RAM_MODE_ENABLE(l_data);
-    FAPI_TRY(PUT_EC_PC_FIR_RAM_MODEREG(iv_target, l_data));
+    FAPI_TRY(ram_setup_mode_set(false));
 
     // clear RAM thread active
     if (iv_thread_activated)
@@ -904,7 +961,6 @@ fapi2::ReturnCode RamCore::ram_cleanup_internal()
         iv_thread_activated = false;
     }
 
-    iv_ram_enable    = false;
     iv_ram_scr0_save = false;
     iv_ram_setup     = false;
     iv_write_gpr0    = false;
@@ -942,7 +998,11 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
         FAPI_TRY(ram_setup());
     }
 
-    FAPI_ASSERT(iv_ram_enable,
+#ifndef __PPE__
+    FAPI_ASSERT(iv_ram_mode_enable[iv_target] != 0,
+#else
+    FAPI_ASSERT(iv_ram_mode_enable,
+#endif
                 fapi2::P10_RAM_NOT_SETUP_ERR()
                 .set_CORE_TARGET(iv_target),
                 "Attempting to ram opcode without enable RAM mode before");
