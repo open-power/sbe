@@ -643,6 +643,10 @@
     <virtual/>
   </entry>    
   <entry>
+    <name>ATTR_CHIP_EC_FEATURE_PAU_DPLL_IO_MARGIN</name>
+    <virtual/>
+  </entry>
+  <entry>
     <name>ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX</name>
     <virtual/>
   </entry>
