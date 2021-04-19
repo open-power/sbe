@@ -1019,13 +1019,18 @@ fapi_try_exit:
         }
 
         // Debug Code - Don't Remove
-        //for(uint32_t i=0;i< TARGET_COUNT;i++)
-        //{
-        //    FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
-        //}
+        // plat_PrintTarget();
 
 fapi_try_exit:
         return fapi2::current_err;
+    }
+
+    void plat_PrintTargets()
+    {
+        for(uint32_t i=0;i< TARGET_COUNT;i++)
+        {
+            FAPI_ERR("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
+        }
     }
 
     void plat_OCMBTargetsInit(uint8_t * ocmbParams)

@@ -50,6 +50,7 @@
 #include "sbecmddump.H"
 #include "sbehostfifomsg.H"
 #include "sbecmdpmictelemetry.H"
+#include "sbecmdmemconfig.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -415,6 +416,11 @@ CMD_ARR(
 
    {sbeHostSyncFabTopologyId,
     SBE_PSU_GENERIC_MSG_SYNC_FAB_TOPO_ID_TAB,
+    SBE_NO_FENCE,
+   },
+
+   {sbePsuMemConfig,
+    SBE_PSU_GENERIC_CMD_MEM_CONFIG,
     SBE_NO_FENCE,
    }
 )

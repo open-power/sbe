@@ -52,9 +52,13 @@ namespace fapi2
     enum psuConfigVersion
     {
         SBE_PSU_I2C_CONFIG_VERSION_1 = 0x01,
-        SBE_PSU_I2C_CONFIG_VERSION_2 = 0x02,
         SBE_PSU_I2C_CONFIG_VERSION_LATEST = SBE_PSU_I2C_CONFIG_VERSION_1,
-        SBE_PSU_I2C_CONFIG_TYPES_SUPPORTED = 0x03, // see SbeMemConfigData_t
+        // How many unique types we support today ?
+        // TYPE_PMIC+TYPE_GENERIC_I2C_DEVICE+TYPE_OCMB_CHIP = 3
+        //
+        // In I2C_CONFIG_VERSION_1 we only support 3 target types and
+        // sbe expect all 3 types of target always
+        SBE_PSU_I2C_CONFIG_TYPES_SUPPORTED = 0x03,
     };
 
     enum SbeDimmTargetTypes
@@ -96,7 +100,26 @@ namespace fapi2
         // TYPE_OCMB_CHIP
         uint16_t ocmb_chips_max_number;
         SbeI2cDevice_t ocmb_chips[OCMB_TARGET_COUNT];
+
+        /// @brief check the version is as expected
+        ///
+        /// @return true if version is as expected, else false
+        bool validateVersion()
+        {
+            return (i2c_config_version == SBE_PSU_I2C_CONFIG_VERSION_LATEST);
+        }
+
+        /// @brief check number of target types is as expected
+        ///
+        /// @return true if number of target types is as expected, else false
+        bool validateTargetTypesSupported()
+        {
+            return (i2c_config_types_supported == SBE_PSU_I2C_CONFIG_TYPES_SUPPORTED);
+        }
     }SbeMemConfigData_t;
+
+    /// @brief Function to print the G_targets vector
+    void plat_PrintTargets();
 
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
