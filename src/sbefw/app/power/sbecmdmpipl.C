@@ -3,7 +3,7 @@
 /*                                                                        */
 /* $Source: src/sbefw/app/power/sbecmdmpipl.C $                           */
 /*                                                                        */
-/* OpenPOWER sbe Project                                                  */
+/* OpenPOWER sbe Project                                             */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
@@ -213,16 +213,16 @@ ReturnCode collectMPIPLHWDumpEntries()
         uint32_t bytesCollected = 0;
         //Skip stopping of the clocks as collectMpiplHwDump() will do it
         //internally
-        stopClockReq = false;
         uint32_t rc = collectMpiplHwDump(HWDumpAllocAddr,bytesCollected);
         if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
             SBE_ERROR(SBE_FUNC "Failed in collectMpiplHwDump().MPIPL will continue");
             break;
         }
+        //stopClockReq = false;
         SBE_INFO(SBE_FUNC "Bytes collected=0x%.8x",bytesCollected);
         metadata.hwDataMemCapturedSize = bytesCollected;
-     
+
         //Update the Metadata
         {//Keeping below memory access object to limited scope
             p10_PBA_oper_flag pbaFlag;
@@ -252,10 +252,10 @@ ReturnCode collectMPIPLHWDumpEntries()
         fapiRc = FAPI2_RC_SUCCESS;
     }
 
-    //Internal failure detected stop clock will be explcited done ehre
+    //Stop the Clocks if clocks where not stopped by collectMpiplHwDump()
     if(stopClockReq)
     {
-        SBE_INFO(SBE_FUNC "Internal Error in collectMPIPLHWDumpEntries(),Attempt Stop "
+        SBE_INFO(SBE_FUNC "Clocks not stopped by collectMpiplHwDump(),Attempt Stop "
                 "clocks for all Core and cache, for MPIPL to continue");
         fapiRc = stopClockS0();
         if(fapiRc != FAPI2_RC_SUCCESS)
@@ -324,9 +324,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             break;
         }
 
-//TODO: Enable collection of HW dump data once HB changes are integrated.
-//    : Remove below StopClock call
-#if 0
         //HW Dump related HDCT entries. Below interface also takes care of
         //stopping the clocks
         fapiRc = collectMPIPLHWDumpEntries();
@@ -334,16 +331,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         {
             SBE_ERROR("Failed in collectMPIPLHWDumpEntries(),cannot continue MPIPL!");
             break;
-        }
-#endif
-        //Core and Cache stop Clock
-        SBE_INFO(SBE_FUNC "Attempt Stop clocks for all Core and cache ");
-        fapiRc = stopClockS0();
-        if(fapiRc != FAPI2_RC_SUCCESS)
-        {
-             rc = SBE_SEC_S0_STOP_CLOCK_FAILED;
-             SBE_ERROR(SBE_FUNC "Failed in Core/Cache StopClock");
-             break;
         }
 
         //WORKAROUND:Force TOD RUNNING status to be OFF
