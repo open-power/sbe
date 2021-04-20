@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -204,7 +204,7 @@ def istep_func ( majorIstep, minorIstep, procNr=0, nodeNr=0):
   testIstepAuto.sbe_istep_func(majorIstep, minorIstep, procNr, nodeNr)
 
 def collectTrace ( procNr, nodeNr=0 ):
-  fileName = "sbe_" + `procNr` + "_tracMERG"
+  fileName = "sbe_" + repr(procNr) + "_tracMERG"
   cmd1 = "pipe \"" + simicsObj[procNr] + ".pib_cmp.sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x2028\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
   cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/sbeStringFile_"+get_dd_level(procNr, nodeNr)+" sbetrace.bin >" +  fileName + "\""

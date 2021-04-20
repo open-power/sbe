@@ -254,27 +254,27 @@ def collectTrace ( procNr, nodeNr=0 ):
 
   opMode = (rValue >> 32) & 0xf
   if ( opMode == 0x06 ):
-    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_measurement_seeprom" + repr(procNr) + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x07 ):
-    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_measurement_seeprom" + repr(procNr) + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x08 ):
-    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_measurement_seeprom" + repr(procNr) + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x09 ):
-    fileName = "sbe_measurement_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_measurement_seeprom" + repr(procNr) + "_tracMERG"
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x0A ):
-    fileName = "sbe_verification_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_verification_seeprom" + repr(procNr) + "_tracMERG"
     syms = verifySyms
     stringFile = "sbeVerificationStringFile"
   elif ( opMode == 0x0F ):
-    fileName = "sbe_boot_seeprom" + `procNr` + "_tracMERG"
+    fileName = "sbe_boot_seeprom" + repr(procNr) + "_tracMERG"
     syms = bootSyms
     stringFile = "sbeStringFile_"+get_dd_level(procNr, nodeNr)
   else:
