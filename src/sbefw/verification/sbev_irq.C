@@ -1,11 +1,12 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/verification/test_lib.C $                           */
+/* $Source: src/sbefw/verification/sbev_irq.C $                           */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -22,15 +23,14 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
+#include "sbeirq.H"
+
 extern "C" void __sbe_register_saveoff()
 {
+    asm("b pk_halt\n");
 }
 
 extern "C" void __sbe_machine_check_handler()
 {
-}
-
-int dummy_verification_lib()
-{
-    return 0;
+    asm("b pk_halt\n");
 }

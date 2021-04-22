@@ -34,11 +34,12 @@ OUTPUT_FORMAT(elf32-powerpc);
 MEMORY
 {
     verification : ORIGIN = SBE_VERIFICATION_PIBMEM_ORIGIN, LENGTH = SBE_VERIFICATION_PIBMEM_LENGTH
+    seeprom : ORIGIN = SBE_SEEPROM_BASE_ORIGIN, LENGTH = 0x80000
 }
 
 SECTIONS
 {
-    . = SBE_VERIFICATION_PIBMEM_ORIGIN;
+    . = SBE_SEEPROM_BASE_ORIGIN;
       _sbe_image_start_addr = . + SIZEOF_HEADERS;
 
       // Get 8 byte alligned address
@@ -46,14 +47,16 @@ SECTIONS
 
      // Get the image offset after elf header
      _sbe_image_start_offset = _sbe_image_start_addr - .;
-     _verification_origin = . - 0;
+     _verification_pibmem_origin = SBE_VERIFICATION_PIBMEM_ORIGIN;
+     _verification_seeprom_origin = . - 0;
+
 
     ////////////////////////////////
     // Header
     ////////////////////////////////
     .header : {
-        _header_origin = .; _header_offset = . - _verification_origin; KEEP(*(.header));
-    } > verification
+        _header_origin = .; _header_offset = . - _verification_seeprom_origin; KEEP(*(.header));
+    } > seeprom
     _header_size = . - _header_origin;
 
     // @TODO via RTC 136215
@@ -65,9 +68,9 @@ SECTIONS
     // LOADER_TEXT
     ////////////////////////////////
     .loader_text ALIGN(0x200): {
-      _loader_text_origin = .; _loader_text_offset = . - _verification_origin;
+      _loader_text_origin = .; _loader_text_offset = . - _verification_seeprom_origin;
       KEEP(*(.loader_text));
-    } > verification
+    } > seeprom
      _loader_text_size = . - _loader_text_origin;
 
     // @TODO via RTC 136215
@@ -82,51 +85,56 @@ SECTIONS
     // FIXED
     ////////////////////////////////
     .fixed  ALIGN(0x200) : {
-      _fixed_origin = .; _fixed_offset = . - _verification_origin;
+      _fixed_origin = .; _fixed_offset = . - _verification_seeprom_origin;
      KEEP(*(.fixed))
-    } > verification
+    } > seeprom
      _fixed_size = . - _fixed_origin;
 
     ////////////////////////////////
     // text
     ////////////////////////////////
     .text ALIGN(8): {
-         _text_origin = .; _text_offset = . - _verification_origin;
-     } > verification
+         _text_origin = .; _text_offset = . - _verification_seeprom_origin;
+     } > seeprom
      _text_size = . - _text_origin;
 
    ////////////////////////////////
     // FIXED_TOC
     ////////////////////////////////
     .fixed_toc ALIGN(8) : {
-        _fixed_toc_origin = .; _fixed_toc_offset = . - _verification_origin;  KEEP(*(.fixed_toc));
-    } > verification
+        _fixed_toc_origin = .; _fixed_toc_offset = . - _verification_seeprom_origin;  KEEP(*(.fixed_toc));
+    } > seeprom
     _fixed_toc_size = . - _fixed_toc_origin;
 
    ////////////////////////////////
     // TOC
     ////////////////////////////////
     .toc ALIGN(4): {
-        _toc_origin = .; _toc_offset = . - _verification_origin;  KEEP(*(.toc));
-    } > verification
+        _toc_origin = .; _toc_offset = . - _verification_seeprom_origin;  KEEP(*(.toc));
+    } > seeprom
     _toc_size = . - _toc_origin;
 
    ////////////////////////////////
     // STRING
     ////////////////////////////////
     .strings : {
-         _strings_origin = .; _strings_offset = . - _verification_origin; KEEP(*(.strings));
-    } > verification
+         _strings_origin = .; _strings_offset = . - _verification_seeprom_origin; KEEP(*(.strings));
+    } > seeprom
     _strings_size = . - _strings_origin;
 
-    _verification_size = . - _verification_origin;
+    _verification_seeprom_size = . - _verification_seeprom_origin;
 
     // TODO via RTC 149153
     // It seems when we jump across memory region, elf creates 32 byte offset.
     // We need to verify this assumption.
 
+    _verification_seeprom_size_with_elf_hdr = _verification_seeprom_size + _sbe_image_start_offset;
+    _verification_seeprom_size = ( ( _verification_seeprom_size_with_elf_hdr % 32)  == 0 ) ? _verification_seeprom_size : ( _verification_seeprom_size + ( 32 - (_verification_seeprom_size_with_elf_hdr % 32)));
+
+    . = _verification_pibmem_origin;
+    _base_origin = .;
+    _base_offset = . - _base_origin + _verification_seeprom_size;
     .pkVectors ALIGN(32) : {
-            _base_origin = .; _base_offset = . - _verification_origin;
             *(.vectors)
      } > verification
 
@@ -168,7 +176,8 @@ SECTIONS
     // finishes here.
 
     _base_size = . - _base_origin;
-    _sbe_image_size = ( . - _verification_origin );
+    _verification_pibmem_size = . - _verification_pibmem_origin;
+    _sbe_image_size = _verification_seeprom_size + _verification_pibmem_size;
 
     _sbss_start = .;
     .sbss   . : {
@@ -185,5 +194,4 @@ SECTIONS
    . = . + INITIAL_STACK_SIZE;
    _PK_INITIAL_STACK = . - 1;
     . = ALIGN(8);
-
 }

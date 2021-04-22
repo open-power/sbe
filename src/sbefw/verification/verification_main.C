@@ -165,9 +165,18 @@ int  main(int argc, char **argv)
     int rc = 0;
     uint64_t rootCtrlReg3 = 0;
     sbe_local_LFR lfrReg;
+    // TODO:
+    // This is the hard-coded address for verification image in Pibmem
+    // This is quick fix for the IVPR, ideally this should be set in
+    // the measurement seeprom.
+    uint32_t i_ivprAddr = SBE_VERIFICATION_PIBMEM_ORIGIN;
 
     do
     {
+        //Update IVPR
+        uint64_t data = (uint64_t)i_ivprAddr << 32;
+        PPE_STVD(0xc0000160, data);
+
         uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_PIBMEM_MAIN_MSG)<<32;
         PPE_STVD(0x50009, loadValue);
 

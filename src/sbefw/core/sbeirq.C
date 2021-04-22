@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -169,7 +169,7 @@ int sbeIRQSetup (void)
     #undef SBE_FUNC
 }
 
-
+#if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 ///////////////////////////////////////////////////////////////////
 // SBE handler to save off specific registers
 ///////////////////////////////////////////////////////////////////
@@ -406,3 +406,4 @@ extern "C" void __sbe_machine_check_handler()
     "rfi\n"
     );
 }
+#endif

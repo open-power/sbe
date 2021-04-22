@@ -34,7 +34,6 @@
 #include "sbevtrace.H"
 #include "ecverify.H"
 #include "ppe42_string.h"
-#include "plat_hwp_data_stream.H"
 #include "fapi2.H"
 #include "sbeXipUtils.H"
 #include "sbeutil.H"
@@ -157,16 +156,14 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
         if((no_of_keys - key_count) == sig_to_verify)
         {
             SBEV_INFO("Verifying signature: %d",(no_of_keys-key_count));
-            //TODO:Enable below piec of code for HW.
-            //Curently Seeing stack corruption issues in SHA512 if
-            //ECDSA Enabled
-            return 1;
             if(!SBE::isSimicsRunning())
             {
                 if (ec_verify (keys, digest, sigs)<1)
                 {
+                    SBEV_INFO(SBEV_FUNC "Entering EC Verify Failed");
                     return 0;
                 }
+                SBEV_INFO(SBEV_FUNC "EC Verify Passed");
             }
             else
             {
@@ -180,7 +177,7 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
     }
 
     SBEV_EXIT(SBEV_FUNC);
-    return 1;
+    return 1; // This is return success
     #undef SBEV_FUNC
 }
 
@@ -448,7 +445,6 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
 {
     #define SBEV_FUNC " verifySecureHdr "
     SBEV_ENTER(SBEV_FUNC);
-
     ROM_response status;
     SHA512_t digest;
 
@@ -459,38 +455,38 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
     memset(&l_hw_parms,0x00,sizeof(ROM_hw_params));
     populateHWParams(&l_hw_parms);
 
-    SBEV_INFO("Secure Header:Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(secureHdrXipSection), getXipSize(secureHdrXipSection));
+    SBEV_INFO(SBEV_FUNC "Secure Header:Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(secureHdrXipSection), getXipSize(secureHdrXipSection));
     ROM_container_raw* container = (ROM_container_raw *)getXipOffsetAbs(secureHdrXipSection);
 
     status = ROM_verify(container, &l_hw_parms, hw_sig_to_verify, &digest, &secureHdrResponse->flag);
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
-    SBEV_DEBUG("Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
+    SBEV_INFO(SBEV_FUNC "Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 
     if(status == ROM_DONE && secureHdrResponse->statusCode == COMPLETED)
     {
         // We only want to return a non-zero status on failure
         secureHdrResponse->statusCode = 0;
+        SBEV_INFO(SBEV_FUNC "Container verification Passed");
     }
     else if(status == ROM_FAILED)
     {
         if(secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE)
         {
-            SBEV_INFO("Container verification failed. Calculating SBE_FW Payload SHA512 Hash");
+            SBEV_INFO(SBEV_FUNC "Container verification failed. Calculating SBE_FW Payload SHA512 Hash");
             SHA512_FW_Payload_Hash(&digest);
         }
 
         if(secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_HBBL)
         {
-            SBEV_INFO("Container verification failed. Calculating HBBL Payload SHA512 Hash");
+            SBEV_INFO(SBEV_FUNC "Container verification failed. Calculating HBBL Payload SHA512 Hash");
             SHA512_HBBL_Payload_Hash(&digest);
         }
 
         for (uint8_t i=0; i<sizeof(digest); i=i+4)
         {
-            SBEV_INFO("SHA512 of payload is %x %x %x %x",
+            SBEV_INFO(SBEV_FUNC "SHA512 of payload is %x %x %x %x",
                     digest[i],digest[i+1],digest[i+2],digest[i+3]);
         }
-
     }
 
     memcpy(&secureHdrResponse->sha512Truncated, digest, sizeof(SHA512truncated_t));
