@@ -50,6 +50,7 @@ simicsPrcObj = simics.SIM_run_command("get-component-list -all proc_p10_pib")
 simicsObjForPrimarySeeprom = simics.SIM_run_command("get-seeprom 0 0 0")
 simicsObjForBackupSeeprom = simics.SIM_run_command("get-seeprom 0 0 1")
 
+syms = {};
 bootSyms = {};
 measureSyms = {};
 verifySyms = {};
@@ -282,7 +283,7 @@ def collectTrace ( procNr, nodeNr=0 ):
 
   cmd1 = "pipe \"" + simicsPrcObj[procNr] + ".sbe_mibo.x 0x" + syms['g_pk_trace_buf'][0] + " 0x" + syms['g_pk_trace_buf'][1] + "\"" " \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> ppetrace.bin\""
   cmd2 = "shell \"" + SBE_TOOLS_PATH + "/ppe2fsp ppetrace.bin sbetrace.bin \""
-  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/" + `stringFile` + " sbetrace.bin >" +  fileName + "\""
+  cmd3 = "shell \"" + SBE_TOOLS_PATH + "/fsp-trace -s " + SBE_TOOLS_PATH + "/" + repr(stringFile) + " sbetrace.bin >" +  fileName + "\""
   cmd4 = "shell \"" + "cat " + fileName + "\""
 
   print("simics running %s: "%( cmd1))

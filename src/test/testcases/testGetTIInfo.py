@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020
+# Contributors Listed Below - COPYRIGHT 2020,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -52,8 +52,11 @@ def main(expStatus = [0, 0, 0, 0]):
     print("TI data location is " + hex(tiLocation))
 
     print("Write TI data to TI location")
-    tiData = os.urandom(TI_LEN)
-    tiData = [ord(c) for c in tiData]
+    tiRandomData = os.urandom(TI_LEN)
+    if(sys.version_info.major > 2):
+       tiData = list(tiRandomData)
+    else:
+       tiData = [ord(c) for c in tiRandomData]
     testMemUtil.putmem(tiLocation, tiData, 0x02)
 
     #Get TI Info test.

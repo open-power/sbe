@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -26,6 +26,7 @@ from __future__ import print_function
 import time
 import conf
 from sim_commands import *
+import functools
 
 simicsObj = simics.SIM_run_command("get-component-list -all proc_p10")
 
@@ -68,9 +69,9 @@ def getLbus( node, proc=0):
 def writeUsFifo( data, i_fifoType=0, node=0, proc=0):
     """Main test Loop"""
     lbus = getLbus(node, proc)
-    loopCount = len(data)/4;
+    loopCount = len(data)//4;
     address = getUsFifoDataAddrToWrite(i_fifoType)  #Address: 0x2400, 0x2480
-    for i in range (loopCount):
+    for i in list(range(loopCount)):
         idx = i * 4;
         writeEntry(lbus, address, i_fifoType,\
                    (data[idx], data[idx+1], data[idx+2], data[idx+3]), node, proc )
@@ -79,9 +80,9 @@ def writeUsFifo( data, i_fifoType=0, node=0, proc=0):
 def readDsFifo(data,  i_fifoType=0, node=0, proc=0):
     """Main test Loop"""
     lbus = getLbus(node, proc)
-    loopCount = len(data)/4;
+    loopCount = len(data)//4;
     read_ds_addr = getDsFifoDataAddrToRead(i_fifoType)  #Address: 0x2440, 0x24C0
-    for i in range (loopCount):
+    for i in list(range(loopCount)):
         idx = i * 4;
         checkEqual(readEntry(lbus, read_ds_addr, 4, i_fifoType, node, proc), (data[idx],\
                                          data[idx+1], data[idx+2], data[idx+3]))
@@ -175,7 +176,7 @@ def waitTillDsFifoEmpty(i_fifoType=0, node=0, proc=0):
 def readDsEntry(entryCount, i_fifoType=0, node=0, proc=0):
     lbus = getLbus(node, proc)
     read_addr = getDsFifoDataAddrToRead(i_fifoType) #Address:0x2440, 0x24C0
-    for i in range (entryCount):
+    for i in list(range(entryCount)):
         readEntry(lbus, read_addr, 4, i_fifoType, node, proc)
 
 #Default parameters are for single node, node 0
@@ -268,7 +269,7 @@ def extractHWPFFDC(i_fifoType=0, dumpToFile = False, readData = None, node=0, pr
     if(dumpToFile):
         myBin = open('hwp_ffdc.bin', 'wb')
         print ("\nwriting "+'hwp_ffdc.bin')
-    for i in range(0, packLen-3):
+    for i in list(range(0, packLen-3)):
         if(readData != None):
             data = readData[:4]
             readData = readData[4:]
@@ -296,7 +297,7 @@ def runCycles( cycles ):
 
 def checkEqual( data, expdata ):
     """ Throw exception if data is not equal """
-    if( cmp(data, expdata )):
+    if((data > expdata) - (data < expdata)):
         print("Eqality check failed")
         print("Data:", data)
         print("Expected Data", expdata)
@@ -307,8 +308,8 @@ def collectFFDC():
         simics.SIM_run_command('sbe-stack 0')
         simics.SIM_run_command('sbe-regffdc 0')
         simics.SIM_run_command(simicsObj[0] + '.pib_cmp.sbe_ppe->ppe_state')
-        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->upstream_hw_fifo')
-        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->upstream_hw_fifo')
+        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->downstream_hw_fifo')
 
 def getUsFifoDataAddrToWrite(i_fifoType):
     if i_fifoType == 0:

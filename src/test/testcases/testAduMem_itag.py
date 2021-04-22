@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -47,8 +47,11 @@ def main( ):
     testUtil.runCycles( 10000000 )
 
     #PutMemAdu with Itag
-    data = os.urandom(80)
-    data = [ord(c) for c in data]
+    random_data = os.urandom(80)
+    if(sys.version_info.major > 2):
+       data = list(random_data)
+    else:
+       data = [ord(c) for c in random_data]
     testMemProcUtil.putmem(0xE0000000, data, 0xB5)
     data = testMemProcUtil.addItagEcc(data,True, False)
 
@@ -63,8 +66,11 @@ def main( ):
 
     # Partial Write test
     readData = testMemProcUtil.getmem(0xE0000000, 40, 0xB5)
-    data = os.urandom(8)
-    data = [ord(c) for c in data]
+    random_data = os.urandom(8)
+    if(sys.version_info.major > 2):
+       data = list(random_data)
+    else:
+       data = [ord(c) for c in random_data]
     testMemProcUtil.putmem(0xE0000008, data, 0xB5, 0xEF)
     data = testMemProcUtil.addItagEcc(data,True, False)
     readBackData = testMemProcUtil.getmem(0xE0000000, 40, 0xB5)

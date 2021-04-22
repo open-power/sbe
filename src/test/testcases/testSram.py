@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -32,16 +32,16 @@ err = False
 
 def gethalfword(dataInInt):
     hex_string = '0'*(4-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BB',hex_string.decode('hex')))
+    return list(struct.unpack('<BB',codecs.decode(hex_string,'hex')))
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBB',codecs.decode(hex_string,'hex')))
 def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
-    return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBBBBBB',codecs.decode(hex_string,'hex')))
 
 def putsram(addr, mode, data, primStatus, secStatus,fifoType):
-    req = (getsingleword(6 + (len(data)/4))
+    req = (getsingleword(6 + (len(data)//4))
            + [0, 0, 0xA4, 0x04]
            + getsingleword(mode)
            + getdoubleword(addr)
@@ -100,8 +100,11 @@ def validateSRAMAccessFailureCases( fifoType ):
    testcase = ""
    try:
        #Data used to write to SRAM
-       data = os.urandom(128*2)
-       data = [ord(c) for c in data]
+       random_data = os.urandom(128*2)
+       if(sys.version_info.major > 2):
+           data = list(random_data)
+       else:
+           data = [ord(c) for c in random_data]
        #---------------------------------------------
        # PutSram Failure Test
        #---------------------------------------------
@@ -120,8 +123,11 @@ def validateSRAMAccess( fifoType ):
    testcase = ""
    try:
        #Data used to write to SRAM
-       data = os.urandom(128*2)
-       data = [ord(c) for c in data]
+       random_data = os.urandom(128*2)
+       if(sys.version_info.major > 2):
+           data = list(random_data)
+       else:
+           data = [ord(c) for c in random_data]
 
        #---------------------------------------------
        # Put and Get Occ Sram test - Circular Mode
@@ -188,12 +194,12 @@ def validateSRAMAccess( fifoType ):
           print("Success: IO_PPE SRAM Put and GET Testcase,FIFOTYPE:%d"%fifoType)
        else:
           print ("Read data does not match with data used to write")
-          print data
-          print readData
+          print (data)
+          print (readData)
           raise Exception('data mistmach')
 
    except:
-        print "FAILED Test Case:"+str(testcase)
+        print ("FAILED Test Case:"+str(testcase))
         raise Exception('Failure')
 
 # MAIN Test Run Starts Here...

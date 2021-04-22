@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -26,6 +26,7 @@ from __future__ import print_function
 import sys
 import os
 import struct
+import codecs
 sys.path.append("targets/p10_standalone/sbeTest" )
 import testPSUUtil
 import testRegistry as reg
@@ -37,13 +38,13 @@ i_fifoType = 0
 
 def gethalfword(dataInInt):
     hex_string = '0'*(4-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BB',hex_string.decode('hex')))
+    return list(struct.unpack('<BB',codecs.decode(hex_string,'hex')))
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBB',codecs.decode(hex_string,'hex')))
 def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
-    return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBBBBBB',codecs.decode(hex_string,'hex')))
 
 def addItagEcc(arr, itag, ecc, eccVal=0):
     arrs = []
@@ -66,7 +67,7 @@ def putmem(addr, data, flags, ecc=0):
     lenInBytes = len(data)
     if(len(data) < 8):
         data = data+[0]*(4-len(data))
-    totalLen = 5 + len(data)/4
+    totalLen = 5 + len(data)//4
     coreChipletId = 0x00
     if (flags & 0x0040):
         # LCO mode is set, so chiplet id - 0x20
@@ -83,9 +84,9 @@ def putmem(addr, data, flags, ecc=0):
     testUtil.writeEot(i_fifoType )
     testUtil.runCycles( RUN_CYCLES )
     if(flags & 0x0008):
-        lenInBytes += int(len(data)/8)
+        lenInBytes += int(len(data)//8)
     if(flags & 0x0010):
-        lenInBytes += int(len(data)/8)
+        lenInBytes += int(len(data)//8)
     expData = (getsingleword(lenInBytes)
                +[0xc0,0xde,0xa4,0x02,
                  0x0,0x0,0x0,0x0,
@@ -97,7 +98,7 @@ def putmem_failure(addr, data, flags, responseWord, ecc=0):
     lenInBytes = len(data)
     if(len(data) < 8):
         data = data+[0]*(4-len(data))
-    totalLen = 5 + len(data)/4
+    totalLen = 5 + len(data)//4
     coreChipletId = 0x00
     if (flags & 0x0040):
         # LCO mode is set, so chiplet id - 0x20
@@ -134,9 +135,9 @@ def getmem(addr, len, flags):
     data = []
     lenExp = len
     if(flags & 0x0008):
-        lenExp += int(len/8)
+        lenExp += int(len//8)
     if(flags & 0x0010):
-        lenExp += int(len/8)
+        lenExp += int(len//8)
     for i in range(0, int(-(-float(lenExp)//4))):
         data += list(testUtil.readDsEntryReturnVal(i_fifoType))
 

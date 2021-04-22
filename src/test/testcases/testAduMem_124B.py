@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -42,8 +42,12 @@ def main( ):
     for byte in bytes:
         for offset in offsets[byte]:
             #PutMemAdu Test
-            data = os.urandom(byte)
-            data = [ord(c) for c in data]
+            random_data = os.urandom(byte)
+            if(sys.version_info.major > 2):
+                data = list(random_data)
+            else:
+                data = [ord(c) for c in random_data]
+
             testMemProcUtil.putmem(0xE0000000 + offset, data, 0xA5)
 
             # GetMemAdu test

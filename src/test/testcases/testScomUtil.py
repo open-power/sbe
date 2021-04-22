@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -24,6 +24,7 @@
 # IBM_PROLOG_END_TAG
 import sys
 import os
+import codecs
 import struct
 sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
@@ -31,10 +32,10 @@ err = False
 
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBB',codecs.decode(hex_string,'hex')))
 def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
-    return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBBBBBB',codecs.decode(hex_string,'hex')))
 
 def getscom(addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = False):
     req = ([0, 0, 0, 4]

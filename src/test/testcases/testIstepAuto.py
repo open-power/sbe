@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -36,8 +36,8 @@ def collectFFDC():
     simics.SIM_run_command('sbe-stack 0')
     simics.SIM_run_command('sbe-regffdc 0')
     simics.SIM_run_command(simicsObj[0] + '.pib_cmp.sbe_ppe->ppe_state')
-    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->upstream_hw_fifo')
-    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo->downstream_hw_fifo')
+    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->upstream_hw_fifo')
+    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->downstream_hw_fifo')
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
 testUtil = imp.load_source("testUtil", SBE_TOOLS_PATH + "/testUtil.py")

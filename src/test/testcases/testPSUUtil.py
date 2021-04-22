@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -43,8 +43,10 @@
 from __future__ import print_function
 import time
 import conf
+import codecs
 import testUtil
 import testPSUUserUtil
+import sys
 from sim_commands import *
 
 simicsObj = simics.SIM_run_command("get-master-procs")
@@ -222,10 +224,12 @@ class registry(object):
              '\x00\x00\x03\x01\x00\xf0\xd1\x01'
              [0, 0, 3, 1, 0, 240, 209, 1]
         '''
-        # Convert it to a hex string
-        hex_val= value.decode("hex")
-        # Prepare the conversion to a list of byte values
-        value=map(ord, hex_val)
+        if(sys.version_info.major > 2):
+            hex_bytes =  codecs.decode(value, 'hex')
+            value = list(hex_bytes)
+        else:
+            hex_bytes = value.decode("hex")
+            value = map(ord, hex_bytes)
         return value
 
     #---------------------------------------

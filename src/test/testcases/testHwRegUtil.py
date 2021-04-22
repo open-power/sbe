@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -25,16 +25,17 @@
 import sys
 import os
 import struct
+import codecs
 sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 err = False
 
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBB',codecs.decode(hex_string,'hex')))
 def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
-    return list(struct.unpack('<BBBBBBBB',hex_string.decode('hex')))
+    return list(struct.unpack('<BBBBBBBB',codecs.decode(hex_string,'hex')))
 
 def getHWReg(targetInfo, addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = False):
     req = ([0, 0, 0, 5,
@@ -42,7 +43,7 @@ def getHWReg(targetInfo, addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = F
           + targetInfo 
           + getdoubleword(addr))
 
-    print req
+    print (req)
 
     testUtil.writeUsFifo(req, i_fifoType)
     testUtil.writeEot(i_fifoType)
@@ -58,7 +59,7 @@ def getHWReg(targetInfo, addr, i_fifoType, expStatus = [0, 0, 0, 0], HWPffdc = F
         data = testUtil.readDsEntryReturnVal(i_fifoType)
         data += testUtil.readDsEntryReturnVal(i_fifoType)
 
-    print data
+    print (data)
 
     testUtil.readDsFifo(expData, i_fifoType)
     if(not success and HWPffdc):
@@ -78,7 +79,7 @@ def putHWReg(targetInfo, addr, data, i_fifoType, expStatus = [0, 0, 0, 0]):
           +  targetInfo
           + getdoubleword(addr)
           + getdoubleword(data))
-    print req
+    print (req)
     testUtil.writeUsFifo(req, i_fifoType)
     testUtil.writeEot(i_fifoType)
 

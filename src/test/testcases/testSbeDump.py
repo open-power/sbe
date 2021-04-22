@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -43,10 +43,8 @@ i_fifoType = 0
 #-------------------------------------------------
 def main():
     testUtil.runCycles(10000000)
-
     # Generate FSPI rc
     testScomUtil.getscom(0x0A000027, i_fifoType, [0x00, 0xFE, 0x00, 0x11], True)
-
     testUtil.writeUsFifo(TESTDATA, i_fifoType)
     testUtil.writeEot(i_fifoType)
 
@@ -108,7 +106,7 @@ def main():
             print ("\nlength of attr dump " + str(len))
         myBin = open(fileName, 'wb')
         print ("\nwriting "+fileName)
-        loopCount = (len ) / 4
+        loopCount = (len )// 4
         for j in range(0, loopCount):
             data = testUtil.readDsEntryReturnVal(i_fifoType)
             myBin.write(bytearray(data))

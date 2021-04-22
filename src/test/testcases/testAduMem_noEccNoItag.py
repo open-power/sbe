@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -39,8 +39,11 @@ def main( ):
     testUtil.runCycles( 10000000 )
 
     # PutMemAdu - Secure operations
-    data = os.urandom(4)
-    data = [ord(c) for c in data]
+    random_data = os.urandom(4)
+    if(sys.version_info.major > 2):
+       data = list(random_data)
+    else:
+       data = [ord(c) for c in random_data]
     testMemProcUtil.putmem(0x00000000, data, 0x00002001)
     testMemProcUtil.putmem(0x00000000, data, 0x00000801)
     testMemProcUtil.putmem(0x00000000, data, 0x00008001)
@@ -49,8 +52,11 @@ def main( ):
     print ("Success - ADU secure operations")
 
     #PutMemAdu Test
-    data = os.urandom(80)
-    data = [ord(c) for c in data]
+    random_data = os.urandom(80)
+    if(sys.version_info.major > 2):
+       data = list(random_data)
+    else:
+       data = [ord(c) for c in random_data]
     testMemProcUtil.putmem(0xE0000000, data, 0xA5)
 
     # GetMemAdu test
@@ -64,8 +70,11 @@ def main( ):
 
     # Partial Write test
     readData = testMemProcUtil.getmem(0xE0000000, 40, 0xA5)
-    data = os.urandom(8)
-    data = [ord(c) for c in data]
+    random_data = os.urandom(8)
+    if(sys.version_info.major > 2):
+       data = list(random_data)
+    else:
+       data = [ord(c) for c in random_data]
     testMemProcUtil.putmem(0xE0000008, data, 0xA5)
     readBackData = testMemProcUtil.getmem(0xE0000000, 40, 0xA5)
     sandwichData = readData[:8]+data+readData[len(data)+8:]

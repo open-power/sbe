@@ -34,8 +34,7 @@ import testMemUtil
 
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
-    return list(struct.unpack('<BBBB',hex_string.decode('hex')))
-
+    return list(struct.unpack('<BBBB',codecs.decode(hex_string,'hex')))
 def getdoubleword(dataInInt):
     hex_string = '0'*(16-len(str(hex(dataInInt))[:18][2:])) + str(hex(dataInInt))[:18][2:]
     return hex_string
