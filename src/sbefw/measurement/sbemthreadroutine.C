@@ -246,7 +246,7 @@ void sbemthreadroutine(void *i_pArg)
         SBEM_INFO("Verification Image Source addr in Boot Seeprom is [0x%08X]", srcAddr);
         loadSectionForVerification(srcAddr, (uint64_t *)(vhdr->iv_L1LoaderAddr));
         SBEM_INFO("Completed Loading of .sb_verification into PIBMEM, Jump to Verification Image");
-        jump2verificationImage((uint32_t )vhdr->iv_kernelAddr);
+        jump2verificationImage((uint32_t )vhdr->iv_kernelAddr, (uint32_t)vhdr->iv_L1LoaderAddr);
     }
     else
     {

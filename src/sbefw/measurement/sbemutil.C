@@ -26,6 +26,7 @@
 #include "fapi2.H"
 #include "sbemtrace.H"
 #include "sbeDecompression.h"
+#include "sbeutil.H"
 
 extern "C"
 {
@@ -33,37 +34,19 @@ extern "C"
 /*
  * API to jump to verification code.
  */
-void jump2verificationImage(uint32_t i_destAddr)
+void jump2verificationImage(uint32_t i_pkBootAddr, uint32_t i_ivprAddr)
 {
-    asm volatile (
-                     "mr %0, %1" : : "i" (6), "r" (i_destAddr) : "memory"
-                 );
+    if(!SBE::isSimicsRunning())
+    {
+        // Set the IVPR register. This is required so that interrupt vector table
+        // points to pk interfaces.
+        uint64_t data = (uint64_t)i_ivprAddr << 32;
+        PPE_STVD(0xc0000160, data);
+    }
+    asm volatile ( "mr %0, %1" : : "i" (6), "r" (i_pkBootAddr) : "memory" );
     asm(
             "mtctr %r6\n"
             "bctr\n"
-       );
-}
-
-/*
- * API to jump to the boot seeprom.
- */
-void jump2bootImage()
-{
-    asm(
-            "lis %r4, 0xFF80\n"
-            "lvd %d0, 0(%r4)\n"
-            "lis %r2 , 0x5849\n"
-            "ori %r2 , %r2 , 0x5020\n"
-            "lis %r3 , 0x5345\n"
-            "ori %r3 , %r3, 0x504d\n"
-            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
-            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
-            "ori %r4, %r4, 8\n"
-            "lvd %d0 , 0(%r4)\n"
-            "mtctr %r1\n"
-            "bctr\n"
-            "magic_failed:\n"
-            "trap\n"
        );
 }
 } // end extern "C"
@@ -76,6 +59,5 @@ int32_t loadSectionForVerification( uint64_t *i_srcAddr, uint64_t *i_destAddr )
          if (rc != 0 )
            break;
        } while(0);
-
     return rc;
 }

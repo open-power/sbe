@@ -49,8 +49,8 @@ extern "C" {
 #define DD2                                            2
 #define EC_MAJOR_VERSION_BIT_SHIFT                     36
 
-extern void jump2verificationImage(uint32_t i_destAddr);
-extern void jump2bootImage();
+extern void jump2verificationImage(uint32_t i_pkBootAddr, uint32_t i_ivprAddr);
+
 #ifdef __cplusplus
 }
 #endif
