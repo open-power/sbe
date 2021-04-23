@@ -106,6 +106,7 @@ p10_hcd_core_startclocks(
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+    uint8_t l_hw567424 = 0;
 
 #ifndef __PPE__
     fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP> l_proc = eq_target.getParent <fapi2::TARGET_TYPE_PROC_CHIP> ();
@@ -153,7 +154,16 @@ p10_hcd_core_startclocks(
 
 #endif
 
-    FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
+#ifndef __PPE__
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_CHIP_EC_FEATURE_HW567424, l_proc, l_hw567424 ) );
+#else
+#if POWER10_DD_LEVEL == 10
+    l_hw567424 = 0;
+#else
+    l_hw567424 = 1;
+#endif
+#endif
+    FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START , (l_hw567424 != 0) ) );
 
     FAPI_DBG("Disable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
