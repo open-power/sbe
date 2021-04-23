@@ -45,8 +45,6 @@
 
 #include "p10_hcd_core_startclocks.H"
 #include "p10_hcd_mma_startclocks.H"
-#include "p10_hcd_mma_scaninit.H"
-#include "p10_hcd_mma_poweron.H"
 #include "p10_hcd_corecache_clock_control.H"
 #include "p10_hcd_common.H"
 #ifndef __PPE__
@@ -112,18 +110,14 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP> l_proc = eq_target.getParent <fapi2::TARGET_TYPE_PROC_CHIP> ();
 #endif
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-#ifndef EQ_SKEW_ADJUST_DISABLE
     uint32_t                l_timeout = 0;
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
-#endif
 
     FAPI_INF(">>p10_hcd_core_startclocks");
 
     FAPI_DBG("Enable ECL2 Skewadjust via CPMS_CGCSR[1:CL2_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(1) ) );
-
-#ifndef EQ_SKEW_ADJUST_DISABLE
 
     FAPI_DBG("Check ECL2 Skewadjust Sync Done via CPMS_CGCSR[33:CL2_CLK_SYNC_DONE]");
     l_timeout = HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
@@ -151,8 +145,6 @@ p10_hcd_core_startclocks(
                  .set_CPMS_CGCSR(l_scomData)
                  .set_CORE_TARGET(i_target),
                  "ERROR: ECL2 Clock Sync Done Timeout");
-
-#endif
 
 #ifndef __PPE__
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_CHIP_EC_FEATURE_HW567424, l_proc, l_hw567424 ) );
@@ -207,12 +199,12 @@ p10_hcd_core_startclocks(
 
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
 
+    // only start mma when poweron is enabled and not in dynamic mode
+    // the power on and scan is done by exit of stop3 and stop11 accordingly
     if( !l_attr_mma_poweron_disable )
     {
         // Start MMA clocks along/after core clocks
-        // shared for both stop11 and stop3 path
-        FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
-        FAPI_TRY( p10_hcd_mma_scaninit( i_target ) );
+        // shared for all stop2,3,11 path
         FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
     }
 

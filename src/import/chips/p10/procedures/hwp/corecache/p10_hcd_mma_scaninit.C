@@ -40,6 +40,7 @@
 //------------------------------------------------------------------------------
 
 #include "p10_hcd_mma_scaninit.H"
+#include "p10_hcd_corecache_realign.H"
 #include <p10_hcd_common.H>
 #include <p10_pm_hcd_flags.h>
 #include <p10_ring_id.H>
@@ -112,6 +113,8 @@ p10_hcd_mma_scaninit(
 #endif
 
 #ifndef P10_HCD_CORECACHE_SKIP_FLUSH
+
+        FAPI_TRY( p10_hcd_corecache_realign( eq_target, (l_regions << SHIFT32(18)) ) );
 
         FAPI_DBG("Scan0 region:mma type:gptr_repr_time rings");
 
