@@ -45,11 +45,10 @@ enum preReqCommandStatus : uint8_t
     PRE_REQ_PASSED          = 0x80, // Good Status
     PRE_REQ_NON_FUNCTIONAL  = 0x40, // Non Functional
     PRE_REQ_CLOCK_ON_STATE  = 0x20, // Clock On in ChipOp
-    PRE_REQ_CORE_STOP_STAGE = 0x10, // Target in Stop Stage
+    PRE_REQ_CORE_STOP_STATE = 0x10, // Target in Stop State
 };
 
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
-
 //Struct containing details of HDCT XIP section
 typedef struct hdctXipSecDetails
 {
@@ -179,6 +178,12 @@ class sbeCollectDump
         //Unset the below flag once we find the 1st clock HDCT entry for Clock OFF state. Flag needs to be unset if clock ON state(Done in constructor).
         bool iv_clockOffEntryFlag = true;
         uint8_t iv_collectFastArray = false;
+        bool  iv_L3ScomState[CORE_TARGET_COUNT];
+        bool  iv_L2ScomState[CORE_TARGET_COUNT];
+        // There is no entry in HDCT for MMA scoms.
+        bool  iv_L3ScanState[CORE_TARGET_COUNT];
+        bool  iv_L2ScanState[CORE_TARGET_COUNT];
+        bool  iv_MMAScanState[CORE_TARGET_COUNT];
 
         genericHdctRow_t *iv_hdctRow;
         genericRowTOC_t iv_tocRow;
@@ -205,6 +210,7 @@ class sbeCollectDump
                  iv_clockOffEntryFlag = false;
              //Get the equivalent HDCT dump type based on the requested Dump type
              iv_hdctDumpTypeMap = getEquivDumpType(i_dumpID);
+
              SBE_INFO("Dump Type Map is %x ", iv_hdctDumpTypeMap);
              SBE_INFO("Fast array collection is %x ", iv_collectFastArray);
 
@@ -218,6 +224,18 @@ class sbeCollectDump
              SBE_INFO("EKB Commit ID: 0x%.8x%.8x ",
                        SBE::higher32BWord(iv_dumpHeader.hdctVer),
                        SBE::lower32BWord(iv_dumpHeader.hdctVer));
+
+             // By default set the scom and scan state for all the core targets to TRUE.
+             // If there is an error in populating the scoms and scan state, SBE will try
+             // to collect the data for the core
+             for(uint32_t coreNum = 0; coreNum < CORE_TARGET_COUNT; coreNum++)
+             {
+                 iv_L3ScomState[coreNum] = true;
+                 iv_L2ScomState[coreNum] = true;
+                 iv_L3ScanState[coreNum] = true;
+                 iv_L2ScanState[coreNum] = true;
+                 iv_MMAScanState[coreNum] = true;
+             }
          }
          ~sbeCollectDump()
          {
@@ -264,6 +282,20 @@ class sbeCollectDump
          *              false if the chip unit is not present in the current HDCT row.
          */
         bool isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target);
+
+        /*
+         * @brief Populate scom and scan state for all the core targets.
+         *
+         * @return void
+         */
+        void populateAllCoresScomScanState();
+
+        /*
+         * @brief Check scom and scan state for the core target.
+         *
+         * @return bool true if the core is scommable or scannable.
+         */
+        bool checkScomAndScanStateForCore();
 
         /**
          * @brief Parse the single HDCT entry and populate the genericHDCTRow_t object.

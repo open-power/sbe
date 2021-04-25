@@ -39,6 +39,8 @@
 #include <p10_tracearray_defs.H>
 #include "sbecmdringaccess.H"
 #include "sbecmdiplcontrol.H"
+#include "p10_query_corecachemma_access_state.H"
+#include "sbecmdcntlinst.H"
 
 // FastArray Data Size for DD1
 #define FAST_ARRAY_CTRL_SET1_DD1_SIZE 0x48E18
@@ -46,8 +48,6 @@
 // FastArray Data Size for DD2
 #define FAST_ARRAY_CTRL_SET1_DD2_SIZE 0x474A8
 #define FAST_ARRAY_CTRL_SET2_DD2_SIZE 0x2514
-
-static const uint32_t CBS_MAJOR_EC_VERSION_BIT_SHIFT = 36;
 
 using namespace fapi2;
 
@@ -295,6 +295,154 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
                (chipUnitNum <= iv_hdctRow->genericHdr.chipletEnd)) );
 }
 
+void sbeCollectDump::populateAllCoresScomScanState()
+{
+    #define SBE_FUNC "populateAllCoresScomScanState"
+    SBE_ENTER(SBE_FUNC);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {
+        //Fetch all EQ Targets
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
+        {
+            scomStatus_t scomStateData;
+            scanStatus_t scanStateData;
+            SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
+                                          scomStateData, scanStateData);
+            SBE_DEBUG(SBE_FUNC "scomStateData and scanstateData is 0x%08X 0x%08X", scomStateData.scomState, scanStateData.scanState);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state "
+                                   " failed. RC=[0x%08X]", fapiRc);
+                continue;
+            }
+
+            //For all Core targets associated with the EQ target,
+            //populate the scom and scan state.
+            for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+            {
+                uint32_t coreNum = coreTgt.get().getTargetInstance();
+                // Populate L2ScomState for all the cores.
+                iv_L2ScomState[coreNum] = isCoreOrL2CacheScomEnabled(coreTgt,scomStateData);
+
+                // Populate L3ScomState for all the cores.
+                iv_L3ScomState[coreNum] = isL3CacheScomEnabled(coreTgt,scomStateData);
+
+                // Populate L2ScanState for all the cores.
+                iv_L2ScanState[coreNum] = isCoreOrL2CacheScanEnabled(coreTgt,scanStateData);
+
+                // Populate L3ScanState for all the cores.
+                iv_L3ScanState[coreNum] = isL3CacheScanEnabled(coreTgt,scanStateData);
+
+                // Populate L3MMAState for all the cores.
+                iv_MMAScanState[coreNum] = isCoreOrMmaScanEnabled(coreTgt,scanStateData);
+
+            }
+        }
+    } while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+}
+
+bool sbeCollectDump::checkScomAndScanStateForCore()
+{
+    #define SBE_FUNC "checkScomAndScanStateForCore"
+    SBE_ENTER(SBE_FUNC);
+    // By default scomAndScanState will set to true for cases like scom address in QME region.
+    bool scomAndScanState = true;
+    do
+    {
+        // StopState verification only for Core
+        if(iv_tocRow.tocHeader.chipUnitType != CHIP_UNIT_TYPE_C)
+        {
+            break;
+        }
+
+        // Verify only for getScom, traceArray, getRing and FastArray
+        // There is no putscom entry for core in HDCT.
+                if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY) ) )
+        {
+            break;
+        }
+
+        if( iv_tocRow.tocHeader.cmdType == CMD_GETSCOM )
+        {
+            uint32_t addr = iv_hdctRow->cmdGetScom.addr;
+            // Check if the scom address is of L3 region.
+            if( 0x20010000 == ( addr &(0xFFFF0000) ))
+            {
+                scomAndScanState = iv_L3ScomState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+
+            // Check if the scom address is of L2 region.
+            if( 0x20020000 == ( addr &(0xFFFF0000) ))
+            {
+                scomAndScanState = iv_L2ScomState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+            // For other case scom and scan state will be 1
+        }
+        if( iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY)
+        {
+            uint32_t traceArrayId = iv_hdctRow->cmdTraceArray.traceArrayID;
+            // Check if tracearray ID is of L2 region.
+            // _PROC_TB_LAST_IOHS_TARGET  = 0xC0,
+            // Core regions - TARGET_TYPE_COREdd
+            // PROC_TB_L20,
+            // PROC_TB_L21,
+            if( (traceArrayId == 0xC1) || (traceArrayId == 0xC2))
+            {
+                scomAndScanState = iv_L2ScomState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+            // For other case scom and scan state will be 1
+        }
+        if( iv_tocRow.tocHeader.cmdType == CMD_GETRING )
+        {
+            uint32_t addr = iv_hdctRow->cmdGetRing.ringAddr;
+            // Check if the scom address is of L2 region.
+            if( 0x20032000 == ( addr &(0xFFFFFF00) ))
+            {
+                scomAndScanState = iv_L2ScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+
+            // Check if the scom address is of L3 region.
+            if( 0x20030200 == ( addr &(0xFFFFFF00) ))
+            {
+                scomAndScanState = iv_L3ScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+            // Check if the scom address is of MMA region.
+            if( 0x20830000 == ( addr &(0xFFFFFF00) ))
+            {
+                scomAndScanState = iv_MMAScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+            // For other case scom and scan state will be 1
+        }
+        if( iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY )
+        {
+            // Check for the control set.
+            // 0x01: ec_cl2_far
+            // 0x02: ec_mma_far
+            if( iv_hdctRow->cmdFastArray.controlSet == 0x01 )
+            {
+                scomAndScanState = iv_L2ScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+            if( iv_hdctRow->cmdFastArray.controlSet == 0x02 )
+            {
+                scomAndScanState = iv_MMAScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+
+            }
+            // For other case scom and scan state will be 1
+        }
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    return scomAndScanState;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
 {
     #define SBE_FUNC "writeGetFastArrayPacketToFifo "
@@ -319,7 +467,17 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
             iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-            SBE_INFO(SBE_FUNC "DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
+            SBE_DEBUG(SBE_FUNC "DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
+                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+            break;
+        }
+        if( !checkScomAndScanStateForCore() )
+        {
+            // Update Core Stop Status DUMP header
+            iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+            iv_tocRow.tocHeader.dataLength = 0x00;
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+            SBE_INFO("DUMP GETTRAEARRAY: StopStatus Enabled Target UnitNum[0x%08X]",
                       (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
@@ -349,6 +507,7 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         uint32_t dummyDataLengthInBits =
             64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
         len = sizeof(dumpFastArrayReq)/sizeof(uint32_t);
+
         //FIXME:We have to fetch the target type from HDCT.bin.
         dumpFastArrayReq.hdr.targetType  = TARGET_CORE;
         dumpFastArrayReq.hdr.chipletId   = iv_tocRow.tocHeader.chipUnitNum;
@@ -463,10 +622,22 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
         iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-        SBE_INFO("DUMP GETTRACEARRAY: NonFunctional Target UnitNum[0x%08X]",
+        SBE_DEBUG("DUMP GETTRACEARRAY: NonFunctional Target UnitNum[0x%08X]",
                   (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
         return rc;
     }
+
+    if( !checkScomAndScanStateForCore() )
+    {
+        // Update Core Stop Status DUMP header
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETTRAEARRAY: StopStatus Enabled Target UnitNum[0x%08X]",
+                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
+
     // The size of data streamed from SBE is irespective of trace ID
     // and it is 128*16*8 bits. [ PROC_TRACEARRAY_MAX_SIZE ] 
     iv_tocRow.tocHeader.dataLength = PROC_TRACEARRAY_MAX_SIZE * 8;
@@ -565,11 +736,21 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
         iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-        SBE_INFO("DUMP GETRING: NonFunctional Target UnitNum[0x%08X]",
-                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        SBE_DEBUG("DUMP GETRING: NonFunctional Target UnitNum[0x%08X]",
+                   (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
         return rc;
     }
 
+    if( !checkScomAndScanStateForCore() )
+    {
+        // Update Core Stop Status DUMP header
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETRING: StopStatus Enabled Target UnitNum[0x%08X]",
+                  (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
     uint32_t bitlength = iv_hdctRow->cmdGetRing.ringLen;
     //Stream out the actual ring length.
     iv_tocRow.tocHeader.dataLength = bitlength;
@@ -591,7 +772,7 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     l_reqMsg.ringMode = 0x0001;
     l_reqMsg.ringLenInBits = bitlength;
 
-    SBE_INFO(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
+    SBE_DEBUG(SBE_FUNC "Ring Address 0x%08X User Ring Mode 0x%04X "
              "Length in Bits 0x%08X Length in Bits(8 Byte aligned) 0x%08X", l_reqMsg.ringAddr,
               l_reqMsg.ringMode, l_reqMsg.ringLenInBits, iv_tocRow.tocHeader.dataLength);
 
@@ -784,8 +965,8 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
             iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-            SBE_INFO("DUMP GETSRAM: NonFunctional Target UnitNum[0x%08X]",
-                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+            SBE_DEBUG("DUMP GETSRAM: NonFunctional Target UnitNum[0x%08X]",
+                       (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
         iv_tocRow.tocHeader.dataLength = 0x2000; // Length in bits (1024 bytes)
@@ -857,7 +1038,7 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         if(!iv_tocRow.tgtHndl.getFunctional())
         {
             iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL; 
-            SBE_INFO("DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]",
+            SBE_DEBUG("DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]",
                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
@@ -935,7 +1116,17 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
         iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-        SBE_INFO("DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]",
+        SBE_DEBUG("DUMP GETSCOM: NonFunctional Target UnitNum[0x%08X]",
+                   (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
+        return rc;
+    }
+    if( !checkScomAndScanStateForCore() )
+    {
+        // Update Core Stop Status DUMP header
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.dataLength = 0x00;
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
+        SBE_INFO("DUMP GETSCOM: Core Stop State Target UnitNum[0x%08X]",
                   (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
         return rc;
     }
@@ -953,9 +1144,9 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     }
     else
     {
-        SBE_INFO("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ",
-                  iv_tocRow.tocHeader.address, (dumpData >> 32),
-                  static_cast<uint32_t>(dumpData & 0xFFFFFFFF));
+        SBE_DEBUG("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ",
+                   iv_tocRow.tocHeader.address, (dumpData >> 32),
+                   static_cast<uint32_t>(dumpData & 0xFFFFFFFF));
     }
     iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&dumpData);
     SBE_EXIT(SBE_FUNC);
@@ -1284,6 +1475,17 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
     {
         // Update PHB functional state
         updatePhbFunctionalState(); // Ignore return value
+
+        // TODO: Gather clock state for all targets.
+
+        // Gather scom and scan state for all the cores.
+        populateAllCoresScomScanState();
+
+        for(uint32_t coreNum = 0; coreNum < CORE_TARGET_COUNT; coreNum++)
+        {
+             SBE_DEBUG(SBE_FUNC "Core num:0x%02X L2 scom state:0x%02X L3 scom state:0x%02X", coreNum, iv_L2ScomState[coreNum], iv_L3ScomState[coreNum]);
+             SBE_DEBUG(SBE_FUNC "L2 scan state:0x%02X L3 scan state:0x%02X MMA scan state:0x%02X", iv_L2ScanState[coreNum], iv_L3ScanState[coreNum], iv_MMAScanState[coreNum]);
+        }
 
         // Write the dump header to FIFO
         uint32_t len = sizeof(dumpHeader_t)/ sizeof(uint32_t);

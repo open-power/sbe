@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -50,6 +50,36 @@ fapi2::ReturnCode stopAllCoreInstructions( );
   * @return    Rc from the FIFO access utility
   */
 uint32_t sbeCntlInst (uint8_t *i_pArg);
+
+/**
+  * @brief Returns SCANable states for input Core and L2
+  *
+  * @param[in] i_coreTgt Core Target
+  * @param[in] scanStatus_t entry for particular core target
+  *
+  * @return  Scan state for particular core and its assocaied cache
+  */
+bool isCoreOrL2CacheScanEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt ,scanStatus_t& i_scanStateData);
+
+/**
+  * @brief Returns SCANable states for input Core and L3
+  *
+  * @param[in] i_coreTgt Core Target
+  * @param[in] scanStatus_t entry for particular core target
+  *
+  * @return  Scan state for particular core and its assocaied cache
+  */
+bool isL3CacheScanEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt, scanStatus_t& i_scanStateData);
+
+/**
+  * @brief Returns SCANable states for input Core and MMA
+  *
+  * @param[in] i_coreTgt Core Target
+  * @param[in] scanStatus_t entry for particular core target
+  *
+  * @return  Scan state for particular core and its assocaied cache
+  */
+bool isCoreOrMmaScanEnabled(const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_coreTgt, scanStatus_t& i_scanStateData);
 
 /**
   * @brief Returns SCOMable states for input Core and L2

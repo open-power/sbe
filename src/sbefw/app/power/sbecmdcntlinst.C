@@ -240,6 +240,78 @@ bool isCoreOrL2CacheScomEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt,scomSt
     }
 }
 
+bool isCoreOrL2CacheScanEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt, scanStatus_t& i_scanStateData)
+{
+    switch(i_coreTgt.get().getTargetInstance() % 4)
+    {
+        case 0: //CORE INSTANCE 0
+             return(i_scanStateData.ecl20);
+             break;
+
+        case 1: //CORE INSTANCE 1
+             return(i_scanStateData.ecl21);
+             break;
+
+        case 2: //CORE INSTANCE 2
+             return(i_scanStateData.ecl22);
+             break;
+
+        case 3: //CORE INSTANCE 3
+             return(i_scanStateData.ecl23);
+             break;
+        default : return false;
+
+    }
+}
+
+bool isL3CacheScanEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt, scanStatus_t& i_scanStateData)
+{
+    switch(i_coreTgt.get().getTargetInstance() % 4)
+    {
+        case 0: //CORE INSTANCE 0
+             return(i_scanStateData.l30);
+             break;
+
+        case 1: //CORE INSTANCE 1
+             return(i_scanStateData.l31);
+             break;
+
+        case 2: //CORE INSTANCE 2
+             return(i_scanStateData.l32);
+             break;
+
+        case 3: //CORE INSTANCE 3
+             return(i_scanStateData.l33);
+             break;
+        default : return false;
+
+    }
+}
+
+bool isCoreOrMmaScanEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt, scanStatus_t& i_scanStateData)
+{
+    switch(i_coreTgt.get().getTargetInstance() % 4)
+    {
+        case 0: //CORE INSTANCE 0
+             return(i_scanStateData.mma0);
+             break;
+
+        case 1: //CORE INSTANCE 1
+             return(i_scanStateData.mma1);
+             break;
+
+        case 2: //CORE INSTANCE 2
+             return(i_scanStateData.mma2);
+             break;
+
+        case 3: //CORE INSTANCE 3
+             return(i_scanStateData.mma3);
+             break;
+        default : return false;
+
+    }
+}
+
 bool isL3CacheScomEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt,scomStatus_t& i_scomStateData)
 {
     switch(i_coreTgt.get().getTargetInstance() % 4)
