@@ -158,6 +158,8 @@ namespace SBE
     {
         #define SBE_FUNC "RUN_SYSTEM_RESET"
         SBE_INFO(SBE_FUNC" System is going for manual Reset");
+        uint32_t reset_msr = 0;
+        mtmsr(reset_msr);
         uint64_t data = (uint64_t)(OTPROM_ORIGIN) << 32;
         PPE_STVD(g_ivprLoc, data);
         if(SBE::isSimicsRunning())
