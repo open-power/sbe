@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,6 +51,7 @@ enum P10_SBE_CHIPLET_FIR_INIT_Private_Constants
     OTH_LFIR_ACTION0_VALUE  = 0b0000000000000000000000000000000000000000000000000000000000000000,
     OTH_LFIR_ACTION1_VALUE  = 0b1111111111111111111111111111111111111111111111111111111111111111,
     OTH_LFIR_MASK_VALUE     = 0b0000000011101111111100111111111111111111111111111111111111111111,
+    PCI_LFIR_MASK_VALUE     = 0b0000010011101111111100111111111111111111111111111111111111111111,
     XSTOP_MASK_VALUE        = 0b0010000000000000000000000000000000000000000000000000000000000000,
     XSTOP_MASK_VALUE_SPATTN = 0b0000000000000000000000000000000000000000000000000000000000000000,
     // Constants to set up clockstop-on-xstop
@@ -95,7 +96,7 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
     FAPI_TRY(fapi2::putScom(l_mc_pau,  EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
     FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_ACTION0, OTH_LFIR_ACTION0_VALUE));
     FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_ACTION1, OTH_LFIR_ACTION1_VALUE));
-    FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_MASK_RW, OTH_LFIR_MASK_VALUE));
+    FAPI_TRY(fapi2::putScom(l_mc_pci,  EPS_FIR_LOCAL_MASK_RW, PCI_LFIR_MASK_VALUE));
 
     FAPI_DBG("Drop pervasive CFIR masks on all chiplets");
     FAPI_TRY(fapi2::putScom(l_mc_all, XSTOP_MASK_RW, l_xstop_on_spattn ? (XSTOP_MASK_VALUE_SPATTN) : (XSTOP_MASK_VALUE)));
