@@ -100,22 +100,20 @@ void sbevthreadroutine(void *i_pArg)
         uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_SBEFW_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
 
-        //TODO: Set secure acces bit based on prefix header flag in SBE_FW
-        //secure container
         if( sbeFwSecureHdrRsp == ROM_DONE )
         {
             isSecureHdrPassed = 1;
             SBEV_INFO(SBEV_FUNC "Prefix header flag in SBE_FW secure container [0x%08x]", sbeFwSecureHdrResponse.flag);
             SBEV_INFO(SBEV_FUNC "Completed SBE_FW secure header verification. Response:[0x%08x] Status:[0x%02x]",
                 sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-            sbevSetSecureAccessBit(isSecureHdrPassed, sbeFwSecureHdrResponse.flag);
         }
         else
         {
+            isSecureHdrPassed = 0;
             SBEV_ERROR(SBEV_FUNC "SBE_FW Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
                 sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-            sbevSetSecureAccessBit(isSecureHdrPassed, sbeFwSecureHdrResponse.flag);
         }
+        sbevSetSecureAccessBit(isSecureHdrPassed, sbeFwSecureHdrResponse.flag);
 
         SBEV_INFO(SBEV_FUNC "Verify HBBL secure header.");
         sbeHbblSecureHdrRsp = verifySecureHdr(P9_XIP_SECTION_SBE_SBH_HBBL, VERIFY_HW_SIG_A_HBBL, &hbblSecureHdrResponse);

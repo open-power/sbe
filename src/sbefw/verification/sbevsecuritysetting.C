@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -28,7 +29,7 @@
 #include "p10_sbe_scratch_regs.H"
 #include "sbevtrace.H"
 
-void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureBackDoorFlag)
+void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureHdrFlags)
 {
     #define SBEV_FUNC " sbemSetSecureAccessBit "
     SBEV_ENTER(SBEV_FUNC);
@@ -54,24 +55,31 @@ void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureBackDoo
             break;
         }
 
-        //TODO:Update the below comment once complet flow is finalised
         //FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, security_mode));
-        //The above attribute will come directly from the parsing the bpoot seeprom
-        //secure header xip section, which meaurement code will do at some point of
-        //time, for the time being let's say security is disabled for this attribute
-        if(i_secureHdrStatus == 0)  //Secure Header not passed, disabling BackDoor .
+        //The above attribute will come directly from the parsing the boot seeprom
+        //secure header xip section flags to determine if the SBE should allow
+        //secure_mode to be disabled based on the scratch register request
+        if(i_secureHdrStatus == 0)  //Secure Header verification failed, security disablement not allowed .
         {
-            SBEV_INFO(SBEV_FUNC "Disabling Back Door entry since SBE_FW Secure Header Failed");
+            SBEV_INFO(SBEV_FUNC "Disabling security not allowed since SBE_FW Secure Header Failed");
             security_mode = 1;
         }
-        else //Secure Header passed
+        else //Secure Header verification passed
         {
-            SBEV_INFO(SBEV_FUNC "Secure Header passed, Enabling Back door entry by default");
-            //TODO:Set the secure mode basis the flag (i_secureBackDoorFlag)
-            security_mode = 0;
+            // Check for SB header flag (0x00080000) that is only possible in imprint signed images
+            if ((0x00080000 & i_secureHdrFlags) != 0)
+            {
+                security_mode = 0;
+                SBEV_INFO(SBEV_FUNC "Secure Header valid and security disablement allowed");
+            }
+            else
+            {
+                security_mode = 1;
+                SBEV_INFO(SBEV_FUNC "Secure Header valid and security disablement NOT allowed");
+            }
         }
-        // 1 == Secure mode == Backdoor disabled
-        // 0 == Unsecure mode == Backdoor enabled
+        // 1 == Secure mode == Disabling security not allowed
+        // 0 == Unsecure mode == Disabling security allowed via request in scratch register
 
         rc = getscom_abs_wrap (&target, scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
         if(rc)

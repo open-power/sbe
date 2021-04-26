@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -25,4 +26,4 @@
 
 using namespace fapi2;
 
-void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureBackDoorFlag);
+void sbevSetSecureAccessBit(uint32_t i_secureHdrStatus, uint32_t i_secureHdrFlags);
