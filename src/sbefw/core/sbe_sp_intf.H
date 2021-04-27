@@ -296,7 +296,8 @@ enum sbeSecondaryResponse
     SBE_SEC_FAILED_TO_CHECKSTOP               = 0x42,
     SBE_SEC_GET_DUMP_STREAM_FAILED            = 0x43,
     SBE_SEC_MPIPL_DUMP_INVALID_PARAMS         = 0x44,
-
+    SBE_SEC_OCMB_TARGET_NOT_PRESENT           = 0x45,
+    SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL        = 0x46,
 };
 
 /**

@@ -31,6 +31,7 @@
 #include <plat_target_utils.H>
 #include <p10_scom_pibms.H>
 #include <p10_scom_perv_9.H>
+#include <sbeutil.H>
 #endif
 
 
@@ -142,6 +143,18 @@ ReturnCode plat_setMcMap(const std::vector< MulticastGroupMapping > &i_mappings)
 #endif // __SBEFW_SEEPROM__
 
 #if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
+
+// It would be more ideal for these to come from the SPD even though they are currently
+// constants. Perhaps these can change later. Can we access the SPD from here somehow?
+const uint8_t PMIC_DEV_ADDR[4] = {0xCE, 0x9E, 0xB4, 0xBE};
+const uint8_t GI2C_DEV_ADDR[4] = {0x20, 0x2E, 0x70, 0x7E};
+const uint8_t DIMM_I2C_PORT[16] = {
+            0x00, 0x0A, 0x0B, 0x09, 0x0C, 0x0D, 0x08, 0x07,
+            0x0F, 0x02, 0x01, 0x0E, 0x03, 0x06, 0x05, 0x04
+};
+const uint8_t DIMM_I2C_ENGINE = 0x03;
+const uint8_t OCMB_I2C_ADDRESS = 0x40;
+
 template<TargetType K>
 plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
 {
@@ -227,7 +240,43 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     {
         l_handle.fields.chiplet_num = i_plat_argument;
         l_handle.fields.type = PPE_TARGET_TYPE_OCMB;
-        l_handle.fields.type_target_num = i_plat_argument;
+
+        if(SBE::isSimicsRunning())
+        {
+            l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument];
+            l_handle.fields.engine = DIMM_I2C_ENGINE;
+            l_handle.fields.devAddr = OCMB_I2C_ADDRESS;
+            l_handle.fields.functional = 1;
+            l_handle.fields.present = 1;
+        }
+    }
+    else if(K & TARGET_TYPE_PMIC)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument;
+        l_handle.fields.type = PPE_TARGET_TYPE_PMIC;
+
+        if(SBE::isSimicsRunning())
+        {
+            l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument / 4];
+            l_handle.fields.engine = DIMM_I2C_ENGINE;
+            l_handle.fields.devAddr = PMIC_DEV_ADDR[i_plat_argument % 4];
+            l_handle.fields.functional = 1;
+            l_handle.fields.present = 1;
+        }
+    }
+    else if(K & TARGET_TYPE_GENERICI2CSLAVE)
+    {
+        l_handle.fields.chiplet_num = i_plat_argument;
+        l_handle.fields.type = PPE_TARGET_TYPE_GENERICI2CSLAVE;
+
+        if(SBE::isSimicsRunning())
+        {
+            l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument / 4];
+            l_handle.fields.engine = DIMM_I2C_ENGINE;
+            l_handle.fields.devAddr = GI2C_DEV_ADDR[i_plat_argument % 4];;
+            l_handle.fields.functional = 1;
+            l_handle.fields.present = 1;
+        }
     }
     else
     {
@@ -665,6 +714,28 @@ fapi_try_exit:
          }
     }
 
+    void plat_target_handle_t::getOcmbChildren(
+        const plat_target_type_t i_child_type,
+        const bool i_include_nonfunctional,
+        std::vector<plat_target_handle> &o_children) const
+    {
+        uint8_t typeStartIndex = (i_child_type == PPE_TARGET_TYPE_PMIC) ?
+                    PMIC_TARGET_OFFSET : GI2C_TARGET_OFFSET;
+        uint8_t childCount = (i_child_type == PPE_TARGET_TYPE_PMIC) ?
+                    PMIC_PER_OCMB : GI2C_PER_OCMB;
+
+        uint8_t firstChildIndex = typeStartIndex + (fields.chiplet_num * 4);
+        for (uint32_t i = 0; i < childCount; i++)
+        {
+            plat_target_handle_t &l_target = G_vec_targets[firstChildIndex + i];
+            if ((i_include_nonfunctional || l_target.fields.functional)
+                && l_target.fields.present)
+            {
+                o_children.push_back(l_target);
+            }
+        }
+    }
+
     /// @brief Function to initialize the G_targets vector with functional state
     ///        basis the PG Attribute
     ReturnCode plat_UpdateFunctionalState()
@@ -738,6 +809,15 @@ fapi_try_exit:
         return fapi2::current_err;
     }
 
+    /// @brief Helper function for fapi2::Target::getParent()
+    ///         for PMIC and GI2C targets
+    plat_target_handle plat_target_handle_t::getPmicGi2cParent() const
+    {
+        uint8_t ocmbNum = fields.chiplet_num / 4;
+
+        return G_vec_targets[OCMB_TARGET_OFFSET + ocmbNum];
+    }
+
 #endif // __SBEFW_PIBMEM__
 
 #if defined __SBEFW_SEEPROM__
@@ -748,13 +828,6 @@ fapi_try_exit:
     {
         uint8_t l_chipName = fapi2::ENUM_ATTR_NAME_NONE;
         plat_target_handle_t l_platHandle;
-
-        //TODO: Remove once UpdateOCMBTarget chip-op is enabled.
-        //This data will from that chip-op.
-        uint8_t mReg[24] = {0x00, 0x1A, 0x2B, 0x39, 0x4C, 0x5D, 0x68, 0x77,
-                             0x8F, 0x92, 0xA1, 0xBE, 0xC3, 0xD6, 0xE5, 0xF4,
-                             0x03, 0x40, 0xFF, 0xFF, 0x0, 0x0, 0x0, 0x0};
-        uint8_t *ocmbParam = mReg;
 
         // Initialize multicast group mappings to "undefined"
         clear_mc_map();
@@ -924,31 +997,25 @@ fapi_try_exit:
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_NMMU>(i);
         }
 
-        /*
-         * OCMB Targets
-         */
-        plat_OCMBTargetsInit(ocmbParam);
+        l_beginning_offset = OCMB_TARGET_OFFSET;
+        for (uint32_t i = 0; i < OCMB_TARGET_COUNT; ++i)
+        {
+            G_vec_targets[l_beginning_offset + i] =
+                createPlatTargetHandle<fapi2::TARGET_TYPE_OCMB_CHIP>(i);
+        }
 
-        /*
-         * PMIC Targets
-         */
         l_beginning_offset = PMIC_TARGET_OFFSET;
         for (uint32_t i = 0; i < PMIC_TARGET_COUNT; ++i)
         {
-            plat_target_handle pmicTarget;
-            pmicTarget.value = 0xDEADBEEF;
-            G_vec_targets[l_beginning_offset + i] = pmicTarget;
+            G_vec_targets[l_beginning_offset + i] =
+                createPlatTargetHandle<fapi2::TARGET_TYPE_PMIC>(i);
         }
 
-        /*
-         * GI2C Targets
-         */
         l_beginning_offset = GI2C_TARGET_OFFSET;
         for (uint32_t i = 0; i < GI2C_TARGET_COUNT; ++i)
         {
-            plat_target_handle gi2cTarget;
-            gi2cTarget.value = 0xDEADBEEF;
-            G_vec_targets[l_beginning_offset + i] = gi2cTarget;
+            G_vec_targets[l_beginning_offset + i] =
+                createPlatTargetHandle<fapi2::TARGET_TYPE_GENERICI2CSLAVE>(i);
         }
 
         // Debug Code - Don't Remove
@@ -991,11 +1058,12 @@ fapi_try_exit:
                 //create OCMB target.
                 plat_target_handle ocmbTarget;
                 ocmbTarget.value = 0;
-                ocmbTarget.fields.chiplet_num = instance;
+                ocmbTarget.fields.chiplet_num = i;
                 ocmbTarget.fields.port = port;
                 ocmbTarget.fields.engine = engine;
                 ocmbTarget.fields.devAddr = devAddr;
                 ocmbTarget.fields.functional = functionalSate;
+                ocmbTarget.fields.present = 1;
                 ocmbTarget.fields.type = targetType;
                 FAPI_IMP("OCMB target created is 0x%08X", ocmbTarget);
                 G_vec_targets[OCMB_TARGET_OFFSET + i] = ocmbTarget;
@@ -1005,6 +1073,53 @@ fapi_try_exit:
                 FAPI_DBG("G_vec_targets.at[%d]=0x%.8x",i,(uint32_t)(G_vec_targets[i].value));
             }
         }while(0);
+    }
+
+    ///
+    /// @brief Generate OCMB, PMIC and GI2C targets from the provided memory config
+    /// @param[in] memConfig memory configuration
+    ///
+    void plat_DIMMTargetInit(uint8_t instance_id,
+                            SbeDimmTargetTypes targType,
+                            SbeI2cDevice_t& devConfig)
+    {
+        const uint32_t TARGET_OFFSET_ARRAY[] = {
+            OCMB_TARGET_OFFSET,
+            PMIC_TARGET_OFFSET,
+            GI2C_TARGET_OFFSET
+        };
+        const uint8_t PPE_TARGET_TYPE_ARRAY[] = {
+            PPE_TARGET_TYPE_OCMB,
+            PPE_TARGET_TYPE_PMIC,
+            PPE_TARGET_TYPE_GENERICI2CSLAVE
+        };
+
+        FAPI_DBG("DIMM Targettype=%d, instance_id=%d, port=%d, engine=%d",
+            targType,
+            instance_id,
+            devConfig.i2c_port,
+            devConfig.i2c_engine);
+        FAPI_DBG(", addr=%d functional=%d, present=%d",
+            devConfig.i2c_devAddr,
+            devConfig.i2c_functional,
+            devConfig.i2c_present);
+
+        //create target.
+        plat_target_handle dimmTarget;
+        dimmTarget.value = 0;
+        dimmTarget.fields.type = PPE_TARGET_TYPE_ARRAY[targType];
+        dimmTarget.fields.chiplet_num = instance_id;
+        dimmTarget.fields.port = devConfig.i2c_port;
+        dimmTarget.fields.engine = devConfig.i2c_engine;
+        dimmTarget.fields.devAddr = devConfig.i2c_devAddr;
+
+        dimmTarget.fields.functional =
+            devConfig.i2c_functional && devConfig.i2c_present;
+
+        dimmTarget.fields.present = devConfig.i2c_present;
+
+        FAPI_IMP("DIMM target created is 0x%08X", dimmTarget);
+        G_vec_targets[TARGET_OFFSET_ARRAY[targType] + instance_id] = dimmTarget;
     }
 
 #endif // __SBEFW_SEEPROM__

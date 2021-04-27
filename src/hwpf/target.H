@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -156,6 +156,24 @@ namespace fapi2
         return PPE_TARGET_TYPE_NMMU;
     }
 
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_OCMB_CHIP>()
+    {
+        return PPE_TARGET_TYPE_OCMB;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PMIC>()
+    {
+        return PPE_TARGET_TYPE_PMIC;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_GENERICI2CSLAVE>()
+    {
+        return PPE_TARGET_TYPE_GENERICI2CSLAVE;
+    }
+
     ///
     /// @brief Assignment Operator.
     /// @param[in] i_right Reference to Target to assign from.
@@ -229,6 +247,8 @@ namespace fapi2
     constexpr TargetType TARGET_TYPE_PAUC_CHILDREN = TARGET_TYPE_PAU;
     constexpr TargetType TARGET_TYPE_MC_CHILDREN = TARGET_TYPE_MI;
     constexpr TargetType TARGET_TYPE_PEC_CHILDREN = TARGET_TYPE_PHB;
+    constexpr TargetType TARGET_TYPE_OCMB_CHILDREN =
+                    TARGET_TYPE_PMIC | TARGET_TYPE_GENERICI2CSLAVE;
 
     ///
     /// @brief Get this target's immediate parent
@@ -295,6 +315,12 @@ namespace fapi2
             STATIC_CHECK((K_NO_MCAST & ~TARGET_TYPE_PEC_CHILDREN) == 0,
                          "Invalid child target for PEC parent");
             return get().template convertToChiplet<PPE_TARGET_TYPE_PEC>();
+        }
+        else if (T_NO_MCAST == TARGET_TYPE_OCMB_CHIP)
+        {
+            STATIC_CHECK((K_NO_MCAST & ~TARGET_TYPE_OCMB_CHILDREN) == 0,
+                         "Invalid child target for OCMB parent");
+            return get().getPmicGi2cParent();
         }
 
         // If we fall through to here, there is no defined code path to handle the
@@ -368,6 +394,13 @@ namespace fapi2
             STATIC_CHECK((T & ~TARGET_TYPE_PROC_CHILDREN) == 0,
                          "Invalid child type for PROC_CHIP targets");
             get().getProcChildren(P, l_include_nonfunctional, l_cast_children);
+            return l_children;
+        }
+        else if (K == TARGET_TYPE_OCMB_CHIP)
+        {
+            STATIC_CHECK((T & ~TARGET_TYPE_OCMB_CHILDREN) == 0,
+                         "Invalid child type for PROC_CHIP targets");
+            get().getOcmbChildren(P, l_include_nonfunctional, l_cast_children);
             return l_children;
         }
         else

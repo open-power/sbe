@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -318,6 +318,23 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
             }
             Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
                   <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.targetInstance);
+            if(!l_hndl.get().fields.present)
+            {
+                SBE_ERROR(SBE_FUNC"OCMB Instance ID 0x%08X is not present",
+                    (uint8_t)msg.targetInstance);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                              SBE_SEC_OCMB_TARGET_NOT_PRESENT);
+                break;
+            }
+            if(!l_hndl.get().fields.functional)
+            {
+                SBE_ERROR(SBE_FUNC"OCMB Instance ID 0x%08X is not functional",
+                    (uint8_t)msg.targetInstance);
+                hdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                              SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL);
+                break;
+            }
+
             SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.targetInstance, l_hndl.get());
             pibRc = i2cGetScom(&l_hndl, addr, &scomData);
             if(pibRc != 0)

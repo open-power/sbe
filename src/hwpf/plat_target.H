@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -172,7 +172,9 @@ namespace fapi2
                 // used for ocmb/pmic/gi2c targets
                 struct {
                     uint32_t devAddr          :8;
-                    uint32_t                  :8;  //unused
+                    uint32_t present          :1;
+                    uint32_t                  :7;// first bit is unused. remianing
+                                                 // 6 bits used in above struct.
                 } __attribute__((packed));
             } __attribute__((packed));
         } fields;
@@ -326,6 +328,19 @@ namespace fapi2
             std::vector<plat_target_handle>& o_children) const;
 
         ///
+        /// @brief Enumerate all targets related to an OCMB target
+        ///
+        /// This function is expected to call from FAPI TARGET templates
+        ///
+        /// @param [in] i_child_type            Plat target type of requested children
+        /// @param [in] i_include_nonfunctional Return also targets that are not functional
+        /// @param [out] o_children             A vector of child target handles
+        void getOcmbChildren(
+            const plat_target_type_t i_child_type,
+            const bool i_include_nonfunctional,
+            std::vector<plat_target_handle> &o_children) const;
+
+        ///
         /// @brief Gets the plat target handle as a uint32
         ///
         /// @return Plat target handle as a uint32_t
@@ -363,6 +378,11 @@ namespace fapi2
             copy.fields.sat_id = 0;
             return copy;
         }
+
+        ///
+        /// @brief get OCMB parent of any PMIC or GI2C target
+        ///
+        plat_target_handle getPmicGi2cParent() const;
     } plat_target_handle_t;
 };
 

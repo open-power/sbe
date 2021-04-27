@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,6 +49,55 @@ typedef struct {
 //
 namespace fapi2
 {
+    enum psuConfigVersion
+    {
+        SBE_PSU_I2C_CONFIG_VERSION_1 = 0x01,
+        SBE_PSU_I2C_CONFIG_VERSION_2 = 0x02,
+        SBE_PSU_I2C_CONFIG_VERSION_LATEST = SBE_PSU_I2C_CONFIG_VERSION_1,
+        SBE_PSU_I2C_CONFIG_TYPES_SUPPORTED = 0x03, // see SbeMemConfigData_t
+    };
+
+    enum SbeDimmTargetTypes
+    {
+        DIMM_OCMB_TARGET = 0x00,
+        DIMM_PMIC_TARGET = 0x01,
+        DIMM_GI2C_TARGET = 0x02
+    };
+
+    typedef struct __attribute__((packed))
+    {
+        uint8_t i2c_port;
+        uint8_t i2c_engine;
+        uint8_t i2c_devAddr;
+        uint8_t i2c_functional;
+        uint8_t i2c_present;
+        uint8_t i2c_reserved[3];
+    }SbeI2cDevice_t;
+
+    typedef struct __attribute__((packed))
+    {
+        uint16_t i2c_config_version;
+
+        // How many unique types we support today ?
+        // TYPE_PMIC+TYPE_GENERIC_I2C_DEVICE+TYPE_OCMB_CHIP = 3
+        // SBE_PSU_I2C_CONFIG_TYPES_SUPPORTED
+        uint16_t i2c_config_types_supported;  // pmic gi2c ocmb
+
+        // FAPI_POS will be used as an index into the arrays created below
+
+        // TYPE_PMIC
+        uint16_t pmic_chips_max_number;
+        SbeI2cDevice_t pmic_chips[PMIC_TARGET_COUNT];
+
+        // TYPE_GENERIC_I2C_DEVICE
+        uint16_t gi2c_chips_max_number;
+        SbeI2cDevice_t gi2c_chips[GI2C_TARGET_COUNT];
+
+        // TYPE_OCMB_CHIP
+        uint16_t ocmb_chips_max_number;
+        SbeI2cDevice_t ocmb_chips[OCMB_TARGET_COUNT];
+    }SbeMemConfigData_t;
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes
     ReturnCode plat_TargetsInit();
@@ -57,8 +106,11 @@ namespace fapi2
     /// based on UpdateOCMBTarget chip-op.
     void plat_OCMBTargetsInit(uint8_t * ocmbParams);
 
-    /// @brief Function to initialize the G_targets vector for PMIC and GI2C targets
-    void plat_PMICGI2CTargetsInit(uint8_t * ocmbParams);
+    /// @brief Function to initialize the G_targets vector for DIMM related
+    /// targets based on sbePsuMemConfig chip-op.
+    void plat_DIMMTargetInit(uint8_t instance_id,
+                            SbeDimmTargetTypes targType,
+                            SbeI2cDevice_t& devConfig);
 
     /// @brief Initializes all platInit attributes (the values for which come
     // from the scratch registers)
