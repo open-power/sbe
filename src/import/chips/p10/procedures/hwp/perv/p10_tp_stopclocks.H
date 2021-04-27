@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,7 +51,7 @@ extern "C"
 {
     fapi2::ReturnCode p10_tp_stopclocks(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, const bool i_stop_tp_clks, const bool i_stop_sbe_clks,
-                                        const bool i_ignore_pib_net_dpllnest_ppll);
+                                        const bool i_perv_bist_mode);
 }
 
 #endif

@@ -48,14 +48,14 @@ enum P10_TP_STOPCLOCKS_Private_Constants
 };
 
 static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_ignore_pib_net_dpllnest_ppll);
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_perv_bist_mode);
 static fapi2::ReturnCode p10_sbe_region_stopclocks(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
                                     const bool i_stop_tp_clks,
                                     const bool i_stop_sbe_clks,
-                                    const bool i_ignore_pib_net_dpllnest_ppll)
+                                    const bool i_perv_bist_mode)
 {
     fapi2::ReturnCode l_rc;
     bool l_tp_chiplet_accessible = 0;
@@ -85,7 +85,8 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
             // gathered by the sub-HWP so that we can avoid breaking from
             // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
             // for stopclocks.
-            l_rc = p10_tp_stopclocks_regions_all_except_sbe(i_target_chip, i_ignore_pib_net_dpllnest_ppll);
+            l_rc = p10_tp_stopclocks_regions_all_except_sbe(i_target_chip, i_perv_bist_mode);
+
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::TP_STOPCLOCKS_ERR()
                                .set_PROC_TARGET(i_target_chip),
@@ -119,7 +120,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 ///
 /// @param[in]     i_target_chiplet   Reference to TARGET_TYPE_PERV target
 static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
-        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_ignore_pib_net_dpllnest_ppll)
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip, bool i_perv_bist_mode)
 {
     fapi2::buffer<uint64_t> l_clock_regions;
 
@@ -128,7 +129,7 @@ static fapi2::ReturnCode p10_tp_stopclocks_regions_all_except_sbe(const
 
     FAPI_INF("p10_tp_stopclocks_regions_all_except_sbe: Entering ...");
 
-    if (i_ignore_pib_net_dpllnest_ppll)
+    if (i_perv_bist_mode)
     {
         // Reqiured for DFT ABIST testing
         FAPI_DBG("p10_tp_stopclocks: TP regions selected is REGIONS_ALL_EXCEPT_SBE_PIB_NET_DPLLNEST_PPLL");

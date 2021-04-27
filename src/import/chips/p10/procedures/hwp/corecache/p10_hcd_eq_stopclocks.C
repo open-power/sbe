@@ -65,12 +65,12 @@ p10_hcd_eq_stopclocks(
     FAPI_INF(">>p10_hcd_eq_stopclocks");
 
     FAPI_DBG("Disable ALL EQ Regional PSCOMs via CPLT_CTRL3[4-18]");
-    FAPI_TRY( HCD_PUTSCOM_Q( i_target, CPLT_CTRL3_WO_CLEAR, SCOM_LOAD32H( HCD_CLK_REGION_ALL ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( i_target, CPLT_CTRL3_WO_CLEAR, SCOM_LOAD32H( HCD_CLK_REGION_ALL & ~HCD_CLK_REGION_CLKADJ ) ) );
 
     FAPI_DBG("Enable ALL EQ Regional Fences via CPLT_CTRL1[4-18]");
-    FAPI_TRY( HCD_PUTSCOM_Q( i_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H( HCD_CLK_REGION_ALL ) ) );
+    FAPI_TRY( HCD_PUTSCOM_Q( i_target, CPLT_CTRL1_WO_OR, SCOM_LOAD32H( HCD_CLK_REGION_ALL & ~HCD_CLK_REGION_CLKADJ ) ) );
 
-    FAPI_TRY( p10_hcd_corecache_clock_control( i_target, HCD_CLK_REGION_ALL, HCD_CLK_STOP ) );
+    FAPI_TRY( p10_hcd_corecache_clock_control( i_target, HCD_CLK_REGION_ALL & ~HCD_CLK_REGION_CLKADJ, HCD_CLK_STOP ) );
 
 #ifndef __PPE_QME
 

@@ -53,13 +53,13 @@
 //------------------------------------------------------------------------------
 // Function definition:  p10_stopclocks
 // parameters:  i_target                      =>   chip target
-//          i_flags.stop_nest_clks        True if NEST chiplet clocks should be stopped, else false
+//              i_flags.stop_nest_clks        True if NEST chiplet clocks should be stopped, else false
 //              i_flags.stop_pcie_clks        True if PCIE chiplet clocks should be stopped, else false
 //              i_flags.stop_mc_clks          True if MC   chiplet clocks should be stopped, else false
 //              i_flags.stop_pau_clks         True if PAU chiplet clocks should be stopped, else false
 //              i_flags.stop_axon_clks        True if AXON chiplet clocks should be stopped, else false
 //              i_flags.stop_tp_clks          True if PERV (TP) chiplet clocks all except SBE should be stopped, else false
-//              i_flags.ignore_pib_net_dpllnest_ppll    True if PERV (TP) chiplet clocks excluding SBE, PIB, NET, DPLLNEST, and pervPLL should be stopped, else false
+//              i_flags.perv_bist_mode        True if PERV (TP) chiplet clocks excluding SBE, PIB, NET, DPLLNEST, pervPLL, and pauPLL should be stopped, else false
 //              i_flags.stop_sbe_clks         True if PERV (TP) chiplet SBE clocks should be stopped, else false
 //              i_flags.stop_vitl_clks        True if PERV VITL clocks should be stopped, else false
 //              i_flags.stop_cache_clks       True if CACHE chiplet clocks should be stopped, else false
@@ -298,7 +298,7 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     {
         // p10_tp_stopclocks will log errors if any during stopclocks sequence into FFDC
         FAPI_INF("p10_stopclocks : Call p10_tp_stopclocks function");
-        p10_tp_stopclocks(i_target_chip, i_flags.stop_tp_clks, i_flags.stop_sbe_clks, i_flags.ignore_pib_net_dpllnest_ppll);
+        p10_tp_stopclocks(i_target_chip, i_flags.stop_tp_clks, i_flags.stop_sbe_clks, i_flags.perv_bist_mode);
     }
 
     // Vital stopclocks
