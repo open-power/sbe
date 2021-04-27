@@ -1338,7 +1338,7 @@ ReturnCode istepStopClockDFT( voidfuncptr_t i_hwp )
     l_flags.stop_pau_clks = true;
     l_flags.stop_axon_clks = true;
     l_flags.stop_tp_clks = true;
-	l_flags.ignore_pib_net_dpllnest_ppll = true;
+    l_flags.perv_bist_mode = true;
     //l_flags.stop_sbe_clks = true;
     //l_flags.stop_vitl_clks = true;
     l_flags.stop_cache_clks = true;
