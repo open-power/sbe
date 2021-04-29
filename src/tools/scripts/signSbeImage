@@ -80,13 +80,13 @@ usage()
     echo "  -s: scratch dir path."
     echo "  -i: SBE image to sign. "
     echo "  -t: IPL Image tool path."
-    echo "  -m: MSV."
+    echo "  -S: Secure Version."
     echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
     echo "  -d: SBE Image Dir path in op-build"
     echo "  -f: signing Mode. Production/Development(Default)"
 }
 
-while getopts "h?s:i:t:b:d:m:f:" opt;
+while getopts "h?s:i:t:b:d:S:f:" opt;
 do
     case $opt in
 
@@ -115,8 +115,8 @@ do
             SBE_IMG_DIR_OP=$OPTARG
         ;;
 
-        m)
-            MSV=$OPTARG
+        S)
+            SV=$OPTARG
         ;;
 
         f)
@@ -161,8 +161,8 @@ if [ -z $SBE_IMG_DIR_OP ]; then
     OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
     OP_BUILD_LEVEL=/latest_master-p10/
     KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/bld/portal/rh7/bin/openssl:/esw/bin/bld/portal/rh7/bin:/esw/bin/bld/sb_signing_rh7/sb-signing-utils
-    PATH=$PATH:$LD_LIBRARY_PATH:$OP_BUILD_BASE
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/esw/bin/rh7/bin/openssl:/esw/bin//rh7/bin:/esw/bin/sb-signing/rh7/sb-signing-utils
+    PATH=$LD_LIBRARY_PATH:$PATH:$OP_BUILD_BASE
 else
     echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and signing scripts from OP-Build Tree"
     KEYS_DIR=${SBE_IMG_DIR_OP}/../../../host/etc/keys/
@@ -196,12 +196,18 @@ else
     exit -1
 fi
 
-#Append MSV after HW Keys Hash in .sb_settings and add padding to keep the section 8 byte alligned.
-if [ -z $MSV ]; then
-    MSV="\x00"
-    echo "***INFO | SBE | signSbeImage : MSV(Minimum Secure Version) not entered. Defaulting to $MSV"
+#Determine secure version setting
+if [ -z $SV ]; then
+    # Build process can pass in the secure version through the environment
+    if [ ! -z $SIGNING_SECURITY_VERSION ]; then
+        SV=$SIGNING_SECURITY_VERSION
+        echo "***INFO | SBE | signSbeImage : SV(Secure Version) passed via SIGNING_SECURITY_VERSION as $SV"
+    else
+        SV=0
+        echo "***INFO | SBE | signSbeImage : SV(Secure Version) not entered. Defaulting to $SV"
+    fi
 else
-    echo "***INFO | SBE | signSbeImage : MSV(Minimum Secure Version) entered: $MSV"
+    echo "***INFO | SBE | signSbeImage : SV( Secure Version) entered: $SV"
 fi
 RESERVED="\x00\x00\x00\x00\x00\x00\x00"
 
@@ -225,7 +231,7 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
     # Sign the .hbbl binary
     echo "Sign .hbbl section"
-    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate
+    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate --security-version $SV
 
     #Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
     echo "Strip SBE_HBBL.header content"
@@ -271,7 +277,7 @@ cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/baseloader.b
 
 # Sign the SBE firmware binary image(payload.bin)
 echo "Sign SBE FW image"
-crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags $FLAG --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate
+crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags $FLAG --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate --security-version $SV
 
 #Strip out padding zeros from SBE_FW.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
 echo "Strip SBE_FW.header content"
@@ -279,6 +285,7 @@ dd bs=1 count=1288 if=${SCRATCH_DIR}/SBE_FW.header of=${SCRATCH_DIR}/SBE_FW_stri
 
 #Append the stripped SBE_FW_stripped.header into .sbh_firmware xip section
 echo "Appending secure header into .sbh_firmware xip section"
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sbh_firmware
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/SBE_FW_stripped.header || exit -1
 
 #Hash of the HW keys. Fetch the value from any of the secure container which is created.
@@ -286,12 +293,16 @@ $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/SBE_FW_strippe
 echo "Calculate/Fetch Hash of HW keys"
 print-container -w0 --imagefile ${SCRATCH_DIR}/SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
 
-#Append MSV into .sb_settings xip section after HW key hash
-echo "Appending MSV $MSV and reserved bytes $RESERVED"
+# Append minumum secure version into .sb_settings xip section after HW key hash
+# The MSV built into .sb_settings is always 0.  HB will customize the real value
+#  which comes from the security header of the SBE boot seeprom image during SBE update
+MSV="\x00"
+echo "Appending MSV and reserved bytes $RESERVED"
 echo -n -e $MSV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
 
 #Append the HW key hash into .sb_settings xip section
 echo "Appending HW key hash into .sb_settings xip section"
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sb_settings
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sb_settings $SCRATCH_DIR/hw_keys_hash.bin || exit -1
 
 #Lets delete the scratch dir
