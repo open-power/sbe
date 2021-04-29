@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,7 +49,6 @@ __vectors:
 __system_reset:
         b   __l1Loader
 
-
 __l1Loader:
         # Update 50009 ( sbe status register) to show sbe in seeprom loader
         _liw     %r5, 0x50009
@@ -62,11 +61,6 @@ __l1Loader:
         _liw     %r3, 0xc0002040
         lvd      d3,0(r3)
         bb1wi    r3,16,jump_to_kernel
-        #ifndef SBE_MEASUREMENT_SUPPORT
-        # Commenting out repair to remove variables in bringup,
-        # will enable this once we have to test repairs
-        bl _pibmemRepair
-        #endif
 
         _liw     %r3, SBE_LOADER_BASE_SECTION # Base Loader Section Location
         _liw     %r4, SBE_LOADER_BASE_ORIGIN  # dest
