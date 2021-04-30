@@ -217,6 +217,16 @@ enum sbeDumpClockStates
 };
 
 /**
+ * @brief enum for sbe dump fastarray collection info
+ *
+*/
+enum sbeDumpFastArrayCollectionInfo
+{
+    SBE_DUMP_FASTARRY_COLLECTION_OFF   = 0x00, /* Fastarray collection ON  */
+    SBE_DUMP_FASTARRY_COLLECTION_ON    = 0x01, /* Fastarray collection OFF */
+};
+
+/**
  * @brief enums for primary SBE response
  *
 */
@@ -298,6 +308,8 @@ enum sbeSecondaryResponse
     SBE_SEC_MPIPL_DUMP_INVALID_PARAMS         = 0x44,
     SBE_SEC_OCMB_TARGET_NOT_PRESENT           = 0x45,
     SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL        = 0x46,
+    SBE_SEC_INVALID_FASTARRAY_COLLECTION_INFO = 0x47,
+
 };
 
 /**

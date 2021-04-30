@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -81,9 +81,18 @@ uint32_t sbeGetDump( uint8_t *i_pArg )
             break;
         }
 
+        if(!msg.validateFastArrayCollection())
+        {
+            SBE_ERROR(SBE_FUNC " Unsupported/Invalid fastarray collecton parameter %x",(uint8_t)msg.collectFastArray);
+            respHdr.setStatus(SBE_PRI_INVALID_DATA,SBE_SEC_INVALID_FASTARRAY_COLLECTION_INFO);
+            ffdc.setRc(rc);
+            break;
+        }
+
         //Create the sbeCollectDump object.
         sbeCollectDump dumpObj( (uint8_t)msg.dumpType,
                                 (uint8_t)msg.clockState,
+                                (uint8_t)msg.collectFastArray,
                                 fifoType );
 
         //Call collectAllEntries.

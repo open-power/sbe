@@ -131,8 +131,11 @@ uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
         SBE_INFO(SBE_FUNC "HbMem Address[0x%08X %08X]",
                            SBE::higher32BWord(hbMemAddr),
                            SBE::lower32BWord(hbMemAddr));
+
+        // In  MPIPL dumps, there is no collection of fastarray data.
+        uint8_t collectFastArray = 0;
         // Create the sbeCollectDump object for ClockOn
-        sbeCollectDump dumpClockOnObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_ON,
+        sbeCollectDump dumpClockOnObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_ON, collectFastArray,
                                 SBE_FIFO, hbMemAddr);
         //Call collectAllEntries to write dump into HbMem
         rc = dumpClockOnObj.collectAllHDCTEntries();
@@ -1022,116 +1025,134 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
 
-    // Get update row values by using HDCT bin data
-    iv_tocRow.tocHeaderInit(iv_hdctRow);
-    // TODO: Clean-Up once other chip-op ennabled.
-    if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)    ||
-           (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)    ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)  ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
-           (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
-           (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
-        return rc;
-
-    // Map Dump target id with plat target list
-    std::vector<plat_target_handle_t> targetList;
-    getTargetList(targetList);
-
-    for( auto &target : targetList )
+    do
     {
-        //CPU cycles to complete the chip-op.
-        iv_tocRow.cpuCycles = pk_timebase_get();
-
-        // write dump row header contents using FIFO
-        fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
-        iv_tocRow.tgtHndl = target;
-        iv_tocRow.tocHeader.preReq = PRE_REQ_PASSED;
-        iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
-        switch(iv_tocRow.tocHeader.cmdType)
+        // Get update row values by using HDCT bin data
+        iv_tocRow.tocHeaderInit(iv_hdctRow);
+        // TODO: Clean-Up once other chip-op ennabled.
+        if( !( (iv_tocRow.tocHeader.cmdType == CMD_GETSCOM)    ||
+               (iv_tocRow.tocHeader.cmdType == CMD_PUTSCOM)    ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)  ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETSRAM)    ||
+               (iv_tocRow.tocHeader.cmdType == CMD_STOPCLOCKS) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETTRACEARRAY) ||
+               (iv_tocRow.tocHeader.cmdType == CMD_GETRING) ) )
         {
-            case CMD_GETSCOM:
+            SBE_ERROR(SBE_FUNC "Unsupported command types %d", (uint32_t)iv_tocRow.tocHeader.cmdType);
+            break;
+        }
+
+        if((iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY ) &&
+           (iv_collectFastArray == 0))
+        {
+            SBE_INFO(SBE_FUNC "No need to collect fastarray");
+            break;
+        }
+
+        if(iv_tocRow.tocHeader.cmdType == CMD_GETMEMPBA)
+        {
+            // HbDump only for Master Proc based on the
+            // attribute ATTR_PROC_SBE_MASTER_CHIP value
+            Target<TARGET_TYPE_PROC_CHIP> procTarget = plat_getChipTarget();
+            fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type isMaster = false;
+            FAPI_ATTR_GET(ATTR_PROC_SBE_MASTER_CHIP,procTarget,isMaster);
+            if( !isMaster )
             {
-                rc = writeGetScomPacketToFifo();
+                SBE_INFO(SBE_FUNC "HBMEM data will be collected only on master proc %d", isMaster);
                 break;
             }
-            case CMD_PUTSCOM:
+        }
+
+        // Map Dump target id with plat target list
+        std::vector<plat_target_handle_t> targetList;
+        getTargetList(targetList);
+
+        for( auto &target : targetList )
+        {
+            //CPU cycles to complete the chip-op.
+            iv_tocRow.cpuCycles = pk_timebase_get();
+
+            // write dump row header contents using FIFO
+            fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
+            iv_tocRow.tgtHndl = target;
+            iv_tocRow.tocHeader.preReq = PRE_REQ_PASSED;
+            iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
+            switch(iv_tocRow.tocHeader.cmdType)
             {
-                rc = writePutScomPacketToFifo();
-                break;
-            }
-            case CMD_GETFASTARRAY:
-            {
-                rc = writeGetFastArrayPacketToFifo();
-                break;
-            }
-            case CMD_GETRING:
-            {
-                rc = writeGetRingPacketToFifo();
-                break;
-            }
-            case CMD_GETSRAM:
-            {
-                rc = writeGetSramPacketToFifo();
-                break;
-            }
-            case CMD_STOPCLOCKS:
-            {
-                rc = stopClocksOff();
-                break;
-            }
-            case CMD_GETMEMPBA:
-            {
-                // HbDump only for Master Proc based on the
-                // attribute ATTR_PROC_SBE_MASTER_CHIP value
-                Target<TARGET_TYPE_PROC_CHIP> procTarget = plat_getChipTarget();
-                fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type isMaster = false;
-                FAPI_ATTR_GET(ATTR_PROC_SBE_MASTER_CHIP,procTarget,isMaster);
-                if( isMaster )
+                case CMD_GETSCOM:
+                {
+                    rc = writeGetScomPacketToFifo();
+                    break;
+                }
+                case CMD_PUTSCOM:
+                {
+                    rc = writePutScomPacketToFifo();
+                    break;
+                }
+                case CMD_GETFASTARRAY:
+                {
+                    rc = writeGetFastArrayPacketToFifo();
+                    break;
+                }
+                case CMD_GETRING:
+                {
+                    rc = writeGetRingPacketToFifo();
+                    break;
+                }
+                case CMD_GETSRAM:
+                {
+                    rc = writeGetSramPacketToFifo();
+                    break;
+                }
+                case CMD_STOPCLOCKS:
+                {
+                    rc = stopClocksOff();
+                    break;
+                }
+                case CMD_GETMEMPBA:
                 {
                     rc = writeGetMemPBAPacketToFifo();
                     break;
                 }
-                continue;
-            }
-            case CMD_GETTRACEARRAY:
-            {
-                rc = writeGetTracearrayPacketToFifo();
-                break;
-            }
-            default:
-            {
-                SBE_INFO(SBE_FUNC " command Id [0x%08X] is not supported.",
-                                    (uint8_t)iv_tocRow.tocHeader.cmdType);
-                rc = SBE_SEC_INVALID_CHIPLET_ID_PASSED;
-                break;
-            }
-        } // End switch
+                case CMD_GETTRACEARRAY:
+                {
+                    rc = writeGetTracearrayPacketToFifo();
+                    break;
+                }
+                default:
+                {
+                    SBE_INFO(SBE_FUNC " command Id [0x%08X] is not supported.",
+                                        (uint8_t)iv_tocRow.tocHeader.cmdType);
+                    rc = SBE_SEC_INVALID_CHIPLET_ID_PASSED;
+                    break;
+                }
+            } // End switch
 
-        if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
-        {
-            uint32_t ffdcDataLength = 0x00;
-            // write FFDC data as a zero for success using FIFO
-            iv_oStream.put(ffdcDataLength);
-        }
-        else
-        {
-            iv_chipOpffdc.setRc(iv_oStream.getFifoRc());
-            // Update FFDC lenth + PrimarySecondary(32 bits) RC lenth
-            iv_tocRow.ffdcLen = sizeof(sbeResponseFfdc_t) + sizeof(uint32_t);
-            // write FFDC data on failed case using FIFO
-            iv_oStream.put(iv_tocRow.ffdcLen);
-            iv_oStream.put(iv_oStream.getPriSecRc()); // Set Primary Secondary RC
-            iv_oStream.put(sizeof(sbeResponseFfdc_t)/sizeof(uint32_t), (uint32_t*)&iv_chipOpffdc);
-            iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
-            iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
-            rc = SBE_SEC_OPERATION_SUCCESSFUL;
-        }
-        // FIFO the cpuCycles value
-        iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
-        iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
-    } // End For loop
+            if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                uint32_t ffdcDataLength = 0x00;
+                // write FFDC data as a zero for success using FIFO
+                iv_oStream.put(ffdcDataLength);
+            }
+            else
+            {
+                iv_chipOpffdc.setRc(iv_oStream.getFifoRc());
+                // Update FFDC lenth + PrimarySecondary(32 bits) RC lenth
+                iv_tocRow.ffdcLen = sizeof(sbeResponseFfdc_t) + sizeof(uint32_t);
+                // write FFDC data on failed case using FIFO
+                iv_oStream.put(iv_tocRow.ffdcLen);
+                iv_oStream.put(iv_oStream.getPriSecRc()); // Set Primary Secondary RC
+                iv_oStream.put(sizeof(sbeResponseFfdc_t)/sizeof(uint32_t), (uint32_t*)&iv_chipOpffdc);
+                iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
+                iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
+                rc = SBE_SEC_OPERATION_SUCCESSFUL;
+            }
+            // FIFO the cpuCycles value
+            iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
+            iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&iv_tocRow.cpuCycles);
+        } // End For loop
+    }while(0);
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -31,7 +31,8 @@
  */
 typedef struct
 {
-    uint32_t reserved:16;
+    uint32_t reserved:8;
+    uint32_t collectFastArray:8;
     uint32_t clockState:8;
     uint32_t dumpType:8;
 
@@ -71,6 +72,25 @@ typedef struct
         {
             case SBE_DUMP_CLOCK_ON:
             case SBE_DUMP_CLOCK_OFF:
+                status = true;
+        };
+        return status;
+    }
+
+    /*
+     * @brief Validate the fastarray collection info.
+     *        eg collection on and collection off.
+     * @return bool true  if right parameter passed.
+     *              false incase of wrong parameter.
+     */
+    bool validateFastArrayCollection()
+    {
+        SBE_DEBUG("Validating Fast array collection: %X", (uint8_t)collectFastArray);
+        bool status = false;
+        switch(collectFastArray)
+        {
+            case SBE_DUMP_FASTARRY_COLLECTION_ON:
+            case SBE_DUMP_FASTARRY_COLLECTION_OFF:
                 status = true;
         };
         return status;
