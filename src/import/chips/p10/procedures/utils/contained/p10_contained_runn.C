@@ -366,8 +366,6 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
 
     fapi2::buffer<uint64_t> data;
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > all;
-    auto l_perv_eqs_w_cores = i_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
-    fapi2::ATTR_CHIP_EC_FEATURE_HW567424_Type l_hw567424 = 0;
 
     if (i_chc)
     {
@@ -455,32 +453,6 @@ fapi2::ReturnCode runn_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& 
                     .set_LOOP_COUNT(0)
                     .set_HW_DELAY(0),
                     "Some chiplet is not aligned after clearing FORCE_ALIGN");
-    }
-
-    // Elliptical Eggnog
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW567424, i_chip, l_hw567424));
-
-    if (l_hw567424)
-    {
-        for (const auto& eq : l_perv_eqs_w_cores.getChildren<fapi2::TARGET_TYPE_PERV>())
-        {
-            /// form mask for potentially active cores in this EQ
-            fapi2::buffer<uint64_t> active_mask;
-            fapi2::buffer<uint64_t> tmp;
-            active_mask = 0;
-            active_mask.setBit<CPLT_CTRL4_1_FLUSHMODE_INH>();
-            active_mask.setBit<CPLT_CTRL4_2_FLUSHMODE_INH>();
-            active_mask.setBit<CPLT_CTRL4_3_FLUSHMODE_INH>();
-            active_mask.setBit<CPLT_CTRL4_4_FLUSHMODE_INH>();
-
-            // qualify with cores that are pgood
-            FAPI_TRY(GET_CPLT_CTRL2_RW(eq, tmp));
-            active_mask &= tmp;
-
-            // set flushmode inhibit on active cores
-            FAPI_TRY(PREP_CPLT_CTRL4_WO_OR(eq));
-            FAPI_TRY(PUT_CPLT_CTRL4_WO_OR(eq, active_mask));
-        }
     }
 
 fapi_try_exit:
