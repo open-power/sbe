@@ -39,8 +39,14 @@
 #include "sbecmdringaccess.H"
 #include "sbecmdiplcontrol.H"
 
-#define FAST_ARRAY_CTRL_SET1_SIZE 0x48E18
-#define FAST_ARRAY_CTRL_SET2_SIZE 0x2524
+// FastArray Data Size for DD1
+#define FAST_ARRAY_CTRL_SET1_DD1_SIZE 0x48E18
+#define FAST_ARRAY_CTRL_SET2_DD1_SIZE 0x2524
+// FastArray Data Size for DD2
+#define FAST_ARRAY_CTRL_SET1_DD2_SIZE 0x474A8
+#define FAST_ARRAY_CTRL_SET2_DD2_SIZE 0x2514
+
+static const uint32_t CBS_MAJOR_EC_VERSION_BIT_SHIFT = 36;
 
 using namespace fapi2;
 
@@ -293,7 +299,7 @@ bool sbeCollectDump::isChipUnitNumAllowed(fapi2::plat_target_handle_t i_target)
 
 uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
 {
-    #define SBE_FUNC "writeGetFastArrayPacketToFifo"
+    #define SBE_FUNC "writeGetFastArrayPacketToFifo "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
@@ -315,29 +321,38 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
             iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
-            SBE_INFO("DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
+            SBE_INFO(SBE_FUNC "DUMP GETFASTARRAY: NonFunctional Target UnitNum[0x%08X]",
                       (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
-        // Create the req struct for the sbeFastArray Chip-op
-        sbeControlFastArrayCMD_t dumpFastArrayReq = {0};
-        //TODO: As there is no way as of now to get the fast array length we
-        //will hard code and stream out the data length. If the actual length value
-        //deviates from the hardcoded value dump parser will fail.
-        if(iv_hdctRow->cmdFastArray.controlSet == 0x01)
-            iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET1_SIZE * 8);
-        else
-            iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET2_SIZE * 8);
-
-        uint32_t dummyDataLengthInBits =
-            64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
-
+        // Get the fast array length as per DD level
+        // 4 Bits ecMajor should be [0001 == DD1], [ 0002 == DD2 ]
+        if( iv_dumpHeader.ecMajor == 0x01 ) // Update FastArray data size for DD1
+        {
+            // To get the fast array length we will hard code and stream out the
+            // data length as per the actual length value as per DD levels
+            if(iv_hdctRow->cmdFastArray.controlSet == 0x01)
+                iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET1_DD1_SIZE * 8);
+            else
+                iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET2_DD1_SIZE * 8);
+        }
+        else  // Update FastArray data size for DD2
+        {
+            if(iv_hdctRow->cmdFastArray.controlSet == 0x01)
+                iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET1_DD2_SIZE * 8);
+            else
+                iv_tocRow.tocHeader.dataLength = (FAST_ARRAY_CTRL_SET2_DD2_SIZE * 8);
+        }
+        // Update TOC Header
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
+        // Create the req struct for the sbeFastArray Chip-op
+        sbeControlFastArrayCMD_t dumpFastArrayReq = {0};
+        uint32_t dummyDataLengthInBits =
+            64 * (((uint32_t)(iv_tocRow.tocHeader.dataLength / 64)) + ((uint32_t)(iv_tocRow.tocHeader.dataLength % 64) ? 1:0 ));
         len = sizeof(dumpFastArrayReq)/sizeof(uint32_t);
         //FIXME:We have to fetch the target type from HDCT.bin.
         dumpFastArrayReq.hdr.targetType  = TARGET_CORE;
-
         dumpFastArrayReq.hdr.chipletId   = iv_tocRow.tocHeader.chipUnitNum;
         dumpFastArrayReq.hdr.control_set = iv_hdctRow->cmdFastArray.controlSet;
         dumpFastArrayReq.hdr.custom_data_length = 0x00;
@@ -364,8 +379,7 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
                 totalCount = totalCount - 1;
             }
         }
-
-        SBE_INFO("Dump FastArray: control_set[0x%08X], chipUnitNum [0x%08X]",
+        SBE_INFO(SBE_FUNC "Dump FastArray: control_set[0x%08X], chipUnitNum [0x%08X]",
                 iv_hdctRow->cmdFastArray.controlSet, iv_tocRow.tocHeader.chipUnitNum);
     }
     while(0);

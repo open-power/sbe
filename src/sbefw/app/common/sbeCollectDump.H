@@ -284,6 +284,13 @@ class sbeCollectDump
          */
         uint32_t populateHDCTRowTOC();
 
+       /** @brief Update DD Level anf PHP functional states
+        *
+        * @return SUCCESS,  If util is successful.
+        *          ERROR,    Incase of failure.
+        */
+        void preUpdatePreReqHeaderData();
+
        /** @brief Write getFastArray data to the FIFO.
         *
         * @return SUCCESS,  If chip-op is successful.
