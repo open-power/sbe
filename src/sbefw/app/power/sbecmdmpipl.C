@@ -3,7 +3,7 @@
 /*                                                                        */
 /* $Source: src/sbefw/app/power/sbecmdmpipl.C $                           */
 /*                                                                        */
-/* OpenPOWER sbe Project                                             */
+/* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
@@ -44,6 +44,7 @@
 #include "sbehandleresponse.H"
 #include "p10_stopclocks.H"
 #include "p10_hcd_core_stopclocks.H"
+#include <p10_hcd_mma_stopclocks.H>
 #include "p10_hcd_eq_stopclocks.H"
 #include "p10_hcd_cache_stopclocks.H"
 #include "sbearchregdump.H"
@@ -67,6 +68,7 @@ using namespace fapi2;
 p10_hcd_cache_stopclocks_FP_t p10_hcd_cache_stopclocks_hwp = &p10_hcd_cache_stopclocks;
 p10_hcd_eq_stopclocks_FP_t p10_hcd_eq_stopclocks_hwp = &p10_hcd_eq_stopclocks;
 p10_hcd_core_stopclocks_FP_t p10_hcd_core_stopclocks_hwp = &p10_hcd_core_stopclocks;
+p10_hcd_core_stopclocks_FP_t p10_hcd_mma_stopclocks_hwp = &p10_hcd_mma_stopclocks;
 p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
 #endif
 
@@ -486,25 +488,29 @@ ReturnCode stopClockS0()
 static inline uint32_t getStopClockHWPType(uint32_t i_targetType,
                                            uint32_t i_chipletId)
 {
-    uint32_t l_rc = SC_NONE;
-    TargetType l_fapiTarget = sbeGetFapiTargetType(
+    uint32_t rc = SC_NONE;
+    TargetType fapiTarget = sbeGetFapiTargetType(
                                                 i_targetType,
                                                 i_chipletId);
 
-    if((l_fapiTarget == TARGET_TYPE_PROC_CHIP) ||
-       (l_fapiTarget == TARGET_TYPE_PERV))
+    if((fapiTarget == TARGET_TYPE_PROC_CHIP) ||
+       (fapiTarget == TARGET_TYPE_PERV))
     {
-        l_rc |= SC_PROC;
+        rc |= SC_PROC;
     }
-    if(l_fapiTarget == TARGET_TYPE_CORE)
+    if((fapiTarget == TARGET_TYPE_CORE) && (i_targetType == TARGET_CORE))
     {
-        l_rc |= SC_CORE;
+        rc |= SC_CORE;
     }
-    if(l_fapiTarget == TARGET_TYPE_EQ)
+    if((fapiTarget == TARGET_TYPE_CORE) && (i_targetType == TARGET_CACHE))
     {
-        l_rc |= SC_CACHE;
+        rc |= SC_CACHE;
     }
-    return l_rc;
+    if(fapiTarget == TARGET_TYPE_EQ)
+    {
+        rc |= SC_EQ;
+    }
+    return rc;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -627,7 +633,7 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
         uint32_t hwpType = getStopClockHWPType(reqMsg.targetType,
                                                reqMsg.chipletId);
 
-
+        // Bad input
         if(hwpType == SC_NONE)
         {
             // Error in target and chiplet id combination
@@ -638,7 +644,7 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
             break;
         }
 
-        // All Eq/All Cache/All & Perv & Proc are handled here
+        // All Eq/All Cache/All Core/All & Perv & Proc are handled here
         if(hwpType & SC_PROC)
         {
             SBE_INFO(SBE_FUNC "Calling p10_stopclocks HWP with Proc Target FLag ALL");
@@ -676,12 +682,20 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
                           fapiRc,tgtHndl);
                 break;
             }
+            //Execute the MMA Stop Clock HWP
+            SBE_EXEC_HWP(fapiRc, p10_hcd_mma_stopclocks_hwp, tgtHndl);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed in p10_hcd_mma_stopclocks(), fapiRc=0x%.8x, Target=0x%.8x",
+                          fapiRc,tgtHndl);
+                break;
+            }
         }
         // Specific EQ or All EQs
-        // p10_hcd_eq_stopclocks: CORE+L2,L3 and MMA clocks are stopped.
-        if(hwpType & SC_CACHE)
+        // p10_hcd_eq_stopclocks: ECL2, L3 and MMA clocks are stopped.
+        if(hwpType & SC_EQ)
         {
-            SBE_INFO(SBE_FUNC " Calling p10_hcd_eq_stopclocks, Cache");
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_eq_stopclocks");
             if(reqMsg.chipletId == EQ_ALL_CHIPLETS)
             {
                 //Request is for All EQs , create a multicast target and call
@@ -700,6 +714,33 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
             {
                 SBE_ERROR("Failed in p10_hcd_eq_stopclocks(), fapiRc=0x%.8x,Target=0x%.8x",
                            fapiRc,tgtHndl);
+                break;
+            }
+        }
+
+        // Specific CACHE or all Caches
+        // p10_hcd_cache_stopclocks() Stops Core L3 clocks
+        if(hwpType & SC_CACHE)
+        {
+            SBE_INFO(SBE_FUNC " Calling p10_hcd_cache_stopclocks, Core");
+            if(reqMsg.chipletId == SMT4_ALL_CORES)
+            {
+                //Request is for All cores , create a multicast target and call
+                //the procedure.
+                fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST,fapi2::MULTICAST_OR> mc_cores;
+                mc_cores = proc.getMulticast<fapi2::MULTICAST_OR>(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
+                tgtHndl = mc_cores;
+            }
+            else //Specific core Instance number
+            {
+                sbeGetFapiTargetHandle(reqMsg.targetType,reqMsg.chipletId,tgtHndl);
+            }
+            //Execute the Core Stop Clock HWP
+            SBE_EXEC_HWP(fapiRc, p10_hcd_cache_stopclocks_hwp, tgtHndl);
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed in p10_hcd_cache_stopclocks(), fapiRc=0x%.8x, Target=0x%.8x",
+                          fapiRc,tgtHndl);
                 break;
             }
         }

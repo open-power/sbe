@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,6 +48,7 @@ enum stopClockHWPType
     SC_PROC     = 0x01, // Call p10_stopclocks
     SC_CACHE    = 0x02, // Call p10_hcd_cache_stopclocks
     SC_CORE     = 0x04, // Call p10_hcd_core_stopclocks
+    SC_EQ       = 0x08, // Call p10_hcd_eq_stopclocks
 };
 
 /**

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -53,6 +53,13 @@ fapi2::TargetType sbeGetFapiTargetType(const uint16_t i_sbeTargetType,
             l_fapiTargetType = fapi2::TARGET_TYPE_EQ;
             break;
         case TARGET_CORE:
+            l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
+            break;
+        // This is a specific use-case for cache stop clock
+        // which requires core target only, If you have a requirement
+        // for CACHE Target it should map to CORE target only
+        // There are no CACHE Target type in Targeting
+        case TARGET_CACHE:
             l_fapiTargetType = fapi2::TARGET_TYPE_CORE;
             break;
         case TARGET_PROC_CHIP:

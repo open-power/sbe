@@ -531,8 +531,8 @@ enum sbeRegAccesRegType
 // target via file sbefapiutil.C
 
 /*
- * @brief enums for target types used in ring access chip op and
- * in stop clocks chip ops
+ * @brief enums for target types used in ring access chip op, getHwReg, putHwReg
+ * and stop clocks chip ops
 */
 typedef enum
 {
@@ -541,6 +541,7 @@ typedef enum
     TARGET_EQ           = 0x0002,
     TARGET_CORE         = 0x0003,
     TARGET_OCMB_CHIP    = 0x0004,
+    TARGET_CACHE        = 0x0005,
 } sbeTargetTypes_t;
 
 /**
