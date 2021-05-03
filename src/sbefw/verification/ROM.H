@@ -110,7 +110,7 @@ typedef struct
 }__attribute__((packed)) ROM_prefix_header_raw;
 
 #define PREFIX_HEADER_SIZE(_p) (sizeof(ROM_prefix_header_raw) \
-            +((_p->ecid_count-1)*ECID_SIZE))
+                                +((get8(&_p->ecid_count)-1)*ECID_SIZE))
 
 typedef struct
 {
@@ -138,7 +138,7 @@ typedef struct
 }__attribute__((packed)) ROM_sw_header_raw;
 
 #define SW_HEADER_SIZE(_p) (sizeof(ROM_sw_header_raw) \
-            +((_p->ecid_count-1)*ECID_SIZE))
+                            +((get8(&_p->ecid_count)-1)*ECID_SIZE))
 
 typedef struct
 {

@@ -83,9 +83,11 @@ typedef union secureBootStatus
  *
  * @Param SHA512_CTX* SHA512 contest struct pointer used during SHA512 Init
  *
+ * @Param sectionSize Returns byte size of XIP section included in hash calculation
+ *
  * @return None
  */
-void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context);
+void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context, uint64_t* sectionSize);
 
 /**
  * @brief Calculate SHA512 for a given XIP section.

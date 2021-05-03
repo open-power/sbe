@@ -40,7 +40,7 @@
 
 #define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size for SHA512
 
-void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context)
+void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context, uint64_t* sectionSize)
 {
     uint8_t buf[SPI_READ_SIZE_BYTES] __attribute__ ((aligned(8))) = {0x00};
     uint32_t xipSectionSize = getXipSize(xipSection);
@@ -67,6 +67,7 @@ void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context
         SHA512_Update(context, (uint8_t *)&buf, SPI_READ_SIZE_BYTES);
         xipSectionOffset += SPI_READ_SIZE_BYTES;
         xipSectionSize -= SPI_READ_SIZE_BYTES;
+        *sectionSize += SPI_READ_SIZE_BYTES;
     }
 
     //Calculate SHA512 hash of left over bytes
@@ -91,14 +92,16 @@ void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context
         //Calculate SHA512 for complete data read from SPI as we are aligning data to 8byte by
 	    //padding zero's if unaligned during sigining process
         SHA512_Update(context, (uint8_t *)&buf, xipSectionSize);
+        *sectionSize += xipSectionSize;
     }
 }
 
 void SHA512_XIP_section(p9_xip_section_sbe_t xipSection, SHA512_t *result)
 {
     SHA512_CTX context;
+    uint64_t sectionSize = 0;
 
     SHA512_Init(&context);
-    SHA512UpdateXipSection(xipSection , &context);
+    SHA512UpdateXipSection(xipSection , &context, &sectionSize);
     SHA512_Final(&context, result);
 }
