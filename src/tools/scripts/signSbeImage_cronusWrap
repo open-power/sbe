@@ -41,7 +41,7 @@ check_path()
 }
 
 #search paths for sigining script(LFS System)
-PATH=$PATH:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin/openssl:/afs/rchland.ibm.com/projects/esw/bin/bld/portal/rh7/bin:/afs/rchland.ibm.com/projects/esw/bin/bld/sb_signing_rh7/sb-signing-utils
+PATH=$PATH:/afs/rchland.ibm.com/projects/esw/bin/sb-signing/rh7/sb-signing-utils
 
 SIGINING_SCRIPT=$SBEROOT/images/signSbeImage
 SCRATCH_DIR=$SBEROOT/images/sbeScratchDir
