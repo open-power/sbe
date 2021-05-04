@@ -250,14 +250,12 @@ uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
         SBE_INFO(SBE_FUNC "ClockOn Total Bytes HW dump written [0x%08X]", clockOnLength);
 
         o_length = clockOnLength;
-//TODO: Enable code bellow once clock off entries from HDCT enabled
-/*
         // Aline 128 bytes lenfth and update hbMemAddr
         hbMemAddr = hbMemAddr + ( ((clockOnLength / 0x80) * (0x80) ) +
                                   ((clockOnLength % 0x80 )?(0x80):(0)) );
 
         // Create the sbeCollectDump object for ClockOff
-        sbeCollectDump dumpClockOffObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_OFF,
+        sbeCollectDump dumpClockOffObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_OFF, collectFastArray,
                                 SBE_FIFO, hbMemAddr);
         //Call collectAllEntries to write dump into HbMem
         rc = dumpClockOffObj.collectAllHDCTEntries();
@@ -275,7 +273,6 @@ uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
         uint32_t clockOffLength = dumpClockOffObj.collectLenInBytesOfWriteData();
         SBE_INFO(SBE_FUNC "ClockOff Total Bytes HW dump written [0x%08X]", clockOffLength);
         o_length = o_length + clockOffLength;
-*/
     }
     while(0);
     SBE_EXIT(SBE_FUNC);
@@ -417,27 +414,24 @@ uint32_t sbeCollectDump::stopClocksOff()
         len = sizeof(dumpStopClockReq)/sizeof(uint32_t);
         dumpStopClockReq.reserved = 0x00;
         dumpStopClockReq.targetType = iv_hdctRow->cmdStopClocks.tgtType;
-        if(iv_hdctRow->cmdStopClocks.chipletStart == 0xff && iv_hdctRow->cmdStopClocks.chipletEnd == 0xff)
+        // TODO: Remove bellow if condition
+        if(iv_hdctRow->cmdStopClocks.tgtType == 0x01)
         {
-            //All chiplets
-            dumpStopClockReq.chipletId = 0xff;
-            sbefifo_hwp_data_istream istream( iv_fifoType, len,
-                                          (uint32_t*)&dumpStopClockReq, false );
-            rc = sbeStopClocks_Wrap( istream, iv_oStream );
+            dumpStopClockReq.targetType = 0x05;
         }
-        else
+        dumpStopClockReq.chipletId = 0xff;
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                         (uint32_t*)&dumpStopClockReq, false );
+        rc = sbeStopClocks_Wrap( istream, iv_oStream );
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
         {
-            //TODO:Need to provide support for stop clock on all cache chiplets
-            for(uint32_t chiplet=iv_hdctRow->cmdStopClocks.chipletStart; chiplet <= iv_hdctRow->cmdStopClocks.chipletEnd; chiplet++)
-            {
-                dumpStopClockReq.chipletId = chiplet;
-                sbefifo_hwp_data_istream istream( iv_fifoType, len,
-                                          (uint32_t*)&dumpStopClockReq, false );
-                rc = sbeStopClocks_Wrap( istream, iv_oStream );
-            }
+            SBE_ERROR(SBE_FUNC" Error from StopClocks on clockType[0x%02X], "
+                      "chipUnitNum[0x%08X] ", iv_hdctRow->cmdStopClocks.tgtType,
+                       iv_tocRow.tocHeader.chipUnitNum);
+            break;
         }
-
-        SBE_INFO("dumpStopClocks: dumpStopClocks clockTypeTgt[0x%04X],chipUnitNum[0x%08X],chipletStart[0x%02x], chipletEnd{0x%02x}",dumpStopClockReq.targetType, iv_tocRow.tocHeader.chipUnitNum,iv_hdctRow->cmdStopClocks.chipletStart,iv_hdctRow->cmdStopClocks.chipletEnd);
+        SBE_INFO(SBE_FUNC" clockTypeTgt[0x%04X], chipUnitNum[0x%08X] ",
+                 dumpStopClockReq.targetType, iv_tocRow.tocHeader.chipUnitNum);
     }
     while(0);
 

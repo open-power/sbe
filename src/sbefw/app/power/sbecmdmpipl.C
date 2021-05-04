@@ -221,8 +221,8 @@ ReturnCode collectMPIPLHWDumpEntries()
             SBE_ERROR(SBE_FUNC "Failed in collectMpiplHwDump().MPIPL will continue");
             break;
         }
-        //stopClockReq = false;
-        SBE_INFO(SBE_FUNC "Bytes collected=0x%.8x",bytesCollected);
+        stopClockReq = false; //HDCT would have taken care of stopping required clocks
+        SBE_INFO(SBE_FUNC "MURU:Bytes collected=0x%.8x",bytesCollected);
         metadata.hwDataMemCapturedSize = bytesCollected;
 
         //Update the Metadata
