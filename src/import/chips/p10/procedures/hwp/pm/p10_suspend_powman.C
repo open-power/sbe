@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -168,7 +168,23 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
                 if(!l_pgpe_in_safe_mode)
                 {
                     FAPI_ERR("PGPE fails to put the system in safe mode");
-                    break;
+                    fapi2::buffer<uint64_t> l_dbgpro(0);
+                    fapi2::buffer<uint64_t> l_ramdbg(0);
+                    fapi2::buffer<uint64_t> l_ramedr(0);
+                    fapi2::buffer<uint64_t> l_srr0(0);
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXIDBGPRO(i_target,l_dbgpro));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXIRAMDBG(i_target,l_ramdbg));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXIRAMEDR(i_target,l_ramedr));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXISRR0(i_target,l_srr0));
+                    FAPI_ASSERT_NOEXIT(false,
+                            fapi2::PM_PGPE_SAFE_MODE_FAILS()
+                            .set_TARGET(i_target)
+                            .set_OCCFLG2_DATA(l_occs2_data)
+                            .set_GPE2XIDBGPRO(l_dbgpro)
+                            .set_GPE2XIRAMDBG(l_ramdbg)
+                            .set_GPE2XIRAMEDR(l_ramedr)
+                            .set_GPE2XISRR0(l_srr0),
+                            "pgpe safe mode fails");
                 }
 
                 //SBE issues "halt OCC complex" to stop OCC instructions
@@ -209,21 +225,27 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
 
                     fapi2::delay(POLLTIME_NS, POLLTIME_MCYCLES * 1000 * 1000);
                 }
-                //TBD for L3
-                //RTC 214388 (error handling)
-#if 0
-                //if timeout, hwp fails
                 if(!l_xgpe_suspended)
                 {
+                    fapi2::buffer<uint64_t> l_dbgpro(0);
+                    fapi2::buffer<uint64_t> l_ramdbg(0);
+                    fapi2::buffer<uint64_t> l_ramedr(0);
+                    fapi2::buffer<uint64_t> l_srr0(0);
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE3_OCB_GPEXIDBGPRO(i_target,l_dbgpro));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE3_OCB_GPEXIRAMDBG(i_target,l_ramdbg));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE3_OCB_GPEXIRAMEDR(i_target,l_ramedr));
+                    FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE3_OCB_GPEXISRR0(i_target,l_srr0));
                     FAPI_ERR("XGPE did not signal that PM Complex Suspend Finished");
-                    FAPI_TRY ( p10_collect_suspend_ffdc (
-                                i_target));
-                }
-#endif
-                if (!l_xgpe_suspended)
-                {
-                    FAPI_ERR("Suspend Power Management failed");
-                    break;
+                    FAPI_ASSERT_NOEXIT(false,
+                            fapi2::PM_SUSPEND_XGPE_FAILS()
+                            .set_TARGET(i_target)
+                            .set_OCCFLG3_DATA(l_occs3_data)
+                            .set_GPE3XIDBGPRO(l_dbgpro)
+                            .set_GPE3XIRAMDBG(l_ramdbg)
+                            .set_GPE3XIRAMEDR(l_ramedr)
+                            .set_GPE3XISRR0(l_srr0),
+                            "pm suspend xgpe fails");
+
                 }
                 else
                 {
