@@ -875,6 +875,16 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         FAPI_TRY(p10_perv_sbe_cmn_is_simulation_check(skipClkCheck));
 
+#ifdef __PPE__
+
+        if (SBE::isSimicsRunning())
+        {
+            FAPI_INF("Skipping workaround because Simics does not support scanning");
+            skipClkCheck = true;
+        }
+
+#endif
+
         if(!skipClkCheck)   // don't run deskew in simics because it will never find a metastability region
         {
             //Run the deskew algorithm to calibrate the RCS FPLL
