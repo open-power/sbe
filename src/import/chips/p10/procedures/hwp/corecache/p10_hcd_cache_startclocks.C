@@ -85,15 +85,18 @@ p10_hcd_cache_startclocks(
         i_target;//getChildren w/o and/or
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(12);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
-    uint32_t                       l_eq_num             = 0;
-    uint32_t                       l_core_num           = 0;
-    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+    uint32_t                l_timeout  = 0;
+    uint32_t                l_eq_num   = 0;
+    uint32_t                l_core_num = 0;
 
-#ifndef EQ_SKEW_ADJUST_DISABLE
-    uint32_t                l_timeout = 0;
+    // do this to avoid unused variable warning
+    static_cast<void>(l_eq_num);
+
+#ifdef USE_RUNN
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
@@ -104,8 +107,6 @@ p10_hcd_cache_startclocks(
     FAPI_DBG("Enable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(0) ) );
 
-#ifndef EQ_SKEW_ADJUST_DISABLE
-
     FAPI_DBG("Check L3 Skewadjust Sync Done via CPMS_CGCSR[32:L3_CLK_SYNC_DONE]");
     l_timeout = HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS /
                 HCD_L3_CLK_SYNC_DONE_POLL_DELAY_HW_NS;
@@ -115,7 +116,10 @@ p10_hcd_cache_startclocks(
         FAPI_TRY( HCD_GETMMIO_S( i_target, CPMS_CGCSR, l_scomData ) );
 
         //use multicastAND to check 1
-        if( ( !l_attr_runn_mode ) &&
+        if(
+#ifdef USE_RUNN
+            ( !l_attr_runn_mode ) &&
+#endif
             ( SCOM_GET(32) == 1 ) )
         {
             break;
@@ -126,14 +130,16 @@ p10_hcd_cache_startclocks(
     }
     while( (--l_timeout) != 0 );
 
-    FAPI_ASSERT( ( l_attr_runn_mode ? ( SCOM_GET(32) == 1 ) : (l_timeout != 0) ),
-                 fapi2::L3_CLK_SYNC_DONE_TIMEOUT()
-                 .set_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS(HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS)
-                 .set_CPMS_CGCSR(l_scomData)
-                 .set_CORE_TARGET(i_target),
-                 "ERROR: L3 Clock Sync Done Timeout");
-
+    HCD_ASSERT( (
+#ifdef USE_RUNN
+                    l_attr_runn_mode ? ( SCOM_GET(32) == 1 ) :
 #endif
+                    (l_timeout != 0) ),
+                L3_CLK_SYNC_DONE_TIMEOUT,
+                set_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS,
+                set_CPMS_CGCSR, l_scomData,
+                set_CORE_TARGET, i_target,
+                "ERROR: L3 Clock Sync Done Timeout");
 
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
 
@@ -148,13 +154,6 @@ p10_hcd_cache_startclocks(
                                l_eq,
                                l_attr_chip_unit_pos));
         l_eq_num = (uint32_t)l_attr_chip_unit_pos;
-
-        // do this to avoid unused variable warning
-        do
-        {
-            (void)( l_eq_num );
-        }
-        while (0);
 
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_scomData));

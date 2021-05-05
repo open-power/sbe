@@ -79,9 +79,11 @@ p10_hcd_cache_stopgrid(
     uint32_t                l_timeout  = 0;
     uint8_t                 l_attr_mma_poweroff_disable = 0;
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
+#ifdef USE_RUNN
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
+#endif
 
     FAPI_INF(">>p10_hcd_cache_stopgrid");
 
@@ -104,7 +106,10 @@ p10_hcd_cache_stopgrid(
         FAPI_TRY( HCD_GETMMIO_S( i_target, CPMS_CGCSR, l_scomData ) );
 
         // use multicastOR to check 0
-        if( ( !l_attr_runn_mode ) &&
+        if(
+#ifdef USE_RUNN
+            ( !l_attr_runn_mode ) &&
+#endif
             ( SCOM_GET(32) == 0 ) )
         {
             break;
@@ -115,12 +120,16 @@ p10_hcd_cache_stopgrid(
     }
     while( (--l_timeout) != 0 );
 
-    FAPI_ASSERT( ( l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) : (l_timeout != 0) ),
-                 fapi2::L3_CLK_SYNC_DROP_TIMEOUT()
-                 .set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS(HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS)
-                 .set_CPMS_CGCSR(l_scomData)
-                 .set_CORE_TARGET(i_target),
-                 "ERROR: L3 Clock Sync Drop Timeout");
+    HCD_ASSERT( (
+#ifdef USE_RUNN
+                    l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) :
+#endif
+                    (l_timeout != 0) ),
+                L3_CLK_SYNC_DROP_TIMEOUT,
+                set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS,
+                set_CPMS_CGCSR, l_scomData,
+                set_CORE_TARGET, i_target,
+                "ERROR: L3 Clock Sync Drop Timeout");
 
     FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[7]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(7) ) );
