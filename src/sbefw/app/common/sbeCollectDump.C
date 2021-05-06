@@ -37,6 +37,7 @@
 #include <p10_query_host_meminfo.H>
 #include <p10_tracearray_defs.H>
 #include "sbecmdringaccess.H"
+#include "sbecmdiplcontrol.H"
 
 #define FAST_ARRAY_CTRL_SET1_SIZE 0x48E18
 #define FAST_ARRAY_CTRL_SET2_SIZE 0x2524
@@ -1256,6 +1257,9 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     do
     {
+        // Update PHB functional state
+        updatePhbFunctionalState(); // Ignore return value
+
         // Write the dump header to FIFO
         uint32_t len = sizeof(dumpHeader_t)/ sizeof(uint32_t);
         rc = iv_oStream.put(len, (uint32_t*)&iv_dumpHeader);
