@@ -45,6 +45,94 @@ using namespace fapi2;
 
 p10_query_host_meminfo_FP_t p10_query_host_meminfo_hwp = &p10_query_host_meminfo;
 
+void getAbsoluteAddressForRing( const fapi2::plat_target_handle_t tgtHndl,
+                                const uint32_t relativeAddr,
+                                uint32_t &absoluteAddr)
+{
+    #define SBE_FUNC " getAbsoluteAddressForRing "
+    SBE_ENTER(SBEM_FUNC);
+    do
+    {
+
+        switch(tgtHndl.getTargetType())
+        {
+            case PPE_TARGET_TYPE_CORE:
+                 {
+                     uint32_t chipletNum = tgtHndl.fields.chiplet_num;
+                     chipletNum = chipletNum << 24;
+                     uint32_t coreSelect = (tgtHndl.fields.type_target_num % 4);
+                     coreSelect = 1 << (3 - coreSelect);
+                     // Ringsname     Ring Addr
+
+                     // ec_cl2_mode  0x20032001
+                     // ec_cl2_regf  0x20032003
+                     // ec_cl2_abst  0x20032005
+                     // ec_cl2_func  0x20032000
+                     // ec_cl2_gptr  0x20032002
+                     // ec_cl2_repr  0x20032006
+                     // ec_cl2_far   0x20032009
+                     // ec_cl2_inex  0x2003200B
+
+                     // ec_mma_mode  0x20830001
+                     // ec_mma_abst  0x20830005
+                     // ec_mma_func  0x20830000
+                     // ec_mma_gptr  0x20830002
+                     // ec_mma_far   0x20830009
+
+                     // ec_l3_func   0x20030200
+                     // ec_l3_gptr   0x20030202
+                     // ec_l3_repr   0x20030206
+                     // ec_l3_inex   0x2003020B
+
+                     // L2 rings
+                     if(relativeAddr >= 0x20032000 && relativeAddr <= 0x200320FF)
+                     {
+                         // Bit 18 - 21
+                         coreSelect = (coreSelect << 10);
+                         absoluteAddr = (relativeAddr & 0x00FFC3FF) | chipletNum | coreSelect;
+                     }
+
+                     // MMA rings
+                     if(relativeAddr >= 0x20830000 && relativeAddr <= 0x208300FF)
+                     {
+                         // Bit 8 - 11
+                         coreSelect = (coreSelect << 20);
+                         absoluteAddr = (relativeAddr & 0x000FFFFF ) | chipletNum | coreSelect;
+                     }
+
+                     // L3 rings
+                     if(relativeAddr >= 0x20030200 && relativeAddr <= 0x200302FF)
+                     {
+                         // Bit 22-25
+                         coreSelect = (coreSelect << 6);
+                         absoluteAddr = (relativeAddr & 0x00FFFC3F) | chipletNum | coreSelect;
+                     }
+                     break;
+                 }
+
+            case PPE_TARGET_TYPE_EQ:
+            case PPE_TARGET_TYPE_PEC:
+            case PPE_TARGET_TYPE_MC:
+                 {
+                     uint32_t chipletNum = tgtHndl.fields.chiplet_num;
+                     chipletNum = chipletNum << 24;
+                     absoluteAddr = (relativeAddr & 0x00FFFFFF) | chipletNum;
+                     break;
+                 }
+
+            default:
+                 {
+                     absoluteAddr = relativeAddr;
+                     break;
+                 }
+        }
+        SBE_INFO(SBE_FUNC "Target, Relative Addr, Absolute Addr is 0x%08X, 0x%08X 0x%08X",
+                           tgtHndl.value, relativeAddr, absoluteAddr);
+    }while(0);
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+}
+
 void getControlTraceArrayTargetType( const uint8_t i_chipUnitType,
                                     const uint8_t i_chipUnitNum,
                                     uint16_t & o_targetType,
@@ -486,7 +574,10 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     sbeGetRingAccessMsgHdr_t l_reqMsg;
     len  = sizeof(sbeGetRingAccessMsgHdr_t)/sizeof(uint32_t);
 
-    l_reqMsg.ringAddr = iv_hdctRow->cmdGetRing.ringAddr;
+    uint32_t translatedAddress = 0;
+    getAbsoluteAddressForRing(iv_tocRow.tgtHndl, iv_hdctRow->cmdGetRing.ringAddr, translatedAddress);
+
+    l_reqMsg.ringAddr = translatedAddress;
     l_reqMsg.ringMode = 0x0001;
     l_reqMsg.ringLenInBits = bitlength;
 
