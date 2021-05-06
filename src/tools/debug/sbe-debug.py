@@ -445,10 +445,11 @@ def sbeState():
         print('********************************************************************')
         print('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
-            str1 = binascii.hexlify(fileHandle.read(4))
+            str1 = binascii.hexlify(fileHandle.read(8))
             str2 = fileHandle.read(32)
-            str3 = binascii.hexlify(fileHandle.read(8))
-            print(str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40))
+            str3 = binascii.hexlify(fileHandle.read(4))
+            str4 = binascii.hexlify(fileHandle.read(8))
+            print(str(str1).ljust(11),str(str3).ljust(20),str(str3).ljust(20),str2.ljust(40))
             l_cnt = l_cnt + 44;
 
         print('********************************************************************')
