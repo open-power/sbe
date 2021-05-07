@@ -2,7 +2,7 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/tools/utils/dump_interpret.py $
+# $Source: src/tools/utils/dumpParser/dump_interpret.py $
 #
 # OpenPOWER sbe Project
 #
@@ -35,14 +35,22 @@ import struct
 import argparse
 import textwrap
 import datetime
+import pickle
+
 ##################################### NOTE: DO NOT IMPORT ANT MODULES FROM CTE PATH WHICH USE ECMD LIBRARY/PATH #####################################
 #Supporting modules from CTE path
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$CTEPATH")+ "/tools/crondump/dev/pymod"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$CTEPATH")+ "/tools/crondump/rel/pymod"))
 import dumpConstants
 import out
-#HDCT.bin parser
+
+#HDCT.bin parser(EKB Mirror File)
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$SBEROOT")+ "/src/import/systems/p10/hdct"))
 import createHdctTxtUtils as txtUtils
+
+#Dump tool files
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$SBEROOT")+ "/src/tools/utils/dumpParser/"))
+import dump_utils as utils
+import dump_file_support as fileSupport
 
 #Tool version
 toolVersion = 1.1
@@ -51,10 +59,13 @@ toolVersion = 1.1
 dumpFooter = "DONE"
 
 # Create a generic time stamp we can use throughout the program
-timestamp = datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 #Start time
 stageStartTime = time.time()
+
+#SBE Clock frequency (500MHz)
+sbeClkFreq = 500000000.0
 
 #SBE Supported Dump types
 sbeSupportedDumpTypes = ["SCS","MPIPL","CCS","PERF","HB"]
@@ -62,11 +73,17 @@ sbeSupportedDumpTypes = ["SCS","MPIPL","CCS","PERF","HB"]
 #Dump Collection Clock States
 clockStates = ["ON","OFF"]
 
+#Dict of string ID and its hash Values.
+strHashDict = dict()
+
 #All HDC.bin decoded entries
 allHdctBinEntries = list()
 
 #HDCT.bin entries filtered out based on the requested dump type
 reqHdctBinEntries = list()
+
+#Total CPU Cycles
+totalCpuCycles = 0
 
 #List of all entries that are parsed by fifo
 fifoParseEntriesList = list()
@@ -77,6 +94,9 @@ ekbCommitIDFifoBin = ""
 
 #Debug prints - on and off
 debugPrints = ""
+
+# Create the filename.
+filenames = dict()
 
 #Fifo Parser Stats and HDCT.bin Stats dict for single scom type
 #scomCount = Total scoms performed/found in fifo.bin including with ffdc for a given scom type
@@ -112,10 +132,10 @@ class dumpHdr():
         self.reserved = 0x000000
         self.HDCTVersion = binascii.hexlify(bytearray(hdr[4:])).upper() #EKB Commit ID
 
-        fancyPrint(" Dump Header " , "*", "print")
+        utils.fancyPrint(" Dump Header " , "*", "print")
         out.print("Data Layout Version: %s" % hex(self.dataLayoutVersion))
         out.print("EKB Commit ID/HDCT version: %s" % self.HDCTVersion.decode('utf8'))
-        fancyPrint("" , "*", "print")
+        utils.fancyPrint("" , "*", "print")
 
 class scomData():
     """
@@ -177,7 +197,7 @@ class scomData():
         self.hdctEntry = statsAll["allscom"]["entriesCount"]
 
         if debugPrints == "on":
-            fancyPrint(" SCOM %s : HDCT Entry %s " % (statsAll["allscom"]["scomCount"], statsAll["allscom"]["entriesCount"]) , "*", "print")
+            utils.fancyPrint(" SCOM %s : HDCT Entry %s " % (statsAll["allscom"]["scomCount"], statsAll["allscom"]["entriesCount"]) , "*", "print")
 
     def parseChipOpData(self, scomData):
 
@@ -195,12 +215,30 @@ class scomData():
         #Extract the HB memory dump (getmempba).
         #Will be extracted if dump type is HB and clock state is ON.
         if(self.cmdType == "getmempba" and HBMemDump == "true" and dumpType == "HB" and clockState == "ON"):
-            filenames["HBMemDump"] = os.path.join(outputPath, "HBMemDump" + ".bin")
             out.print("Extracting HB Mem Dump into %s " % filenames["HBMemDump"])
             file = open(filenames["HBMemDump"], "wb")
             for i in range(0,numberOfDoubleWords):
                 file.write(scomData[(8*i):((8*i)+8)])
             file.close()
+
+        #If any ring has A5 as its complete content log that ring info into a
+        #error file
+        file = open(filenames["RingFailInfo"], "a")
+        if(self.cmdType == "getring"):
+            hashEqvStr = "NONE"
+            if int(self.cmdAddress,16) in strHashDict.keys():
+                hashEqvStr = strHashDict[int(self.cmdAddress,16)]
+
+            i = (self.chipOpData+self.chipOpData).find(self.chipOpData, 1, -1)
+            if (i == -1):
+                out.debug("No repeated characters - A5")
+            else:
+                out.debug("Repeated character - " + self.chipOpData[:i])
+                file.write(" \n")
+                file.write("{:<15} {:<15} {:<15} {:<15} {:<20} {:<15} {:<15} \n".format('Pre Req','Command Type','Chip Unit Type','Chip Unit Num','Address/StrEqvHash','HashEqvStr','Data Length'))
+                file.write("{:<15} {:<15} {:<15} {:<15} {:<20} {:<15} {:<15} \n".format(self.preReq,self.cmdType,self.chipUnitType,self.chipUnitNum,self.cmdAddress,hashEqvStr,self.dataLen))
+
+        file.close()
 
     def parseFfdcLength(self, ffdcLen):
 
@@ -231,22 +269,41 @@ class scomData():
 
         #8Bytes of CPU cycles
         self.cpuCycles = int.from_bytes(cpuCycles, "big")
+        global totalCpuCycles
+        totalCpuCycles = totalCpuCycles + self.cpuCycles
 
     def printSingleFifoEntry(self):
 
+        hashEqvStr = "NONE"
+        if int(self.cmdAddress,16) in strHashDict.keys():
+            hashEqvStr = strHashDict[int(self.cmdAddress,16)]
+
+        preReq = str(format(self.preReq,'02X')) + " (" + utils.preReqCommandStatus[self.preReq] + ")"
+
         out.print(" ")
-        out.print("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15}".format('Pre Req','Command Type','Chip Unit Type','Chip Unit Num','Address','Data Length'))
-        out.print("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15}".format(self.preReq,self.cmdType,self.chipUnitType,self.chipUnitNum,self.cmdAddress,self.dataLen))
+        out.print("{:<20} {:<15} {:<15} {:<15} {:<20} {:<15} {:<15}".format('Pre Req','Command Type','Chip Unit Type','Chip Unit Num','Address/StrEqvHash','HashEqvStr','Data Length'))
+        out.print("{:<20} {:<15} {:<15} {:<15} {:<20} {:<15} {:<15}".format(preReq,self.cmdType,self.chipUnitType,self.chipUnitNum,self.cmdAddress,hashEqvStr,self.dataLen))
         out.print("Data: 0X%s" % self.chipOpData)
         out.print("FFDC Length: %s" % self.ffdcLen)
         if self.ffdcLen != 0x00:
             out.print("FFDC Data: 0X%s" % self.ffdcData)
-        out.print("CPU Cycles: %s" % self.cpuCycles)
+        out.print("CPU Cycles: %s = %.8f Sec" % (self.cpuCycles,(self.cpuCycles/sbeClkFreq)))
         out.print(" ")
 
 ############################################################
 # Function - Functions - Functions - Functions - Functions
 ############################################################
+def printSingleHDCTEntry(hdctEntry):
+    hashEqvStr = "NONE"
+    if int(hdctEntry.address,16) in strHashDict.keys():
+        hashEqvStr = strHashDict[int(hdctEntry.address,16)]
+
+    out.print(" ")
+    out.print("{:<45} {:<15} {:<15} {:<15} {:<18} {:<15} {:<15}".format('Dump Types','Command Type','Chip Unit Type','Chip Unit Num','Addr/StrEqvHash','HashEqvStr','Func Args'))
+    out.print("{:<45} {:<15} {:<15} {:<15} {:<18} {:<15} {:<15}".format(str(hdctEntry.dumpTypes),hdctEntry.command,str(hdctEntry.chipUnitType),str(hdctEntry.chipUnitNum),hdctEntry.address,hashEqvStr,str(hdctEntry.funcargs)))
+    out.print(" ")
+    out.print("Additional Details: %s " % hdctEntry.addDetails)
+    out.print(" ")
 
 #This function will filer out HDCT entries based on clock state and dump type
 def getHdctReqDumpEntries(allHdctEntries, reqDumpType):
@@ -257,7 +314,7 @@ def getHdctReqDumpEntries(allHdctEntries, reqDumpType):
     #Unset flag when first clock entry is found in HDCT for Clock OFF state.
     clockOffFlag = True
 
-    fancyPrint(" Collecting HDCT Entries for requested dump type: %s and clock state: %s " % (reqDumpType,clockState), "#", "print")
+    utils.fancyPrint(" Collecting HDCT Entries for requested dump type: %s and clock state: %s " % (reqDumpType,clockState), "#", "print")
 
     for entry in allHdctEntries:
         #Filter HDCT entries based on clock state
@@ -280,8 +337,8 @@ def getHdctReqDumpEntries(allHdctEntries, reqDumpType):
 
            if debugPrints == "on":
                 #Print the entry
-                fancyPrint(" HDCT.bin %s Entry %s " % (reqDumpType,statsAll["allscom"]["hdctBinEntriesCount"]) , "*", "print")
-                entry.printSingleEntry()
+                utils.fancyPrint(" HDCT.bin %s Entry %s " % (reqDumpType,statsAll["allscom"]["hdctBinEntriesCount"]) , "*", "print")
+                printSingleHDCTEntry(entry)
 
     return reqHdctEntries
 
@@ -289,7 +346,7 @@ def parseFifoOutput(dumpFifoOutputFile):
 
     file = open(dumpFifoOutputFile, "rb")
 
-    fancyPrint(" Parse fifo.bin " , "#", "print")
+    utils.fancyPrint(" Parse fifo.bin " , "#", "print")
 
     #Read dump header
     dumpHeader = dumpHdr(file.read(12))
@@ -336,10 +393,10 @@ def parseFifoOutput(dumpFifoOutputFile):
         else:
             break
 
-    fancyPrint(" Chip-op Footer: %s " % codecs.decode(footer, "hex") , "*", "print")
+    utils.fancyPrint(" Chip-op Footer: %s " % codecs.decode(footer, "hex") , "*", "print")
 
     #Chip op end
-    fancyPrint(" Dump Chip Op end " , "*", "print")
+    utils.fancyPrint(" Dump Chip Op end " , "*", "print")
 
     while True:
 
@@ -350,35 +407,35 @@ def parseFifoOutput(dumpFifoOutputFile):
         else:
             break
 
-    fancyPrint("" , "*", "print", 180)
+    utils.fancyPrint("" , "*", "print", 180)
 
     file.close()
 
 def printStats():
 
-    fancyPrint(" Parser Stats : Dump Type %s : Clock State %s " % (dumpType,clockState), "#", "print", 180)
+    utils.fancyPrint(" Parser Stats : Dump Type %s : Clock State %s " % (dumpType,clockState), "#", "print", 180)
 
     #Print Heading
-    fancyPrint("", "-", "print", 180)
+    utils.fancyPrint("", "-", "print", 180)
     out.print("{:<20} {:<15} {:<15} {:<35} {:<40} {:<35}".format('Scom Type','No: of Scoms','No: of FFDC','No: of HDCT Entries in fifo.bin','No: of %s ' % dumpType + 'HDCT Entries in hdct.bin','No: of HDCT Entries Skipped'))
-    fancyPrint("", "-", "print", 180)
+    utils.fancyPrint("", "-", "print", 180)
 
     #Print Content
     for key in stats.keys():
         out.print("{:<20} {:<15} {:<15} {:<35} {:<40} {:<35}".format(key.upper(),stats[key]["scomCount"],stats[key]["ffdcCount"],stats[key]["entriesCount"],stats[key]["hdctBinEntriesCount"],(stats[key]["hdctBinEntriesCount"] - stats[key]["entriesCount"])))
 
     #Print Total
-    fancyPrint("", "-", "print", 180)
+    utils.fancyPrint("", "-", "print", 180)
     out.print("{:<20} {:<15} {:<15} {:<35} {:<40} {:<35}".format("TOTAL",statsAll["allscom"]["scomCount"],statsAll["allscom"]["ffdcCount"],statsAll["allscom"]["entriesCount"],statsAll["allscom"]["hdctBinEntriesCount"],(statsAll["allscom"]["hdctBinEntriesCount"] - statsAll["allscom"]["entriesCount"])))
-    fancyPrint("", "-", "print", 180)
+    utils.fancyPrint("", "-", "print", 180)
 
 def verifyDumpFifoOutput(parsedFifoEntries, parsedHdctEntries):
 
-    fancyPrint(" Verify Fifo dump Content ", "*", "print")
+    utils.fancyPrint(" Verify Fifo dump Content ", "*", "print")
 
     #Check if EKB commit ID in HDCT.bin is same as in fifo.bin
     if ekbCommitIDHdctBin != ekbCommitIDFifoBin:
-        fancyPrint(" EKB Commit ID Mismatch ", "X", "critical")
+        utils.fancyPrint(" EKB Commit ID Mismatch ", "X", "critical")
         out.print("EKB Commit ID in HDCT.bin: %s" % ekbCommitIDHdctBin)
         out.print("EKB Commit ID in FIFO.bin: %s" % ekbCommitIDFifoBin)
         out.critical("Cannot verify fifo.bin. Pass HDCT.bin with same EKB commit ID used during project build")
@@ -398,9 +455,9 @@ def verifyDumpFifoOutput(parsedFifoEntries, parsedHdctEntries):
     while len(parsedHdctEntries) > currentHdctEntry:
 
         if debugPrints == "on":
-            fancyPrint(" Current Fifo  Entry ", "*", "print")
+            utils.fancyPrint(" Current Fifo  Entry ", "*", "print")
             parsedFifoEntries[currentFifoEntry].printSingleFifoEntry()
-            fancyPrint(" Expected HDCT Entry ", "*", "print")
+            utils.fancyPrint(" Expected HDCT Entry ", "*", "print")
             parsedHdctEntries[currentHdctEntry].printSingleEntry()
 
         if((parsedFifoEntries[currentFifoEntry].cmdType == parsedHdctEntries[currentHdctEntry].command) and
@@ -411,7 +468,7 @@ def verifyDumpFifoOutput(parsedFifoEntries, parsedHdctEntries):
 
             #Check if all FIFO entries are parsed.If all fifo entries are parsed print the pending/skipped HDCT entries and exit
             if currentFifoEntry == len(parsedFifoEntries) - 1 :
-                fancyPrint(" All FIFO entries verified ", "*", "print")
+                utils.fancyPrint(" All FIFO entries verified ", "*", "print")
                 currentHdctEntry = currentHdctEntry + 1
                 break
 
@@ -424,7 +481,7 @@ def verifyDumpFifoOutput(parsedFifoEntries, parsedHdctEntries):
         else:
 
             if debugPrints == "on":
-                fancyPrint(" Current Fifo entry not equal to Current Hdct entry: Skipping below HDCT entry ", "$", "critical")
+                utils.fancyPrint(" Current Fifo entry not equal to Current Hdct entry: Skipping below HDCT entry ", "$", "critical")
                 parsedHdctEntries[currentHdctEntry].printSingleEntry()
 
             #Lets compare with next HDCT entry
@@ -432,53 +489,14 @@ def verifyDumpFifoOutput(parsedFifoEntries, parsedHdctEntries):
 
     #Lets check if any HDCT entries are left
     if len(parsedHdctEntries) == currentHdctEntry - 1:
-        fancyPrint(" All HDCT Entries Parsed ", "*", "print")
+        utils.fancyPrint(" All HDCT Entries Parsed ", "*", "print")
     else:
         #print all pending/skipped HDCT entries
         while len(parsedHdctEntries) > currentHdctEntry:
             if debugPrints == "on":
-                fancyPrint(" Skipped HDCT entry ", "$", "critical")
+                utils.fancyPrint(" Skipped HDCT entry ", "$", "critical")
                 parsedHdctEntries[currentHdctEntry].printSingleEntry()
             currentHdctEntry = currentHdctEntry + 1
-
-def fancyPrint(text, specialCharacter, printLevel, length = 170):
-
-    # Keep length less than the number of characters the screen size can
-    # accmodate in a single line -- max = 180
-
-    #TODO: Can be done with setattr by passing attribute as function param
-    if(printLevel == "print"):
-        out.print(text.center(length, specialCharacter))
-    elif(printLevel == "info"):
-        out.info(text.center(length, specialCharacter))
-    elif(printLevel == "warn"):
-        out.warn(text.center(length, specialCharacter))
-    elif(printLevel == "debug"):
-        out.debug(text.center(length, specialCharacter))
-    elif(printLevel == "critical"):
-        out.critical(text.center(length, specialCharacter))
-    elif(printLevel == "error"):
-        out.error(text.center(length, specialCharacter))
-    else:
-        out.critical("Unknown print level passed")
-        sys.exit(1)
-
-def formatTime(timePassed, fraction=True):
-    """
-    Handles time formatting in common function
-    """
-    # The time comes out as 0:00:45.3482..
-    # We find the break from the full seconds to the fractional seconds
-    timeString = str(datetime.timedelta(seconds=timePassed))
-    decIdx = timeString.find(".")
-
-    if (fraction):
-        # The second half of this is a bit of a mess
-        # Convert the decimal string to a float, then round it to two places, then turn it back into a string
-        # It has to be a formatted string conversion, a simple str() would turn .10 into .1.  Then remove the "0."
-        return timeString[0:decIdx] + ("%.2f" % round(float(timeString[decIdx:]), 2))[1:]
-    else:
-        return timeString[0:decIdx]
 
 ################################## Main ###############################################
 
@@ -501,13 +519,14 @@ reqgroup = argparser.add_argument_group('Required Arguments')
 reqgroup.add_argument('-b', '--dumpFifoBinFile', required=True, help="The dump fifo output binary file to be parsed and verified")
 reqgroup.add_argument('-d', '--dumpType', required=True, help="The dump type", choices=sbeSupportedDumpTypes)
 reqgroup.add_argument('-k', '--clockState', required=True, help="Dump collection Clock State", choices=clockStates)
-reqgroup.add_argument('-s', '--hdctBinFile', required=True, help="The HDCT.bin file with which fifo output need to be verified")
 
 # Create our group of optional cmdline args
 optgroup = argparser.add_argument_group('Optional Arguments')
 optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 optgroup.add_argument('-o', '--output', help="Directory to place output")
 optgroup.add_argument('-f', '--parserPrints', help="Print the Parsed output on to consol", choices=["on","off"],default = "off" )
+optgroup.add_argument('-t', '--hdctLookup', help="HDCT Lookup File Path")
+optgroup.add_argument('-s', '--hdctBinFile', help="The HDCT.bin file with which fifo output need to be verified")
 optgroup.add_argument('-m', '--HBMemDump', help="Extract the HB memory dump into a .bin file(getmempba). Applicable only for HB dump in clock ON state", choices=["true","false"],default = "false" )
 optgroup.add_argument('-l', '--log-level', default=out.levels.INFO, type=out.levels.argparse, choices=list(out.levels),
                       help="The output level to send to the log.  INFO is the default")
@@ -535,6 +554,9 @@ debugPrints = args.parserPrints
 #Grabe the host boot mem dump option
 HBMemDump = args.HBMemDump
 
+#Fetch the HDCT.lookup
+filenames["hdctLookupFilePath"] = args.hdctLookup
+
 # Grab your output location and level args right away so we can setup output and logging
 # Setup our output directory
 # If the user gave us one, use that
@@ -547,8 +569,7 @@ else:
 
 # Create the filename.
 filenameBase = "verifyDumpFifoOut"
-filenames = dict()
-outputPath = outputPath + "/" + filenameBase + "_" + dumpType + "_" + clockState
+outputPath = outputPath + "/" + filenameBase + "_" + dumpType + "_" + clockState + "_" + timestamp
 # Make sure the path exists
 if (not os.path.exists(outputPath)):
     # Create the output dir
@@ -564,6 +585,17 @@ if (not os.path.exists(outputPath)):
 filenames["log"] = os.path.join(outputPath, filenameBase + ".log")
 filenames["console"] = os.path.join(outputPath, filenameBase + ".console")
 
+#If any ring has A5 as its complete content log that ring info into a
+#error file
+filenames["RingFailInfo"] = os.path.join(outputPath, "ringFailInfo" + ".txt")
+#Delete old file if it exists as we are writing in append mode.
+if (os.path.exists(filenames["RingFailInfo"])):
+    os.system("rm -f %s" % filenames["RingFailInfo"])
+
+#Extract the HB memory dump (getmempba).
+#Will be extracted if dump type is HB and clock state is ON.
+filenames["HBMemDump"] = os.path.join(outputPath, "HBMemDump" + ".bin")
+
 # Setup our console output level
 out.setConsoleLevel(args.console_level)
 
@@ -574,17 +606,41 @@ out.setLogLevel(args.log_level)
 # This has to be done after cmdline args are processed and we know output dirs and suffixes
 out.setupLogging(filenames["log"], filenames["console"])
 
+# Log the args the program was called with
+out.print("Program Args: " + ' '.join(sys.argv), logOnly=True)
+out.print("")
+
+#Grab files if user has not passed on a HDCT.bin.
+#This will grab both DD1 and DD2 files internally.
+if(hdctBinFile == None):
+    out.print("Fetch HDCT.bin from latest BB HW image")
+    hdctBinFileTmp = fileSupport.getHdctBinFile(outputPath)
+    #Lets Parse only DD2 file.
+    hdctBinFile = hdctBinFileTmp["DD2HDCT"]
+
 #Parse the hdct.bin file
-fancyPrint(" Parse HDCT.bin " , "#", "print")
+utils.fancyPrint(" Parse HDCT.bin " , "#", "print")
 (ekbCommitIDHdctBin, allHdctBinEntries) = txtUtils.createHDCTTxt(hdctBinFile)
+
+#Fetch the complete path of HDCT.lookup based on EKB Commit ID
+if filenames["hdctLookupFilePath"] == None:
+    filenames["hdctLookupFilePath"] = fileSupport.getHdctLookup(ekbCommitIDHdctBin, filenames["hdctLookupFilePath"])
+    if filenames["hdctLookupFilePath"] == None:
+        out.critical("Unable to find look up file. Please enter -t option")
+        sys.exit(1)
+
+out.print("HDCT lookup file path: %s" % filenames["hdctLookupFilePath"])
+
+#Load data from the pickle file which contains string equivalent hash
+strHashDict = pickle.load(open(filenames["hdctLookupFilePath"],"rb"))
 
 #NOTE:Print all HDCT decoded entries if required for debug
 totalHdctBinEntries = 0
 for entry in allHdctBinEntries:
     totalHdctBinEntries = totalHdctBinEntries + 1
     if debugPrints == "on":
-        fancyPrint(" HDCT  Entry %s " % totalHdctBinEntries , "*", "print")
-        entry.printSingleEntry()
+        utils.fancyPrint(" HDCT  Entry %s " % totalHdctBinEntries , "*", "print")
+        printSingleHDCTEntry(entry)
 
 #Filter out HDCT.bin parsed entries based on the requested dump type
 reqHdctBinEntries = getHdctReqDumpEntries(allHdctBinEntries, dumpType)
@@ -604,10 +660,14 @@ stageEndTime = time.time() - stageStartTime
 
 #Print files path
 out.print(" ")
-fancyPrint(" INFO " , "#", "print")
-out.print("Date and Time: %s" % timestamp + "    " + "Run Duration: %s" % formatTime(stageEndTime))
+utils.fancyPrint(" INFO " , "#", "print")
+out.print("Date and Time: %s" % timestamp + "    " + "Run Duration: %s" % utils.formatTime(stageEndTime))
 out.print("For more info all output in: %s/ " % outputPath)
 out.print("Log File: %s" % filenames["log"])
 out.print("Console File: %s" % filenames["console"])
+out.print("Ring Failures File: %s" % filenames["RingFailInfo"])
+out.print("HB Mem dump bin file: %s" % filenames["HBMemDump"])
+out.print(" ")
+out.print("Total CPU Cycles: %s = %.8f Sec" % (totalCpuCycles,(totalCpuCycles/sbeClkFreq)))
 out.print(" ")
 out.print("Program Ends")
