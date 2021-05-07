@@ -120,7 +120,7 @@ do
         ;;
 
         f)
-            SIGINING_MODE=$OPTARG
+            SIGNING_MODE=$OPTARG
         ;;
 
         *)
@@ -156,39 +156,70 @@ if [ -z $BUILD_TYPE ]; then
     BUILD_TYPE="PNOR" #Default Build Type
 fi
 
-if [ -z $SBE_IMG_DIR_OP ]; then
+SIGNING_DIR=
+DEV_KEY_DIR=
+SIGNTOOL_ARGS=
+
+# Determine if our path setup has been provided by the environment
+if [ ! -z $SIGNING_BASE_DIR ]; then
+    echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment"
+    RH_DIR=`sed "s/^.*release \([0-9]*\)\..*$/rh\1/" /etc/redhat-release`
+    SIGNING_DIR=$SIGNING_BASE_DIR/$RH_DIR/$SIGNING_UTILS_DIR
+    DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
+
+elif [ -z $SBE_IMG_DIR_OP ]; then
     echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and signing scripts from /afs/..."
-    OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
-    OP_BUILD_LEVEL=/latest_master-p10/
-    KEYS_DIR=${OP_BUILD_BASE}/${OP_BUILD_LEVEL}/op-build/output/build/skiboot-*/libstb/keys/
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/afs/rchland.ibm.com/projects/esw/bin/sb-signing/rh7/sb-signing-utils
-    PATH=$LD_LIBRARY_PATH:$PATH:$OP_BUILD_BASE
+    RH_DIR=`sed 's/^.*release \([0-9]*\)\..*$/rh\1/' /etc/redhat-release`
+    DEV_KEY_DIR=/afs/rchland.ibm.com/projects/esw/bin/sb-signing/sb-signing-keys/
+    SIGNING_DIR=/afs/rchland.ibm.com/projects/esw/bin/sb-signing/$RH_DIR/sb-signing-utils
+
 else
     echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and signing scripts from OP-Build Tree"
-    KEYS_DIR=${SBE_IMG_DIR_OP}/../../../host/etc/keys/
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SBE_IMG_DIR_OP}/../../../host/usr/bin/
-    PATH=$PATH:$LD_LIBRARY_PATH
+    DEV_KEY_DIR=${SBE_IMG_DIR_OP}/../../../host/etc/keys/
+    SIGNING_DIR=${SBE_IMG_DIR_OP}/../../../host/usr/bin/
+fi
+
+# Adjust paths to pick up the signing tools
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SIGNING_DIR
+PATH=$SIGNING_DIR:$PATH
+
+# Check for signing mode passed in by environment
+if [ $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE = "production" ]; then
+    SIGNING_MODE="Production"
 fi
 
 #Check if user has passed signing mode
-if [ -z $SIGINING_MODE ]; then
-    SIGINING_MODE="Development"
-    echo "***INFO | SBE | signSbeImage : Defaulting signing mode to $SIGINING_MODE "
-else
-    echo "***INFO | SBE | signSbeImage : Signing mode entered: $SIGINING_MODE "
+if [ -z $SIGNING_MODE ]; then
+    SIGNING_MODE="Development"
+    echo "***INFO | SBE | signSbeImage : Defaulting signing mode to $SIGNING_MODE "
 fi
 
 #Set flag basis Development or production mode.
-if [ "$SIGINING_MODE" = "Development" ]; then
-    FLAG=0x40080000
-    echo "***INFO | SBE | signSbeImage : Development Mode : Defaulting flag to $FLAG"
+if [ "$SIGNING_MODE" = "Development" ]; then
+    echo "***INFO | SBE | signSbeImage : Development Mode Signing"
+    SIGNTOOL_ARGS="$SIGNTOOL_ARGS --mode development --flags 0x40080000 \
+                   --hwKeyA ${DEV_KEY_DIR}/hw_key_a.key --hwKeyB ${DEV_KEY_DIR}/hw_key_b.key \
+                   --hwKeyC ${DEV_KEY_DIR}/hw_key_c.key --swKeyP ${DEV_KEY_DIR}/sw_key_a.key "
 
-elif [ "$SIGINING_MODE" = "Production" ]; then
-    FLAG=0x40000000
-    echo "***INFO | SBE | signSbeImage : Production Mode : Defaulting flag to $FLAG"
-    #TODO: Remove below two lines once production mode signing is supported.
-    echo "***ERROR | SBE | signSbeImage : Production Mode not yet suppored"
-    exit -1
+elif [ "$SIGNING_MODE" = "Production" ]; then
+    echo "***INFO | SBE | signSbeImage : Production Mode Signing"
+
+    if [ -z $SB_PROJECT_INI ] || [ ! -e $SB_PROJECT_INI ]; then
+        echo "***ERROR | SBE | signSbeImage : Unable to locate production signing project ini file : $SB_PROJECT_INI"
+        exit -1
+    fi
+    if [ -z $SB_ARCHIVE_IN ] || [ ! -e $SB_ARCHIVE_IN ]; then
+        echo "***ERROR | SBE | signSbeImage : Unable to locate production signing key archive : $SB_ARCHIVE_IN"
+        exit -1
+    fi
+
+    SIGNTOOL_ARGS="$SIGNTOOL_ARGS --mode production --flags 0x40000000 \
+                   --hwKeyA __getkey --hwKeyB __getkey --hwKeyC __getkey --swKeyP __get \
+                   --sign-project-config $SB_PROJECT_INI --archiveIn $SB_ARCHIVE_IN"
+
+    # Need path to SF client to access signing server
+    PATH=$SIGNING_DIR/../sb-signing-framework/sb-signing-framework/src/client:$PATH
+
 
 else
     echo "***ERROR | SBE | signSbeImage : Invalid signing mode option. Enter correct -f option"
@@ -209,15 +240,15 @@ if [ -z $SV ]; then
 else
     echo "***INFO | SBE | signSbeImage : SV( Secure Version) entered: $SV"
 fi
-RESERVED="\x00\x00\x00\x00\x00\x00\x00"
 
 # Do some sanity checks on things we expect the script to consume
-check_path ${KEYS_DIR}/hw_key_a.key
-check_path ${KEYS_DIR}/hw_key_b.key
-check_path ${KEYS_DIR}/hw_key_c.key
-check_path ${KEYS_DIR}/sw_key_a.key
+check_path ${DEV_KEY_DIR}/hw_key_a.key
+check_path ${DEV_KEY_DIR}/hw_key_b.key
+check_path ${DEV_KEY_DIR}/hw_key_c.key
+check_path ${DEV_KEY_DIR}/sw_key_a.key
 check_path ${IPL_IMAGE_TOOL}
 check_path ${SBEBINSIMIMAGE}
+check_path ${SIGNING_DIR}/crtSignedContainer.sh
 
 #Create the scratch dir
 mkdir -p ${SCRATCH_DIR}
@@ -231,7 +262,10 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
     # Sign the .hbbl binary
     echo "Sign .hbbl section"
-    crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags 0x80000000 --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin --validate --security-version $SV
+    $SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $SIGNTOOL_ARGS \
+       --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin \
+       --contrHdrOut ${SCRATCH_DIR}/SBE_HBBL.header --out ${SCRATCH_DIR}/SBE_HBBL.protected_payload.bin \
+       --validate --security-version $SV
 
     #Strip out padding zeros from SBE_HBBL.header i.e only 1282 bytes is actual data. Keep it 8 byte alligned i.e 1288
     echo "Strip SBE_HBBL.header content"
@@ -276,7 +310,10 @@ alignFileSize $SCRATCH_DIR/baseloader.bin
 cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/baseloader.bin $SCRATCH_DIR/base.bin > $SCRATCH_DIR/sbe_fw.bin
 
 # Sign the SBE firmware binary image(payload.bin)
-CMD="crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} --mode development --hwKeyA ${KEYS_DIR}/hw_key_a.key --hwKeyB ${KEYS_DIR}/hw_key_b.key --hwKeyC ${KEYS_DIR}/hw_key_c.key --swKeyP ${KEYS_DIR}/sw_key_a.key --flags $FLAG --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin --validate --security-version $SV"
+CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $SIGNTOOL_ARGS \
+    --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin \
+    --contrHdrOut ${SCRATCH_DIR}/SBE_FW.header --out ${SCRATCH_DIR}/SBE_FW.protected_payload.bin \
+    --validate --security-version $SV"
 echo "Sign SBE FW image : $CMD"
 $CMD
 
@@ -295,12 +332,12 @@ echo "Calculate/Fetch Hash of HW keys"
 print-container -w0 --imagefile ${SCRATCH_DIR}/SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
 
 # Append minumum secure version into .sb_settings xip section after HW key hash
-# The MSV built into .sb_settings is always 0.  HB will customize the real value
-#  which comes from the security header of the SBE boot seeprom image during SBE update
-MSV="\x00"
-echo "Appending MSV and reserved bytes $RESERVED"
-echo -n -e $MSV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
-
+RESERVED="\x00\x00\x00\x00\x00\x00\x00"
+SB_SV=`printf %02d $SV`
+SB_SV="\x${SB_SV}"
+echo "Appending SV $SB_SV and reserved bytes $RESERVED to sb_settings"
+echo -n -e $SB_SV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
+echo $SCRATCH_DIR
 #Append the HW key hash into .sb_settings xip section
 echo "Appending HW key hash into .sb_settings xip section"
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sb_settings
