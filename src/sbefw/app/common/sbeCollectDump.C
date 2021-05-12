@@ -25,6 +25,7 @@
 
 #include "sbeCollectDump.H"
 #include "fapi2.H"
+#include "target_filters.H"
 #include "sbeglobals.H"
 #include <hwp_data_stream.H>
 #include <plat_hwp_data_stream.H>
@@ -983,7 +984,16 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 break;
             }
         case CHIP_UNIT_TYPE_PERV:
-            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_STATE_PRESENT))
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_PERV>(
+                static_cast<fapi2::TargetFilter>(
+                        fapi2::TARGET_FILTER_TP |
+                        fapi2::TARGET_FILTER_ALL_NEST |
+                        fapi2::TARGET_FILTER_ALL_MC  |
+                        fapi2::TARGET_FILTER_ALL_PCI  |
+                        fapi2::TARGET_FILTER_ALL_PAU |
+                        fapi2::TARGET_FILTER_ALL_IOHS |
+                        fapi2::TARGET_FILTER_ALL_EQ),
+                fapi2::TARGET_STATE_PRESENT))
             {
                 if(isChipUnitNumAllowed(target))
                 {
@@ -1183,7 +1193,14 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             fapi2::Target<TARGET_TYPE_ALL> dumpRowTgtHnd(target);
             iv_tocRow.tgtHndl = target;
             iv_tocRow.tocHeader.preReq = PRE_REQ_PASSED;
-            iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
+            if(iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_PERV)
+            {
+                iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.getChipletNumber();
+            }
+            else
+            {
+                iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
+            }
             switch(iv_tocRow.tocHeader.cmdType)
             {
                 case CMD_GETSCOM:
