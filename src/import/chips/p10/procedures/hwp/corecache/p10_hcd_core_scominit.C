@@ -43,7 +43,6 @@
 
 #ifdef __PPE_QME
     #include <p10_l2_scom.H>
-    #include <p10_ncu_scom.H>
     #include "p10_scom_c_c.H"
     #include "p10_ppe_c_7.H"
 #else
@@ -68,7 +67,6 @@
 static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > & i_target)
 {
-    using namespace scomt::c;
     FAPI_INF(">>p10_hcd_core_scominit_qme");
 
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -97,58 +95,6 @@ static inline fapi2::ReturnCode p10_hcd_core_scominit_qme(
             FAPI_ERR("Error from p10_l2_scom");
             fapi2::current_err = l_rc;
             goto fapi_try_exit;
-        }
-
-        FAPI_DBG("Invoking p10.ncu.scom.initfile");
-        FAPI_EXEC_HWP(l_rc, p10_ncu_scom, l_core, FAPI_SYSTEM, l_chip);
-
-        if (l_rc)
-        {
-            FAPI_ERR("Error from p10_ncu_scom");
-            fapi2::current_err = l_rc;
-            goto fapi_try_exit;
-        }
-
-        FAPI_DBG("Configuring NCU darn bar");
-        {
-            fapi2::ATTR_PROC_NX_RNG_BAR_ENABLE_Type l_darn_en;
-            fapi2::ATTR_PROC_NX_RNG_BAR_BASE_ADDR_OFFSET_Type l_darn_offset;
-            fapi2::buffer<uint64_t> l_darn_bar;
-            uint64_t l_base_address_nm0_unused;
-            uint64_t l_base_address_nm1_unused;
-            uint64_t l_base_address_m_unused;
-            uint64_t l_base_address_mmio;
-
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_NX_RNG_BAR_ENABLE, l_chip, l_darn_en),
-                     "Error from FAPI_ATTR_GET (ATTR_PROC_NX_RNG_BAR_ENABLE)");
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_NX_RNG_BAR_BASE_ADDR_OFFSET, FAPI_SYSTEM, l_darn_offset),
-                     "Error from FAPI_ATTR_GET (ATTR_PROC_NX_RNG_BAR_BASE_ADDR_OFFSET)");
-
-            FAPI_TRY(p10_fbc_utils_get_chip_base_address(
-                         l_chip,
-                         EFF_TOPOLOGY_ID,
-                         l_base_address_nm0_unused,
-                         l_base_address_nm1_unused,
-                         l_base_address_m_unused,
-                         l_base_address_mmio),
-                     "Error from p10_fbc_utils_get_chip_base_address");
-
-#ifndef EPM_TUNING
-            l_darn_bar = l_base_address_mmio + l_darn_offset;
-
-            if(l_darn_en == fapi2::ENUM_ATTR_PROC_NX_RNG_BAR_ENABLE_ENABLE)
-            {
-#else
-            l_darn_bar = 0x60302031D0000;
-#endif
-                l_darn_bar.setBit<NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG_EN>();
-#ifndef EPM_TUNING
-            }
-
-#endif
-
-            FAPI_TRY(fapi2::putScom(l_core, NC_NCMISC_NCSCOMS_NCU_DARN_BAR_REG, l_darn_bar),
-                     "Error from putScom (NCU_DARN_BAR_REG)");
         }
     }
 
