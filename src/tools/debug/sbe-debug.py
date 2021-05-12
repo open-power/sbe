@@ -32,6 +32,8 @@ import getopt
 import sys
 import binascii
 import struct
+import gzip
+import shutil
 
 from ctypes import *
 import ctypes
@@ -387,9 +389,9 @@ def ppeState():
                 str1 = hex(regNum)
             str3 = binascii.hexlify(fileHandle.read(4))
             print(str(str1).ljust(15),str(str3).ljust(20))
-            str4 = fileHandle.read(4)    
+            str4 = fileHandle.read(4)
             #2Bytes(SPR/GPR number) + 4Bytes(Value) + 4Bytes(Name)
-            l_cnt = l_cnt + 10; #  
+            l_cnt = l_cnt + 10; #
 
         print('********************************************************************')
         fileHandle.close()
@@ -523,11 +525,51 @@ def parsevalue(iValue):
     tempVal = iValue[30:34]
     print("SBE Progress Code [28:31] : Code reached to %s (%s)" %(progressCode[tempVal],tempVal))
 
+
 def extractSbeDump(dumpFile):
     print("Extract dump File")
 
-    #Open the file in binary mode.
-    fileObj=open(dumpFile, 'rb')
+    # If the file is compressed, unzip it and use the unzipped file elsewhere
+    if (dumpFile.endswith(".gz")):
+        print("gunzip on file: %s" % dumpFile)
+        fileTmp=gzip.open(dumpFile, 'rb')
+        fileObj=open(dumpFile[:-3], 'wb+')
+        #Copy the unzipped file content into a new file
+        shutil.copyfileobj(fileTmp, fileObj)
+        fileTmp.close()
+        #Use the unzipped file else where
+        dumpFile=dumpFile[:-3]
+    else:
+        #Open the file in binary mode.
+        fileObj=open(dumpFile, 'rb')
+
+    print("Parsing the Dump header")
+    dumpSummaryOffset = 0xD0
+    missingSecIndicatorOffset = 0x83
+
+    # If the missing section indicator is on, then adjust the dump summary location
+    fileObj.seek(missingSecIndicatorOffset, 0)
+    oneByteChunk = fileObj.read(1)
+    missingSecIndicator = struct.unpack('b', oneByteChunk)[0]
+    print("Missing section indicator is %s" %hex(missingSecIndicator))
+    if (hex(missingSecIndicator) == 0x01):
+        print("Adjusting the dump summary location")
+        dumpSummaryOffset -= 0x30
+
+    #Read the dump content type
+    dumpContentOffset = dumpSummaryOffset + 0x260
+    fileObj.seek(dumpContentOffset, 0)
+    fourByteChunk = fileObj.read(4)
+    dumpContentType = struct.unpack('>i', fourByteChunk)[0]
+    print("Dump Content Type is %s" %hex(dumpContentType))
+    if(dumpContentType == 0x40000 or dumpContentType == 0x80000000):
+        print("Extract MPIPL Dump")
+        fileObj.close()
+        cmd = os.environ['PATH_PYTHON3'] + " " + os.path.expandvars("$SBEROOT") + "/src/tools/debug/extractMpiplDump.py" + " -d " + dumpFile
+        print(cmd)
+        os.system(cmd)
+        sys.exit(0)
+
     hwDataLenOffest = 0x40 + 0x30 + 0x18 #FileHeaderLength + SumarrySectionLen + HWSectionLenOffset
     hwDataOffest = 0x4D0
 
@@ -549,7 +591,7 @@ def extractSbeDump(dumpFile):
     cmd = "dd skip=" + str(hwDataOffest) + " count=" + str(length) + " if=" + dumpFile  + " of=output.binary bs=1"
     print("Command is %s" %cmd)
     os.system(cmd)
-    
+
     #Untar the HW data.
     cmd = "tar -xvf output.binary"
     print("Command is %s" %cmd)

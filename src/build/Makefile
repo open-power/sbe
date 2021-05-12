@@ -183,6 +183,7 @@ SIMICS_BB_TAR_FILES += $(SIMICSTOOLS_SRCDIR)/*
 SIMICS_BB_TAR_FILES += $(SBE_SRC_DIR)/tools/scripts/getSbeTrace
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/simics-debug-framework.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbe-debug.py
+SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/extractMpiplDump.py
 SIMICS_BB_TAR_FILES += $(DEBUGTOOLS_SRCDIR)/sbeModifyPGvalue.py
 SIMICS_BB_TAR_FILES += $(SBE_SRC_DIR)/tools/utils/ecc
 SIMICS_BB_TAR_FILES += $(SBE_SRC_DIR)/tools/scripts/signSbeImage
