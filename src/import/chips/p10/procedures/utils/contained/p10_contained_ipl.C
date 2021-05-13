@@ -453,6 +453,7 @@ extern "C" {
         const auto eqs_all_cores = i_target.getMulticast(fapi2::MCGROUP_GOOD_EQ, fapi2::MCCORE_ALL);
         const auto perv_eqs_w_cores = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_EQ);
         fapi2::ATTR_ACTIVE_CORES_VEC_Type active_bvec = 0;
+#ifndef DFT
         fapi2::ATTR_SYSTEM_IPL_PHASE_Type sys_ipl_phase;
         fapi2::ATTR_PROC_CHIP_IPL_PHASE_Type chip_ipl_phase;
         fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL_Type l_contained_qme_mma_avail = 0;
@@ -478,6 +479,31 @@ extern "C" {
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, sys_ipl_phase));
             FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PROC_CHIP_IPL_PHASE, i_target, chip_ipl_phase));
         }
+
+#else //DFT
+
+        fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+        fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL_Type l_contained_qme_mma_avail = 0;
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_CONTAINED_QME_MMA_AVAIL, i_target, l_contained_qme_mma_avail));
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        is_dump_ipl = ipl_phase == fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
+
+        if (is_dump_ipl)
+        {
+            fapi2::ATTR_RUNN_MODE_Type runn_mode = fapi2::ENUM_ATTR_RUNN_MODE_OFF;
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_RUNN_MODE, SYS, runn_mode));
+            FAPI_INF("Running contained dump IPL");
+        }
+        else
+        {
+            ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_CONTAINED_IPL;
+            FAPI_INF("Switching to ATTR_SYSTEM_IPL_PHASE[CONTAINED_IPL]");
+            FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SYSTEM_IPL_PHASE, SYS, ipl_phase));
+        }
+
+#endif //DFT
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ACTIVE_CORES_VEC, i_target, active_bvec));
         FAPI_TRY(is_chc_ipl(chc));
