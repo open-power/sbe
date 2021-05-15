@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -36,6 +37,7 @@
 #include "sbeFFDC.H"
 #include "chipop_handler.H"
 #include "sbecmdpmictelemetry.H"
+#include "pmic_n_mode_detect.H"
 #include "plat_hwp_data_stream.H"
 
 //----------------------------------------------------------------------------
@@ -103,11 +105,11 @@ uint32_t sbePmicHealthCheckWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
                             SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL);
             break;
         }
-        // Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
-        //         <fapi2::TARGET_TYPE_OCMB_CHIP>(req.targetInstance);
+        Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
+                <fapi2::TARGET_TYPE_OCMB_CHIP>(req.targetInstance);
         SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",req.targetInstance, l_hndl.get());
 
-        // TODO: Call HWP here.
+        fapiRc = pmic_n_mode_detect(l_hndl, i_putStream);
         if(i_putStream.isStreamRespHeader(respHdr.rcStatus(),ffdc.getRc()))
         {
             i_putStream.put(i_putStream.words_written() * 4); //words_written needs to convert to number of bytes

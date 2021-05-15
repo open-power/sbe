@@ -260,8 +260,10 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
             l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument / 4];
             l_handle.fields.engine = DIMM_I2C_ENGINE;
             l_handle.fields.devAddr = PMIC_DEV_ADDR[i_plat_argument % 4];
-            l_handle.fields.functional = 1;
-            l_handle.fields.present = 1;
+
+            // Since 2u memory model is used in simics, there will be only 2 PMIC
+            l_handle.fields.functional = (i_plat_argument % 4) < 2;
+            l_handle.fields.present = (i_plat_argument % 4) < 2;
         }
     }
     else if(K & TARGET_TYPE_GENERICI2CSLAVE)
@@ -274,8 +276,9 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
             l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument / 4];
             l_handle.fields.engine = DIMM_I2C_ENGINE;
             l_handle.fields.devAddr = GI2C_DEV_ADDR[i_plat_argument % 4];;
-            l_handle.fields.functional = 1;
-            l_handle.fields.present = 1;
+            // Since 2u memory model is used in simics, there will be no GI2C
+            l_handle.fields.functional = 0;
+            l_handle.fields.present = 0;
         }
     }
     else

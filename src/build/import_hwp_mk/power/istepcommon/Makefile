@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -31,7 +31,7 @@ export SUB_OBJDIR = /$(IMPORT_OBJDIR)/istepcommon
 include img_defs.mk
 include istepcommonfiles.mk
 
-export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR):$(I2CHWP_SRCDIR):$(MEMORY_SRCDIR)
+export VPATH = $(PERV_SRCDIR):$(NEST_SRCDIR):$(CACHE_SRCDIR):$(CORE_SRCDIR):$(PM_SRCDIR):$(INITFILES_SRCDIR):$(LIB_SRCDIR):$(I2CHWP_SRCDIR):$(MEMORY_SRCDIR):$(PMIC_SRCDIR)
 
 OBJSISTEPCOMMON := $(addprefix $(OBJDIR-ISTEPCOMMON)/, $(ISTEPCOMMON_OBJECTS))
 
