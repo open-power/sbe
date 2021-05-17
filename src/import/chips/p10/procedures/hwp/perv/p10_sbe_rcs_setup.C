@@ -58,7 +58,7 @@ enum P10_SBE_RCS_SETUP_Private_Constants
     RCS_BYPASS_NS_DELAY = 5000000, // unit is nano seconds (5ms)
     RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
     RCS_RESET_NS_DELAY = 10000000, // unit is nano seconds (10ms)
-    RCS_RESSEL_NS_DELAY = 50000000, // unit is nano seconds (50ms)
+    RCS_RESSEL_NS_DELAY = 1000000, // unit is nano seconds (1ms)
     RCS_RESET_SIM_CYCLE_DELAY = 100  // unit is sim cycles
 };
 
@@ -343,7 +343,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     const uint16_t l_max_deskews = 16;
     const uint16_t l_ressel_count = 4;
     uint64_t l_deskew_array[l_max_deskews] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
-    int      l_max_loop = 20;                  //The number of times PLL reset will be tried
+    int      l_max_loop = 10;                  //The number of times PLL reset will be tried
     int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
     int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
 
