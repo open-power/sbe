@@ -1096,7 +1096,7 @@ fapi_try_exit:
             PMIC_TARGET_OFFSET,
             GI2C_TARGET_OFFSET
         };
-        const uint8_t PPE_TARGET_TYPE_ARRAY[] = {
+        const uint32_t PPE_TARGET_TYPE_ARRAY[] = {
             PPE_TARGET_TYPE_OCMB,
             PPE_TARGET_TYPE_PMIC,
             PPE_TARGET_TYPE_GENERICI2CSLAVE
