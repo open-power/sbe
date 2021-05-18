@@ -184,7 +184,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SIGNING_DIR
 PATH=$SIGNING_DIR:$PATH
 
 # Check for signing mode passed in by environment
-if [ $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE = "production" ]; then
+if [ "$BR2_OPENPOWER_SECUREBOOT_SIGN_MODE" = "production" ]; then
     SIGNING_MODE="Production"
 fi
 
@@ -333,7 +333,7 @@ print-container -w0 --imagefile ${SCRATCH_DIR}/SBE_FW.header | grep -A1 "HW keys
 
 # Append minumum secure version into .sb_settings xip section after HW key hash
 RESERVED="\x00\x00\x00\x00\x00\x00\x00"
-SB_SV=`printf %02d $SV`
+SB_SV=`printf %02x $SV`
 SB_SV="\x${SB_SV}"
 echo "Appending SV $SB_SV and reserved bytes $RESERVED to sb_settings"
 echo -n -e $SB_SV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
