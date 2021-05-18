@@ -72,16 +72,15 @@ uint32_t sbePmicHealthCheckWrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
 
         rc = i_getStream.get(len, (uint32_t *)&req); //EOT fetch
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-        SBE_INFO(SBE_FUNC" raw data [0x%08X]", *((uint32_t*)&req));
 
-        SBE_INFO(SBE_FUNC" targetType [0x%04X] targetInstance [0x%02X] "
-                 (uint32_t)req.targetType,
-                 (uint32_t)req.targetInstance);
+        SBE_INFO(SBE_FUNC" targetType [0x%04X] targetInstance [0x%02X] ",
+                 req.targetType,
+                 req.targetInstance);
 
         // Validate Target type.
         if(!req.validateTargetType())
         {
-            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]",
                       (uint32_t)req.targetType, (uint32_t)req.targetInstance);
             respHdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_INVALID_TARGET_TYPE_PASSED );
