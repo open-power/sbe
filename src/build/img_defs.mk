@@ -371,7 +371,7 @@ export SECURITY_SRC_DIR = $(BUILD_DIR)/security
 endif
 
 ifndef SECURITY_LIST
-export SECURITY_LIST = $(IMPORT_SRCDIR)/chips/p9/security/p9_security_white_black_list.csv
+export SECURITY_LIST = $(IMPORT_SRCDIR)/chips/p10/security/P10_Security_Allow_Deny_list.csv
 endif
 
 ifndef CROSS_COMPILER_PATH

@@ -55,7 +55,6 @@ if ((l_rc) != SBE_SEC_OPERATION_SUCCESSFUL) \
     break; \
 }
 
-#if 0
 #define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp, fifotype, mask) \
 if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isAllowed(addr,mask,op))) ) \
 { \
@@ -72,11 +71,6 @@ if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isAllowed(addr,mask,op))) ) \
                         SBE_SEC_BLACKLISTED_REG_ACCESS_BLOCKED); \
         break; \
     } \
-}
-#endif
-
-#define CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, op, resp, fifotype, mask) \
-{ \
 }
 
 #define mfdec()                               \

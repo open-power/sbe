@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -33,10 +33,12 @@ SUCCESS       = 0
 INVALID_USAGE = 1
 PRINT_AND_EXIT= 2
 
-SECURITY_LIST = "p9_security_white_black_list.csv"
+#Variable for storing user input file path.
+SECURITY_LIST = "P10_Security_Allow_Deny_list.csv"
 DEBUG         = False
 VERBOSE       = False
 
+#Output file name
 GEN_FILE      = "sbeSecurityGen.H"
 
 # csv tags
@@ -47,9 +49,9 @@ TAG_VERSION       = 'Version'
 TAG_TYPE          = 'Type'
 TAG_BIT_MASK      = 'Bit Mask'
 
-TAG_NAME_WHITELIST = 'write_whitelist'
+TAG_NAME_WHITELIST = 'write_allowlist'
 TAG_NAME_GREYLIST = 'write_greylist'
-TAG_NAME_BLACKLIST = 'read_blacklist'
+TAG_NAME_BLACKLIST = 'read_denylist'
 
 def usage():
     print(
