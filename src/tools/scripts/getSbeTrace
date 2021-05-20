@@ -143,7 +143,7 @@ if [ "$BUILD_TYPE" = "OP" ]; then
 
 elif [ "$BUILD_TYPE" = "FIPS" ]; then
 
-    SBE_IMAGE_PATH=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/
+    SBE_IMAGE_PATH=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/x86.nfp/sbei/sbfw/simics/
     SBE_DEBUG_TOOL=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
 
 elif [ "$BUILD_TYPE" = "SBE" ]; then
