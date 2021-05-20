@@ -55,10 +55,10 @@ enum P10_SBE_RCS_SETUP_Private_Constants
     HW_NS_DELAY = 20, // unit is nano seconds
     SIM_CYCLE_DELAY = 100000, // unit is sim cycles
     POLL_COUNT = 10,
-    RCS_BYPASS_NS_DELAY = 5000000, // unit is nano seconds (5ms)
+    RCS_BYPASS_NS_DELAY = 100000, // unit is nano seconds (100us)
     RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
-    RCS_RESET_NS_DELAY = 10000000, // unit is nano seconds (10ms)
-    RCS_RESSEL_NS_DELAY = 1000000, // unit is nano seconds (1ms)
+    RCS_RESET_NS_DELAY = 100000, // unit is nano seconds (100us)
+    RCS_RESSEL_NS_DELAY = 5000000, // unit is nano seconds (5ms)
     RCS_RESET_SIM_CYCLE_DELAY = 100  // unit is sim cycles
 };
 
@@ -343,7 +343,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     const uint16_t l_max_deskews = 16;
     const uint16_t l_ressel_count = 4;
     uint64_t l_deskew_array[l_max_deskews] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
-    int      l_max_loop = 10;                  //The number of times PLL reset will be tried
+    int      l_max_loop = 1;                   //The number of times PLL reset will be tried
     int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
     int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
 
@@ -524,11 +524,11 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR, l_data64_rc5));
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR, l_data64_rc5));
 
-    //set the sel_del val
-    l_data64_rc5.flush<0>();
-    FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
-    SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SEL_DEL(l_data64_rc5);
-    FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
+    // //set the sel_del val
+    // l_data64_rc5.flush<0>();
+    // FAPI_TRY(PREP_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip));
+    // SET_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_SEL_DEL(l_data64_rc5);
+    // FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_SET_WO_OR(i_target_chip, l_data64_rc5));
 
     FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
