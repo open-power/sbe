@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -165,10 +165,18 @@ fapi2::ReturnCode p10_pau_check_quiesce(
     FAPI_DBG("p10_pau_check_quiesce: Entering...");
 
     fapi2::buffer<uint64_t> l_data(0);
+    fapi2::buffer<uint64_t> l_misc_config2(0);
     uint64_t l_fenced_data = 0;
+    uint64_t l_ocapi_enabled = 0;
+    uint64_t l_nvlink_enabled = 0;
 
     const uint32_t c_otl_reset_cmd = 0x3ull;
-    const uint32_t c_otl_reset_status = 0x3ul;
+    // reset status value will be 0b01, if brick is not configured
+    // as neither OCAPI nor NVLINK. Otherwise reset status will be 0b11.
+    const uint32_t c_otl_reset_status_not_ocapi_nvlink = 0x01ul;
+    const uint32_t c_otl_reset_status_ocapi_nvlink = 0x3ul;
+    uint32_t l_otl_reset_status = c_otl_reset_status_ocapi_nvlink;
+
     const uint32_t c_fence_all_brick_cmd = 0x3ul;
     const uint32_t c_otl_disabled_status = 0x1ul;
 
@@ -212,6 +220,18 @@ fapi2::ReturnCode p10_pau_check_quiesce(
     {
         CS_CTL_MISC_STATUS1,
         CS_CTL_MISC_STATUS2
+    };
+
+    //CS_CTL_MISC_CONFIG2 functions
+    getRegFldFuncType c_pau_0_cq_ctrl_misc_config2_get_ocapi_mode[c_num_brick_per_pau] =
+    {
+        GET_CS_CTL_MISC_CONFIG2_BRK0_OCAPI_MODE,
+        GET_CS_CTL_MISC_CONFIG2_BRK1_OCAPI_MODE
+    };
+    getRegFldFuncType c_pau_0_cq_ctrl_misc_config2_get_nvlink_mode[c_num_brick_per_pau] =
+    {
+        GET_CS_CTL_MISC_CONFIG2_BRK0_NVLINK_MODE,
+        GET_CS_CTL_MISC_CONFIG2_BRK1_NVLINK_MODE
     };
 
     //CPU_BAR functions
@@ -361,14 +381,27 @@ fapi2::ReturnCode p10_pau_check_quiesce(
             c_pau_0_fence_ctrl_set_request_fence_functions[i](c_otl_reset_cmd, l_data);
             FAPI_TRY(c_pau_0_fence_ctrl_put_functions[i](l_pau_target, l_data));
 
+            // Check the configuration to find the expected reset status
+            l_misc_config2.flush<0>();
+            FAPI_TRY(GET_CS_CTL_MISC_CONFIG2(l_pau_target, l_misc_config2));
+            c_pau_0_cq_ctrl_misc_config2_get_ocapi_mode[i](l_misc_config2, l_ocapi_enabled);
+            c_pau_0_cq_ctrl_misc_config2_get_nvlink_mode[i](l_misc_config2, l_nvlink_enabled);
+
+            if(l_ocapi_enabled || l_nvlink_enabled)
+            {
+                l_otl_reset_status = c_otl_reset_status_ocapi_nvlink;
+            }
+            else
+            {
+                l_otl_reset_status = c_otl_reset_status_not_ocapi_nvlink;
+            }
+
             for (uint32_t j = 0; j < C_NUM_TRIES_QUIESCE_STATE; j++)
             {
                 FAPI_TRY(c_pau_0_cq_ctrl_status_get_functions[i](l_pau_target, l_data));
                 c_pau_0_cq_ctrl_status_get_am_fenced_functions[i](l_data, l_fenced_data);
 
-                FAPI_DBG("Brick number:%u, l_fenced_data:%u", i, l_fenced_data);
-
-                if(l_fenced_data == c_otl_reset_status)
+                if(l_fenced_data == l_otl_reset_status)
                 {
                     break;
                 }
@@ -376,13 +409,16 @@ fapi2::ReturnCode p10_pau_check_quiesce(
                 FAPI_TRY(fapi2::delay(C_PAU_DELAY_NS, C_PAU_DELAY_CYCLES));
             }
 
+            FAPI_DBG("Brick number:%u, l_fenced_data:%u", i, l_fenced_data);
+
             FAPI_ASSERT(
-                (l_fenced_data == c_otl_reset_status),
+                (l_fenced_data == l_otl_reset_status),
                 fapi2::P10_OTL_NOT_IN_RESET()
                 .set_PROC_TARGET(i_target)
                 .set_PAU_TARGET(l_pau_target)
                 .set_STATUS_ADDR(c_pau_0_cq_ctrl_status_address[i])
-                .set_STATUS_DATA(l_data),
+                .set_STATUS_DATA(l_data)
+                .set_MISC_CONFIG2_DATA(l_misc_config2),
                 "One of the OTLs are not in the reset state");
         }
 
