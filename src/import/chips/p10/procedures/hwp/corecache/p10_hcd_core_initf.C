@@ -68,6 +68,7 @@ p10_hcd_core_initf(
 
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint8_t                        l_attr_mma_poweron_disable = 0;
+    uint8_t                        l_attr_mma_poweroff_disable = 0;
     fapi2::buffer<uint64_t>        l_data64             = 0;
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
@@ -86,9 +87,14 @@ p10_hcd_core_initf(
     // do this to avoid unused variable warning
     static_cast<void>(l_eq_num);
 
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable ) );
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
-    if( !l_attr_mma_poweron_disable )
+    // PowerON_Dis = 0 and PowerOFF_Dis = 0 do not start mma
+    // PowerON_Dis = 0 and PowerOFF_Dis = 1 do start mma
+    // PowerON_Dis = 1 and PowerOFF_Dis = 0 do not start mma
+    // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
+    if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
         for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
         {

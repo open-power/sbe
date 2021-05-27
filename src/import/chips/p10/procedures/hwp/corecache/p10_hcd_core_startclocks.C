@@ -98,7 +98,8 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
-    uint8_t                 l_attr_mma_poweron_disable = 0;
+    uint8_t                 l_attr_mma_poweron_disable  = 0;
+    uint8_t                 l_attr_mma_poweroff_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
@@ -199,11 +200,16 @@ p10_hcd_core_startclocks(
 
     }
 
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE, l_sys, l_attr_mma_poweron_disable ) );
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable  ) );
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
     // only start mma when poweron is enabled and not in dynamic mode
     // the power on and scan is done by exit of stop3 and stop11 accordingly
-    if( !l_attr_mma_poweron_disable )
+    // PowerON_Dis = 0 and PowerOFF_Dis = 0 do not start mma
+    // PowerON_Dis = 0 and PowerOFF_Dis = 1 do start mma
+    // PowerON_Dis = 1 and PowerOFF_Dis = 0 do not start mma
+    // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
+    if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
         // Start MMA clocks along/after core clocks
         // shared for all stop2,3,11 path

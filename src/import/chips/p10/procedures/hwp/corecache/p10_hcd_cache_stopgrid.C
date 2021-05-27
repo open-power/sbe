@@ -45,7 +45,6 @@
 
 #include "p10_hcd_cache_stopgrid.H"
 #include "p10_hcd_common.H"
-#include "p10_hcd_mma_poweroff.H"
 
 #ifdef __PPE_QME
     #include "p10_ppe_c.H"
@@ -77,22 +76,13 @@ p10_hcd_cache_stopgrid(
     fapi2::buffer<buffer_t> l_mmioData = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     uint32_t                l_timeout  = 0;
-    uint8_t                 l_attr_mma_poweroff_disable = 0;
-    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 #ifdef USE_RUNN
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
 #endif
 
     FAPI_INF(">>p10_hcd_cache_stopgrid");
-
-    //If dynamic mode, stop2,3,11 all turn off mma completely
-    //otherwise, stop2 only turn off mma clock, stop3,11 turn off mma power
-    if( l_attr_mma_poweroff_disable )
-    {
-        FAPI_TRY( p10_hcd_mma_poweroff( i_target ) );
-    }
 
     FAPI_DBG("Disable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(0) ) );
