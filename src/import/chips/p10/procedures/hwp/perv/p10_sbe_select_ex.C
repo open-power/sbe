@@ -50,6 +50,8 @@
 ///     ATTR_BACKING_CACHES_NUM:    required number of 4MB backing MB caches
 ///     ATTR_ACTIVE_CORES_VEC:      bit vector of active cores (overridable attribute)
 ///     ATTR_BACKING_CACHES_VEC:    bit vector of backing caches (overridable attribute)
+///     ATTR_BACKING_CACHES_VEC:    bit vector of backing caches (overridable attribute)
+///     ATTR_ECO_MODE:              per core flag to indicate Extended Cache Option mode
 ///     ATTR_FUSED_MODE:            needed for error checking
 ///
 /// num_active = 0
@@ -122,7 +124,9 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>& i_core_functional_vector,
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
-    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num);
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num,
+    fapi2::buffer<uint32_t>& o_eco_caches_bvec,
+    uint32_t& o_eco_caches_num);
 
 fapi2::ReturnCode select_ex_pfet_delay(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target);
@@ -148,6 +152,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
     fapi2::buffer<uint32_t> l_core_config_bvec = 0;
     fapi2::buffer<uint32_t> l_active_config_bvec = 0;
     fapi2::buffer<uint32_t> l_backing_config_bvec = 0;
+    fapi2::buffer<uint32_t> l_eco_config_bvec = 0;
     fapi2::buffer<uint32_t> l_needed_config_bvec = 0;
     fapi2::buffer<uint64_t> l_data64;
 
@@ -156,6 +161,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
     fapi2::ATTR_BACKING_CACHES_NUM_Type l_attr_num_backing = 0;
     uint32_t l_num_active = 0;
     uint32_t l_num_backing = 0;
+    uint32_t l_num_eco = 0;
     bool b_master_found = false;
     bool b_fused = false;
     bool b_fused_first_half = false;
@@ -170,41 +176,30 @@ fapi2::ReturnCode p10_sbe_select_ex(
     auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
                                     (fapi2::TARGET_STATE_FUNCTIONAL);
 
-
     fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
                            FAPI_SYSTEM,
                            l_attr_fused_mode));
 
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE,
+                           FAPI_SYSTEM,
+                           l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+
+
     if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
     {
         b_fused = true;
         FAPI_DBG("Fused core mode detected");
-
-        // Check that we're not trying to force fused cores on a chip where the
-        // force mechanism is disabled via eFuses AND we are not already in
-        // fused mode
-
-        // @todo RTC 207903
-        // Update the following P9 fields with the P10 variants
-//         fapi2::buffer<uint64_t> l_perv_ctrl0;
-//         fapi2::buffer<uint64_t> l_device_id_reg;
-//
-//         FAPI_TRY(fapi2::getScom(i_target, PERV_PERV_CTRL0_SCOM, l_perv_ctrl0));
-//         FAPI_TRY(fapi2::getScom(i_target, PERV_DEVICE_ID_REG, l_device_id_reg));
-//
-//         FAPI_ASSERT(!(l_perv_ctrl0.getBit<P9N2_PERV_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>()
-//                       && l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_HW_MODE_SEL>() &&
-//                       !l_device_id_reg.getBit<P9N2_PERV_DEVICE_ID_REG_TP_EX_FUSE_SMT8_CTYPE_EN>()),
-//                     fapi2::SBE_SELECT_EX_FORCE_FUSED_CORES_DISABLED(),
-//                     "Failed to force fused core mode because external control has been disabled via eFuses");
     }
 
     {
         FAPI_TRY(select_ex_calc_active_backing_nums(i_target,
                  l_core_functional_vector,
                  l_attr_num_active,
-                 l_attr_num_backing),
+                 l_attr_num_backing,
+                 l_eco_config_bvec,
+                 l_num_eco),
                  "Error from select_ex_calc_active_backing_nums");
 
         FAPI_DBG("ATTR_ACTIVE_CORES_NUM   = %d", l_attr_num_active);
@@ -232,6 +227,10 @@ fapi2::ReturnCode p10_sbe_select_ex(
     // companion odd core to the first and second even one is not present, raise
     // errors.
     //
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+
     for (auto const& core : l_core_functional_vector)
     {
         fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
@@ -242,6 +241,13 @@ fapi2::ReturnCode p10_sbe_select_ex(
         uint32_t l_core_num  = (uint32_t)l_attr_chip_unit_pos;
 
         l_eq_target = core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core, l_eco_mode));
+
+        bool b_skip_active = l_eco_mode;
+        bool b_skip_backing = l_eco_mode && (l_attr_contained_ipl_type !=
+                                             fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP);
 
         if (b_fused)
         {
@@ -281,16 +287,17 @@ fapi2::ReturnCode p10_sbe_select_ex(
                      l_attr_chip_unit_pos, l_attr_chip_unit_pos);
         }
 
-        if (l_num_active < l_attr_num_active)
+        // Skip cache only cores in trying to fullfil the active cores
+        if ((l_num_active < l_attr_num_active) && !b_skip_active)
         {
             l_core_config_bvec.setBit(l_core_num);
             l_active_config_bvec.setBit(l_core_num);
-            FAPI_TRY(select_ex_config(l_eq_target, l_core_num, true));
             ++l_num_active;
+            FAPI_TRY(select_ex_config(l_eq_target, l_core_num, true));
             continue;  // next core
         }
 
-        if (l_num_backing < l_attr_num_backing)
+        if ((l_num_backing < l_attr_num_backing) && !b_skip_backing)
         {
             l_core_config_bvec.setBit(l_core_num);
             l_backing_config_bvec.setBit(l_core_num);
@@ -308,6 +315,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
 
     FAPI_DBG("Scoreboard values for OCC: Core 0x%08X", l_core_config_bvec);
     FAPI_DBG("Active core check: num_active %d attr_num_active %d", l_num_active, l_attr_num_active);
+    FAPI_DBG("ECO core check: num_eco %d ", l_num_eco);
 
     FAPI_ASSERT(l_num_active == l_attr_num_active,
                 fapi2::SBE_SELECT_EX_INSUFFICIENT_ACTIVE_CORES_ERROR()
@@ -327,15 +335,28 @@ fapi2::ReturnCode p10_sbe_select_ex(
                 .set_ATTR_BACKING_CACHES_NUM(l_attr_num_backing)
                 .set_ACTIVE_CORES_NUM(l_num_active)
                 .set_BACKING_CACHES_NUM(l_num_backing)
+                .set_ECO_CACHES_NUM(l_num_eco)
                 .set_ACTIVE_CORES_VEC(l_active_config_bvec)
-                .set_BACKING_CACHES_VEC(l_backing_config_bvec),
+                .set_BACKING_CACHES_VEC(l_backing_config_bvec)
+                .set_ECO_CORES_VEC(l_eco_config_bvec),
                 "Insufficient backing caches found");
 
+    FAPI_DBG("ECO check: l_eco_config_bvec 0x%08X l_active_config_bvec 0x%08X", l_eco_config_bvec, l_active_config_bvec);
+    FAPI_ASSERT((l_eco_config_bvec & l_active_config_bvec) == 0,
+                fapi2::SBE_SELECT_EX_ACTIVE_ECO_ERROR()
+                .set_CHIP(i_target)
+                .set_CORE_CONFIG(l_core_config_bvec)
+                .set_ATTR_ACTIVE_CORES_NUM(l_attr_num_active)
+                .set_ATTR_BACKING_CACHES_NUM(l_attr_num_backing)
+                .set_ACTIVE_CORES_NUM(l_num_active)
+                .set_BACKING_CACHES_NUM(l_num_backing)
+                .set_ECO_CACHES_NUM(l_num_eco)
+                .set_ACTIVE_CORES_VEC(l_active_config_bvec)
+                .set_BACKING_CACHES_VEC(l_backing_config_bvec)
+                .set_ECO_CORES_VEC(l_eco_config_bvec),
+                "Active cores collide with ECO cores");
 
     // get chip contained specific attribute overrides for active/backing setup
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
-             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
-
     if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
     {
         FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC,
@@ -385,13 +406,21 @@ fapi2::ReturnCode p10_sbe_select_ex(
              ISTEP4_MC_GROUPS),
              "Error from p10_perv_sbe_cmn_setup_multicast_groups");
 
-    // Setup the PFET Delays for the configure cores
+    // Setup the PFET Delays for the configured cores
     FAPI_TRY(select_ex_pfet_delay(i_target));
 
     // Write to the OCC Core Configuration Status Register
     l_data64.flush<0>().insertFromRight<0, 32>(l_core_config_bvec);
     FAPI_TRY(fapi2::putScom(i_target, TP_TPCHIP_OCC_OCI_OCB_CCSR_RW, l_data64));
     FAPI_DBG("Write OCI CCSR to 0x%16llX", l_data64);
+
+    // Write OCC Flag6 with ECO configuration.  This is only done here
+    // so that if the XGPE/OCC is ever booted before istep 15, a view of ECO cores
+    // is available.  This is redone in p10_update_ec_state in istep 15 so
+    // as to catch any reconfiguration that might take place.;
+    l_data64.flush<0>().insertFromRight<0, 32>(l_eco_config_bvec);
+    FAPI_TRY(fapi2::putScom(i_target, TP_TPCHIP_OCC_OCI_OCB_OCCFLG6_RW, l_data64));
+    FAPI_DBG("Write OCC Flag6 OR with 0x%16llX", l_data64);
 
 fapi_try_exit:
     FAPI_INF("< p10_sbe_select_ex");
@@ -408,7 +437,9 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target,
     const std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>>& i_core_functional_vector,
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
-    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num)
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num,
+    fapi2::buffer<uint32_t>& o_eco_caches_bvec,
+    uint32_t& o_eco_caches_num)
 {
     FAPI_DBG("> select_ex_calc_active_backing_nums...");
 
@@ -421,9 +452,26 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     fapi2::ATTR_SBE_SELECT_EX_POLICY_Type l_attr_sbe_select_ex_policy;
     fapi2::ATTR_ZERO_CORE_CHIP_Type l_zero_core_chip;
 
-    uint8_t l_functional_cores_num = i_core_functional_vector.size();
     o_active_cores_num = 0;
     o_backing_caches_num = 0;
+    o_eco_caches_num = 0;
+    o_eco_caches_bvec.flush<0>();
+
+    uint8_t l_functional_cores_num = i_core_functional_vector.size();
+
+    for (const auto& l_core : i_core_functional_vector)
+    {
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, l_core, l_eco_mode));
+
+        if (l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_ENABLED)
+        {
+            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core, l_core_num));
+            FAPI_TRY(o_eco_caches_bvec.setBit(l_core_num));
+            o_eco_caches_num++;
+        }
+    }
 
     // In order to support IOSCMs ( which have no good cores on 1 chip), exit as there aren't
     // any active/backing cache requirements for them.
@@ -450,27 +498,53 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
 
     if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE)
     {
+        // no ECO cores are expected to be configured in cache contained mode
+        FAPI_ASSERT(o_eco_caches_bvec == 0,
+                    fapi2::SBE_SELECT_EX_ECO_CACHE_CONTAINED_CONFIG_ERROR()
+                    .set_CHIP(i_target)
+                    .set_ECO_VEC(o_eco_caches_bvec),
+                    "No ECO cores are expected to be configured in cache contained mode!");
+
         o_active_cores_num = l_functional_cores_num;
         o_backing_caches_num = 0;
     }
     else if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP)
     {
-        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC, i_target, l_attr_chip_contained_active_cores_vec),
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC, i_target,
+                               l_attr_chip_contained_active_cores_vec),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC)");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC, i_target,
                                l_attr_chip_contained_backing_caches_vec),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC)");
 
+        uint32_t l_eco_caches_bvec = o_eco_caches_bvec;
+
         for (auto l_bit = 0; l_bit < 32; l_bit++)
         {
             o_active_cores_num += (l_attr_chip_contained_active_cores_vec & 0x1);
             o_backing_caches_num += (l_attr_chip_contained_backing_caches_vec & 0x1);
+            // assert that ECO cores are configured as backing caches only
+            FAPI_ASSERT(!(l_eco_caches_bvec & 0x1) ||
+                        (l_attr_chip_contained_backing_caches_vec & 0x1),
+                        fapi2::SBE_SELECT_EX_ECO_CHIP_CONTAINED_CONFIG_ERROR()
+                        .set_CHIP(i_target)
+                        .set_CORE_NUM(l_bit)
+                        .set_ACTIVE_VEC(l_attr_chip_contained_active_cores_vec)
+                        .set_BACKING_VEC(l_attr_chip_contained_backing_caches_vec)
+                        .set_ECO_VEC(l_eco_caches_bvec),
+                        "ECO core configured which is not a backing cache in chip contained mode!");
+
             l_attr_chip_contained_active_cores_vec = l_attr_chip_contained_active_cores_vec >> 1;
             l_attr_chip_contained_backing_caches_vec = l_attr_chip_contained_backing_caches_vec >> 1;
+            l_eco_caches_bvec = l_eco_caches_bvec >> 1;
         }
     }
     else
     {
+        // non contained IPL type -- remove ECO cores from count of functional cores on this chip,
+        // as we won't process them as part of istep 4
+        l_functional_cores_num -= o_eco_caches_num;
+
         if (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_CRONUS_MAX_ACTIVE)
         {
             o_active_cores_num = l_functional_cores_num;
@@ -561,6 +635,7 @@ fapi2::ReturnCode select_ex_config(
     FAPI_DBG("> select_ex_config for core/L3 %d Set to Partial %s",
              i_core_num, i_set_good ? "Good" : "Bad");
 #endif
+
 
     fapi2::buffer<uint64_t> l_data64;
 
