@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -62,7 +62,7 @@ p10_suspend_io_FP_t p10_suspend_io_hwp = &p10_suspend_io;
 /* ----------------------------------- start SEEPROM CODE */
 //Utility function to mask special attention
 //----------------------------------------------------------------------------
-ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target )
+ReturnCode maskUnmaskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target, bool isMaskReq )
 {
 #define SBE_FUNC "maskSpecialAttn "
     SBE_ENTER(SBE_FUNC);
@@ -77,7 +77,14 @@ ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target )
             SBE_ERROR(SBE_FUNC" Failed to read P10_SPATTN_MASK_RO(0x20040002)");
             break;
         }
-        maskData = maskData | ecMask;
+        if(isMaskReq)
+        {
+            maskData = maskData | ecMask;
+        }
+        else
+        {
+            maskData = maskData & ~ecMask;
+        }
         rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK_WO, maskData );
         if( rc )
         {

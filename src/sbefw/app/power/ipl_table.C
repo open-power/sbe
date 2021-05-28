@@ -153,7 +153,7 @@ static const uint64_t  N3_FIR_SYSTEM_CHECKSTOP_BIT = 30; // 63-33 = 30
 // Externs
 extern uint64_t G_ring_save[8];
 //Utility function to mask special attention
-extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_CORE>& i_target );
+extern ReturnCode maskUnmaskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target, bool isMaskReq );
 
 // Aliases
 using sbeIstepHwpTpSwitchGears_t = ReturnCode (*)
@@ -1332,8 +1332,20 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     do
     {
-        // Read the EC gard attributes from the chip target
-        fapi2::buffer<uint64_t> scratchReg1 = 0;
+        // In MPIPL path, stopCntlisntruction mask the spl mask attn register.
+        // In continue mpipl path, unmask the bits in set in mpipl up path explicitly because
+        // istep 3 won't be executed so EQ scan inits won't be run again.
+	for(auto eqTgt: proc.getChildren<fapi2::TARGET_TYPE_EQ>())
+	{
+            rc = maskUnmaskSpecialAttn(eqTgt, false);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failure in unmasking SpecialAttn register with rc 0x%08X", rc);
+                break;  // This should not break the continue mpipl.
+	    }
+	}
+	// Read the EC gard attributes from the chip target
+	fapi2::buffer<uint64_t> scratchReg1 = 0;
         fapi2::buffer<uint64_t> scratchReg8 = 0;
         fapi2::buffer<uint32_t> ecMask = 0;
         plat_target_handle_t hndl;

@@ -49,7 +49,7 @@
 using namespace fapi2;
 
 //Utility function to mask special attention
-extern ReturnCode maskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target);
+extern ReturnCode maskUnmaskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target, bool isMaskReq);
 p10_thread_control_FP_t threadCntlhwp = &p10_thread_control;
 
 static const uint64_t SPWKUP_ASSERT   = 0x8000000000000000ull;
@@ -386,7 +386,7 @@ ReturnCode stopAllCoreInstructions( )
         for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
         {
             //Mask Core Special Attentions for all cores related to the EQ
-            fapiRc = maskSpecialAttn(eqTgt);
+            fapiRc = maskUnmaskSpecialAttn(eqTgt, true);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "Failure in maskSpecialAttn()");
