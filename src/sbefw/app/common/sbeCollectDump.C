@@ -1034,14 +1034,15 @@ uint32_t sbeCollectDump::writePutScomPacketToFifo()
         iv_tocRow.tocHeader.address = iv_hdctRow->cmdPutScom.addr;
         iv_tocRow.tocHeader.dataLength = 0x00;
         uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
-        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         if(!iv_tocRow.tgtHndl.getFunctional())
         {
             iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL; 
+            iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
             SBE_DEBUG("DUMP PUTSCOM: NonFunctional Target UnitNum[0x%08X]",
                      (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         uint32_t addr = iv_tocRow.tocHeader.address;
         uint32_t maskType = iv_hdctRow->cmdPutScom.extGenericHdr.bitModifier;
