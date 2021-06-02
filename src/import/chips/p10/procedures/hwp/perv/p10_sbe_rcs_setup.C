@@ -240,9 +240,9 @@ void p10_get_deskew_dd2(
     }
 
     if ( l_streak == 32)  //This represents  a case where no error was found.  This could
-        // happen on a fast process part.  Treat as a fail and reset the PLL
+        // happen on a fast process part.  Set to the middle of the deskew range
     {
-        o_deskewVal = -1;
+        o_deskewVal = 7;
     }
     else if (( l_streakMax >= 5 ) && (l_secondFail)) //If 5 consecutive non-error bits were found in a window
     {
