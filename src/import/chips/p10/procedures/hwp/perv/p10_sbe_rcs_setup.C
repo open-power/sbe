@@ -178,7 +178,6 @@ fapi_try_exit:
 //---------------------------------------------------------------------------------
 void p10_get_deskew_dd2(
     const uint32_t  i_shiftedErrVals,
-    bool i_lastLoop,
     int&  o_deskewVal
 )
 {
@@ -187,6 +186,7 @@ void p10_get_deskew_dd2(
     uint32_t l_streakMax = 0;
     uint32_t l_lastGoodPos = 0;
     uint32_t l_firstError = 32;
+    uint32_t l_firstErrorLastStep = 0;
     bool l_foundFail = false;
     bool l_secondFail = false;
     o_deskewVal = -1;
@@ -199,9 +199,9 @@ void p10_get_deskew_dd2(
     //deskew to set on the PLL.
     //We need to find a window of good deksew that do not have an error, if we exhaust our
     //  loop attempts, then set the value of deskew to defined offset from found error
-    //The algorithm will interate over the 32 bits in the input i_shiftedErrVal that represent
+    //The algorithm will interate over the 16 bits in the input i_shiftedErrVal that represent
     //output of the experiments
-    for ( uint32_t l_step = 0 ; l_step < 32; ++l_step)
+    for ( uint32_t l_step = 0 ; l_step < 16; ++l_step)
     {
         //if we are in the shifted 16 bits, reset the found fail so we don't think its a good window
         if ( l_step == 16)
@@ -210,11 +210,16 @@ void p10_get_deskew_dd2(
         }
 
         //Check if the current bit position in the input error string represents an error
-        if ((i_shiftedErrVals >> (31 - l_step)) & 0x1)
+        if ((i_shiftedErrVals >> (15 - l_step)) & 0x1)
         {
             if (l_step < l_firstError)      // keep track of the first deskew with an error
             {
                 l_firstError = l_step;
+                l_firstErrorLastStep = l_step;
+            }
+            else
+            {
+                l_firstErrorLastStep = l_step;
             }
 
             if ((l_foundFail) && (l_streak > 0))    // if we foud a previous fail and streak>0,
@@ -239,25 +244,29 @@ void p10_get_deskew_dd2(
         }
     }
 
-    if ( l_streak == 32)  //This represents  a case where no error was found.  This could
-        // happen on a fast process part.  Set to the middle of the deskew range
+    if ( l_streak == 16)  //This represents  a case where no error was found.  This could
+        // happen on a fast process part.  Reset the filter PLL's
     {
-        o_deskewVal = 7;
+        o_deskewVal = -1;
     }
     else if (( l_streakMax >= 5 ) && (l_secondFail)) //If 5 consecutive non-error bits were found in a window
     {
         //set deskew to center of streak
         o_deskewVal = (l_lastGoodPos - (l_streakMax / 2)) % 16;
     }
-    else if ((i_lastLoop) && (l_streakMax >= 5))     // if there is no window and this is the last loop, manually set
+    else if (l_streakMax >= 5)     // if there is no window and this is the last loop, manually set
     {
-        if ( (l_firstError + 6) <= 15)
+        if ( ((l_firstErrorLastStep + 6) <= 15))
         {
-            o_deskewVal = l_firstError + 6;
+            o_deskewVal = l_firstErrorLastStep + 6;
+        }
+        else if ( (l_firstError - 6) >= 0 )
+        {
+            o_deskewVal = l_firstError - 6;
         }
         else
         {
-            o_deskewVal = l_firstError - 6;
+            o_deskewVal = -1;
         }
     }
 
@@ -337,13 +346,13 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     fapi2::buffer<uint64_t> l_data64_rcsns;
     fapi2::buffer<uint64_t> l_deskew_buf;
 
-    bool     l_clkErrA = false, l_clkErrB = false, l_lastLoop = false;
+    bool     l_clkErrA = false, l_clkErrB = false;
     uint32_t l_clkAErrVals = 0, l_shiftedAErrVals = 0;
     uint32_t l_clkBErrVals = 0, l_shiftedBErrVals = 0;
     const uint16_t l_max_deskews = 16;
     const uint16_t l_ressel_count = 4;
     uint64_t l_deskew_array[l_max_deskews] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
-    int      l_max_loop = 1;                   //The number of times PLL reset will be tried
+    int      l_max_loop = 10;                  //The number of times PLL reset will be tried
     int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
     int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
 
@@ -433,7 +442,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
             l_clkBErrVals += l_clkErrB << (15 - l_deskew_buf);
             FAPI_DBG("deskew loop 0x%02X, l_clkErrA 0x%02X, l_clkErrB 0x%02X",
                      l_deskewIndex, l_clkErrA, l_clkErrB);
-            FAPI_DBG("l_clkAErrVals 0x%02X, l_clkBErrVals 0x%02X", l_clkAErrVals, l_clkBErrVals);
+            FAPI_DBG("l_clkAErrVals 0x%04X, l_clkBErrVals 0x%04X", l_clkAErrVals, l_clkBErrVals);
 
         }//end of deskew range for
 
@@ -442,17 +451,13 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
         l_shiftedAErrVals = (l_clkAErrVals & 0xFFFF) | ((l_clkAErrVals << 16) & 0xFFFF0000);
         l_shiftedBErrVals = (l_clkBErrVals & 0xFFFF) | ((l_clkBErrVals << 16) & 0xFFFF0000);
 
-        if (l_index == (l_max_loop - 1) )  // if this is the last loop, we need to handle the deskew differently
-        {
-            l_lastLoop = true;
-        }
-
-        p10_get_deskew_dd2(l_shiftedAErrVals, l_lastLoop, l_goodDeskewA);
-        p10_get_deskew_dd2(l_shiftedBErrVals, l_lastLoop, l_goodDeskewB);
+        p10_get_deskew_dd2(l_shiftedAErrVals, l_goodDeskewA);
+        p10_get_deskew_dd2(l_shiftedBErrVals, l_goodDeskewB);
 
         if((l_goodDeskewA == INVALID_DESKEW) || (l_goodDeskewB == INVALID_DESKEW))
         {
-            FAPI_INF("Valid deskew not found, loop count 0x%02x", l_index);
+            FAPI_ERR("Valid deskew not found, loop count 0x%02x  DeskewA(0x%08X) DeskewB(0x%08X)",
+                     l_index, l_clkAErrVals, l_clkBErrVals);
 
             //reset the RCS PLL before entering the new loop
             l_data64_rc3.flush<0>();
