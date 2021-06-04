@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,6 +32,7 @@
 #include "sberegaccess.H"
 #include "sbetrace.H"
 #include "fapi2.H"
+#include "sbeglobals.H"
 #include <ppe42_scom.h>
 #include <p10_scom_perv.H>
 #include <p9_perv_scom_addresses.H>
@@ -342,14 +343,24 @@ bool SbeRegAccess::isSbeRegressionBit()
 {
     #define SBE_FUNC "SbeRegAccess::isSbeRegressionBit"
     bool isDisableInvalidScomAddrCheck = false;
-    uint8_t readData;
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    sbe_local_LFR lfrReg;
+    PPE_LVD(0xc0002040, lfrReg);
 
-    FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, readData);
-    if((iv_mbx3_valid) && !readData && iv_disableInvalidScomAddrCheck)
+    if((iv_mbx3_valid) && !lfrReg.secure_mode && iv_disableInvalidScomAddrCheck)
     {
         isDisableInvalidScomAddrCheck = true;
     }
     return isDisableInvalidScomAddrCheck;
+    #undef SBE_FUNC
+}
+
+bool SbeRegAccess::disableScomFiltering()
+{
+    #define SBE_FUNC "SbeRegAccess::disableScomFiltering"
+    sbe_local_LFR lfrReg;
+    PPE_LVD(0xc0002040, lfrReg);
+
+    return (!lfrReg.secure_mode &&
+            iv_disableScomFiltering);
     #undef SBE_FUNC
 }

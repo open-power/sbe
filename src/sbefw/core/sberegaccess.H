@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -283,14 +283,8 @@ class SbeRegAccess
          *
          * @return scom filtering disable allowed
          */
-        bool disableScomFiltering()
-        {
-            fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-            uint8_t readData;
-            FAPI_ATTR_GET(fapi2::ATTR_SECURITY_MODE, FAPI_SYSTEM, readData);
-            return (!readData &&
-                    iv_disableScomFiltering);
-        }
+        bool disableScomFiltering();
+
     private:
 
         /**
