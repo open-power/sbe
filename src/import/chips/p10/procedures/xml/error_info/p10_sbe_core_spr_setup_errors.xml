@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -35,6 +35,36 @@
     <ffdc>CHIP_TARGET</ffdc>
     <ffdc>MASTER_CORE_NUM</ffdc>
     <ffdc>FUSED_MODE</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <sbeError/>
+    <rc>RC_P10_SBE_CORE_SPR_SETUP_MASTER_CORE_ECO_MODE</rc>
+    <description>
+      Procedure: p10_sbe_core_spr_setup
+      Master core not expected to be in ECO mode
+    </description>
+    <ffdc>CHIP_TARGET</ffdc>
+    <ffdc>FUSED_MODE</ffdc>
+    <ffdc>ECO_MODE_TARGET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <sbeError/>
+    <rc>RC_P10_SBE_INSTRUCT_START_MASTER_CORE_ECO_MODE</rc>
+    <description>
+      Procedure: p10_sbe_instruct_start
+      Master core not expected to be in ECO mode
+    </description>
+    <ffdc>TARGET</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>

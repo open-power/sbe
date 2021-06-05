@@ -464,6 +464,7 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
     uint32_t l_num_cachelines_to_roll;
     uint32_t l_cacheline_num = 0;
     fapi2::ATTR_IS_MPIPL_Type l_is_mpipl = fapi2::ENUM_ATTR_IS_MPIPL_FALSE;
+    fapi2::ATTR_ECO_MODE_Type l_eco_mode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
     p10_PBA_oper_flag l_pba_flags;
     uint8_t l_data[FABRIC_CACHELINE_SIZE];
     uint64_t l_target_address;
@@ -473,6 +474,14 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
     bool l_load_exception_vector;
 
     FAPI_DBG("Start");
+
+    // check that core passed is not configured in ECO mode
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, i_master_core_target, l_eco_mode));
+
+    FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
+                fapi2::P10_SBE_LOAD_BOOTLOADER_INVALID_ECO_TARGET()
+                .set_CORE_TARGET(i_master_core_target),
+                "Invalid target!");
 
     // set PBA flags which control load operation
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,

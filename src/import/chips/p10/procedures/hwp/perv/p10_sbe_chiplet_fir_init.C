@@ -35,6 +35,7 @@
 #include "p10_sbe_chiplet_fir_init.H"
 #include "p10_scom_perv.H"
 #include "p10_scom_proc.H"
+#include "p10_scom_eq.H"
 #include "p10_sbe_chiplet_reset.H"
 #include <target_filters.H>
 #include <multicast_group_defs.H>
@@ -104,6 +105,58 @@ fapi2::ReturnCode p10_sbe_chiplet_fir_init(const fapi2::Target<fapi2::TARGET_TYP
     FAPI_TRY(fapi2::putScom(l_mc_all, SPATTN_MASK_RW, 0));
     FAPI_TRY(fapi2::putScom(l_mc_all, LOCAL_XSTOP_MASK_RW, 0));
     FAPI_TRY(fapi2::putScom(l_mc_all, HOSTATTN_MASK_RW, 0));
+
+    FAPI_DBG("Adjusting EQ CFIR masks for ECO mode");
+
+    for (const auto& l_eq_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>())
+    {
+        fapi2::buffer<uint64_t> l_xstop_recov_or_mask = 0;
+        fapi2::buffer<uint64_t> l_spattn_or_mask = 0;
+        fapi2::buffer<uint64_t> l_local_xstop_or_mask = 0;
+
+        for (const auto& l_c_target : l_eq_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+            fapi2::ATTR_ECO_MODE_Type l_eco_mode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
+            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num = 0;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, l_c_target, l_eco_mode));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_c_target, l_core_num));
+            l_core_num %= 4;
+
+            if (l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_ENABLED)
+            {
+                FAPI_TRY(l_xstop_recov_or_mask
+                         .setBit(XSTOP_MASK_05 + l_core_num));         // core
+                FAPI_TRY(l_xstop_recov_or_mask
+                         .setBit(XSTOP_MASK_09 + l_core_num));         // L2
+                FAPI_TRY(l_xstop_recov_or_mask
+                         .setBit(XSTOP_MASK_17 + l_core_num));         // NCU
+
+                FAPI_TRY(l_spattn_or_mask
+                         .setBit(SPATTN_MASK_05 + (4 * l_core_num), 4)); // core, all threads
+
+                FAPI_TRY(l_local_xstop_or_mask
+                         .setBit(LOCAL_XSTOP_MASK_05 + l_core_num));   // core
+            }
+        }
+
+        if (l_xstop_recov_or_mask())
+        {
+            FAPI_TRY(fapi2::putScom(l_eq_target, scomt::eq::XSTOP_MASK_WO_OR, l_xstop_recov_or_mask));
+            FAPI_TRY(fapi2::putScom(l_eq_target, scomt::eq::RECOV_MASK_WO_OR, l_xstop_recov_or_mask));
+        }
+
+        if (l_spattn_or_mask())
+        {
+            FAPI_TRY(fapi2::putScom(l_eq_target, scomt::eq::SPATTN_MASK_WO_OR, l_spattn_or_mask));
+        }
+
+        if (l_local_xstop_or_mask())
+        {
+            FAPI_TRY(fapi2::putScom(l_eq_target, scomt::eq::LOCAL_XSTOP_MASK_WO_OR, l_local_xstop_or_mask));
+        }
+    }
+
+    FAPI_DBG("Configuring clockstop-on-checkstop");
 
     if (l_clkstop_on_xstop)
     {

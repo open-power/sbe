@@ -78,14 +78,22 @@ fapi2::ReturnCode p10_cl2_l3_cleanup(
 
     for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
 
-        FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS,
-                                l_core,
-                                l_core_unit_pos));
-        FAPI_IMP("Core present but non functional %d",
-                 l_core_unit_pos);
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE,
+                               l_core,
+                               l_eco_mode));
 
-        FAPI_TRY(cleanup_cl2_l3_states(l_core, l_core_unit_pos));
+        if (l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED)
+        {
+            FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS,
+                                    l_core,
+                                    l_core_unit_pos));
+            FAPI_IMP("Core present but non functional %d",
+                     l_core_unit_pos);
+
+            FAPI_TRY(cleanup_cl2_l3_states(l_core, l_core_unit_pos));
+        }
     }
 
 fapi_try_exit:

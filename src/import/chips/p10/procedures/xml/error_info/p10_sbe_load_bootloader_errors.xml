@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -36,6 +36,20 @@
     <ffdc>TARGET_BASE_ADDRESS</ffdc>
     <ffdc>HRMOR_OFFSET</ffdc>
     <ffdc>BOOTLOADER_OFFSET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <sbeError/>
+    <rc>RC_P10_SBE_LOAD_BOOTLOADER_INVALID_ECO_TARGET</rc>
+    <description>
+      Procedure: p10_sbe_load_bootloader
+      Master core target provided is configured for ECO mode.
+    </description>
+    <ffdc>CORE_TARGET</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>

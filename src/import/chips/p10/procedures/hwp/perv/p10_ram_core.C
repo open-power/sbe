@@ -243,7 +243,7 @@ RamCore::~RamCore()
 {
     if(iv_ram_setup || iv_fake_ramming)
     {
-        FAPI_ERR("RamCore Destructor error: Ram is still in active state!!!");
+        FAPI_DBG("RamCore Destructor error: Ram is still in active state!!!");
     }
 }
 
@@ -303,6 +303,7 @@ fapi2::ReturnCode RamCore::ram_setup()
     fapi2::ReturnCode rc_fapi(fapi2::FAPI2_RC_SUCCESS);
     fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip_target = iv_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::ATTR_CHIP_EC_FEATURE_HW533775_Type l_hw533775 = 0;
+    fapi2::ATTR_ECO_MODE_Type l_eco_mode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
 
     switch (iv_thread)
     {
@@ -398,6 +399,17 @@ fapi2::ReturnCode RamCore::ram_setup()
                 iv_fake_ramming = true;
             }
         }
+    }
+
+    // leverage existing fake RAM support for ECO mode core targets (L3 enabled, but core
+    // underneath will never be running) --  keep '-all' usage working but fall back to
+    // existing 'INACTIVE' data return for ECO mode targets
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, iv_target, l_eco_mode));
+
+    if (l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_ENABLED)
+    {
+        FAPI_DBG("Using fake RAMing for ECO mode target");
+        iv_fake_ramming = true;
     }
 
     if (!iv_fake_ramming)

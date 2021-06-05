@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -128,6 +128,19 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_select_cores(
                     .set_MASTER_CORE_NUM(o_master_core_num)
                     .set_FUSED_MODE(i_fused_core_mode),
                     "Error finding the master fused core partner target!");
+    }
+
+    for (const auto& l_core_target : o_core_targets)
+    {
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, l_core_target, l_eco_mode));
+
+        FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
+                    fapi2::P10_SBE_CORE_SPR_SETUP_MASTER_CORE_ECO_MODE()
+                    .set_CHIP_TARGET(i_target)
+                    .set_FUSED_MODE(i_fused_core_mode)
+                    .set_ECO_MODE_TARGET(l_core_target),
+                    "Master core target not expected to be in ECO mode!");
     }
 
 fapi_try_exit:

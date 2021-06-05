@@ -37,6 +37,7 @@
 #include <p10_sbe_scratch_regs.H>
 #include <target_filters.H>
 #include <p10_sbe_hb_structures.H>
+#include <p10_determine_eco_mode.H>
 
 
 const uint32_t NUM_EQS_PER_CHIP  = 8;  // Num of EQ pervasive chiplets per chip
@@ -49,6 +50,37 @@ const uint32_t CORE0_L3_PG_BIT   = 17; // L3 bit in EQ ATTR_PG
 const uint32_t CORE0_MMA_PG_BIT  = 23; // MMA bit in EQ ATTR_PG
 
 const uint32_t SBE_LFR_REG       = 0x000C0002040;
+
+
+/// @brief detect presence of at least one runnable core within an EQ, given
+///        the chiplet level partial good information
+///
+/// @param[in] i_eq_pg EQ partial good attribute value
+///
+/// @return Boolean indicating presence of core supporting instruction execution
+///
+bool
+p10_sbe_scratch_regs_eq_has_runnable_cores(
+    const uint32_t i_eq_pg)
+{
+    uint32_t core_slice_mask_exp_zero = 0x00044100; // ecl20,l30,mma0
+    uint32_t core_slice_mask_exp_one  = 0x00000008; // co0
+
+    for (uint8_t c = 0; c < 4; c++)
+    {
+        if (!(i_eq_pg & core_slice_mask_exp_zero) &&
+            (i_eq_pg & core_slice_mask_exp_one))
+        {
+            return true;
+        }
+
+        core_slice_mask_exp_zero = core_slice_mask_exp_zero >> 1;
+        core_slice_mask_exp_one  = core_slice_mask_exp_one >> 1;
+    }
+
+    return false;
+}
+
 ///
 /// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MPVD
 ///        driven partial good (ATTR_PG_MPVD) and mailbox gard records
@@ -90,7 +122,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
 
         // For IOSCM, no elements in the EQ MVPD record will be marked good
         // However, we only care about cores, L3s, and MMAs
-        if ((l_pg & 0xFFE7F9FF) != 0xFFE7F9FF)
+        if (p10_sbe_scratch_regs_eq_has_runnable_cores(l_pg))
         {
             l_good_core_chip_detected = true;
             FAPI_DBG("  SBE Good core chip detected");
@@ -104,22 +136,15 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
 
 #ifndef __PPE__
+
         // For Cronus, detect if there is at least 1 core good in this quad.
         // This is done post-gard as this is how Cronus communicates desired
         // configuration.
-
-        if ((l_pg & 0xFFE7F9FF) != 0xFFE7F9FF)
+        if (p10_sbe_scratch_regs_eq_has_runnable_cores(l_pg))
         {
             l_good_core_chip_detected = true;
             FAPI_DBG("  Cronus Good core chip detected");
         }
-
-//         // CoreL2/L3/MMA bit bask
-//         if ( ~l_pg & (CORE_GARD_EQ_MASK << (EQ_PG_ECL2_SHIFT)))
-//         {
-//             l_good_core_chip_detected = true;
-//             FAPI_DBG("  Cronus good core chip detected");
-//         }
 
 #endif
     }
@@ -618,6 +643,37 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
         FAPI_TRY(p10_sbe_update_eq_pg_for_fusedcore(i_target_chip),
                  "Error from p10_sbe_update_eq_pg_for_fusedcore");
+
+        for (const auto& l_core_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
+        {
+#ifdef __PPE__
+            // At this point the SBE core targets are still blue print and are all
+            // functional, Cores targets and other targets are updated once we exit
+            // from the procedure. Earlier there were no use-case of working with
+            // functional targets in this procedure, it was only using presence
+            // target, with this requirement change, we have to update SBE Core
+            // Targeting to reflect the right functional core target. That's not
+            // possible when are you still executing in the procedure, so we have
+            // to depend of ATTR_PG_bit
+            fapi2::buffer<fapi2::ATTR_PG_Type> eqPg;
+            fapi2::ATTR_CHIP_UNIT_POS_Type core_num = 0;
+            const auto eq = l_core_target.getParent<fapi2::TARGET_TYPE_EQ>();
+            const auto perv = eq.getParent<fapi2::TARGET_TYPE_PERV>();
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, perv, eqPg));
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core_target, core_num),
+                     "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
+
+            //Find out if the ECL2 is zero for functional core target
+            if(eqPg.getBit(CORE0_ECL2_PG_BIT + (core_num % NUM_CORES_PER_EQ)))
+            {
+                // If functional then only pass it onto p10_determine_eco_mode
+                continue;
+            }
+
+#endif
+            FAPI_TRY(p10_determine_eco_mode(l_core_target),
+                     "Error from p10_determine_eco_mode");
+        }
     }
 
     // read_scratch2_reg -- set TP/N0/N1/PCI/MC/PAU/IOHS chiplet PG

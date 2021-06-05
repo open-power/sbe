@@ -578,6 +578,10 @@
     <name>ATTR_SYSTEM_MMA_POWERON_DISABLE</name>
     <value>0x00</value>
   </entry>
+  <entry>
+    <name>ATTR_ECO_MODE</name>
+    <value>0x00</value>
+  </entry>
   <!-- virtual attributes -->
   <entry>
     <name>ATTR_CHIP_UNIT_POS</name>

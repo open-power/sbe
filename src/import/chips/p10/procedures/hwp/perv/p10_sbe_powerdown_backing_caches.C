@@ -157,6 +157,14 @@ p10_sbe_powerdown_backing_caches(
 
                 if (l_relative_core_pos & (BIT32(l_attr_chip_unit_core_pos) >> 28))
                 {
+                    fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+                    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core, l_eco_mode));
+                    FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
+                                fapi2::PM_BACKING_CACHEPOWER_DOWN_ECO_ERR()
+                                .set_CHIP_TARGET(i_proc_target)
+                                .set_CORE_TARGET(core),
+                                "Backing cache unexpectedly in ECO mode!");
+
                     //STOP 11 entry request enable[0:3]
                     l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
                     PREP_QME_SCRB_WO_OR(eq);

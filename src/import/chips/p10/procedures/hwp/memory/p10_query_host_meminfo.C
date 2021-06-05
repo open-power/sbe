@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,11 +54,18 @@ fapi2::ReturnCode p10_query_host_meminfo(
     fapi2::ReturnCode l_rc;
     fapi2::buffer<uint64_t> l_data64;
     fapi2::Target < fapi2::TARGET_TYPE_CORE > core_target;
+    fapi2::ATTR_ECO_MODE_Type l_eco_mode;
     // size of host memory in MB
     o_sizeHostMem = 0x0;
     o_hrmor = 0x0;
 
     core_target = i_bootCore;
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core_target, l_eco_mode));
+    FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
+                fapi2::P10_QUERY_HOST_MEMINFO_CORE_ECO_ERROR().
+                set_MASTER_CORE(core_target),
+                "p10_query_host_meminfo: Input target is in ECO mode!");
 
     // reflect back parent target
     o_target = core_target.getParent

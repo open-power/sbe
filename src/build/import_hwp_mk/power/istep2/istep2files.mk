@@ -49,6 +49,7 @@ ISTEP2-CPP-SOURCES +=p10_clock_test_cmn.C
 ISTEP2-CPP-SOURCES +=p10_sbe_scratch_regs.C
 ISTEP2-CPP-SOURCES +=hw540133.C
 ISTEP2-CPP-SOURCES +=p10_sbe_tp_dpll_bypass.C
+ISTEP2-CPP-SOURCES +=p10_determine_eco_mode.C
 
 ISTEP2-C-SOURCES =
 ISTEP2-S-SOURCES =
