@@ -1,4 +1,3 @@
-# EKB-Mirror-To: hw/ppe
 Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Description/Usage,Type
 ,DLM,C01140F,0x0C-0x0F,,L. Lambrecht,REG0.PMU_CNTR,performance monitor used for link utilization (possibly remove),read_denylist
 ,INT,2010AA0,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH0_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
