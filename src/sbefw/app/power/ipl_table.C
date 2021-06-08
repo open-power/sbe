@@ -1400,6 +1400,16 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                     break;
                 }
             }
+            else
+            {
+                // Unlock meas SPI in MPIPL path for secondary SBEs.
+                rc = unlockMSPI();
+                if(rc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
+                    break;
+                }
+            }
         }
         else
         {
