@@ -203,12 +203,6 @@ void p10_get_deskew_dd2(
     //output of the experiments
     for ( uint32_t l_step = 0 ; l_step < 16; ++l_step)
     {
-        //if we are in the shifted 16 bits, reset the found fail so we don't think its a good window
-        if ( l_step == 16)
-        {
-            l_foundFail = false;
-        }
-
         //Check if the current bit position in the input error string represents an error
         if ((i_shiftedErrVals >> (15 - l_step)) & 0x1)
         {
@@ -242,6 +236,16 @@ void p10_get_deskew_dd2(
         {
             ++l_streak;
         }
+
+
+        FAPI_DBG("[%02d]: shifted(0x%08X) streak(%d) streakMax(%d) firstError(%d) lastStep(%d) lastGoodPos(%d) secondFail(%d) output(%d)",
+                 l_step, i_shiftedErrVals, l_streak, l_streakMax, l_firstError, l_firstErrorLastStep, l_lastGoodPos, l_secondFail,
+                 o_deskewVal)
+    }
+
+    if (l_streak > l_streakMax)     //found longest good streak
+    {
+        l_streakMax = l_streak;
     }
 
     if ( l_streak == 16)  //This represents  a case where no error was found.  This could
@@ -269,6 +273,9 @@ void p10_get_deskew_dd2(
             o_deskewVal = -1;
         }
     }
+
+    FAPI_DBG("shifted(0x%08X) streakMax(%d) firstError(%d) lastStep(%d) lastGoodPos(%d) secondFail(%d) output(%d)",
+             i_shiftedErrVals, l_streakMax, l_firstError, l_firstErrorLastStep, l_lastGoodPos, l_secondFail, o_deskewVal)
 
     return;
 }
@@ -325,6 +332,7 @@ void p10_get_deskew(
         //set deskew to center of streak
         o_deskewVal = (l_lastGoodPos - (l_streakMax / 2)) % 8;
     }
+
 
     return;
 }
@@ -454,10 +462,13 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
         p10_get_deskew_dd2(l_shiftedAErrVals, l_goodDeskewA);
         p10_get_deskew_dd2(l_shiftedBErrVals, l_goodDeskewB);
 
+        FAPI_DBG("RCS Deskew Loop[%d]: DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
+                 l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
+
         if((l_goodDeskewA == INVALID_DESKEW) || (l_goodDeskewB == INVALID_DESKEW))
         {
-            FAPI_ERR("Valid deskew not found, loop count 0x%02x  DeskewA(0x%08X) DeskewB(0x%08X)",
-                     l_index, l_clkAErrVals, l_clkBErrVals);
+            FAPI_DBG("Valid deskew not found, loop count 0x%02x  DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
+                     l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
 
             //reset the RCS PLL before entering the new loop
             l_data64_rc3.flush<0>();
@@ -495,12 +506,12 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
                 fapi2::RCS_FPLL_DESKEW_ERR_A()
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_SHIFTED_ERR_VAL(l_shiftedAErrVals),
-                "Deskew caliberation failed on A-side");
+                "Deskew calibration failed on A-side");
     FAPI_ASSERT((l_goodDeskewB != INVALID_DESKEW),
                 fapi2::RCS_FPLL_DESKEW_ERR_B()
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_SHIFTED_ERR_VAL(l_shiftedBErrVals),
-                "Deskew caliberation failed on B-side");
+                "Deskew calibration failed on B-side");
 
     l_data64_rc6.flush<0>();
     FAPI_DBG("Set RES_SEL from 3 to 1");       //bits <2:1> of the 8 bit field
