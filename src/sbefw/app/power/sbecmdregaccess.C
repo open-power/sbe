@@ -40,6 +40,8 @@
 #include "sbescom.H"
 #include "plat_i2c_access.H"
 #include "sbe_sp_intf.H"
+#include "sbeutil.H"
+#include "sbeSecurity.H"
 
 // PSU ops
 #include "sbeHostUtils.H"
@@ -200,7 +202,7 @@ uint32_t sbePutReg(uint8_t *i_pArg)
             break;
         }
         sbeRegAccessPackage_t regPkg[SBE_MAX_REG_ACCESS_REGS];
-        len  = (sizeof(sbeRegAccessPackage_t)/sizeof(uint32_t)) * 
+        len  = (sizeof(sbeRegAccessPackage_t)/sizeof(uint32_t)) *
                                                     regReqMsg.numRegs;
         rc = sbeUpFifoDeq_mult (len, (uint32_t *) regPkg,true );
         if (rc != SBE_SEC_OPERATION_SUCCESSFUL)
@@ -336,6 +338,14 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
             }
 
             SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.targetInstance, l_hndl.get());
+
+            //Check if access is allowed.
+            uint64_t tempAddr = addr & 0x000000007FFFFFFF;
+            sbeRespGenHdr_t *rsp = &hdr;
+            CHECK_SBE_OCMB_READ_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
+                                        static_cast<uint32_t>(tempAddr),
+                                        rsp, type)
+
             pibRc = i2cGetScom(&l_hndl, addr, &scomData);
             if(pibRc != 0)
             {
@@ -457,6 +467,15 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
             Target<TARGET_TYPE_OCMB_CHIP> l_hndl = plat_getOCMBTargetHandleByInstance
                   <fapi2::TARGET_TYPE_OCMB_CHIP>(msg.hwRegMsg.targetInstance);
             SBE_DEBUG("OCMB target instance is %d and target is 0x%08X",msg.hwRegMsg.targetInstance, l_hndl.get());
+
+            //Check if access is allowed.
+            uint64_t tempAddr = addr & 0x000000007FFFFFFF;
+            sbeRespGenHdr_t *rsp = &hdr;
+            CHECK_SBE_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
+                            static_cast<uint32_t>(tempAddr),
+                            SBE_SECURITY::WRITE,
+                            rsp, type, 0x00)
+
             pibRc = i2cPutScom(&l_hndl, addr, scomData);
             if(pibRc != 0)
             {

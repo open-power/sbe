@@ -73,6 +73,24 @@ if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isAllowed(addr,mask,op))) ) \
     } \
 }
 
+//TODO:Below macro can be removed once OCMB reg's are supported in .csv file.
+#define CHECK_SBE_OCMB_READ_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(addr, resp, fifotype) \
+if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isOcmbReadAllowed(addr))) ) \
+{ \
+    if(SbeRegAccess::theSbeRegAccess().disableScomFiltering()) \
+    { \
+        /* security override possible && scom filtering disabled */ \
+        resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
+                        SBE_SEC_BLACKLISTED_REG_ACCESS); \
+    } \
+    else \
+    { \
+        resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
+                        SBE_SEC_BLACKLISTED_REG_ACCESS_BLOCKED); \
+        break; \
+    } \
+}
+
 #define mfdec()                               \
     ({volatile uint32_t l_dec;                          \
         asm volatile ("mfdec %0" : "=r" (l_dec)); \

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -31,7 +31,6 @@
 
 namespace SBE_SECURITY
 {
-
     typedef enum
     {
         READ = 0,
@@ -63,6 +62,16 @@ namespace SBE_SECURITY
     bool isAllowed(const uint32_t i_addr, const uint64_t i_mask,
                    accessType i_type);
 
+    /* @brief isOcmbReadAllowed - Public function used for address verification
+     *                          for a given OCMB read scom
+     *
+     * @param[in] i_addr      - given address to verify
+     *
+     * @return                - boolean to denote if the access on the address
+     *                          is allowed or not
+     */
+    bool isOcmbReadAllowed(const uint32_t i_addr);
+
     /* @brief sendSecurityListDumpToHB - Public function used for sending
      *                         security dump to hostboot
      *
@@ -72,4 +81,5 @@ namespace SBE_SECURITY
      */
     uint32_t  sendSecurityListDumpToHB(sbeMemAccessInterface *i_pMemInterface);
 }
+
 #endif //__SBE_SECURITY_H
