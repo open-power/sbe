@@ -79,16 +79,19 @@ def put_mvpd_eq(inputImage, eqNumber, eqPgData):
     pgValue = int(pgValueStr, 16)
     # Verify Activation and Deactivation for core state
     putData = 0
-    if (eqPgData  == int("0x78000", 16)):
+    if (eqPgData  == int("0x7F9E0", 16)):
       putData = eqPgData | pgValue
     else:
       putData = eqPgData & pgValue
     cmd1 = getFilePath("ipl_image_tool") + " " + inputImage + " setv ATTR_PG_MVPD " + str(eqNumber) + " " + str(hex(putData))
-    subprocess.Popen(cmd1, shell=True, stdout=subprocess.PIPE)
+    rc = os.system( cmd1 )
+    if ( rc ):
+      print("ERROR running Update mvpd for EQ command: %d " % ( rc ))
+#    subprocess.Popen(cmd1, shell=True, stdout=subprocess.PIPE)
 
 def gard_all_core_mvpd_eq(inputImage):
 
-    gard_all_core = int("0x78000",16)
+    gard_all_core = int("0x7F9E0",16)
     # Num of EQ pervasive chiplets per chip
     for eqNo in range(8):
       put_mvpd_eq(inputImage, eqNo+32, gard_all_core)
@@ -96,7 +99,8 @@ def gard_all_core_mvpd_eq(inputImage):
 def update_mvpd_eq(inputImage, eqNum, coreNum):
 
     # This method update the PG MVPD EQ bytes of a provided Seeprom Image##
-    coreMask = ["0xFFFBFFFF", "0xFFFDFFFF", "0xFFFEFFFF", "0xFFFF7FFF"]
+    # coreMask = ["0xFFFBFFFF", "0xFFFDFFFF", "0xFFFEFFFF", "0xFFFF7FFF"]
+    coreMask = ["0xFFFBBEFF", "0xFFFDDF7F", "0xFFFEEFBF", "0xFFFF77DF"]
     make = coreMask[coreNum]
     putCoreMask = int(make, 16)
     put_mvpd_eq(inputImage, eqNum+32, putCoreMask)
@@ -160,7 +164,7 @@ def updateAttrPg( image, coresnum):
     cores = core_str_list.split()
     for core in cores:
       coreId = int(core) % 4 # Num of cores per EQ chiplet
-      eqId = int(core) / 4 # Num of cores per EQ chiplet
+      eqId = int(core) // 4 # Num of cores per EQ chiplet
       print("Updated ATTR_PG_MVPD data for Core No: " + str(core) + " coreId: " + str(coreId) + " eqId: " + str(eqId))
       update_mvpd_eq(image, eqId, coreId )
 
