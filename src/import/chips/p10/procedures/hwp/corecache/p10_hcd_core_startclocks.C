@@ -98,8 +98,6 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
-    uint8_t                 l_attr_mma_poweron_disable  = 0;
-    uint8_t                 l_attr_mma_poweroff_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
@@ -200,6 +198,9 @@ p10_hcd_core_startclocks(
 
     }
 
+#ifdef __PPE_QME
+    uint8_t                 l_attr_mma_poweron_disable  = 0;
+    uint8_t                 l_attr_mma_poweroff_disable = 0;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable  ) );
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
@@ -211,10 +212,14 @@ p10_hcd_core_startclocks(
     // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
     if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
+#endif
         // Start MMA clocks along/after core clocks
         // shared for all stop2,3,11 path
         FAPI_TRY( p10_hcd_mma_startclocks( i_target ) );
+#ifdef __PPE_QME
     }
+
+#endif
 
     //Enable the hardware filter upon any stop exit including mpipl
     //so that any regular wakeup at runtime will not be interrupting QME constantly

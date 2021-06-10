@@ -61,14 +61,15 @@ p10_hcd_core_scan0(
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
         eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
-    uint8_t                 l_attr_mma_poweron_disable = 0;
-    uint8_t                 l_attr_mma_poweroff_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect();
     uint32_t                l_loop     = 0;
 
     FAPI_INF(">>p10_hcd_core_scan0");
 
+#ifdef __PPE_QME
+    uint8_t                 l_attr_mma_poweron_disable = 0;
+    uint8_t                 l_attr_mma_poweroff_disable = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable  ) );
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
@@ -78,12 +79,16 @@ p10_hcd_core_scan0(
     // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
     if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
+#endif
         l_regions = ( l_regions << SHIFT16(5) | l_regions << SHIFT16(15) );
+#ifdef __PPE_QME
     }
     else
     {
         l_regions = l_regions << SHIFT16(5);
     }
+
+#endif
 
     //--------------------------------------------
     // perform scan0 module for pervasive chiplet

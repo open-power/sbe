@@ -76,9 +76,6 @@ p10_hcd_core_poweron(
 {
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
-    uint8_t                 l_attr_mma_poweron_disable = 0;
-    uint8_t                 l_attr_mma_poweroff_disable = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
@@ -94,6 +91,10 @@ p10_hcd_core_poweron(
     // VDD on first, VCS on after
     FAPI_TRY( p10_hcd_corecache_power_control( i_target, HCD_POWER_CL2_ON ) );
 
+#ifdef __PPE_QME
+    uint8_t                 l_attr_mma_poweron_disable = 0;
+    uint8_t                 l_attr_mma_poweroff_disable = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable ) );
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
@@ -103,9 +104,13 @@ p10_hcd_core_poweron(
     // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
     if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
+#endif
         // Only VDD for MMA
         FAPI_TRY( p10_hcd_mma_poweron( i_target ) );
+#ifdef __PPE_QME
     }
+
+#endif
 
 fapi_try_exit:
 

@@ -66,9 +66,6 @@ p10_hcd_core_gptr_time_initf(
 
 #ifndef P10_HCD_CORECACHE_SKIP_INITF
 
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
-    uint8_t                        l_attr_mma_poweron_disable = 0;
-    uint8_t                        l_attr_mma_poweroff_disable = 0;
     fapi2::buffer<uint64_t>        l_data64             = 0;
     uint32_t                       l_eq_num             = 0;
     uint32_t                       l_core_num           = 0;
@@ -87,6 +84,10 @@ p10_hcd_core_gptr_time_initf(
     // do this to avoid unused variable warning
     static_cast<void>(l_eq_num);
 
+#ifdef __PPE_QME
+    uint8_t                        l_attr_mma_poweron_disable = 0;
+    uint8_t                        l_attr_mma_poweroff_disable = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable ) );
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
 
@@ -96,6 +97,8 @@ p10_hcd_core_gptr_time_initf(
     // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
     if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
+#endif
+
         for (auto const& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL))
         {
             fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
@@ -133,7 +136,11 @@ p10_hcd_core_gptr_time_initf(
                                     fapi2::RING_MODE_HEADER_CHECK),
                      "Error from putRing (ec_mma_time)");
         }
+
+#ifdef __PPE_QME
     }
+
+#endif
 
 fapi_try_exit:
 

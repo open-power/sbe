@@ -83,12 +83,12 @@ p10_hcd_core_arrayinit(
 #if !defined P10_HCD_CORECACHE_SKIP_ARRAY || !defined P10_HCD_CORECACHE_SKIP_FLUSH
     fapi2::Target < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > perv_target =
         eq_target.getParent < fapi2::TARGET_TYPE_PERV | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     uint32_t                l_regions  = i_target.getCoreSelect();
     /*
+    #ifdef __PPE_QME
     uint8_t                 l_attr_mma_poweron_disable = 0;
     uint8_t                 l_attr_mma_poweroff_disable = 0;
-
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> l_sys;
     // it is confirmed that we do not need to arrayinit mma, keep the code here in case we need to do so
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWERON_DISABLE,  l_sys, l_attr_mma_poweron_disable ) );
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_SYSTEM_MMA_POWEROFF_DISABLE, l_sys, l_attr_mma_poweroff_disable ) );
@@ -99,7 +99,9 @@ p10_hcd_core_arrayinit(
     // PowerON_Dis = 1 and PowerOFF_Dis = 1 do not start mma
     if( !l_attr_mma_poweron_disable && l_attr_mma_poweroff_disable )
     {
+    #endif
         l_regions = ( l_regions << SHIFT16(5) | l_regions << SHIFT16(15) );
+    #ifdef __PPE_QME
     }
     else
     {
@@ -107,6 +109,7 @@ p10_hcd_core_arrayinit(
     l_regions = l_regions << SHIFT16(5);
     /*
     }
+    #endif
     */
 
 #endif
