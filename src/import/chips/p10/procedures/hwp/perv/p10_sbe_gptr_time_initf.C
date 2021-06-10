@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,189 @@
 #include <target_filters.H>
 #include <multicast_defs.H>
 #include <multicast_group_defs.H>
+#include "p10_scan_via_scom.H"
+
+
+const uint8_t PAU_DTS_REGS = 3;
+
+// Sort of a "scandef lite" which tells the procedure how many thermal sensors exist
+// and where their configuration bits are on the ring
+struct pau_dts_ring_settings
+{
+    uint64_t scan_region_type;            ///< Scan region & type of affected ring
+    uint16_t reg_offsets[PAU_DTS_REGS + 1]; ///< Rotate counts to reach each register, plus one to finish spinning the ring
+    uint16_t reg_lengths[PAU_DTS_REGS + 1]; ///< Register length, last is unused
+};
+
+const pau_dts_ring_settings pau01 =
+{
+    0x0860000000002000ULL,                ///< perv+tl+ppe, GPTR
+    { 1966,   48,   61,    95 },          ///< P, M, B coefficients
+    {    6,    7,    9,     0 },
+};
+
+const pau_dts_ring_settings pau23 =
+{
+    0x0860000000002000ULL,                ///< perv+tl+ppe, GPTR
+    { 2080,   48,   61,    80 },          ///< P, M, B coefficients
+    {    6,    7,    9,     0 },
+};
+
+/// @brief Rotate across the GPTR ring and read out the thermal sensor calibration values
+static inline fapi2::ReturnCode read_pau_dts_configs(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_cplt,
+    const pau_dts_ring_settings& i_pau_ring_settings,
+    std::vector<fapi2::buffer<uint16_t>>& o_reg_values)
+{
+    fapi2::buffer<uint64_t> tmp;
+
+    // Set up clock controller and write the header
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_pau_ring_settings.scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // For each sensor, rotate to the next position
+    for (uint8_t l_dts = 0; l_dts < PAU_DTS_REGS + 1; l_dts++)
+    {
+        // sample data in scan buffer, store in output structure
+        FAPI_TRY(svs::rotate(i_cplt, i_pau_ring_settings.reg_offsets[l_dts], tmp));
+
+        if (l_dts != PAU_DTS_REGS)
+        {
+            FAPI_TRY(tmp.extract(o_reg_values[l_dts], 0, i_pau_ring_settings.reg_lengths[l_dts], 0));
+        }
+    }
+
+    // header should be present in scan buffer based on data structure
+    if (tmp != 0x00BAD666BAD66600)
+    {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+/// @brief Rotate across the GPTR ring and rewrite the thermal sensor calibration values
+static inline fapi2::ReturnCode write_pau_dts_configs(
+    const fapi2::Target<fapi2::TARGET_TYPE_PERV>& i_cplt,
+    const pau_dts_ring_settings& i_pau_ring_settings,
+    const std::vector<fapi2::buffer<uint16_t>>& i_reg_values)
+{
+    fapi2::buffer<uint64_t> tmp;
+
+    // Set up clock controller and write the header
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, i_pau_ring_settings.scan_region_type));
+    FAPI_TRY(svs::scan64_put(i_cplt, 0x00BAD666BAD66600, 0));
+
+    // For each sensor, rotate to the next position
+    for (uint8_t l_dts = 0; l_dts < PAU_DTS_REGS + 1; l_dts++)
+    {
+        // sample data in scan buffer, update output structure
+        FAPI_TRY(svs::rotate(i_cplt, i_pau_ring_settings.reg_offsets[l_dts], tmp));
+
+        if (l_dts != PAU_DTS_REGS)
+        {
+            FAPI_TRY(tmp.insert(i_reg_values[l_dts], 0, i_pau_ring_settings.reg_lengths[l_dts], 0));
+            FAPI_TRY(svs::scan64_put(i_cplt, tmp, 0));
+        }
+    }
+
+    if (tmp != 0x00BAD666BAD66600)
+    {
+        FAPI_ERR("Header mismatch: %016llx != %016llx", 0x00BAD666BAD66600, tmp);
+        return fapi2::FAPI2_RC_FALSE;
+    }
+
+    FAPI_TRY(fapi2::putScom(i_cplt, scomt::perv::SCAN_REGION_TYPE, 0));
+
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+fapi2::ReturnCode p10_sbe_gptr_time_initf_fixup_dts(const
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    FAPI_INF("Start");
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_IS_SIMULATION_Type l_attr_is_simulation;
+    auto l_pau0_tgt = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_PAU0),
+                          fapi2::TARGET_STATE_FUNCTIONAL).front();
+
+    auto l_pau1_tgt = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_PAU1),
+                          fapi2::TARGET_STATE_FUNCTIONAL).front();
+
+    auto l_pau2_tgt = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_PAU2),
+                          fapi2::TARGET_STATE_FUNCTIONAL).front();
+
+    auto l_pau3_tgt = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_PAU3),
+                          fapi2::TARGET_STATE_FUNCTIONAL).front();
+
+    std::vector<fapi2::buffer<uint16_t>> pau0_dts;
+    std::vector<fapi2::buffer<uint16_t>> pau1_dts;
+    std::vector<fapi2::buffer<uint16_t>> pau2_dts;
+    std::vector<fapi2::buffer<uint16_t>> pau3_dts;
+
+    for (auto ii = 0; ii < PAU_DTS_REGS; ii++)
+    {
+        pau0_dts.push_back(0);
+        pau1_dts.push_back(0);
+        pau2_dts.push_back(0);
+        pau3_dts.push_back(0);
+    }
+
+#ifdef __PPE__
+
+    if (SBE::isSimicsRunning())
+    {
+        FAPI_INF("Skipping workaround because Simics does not support scanning");
+        goto fapi_try_exit;
+    }
+
+#endif
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_SIMULATION, FAPI_SYSTEM, l_attr_is_simulation));
+
+    if (l_attr_is_simulation)
+    {
+        FAPI_INF("Skipping workaround in simulation");
+        goto fapi_try_exit;
+    }
+
+    // MVPD on all current (and future) parts installs the PAUC DTS coefficients into the wrong
+    // physical rings.  read DTS sensor coefficients installed into each PAUC chiplet
+    FAPI_TRY(read_pau_dts_configs(l_pau0_tgt, pau01, pau0_dts),
+             "Error from read_pau_dts_configs (PAUC0)");
+    FAPI_TRY(read_pau_dts_configs(l_pau1_tgt, pau01, pau1_dts),
+             "Error from read_pau_dts_configs (PAUC1)");
+    FAPI_TRY(read_pau_dts_configs(l_pau2_tgt, pau23, pau2_dts),
+             "Error from read_pau_dts_configs (PAUC2)");
+    FAPI_TRY(read_pau_dts_configs(l_pau3_tgt, pau23, pau3_dts),
+             "Error from read_pau_dts_configs (PAUC3)");
+
+    // rewrite coefficient data reflecting VPD swap:
+    //   PAUC0->PAUC3
+    //   PAUC2->PAUC0
+    //   PAUC1->PAUC2
+    //   PAUC3->PAUC1
+    FAPI_TRY(write_pau_dts_configs(l_pau0_tgt, pau01, pau2_dts),
+             "Error from write_pau_dts_configs (PAUC2->PAUC0)");
+    FAPI_TRY(write_pau_dts_configs(l_pau1_tgt, pau01, pau3_dts),
+             "Error from write_pau_dts_configs (PAUC3->PAUC1)");
+    FAPI_TRY(write_pau_dts_configs(l_pau2_tgt, pau23, pau1_dts),
+             "Error from write_pau_dts_configs (PAUC1->PAUC2)");
+    FAPI_TRY(write_pau_dts_configs(l_pau3_tgt, pau23, pau0_dts),
+             "Error from write_pau_dts_configs (PAUC0->PAUC3)");
+
+fapi_try_exit:
+    FAPI_INF("End");
+    return fapi2::current_err;
+}
 
 static const ring_setup_t ISTEP3_GPTR_TIME_RINGS_UNICAST[] =
 {
@@ -164,6 +347,7 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYS;
     const auto* l_eq_gptr_time_rings_mc = &ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST;
 
+    fapi2::ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP_Type l_pau_dts_swap;
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
     fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
 
@@ -179,6 +363,13 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
     }
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring(i_target_chip, ISTEP3_GPTR_TIME_RINGS_UNICAST));
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP, i_target_chip, l_pau_dts_swap));
+
+    if (l_pau_dts_swap)
+    {
+        FAPI_TRY(p10_sbe_gptr_time_initf_fixup_dts(i_target_chip));
+    }
 
     FAPI_TRY(p10_perv_sbe_cmn_setup_putring_multicast(i_target_chip, fapi2::MCGROUP_ALL_EQ,
              *l_eq_gptr_time_rings_mc));

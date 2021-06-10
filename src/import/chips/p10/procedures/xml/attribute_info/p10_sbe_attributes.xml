@@ -639,6 +639,10 @@
     <name>ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX</name>
     <virtual/>
   </entry>
+  <entry>
+    <name>ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP</name>
+    <virtual/>
+  </entry>
   <!-- override-only attributes -->
   <entry>
     <name>ATTR_PROC_FORCE_MC_PLL_BANDSEL</name>
