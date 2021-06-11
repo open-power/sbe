@@ -95,7 +95,8 @@ ReturnCode startMpiplIstepsExecute(void)
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
-            SBE_ERROR(SBE_FUNC "Failed in StartMpipl Minor Isteps[%d]", minor);
+            SBE_ERROR(SBE_FUNC "Failed in StartMpipl Minor Isteps[%d],"
+                               " SystemCheckstop=%d", minor,checkstop);
             break;
         }
         ++minor;
@@ -307,11 +308,17 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
-            SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode");
+            SBE_ERROR(SBE_FUNC "Failed in Mpipl Start in ChipOp Mode,"
+                               " System Checkstop=%d",checkstop);
             if(checkstop)
             {
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                    SBE_SEC_SYSTEM_CHECKSTOP);
+                //If we have Valid FAPI RC
+                if(fapiRc!=FAPI2_RC_SUCCESS)
+                {
+                    ffdc.setRc(fapiRc);
+                }
             }
             else
             {
@@ -412,11 +419,16 @@ uint32_t sbeContinueMpipl(uint8_t *i_pArg)
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
         {
             SBE_ERROR(SBE_FUNC "Failed in Continue Mpipl in ChipOp Mode, "
-                "SBE Role[%d]", g_sbeRole);
+            "SBE Role[%d],System Checkstop=%d", g_sbeRole,checkstop);
             if(checkstop)
             {
                 respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                      SBE_SEC_SYSTEM_CHECKSTOP);
+                //If FAPIRC is valid
+                if(fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    ffdc.setRc(fapiRc);
+                }
             }
             else
             {
