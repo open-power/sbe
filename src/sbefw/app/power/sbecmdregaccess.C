@@ -270,9 +270,10 @@ uint32_t sbePutReg(uint8_t *i_pArg)
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
-uint32_t sbeGetHWReg(uint8_t *i_pArg)
+uint32_t sbeGetHWReg_Wrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
+                           fapi2::sbefifo_hwp_data_ostream& i_putStream )
 {
-    #define SBE_FUNC " sbeGetHWReg "
+    #define SBE_FUNC " sbeGetHWReg_Wrap "
     SBE_ENTER(SBE_FUNC);
 
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
@@ -280,19 +281,14 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
     sbeRespGenHdr_t hdr;
     hdr.init();
     sbeResponseFfdc_t ffdc;
-    sbeFifoType type;
     uint32_t pibRc = 0;
 
     do
     {
-        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
-        type = static_cast<sbeFifoType>(configStr->fifoType);
-        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
-
         // Will attempt to dequeue three entries for the scom addresses plus
         // the expected EOT entry at the end
         uint32_t len2dequeue  = sizeof(msg)/sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&msg, true, false, type);
+        rc = i_getStream.get(len2dequeue, (uint32_t *)&msg, true, false);
 
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
@@ -344,7 +340,7 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
             sbeRespGenHdr_t *rsp = &hdr;
             CHECK_SBE_OCMB_READ_SECURITY_RC_AND_BREAK_IF_NOT_SUCCESS(
                                         static_cast<uint32_t>(tempAddr),
-                                        rsp, type)
+                                        rsp, i_getStream.getFifoType())
 
             pibRc = i2cGetScom(&l_hndl, addr, &scomData);
             if(pibRc != 0)
@@ -360,14 +356,15 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
         else if(msg.targetType == TARGET_PROC_CHIP)
         {
             SBE_DEBUG(SBE_FUNC "PROC or Its chiplet GET SCOM");
-            checkIndirectAndDoScom(true, addr, scomData, &hdr, &ffdc, type);
+            checkIndirectAndDoScom( true, addr, scomData, &hdr,
+                                   &ffdc, i_getStream.getFifoType());
         }
         else
         {
             SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
                       (uint32_t)msg.targetType, (uint32_t)msg.targetInstance);
             hdr.setStatus( SBE_PRI_INVALID_DATA,
-                               SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+                           SBE_SEC_INVALID_TARGET_TYPE_PASSED );
             break;
 
         }
@@ -389,22 +386,38 @@ uint32_t sbeGetHWReg(uint8_t *i_pArg)
 
             // Push the data into downstream FIFO
             len2enqueue = 2;
-            rc = sbeDownFifoEnq_mult (len2enqueue, &downFifoRespBuf[0], type);
-            if (rc)
-            {
-                // will let command processor routine handle the failure
-                break;
-            }
+            rc = i_putStream.put(len2enqueue, &downFifoRespBuf[0]);
+            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
         } // end successful scom
 
     } while(false);
 
-    if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+    if(i_putStream.isStreamRespHeader(hdr.rcStatus(),ffdc.getRc()))
     {
-        // Build the response header packet
-        rc = sbeDsSendRespHdr(hdr, &ffdc, type);
-       // will let command processor routine handle the failure
+        if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            // Build the response header packet
+            rc = sbeDsSendRespHdr(hdr, &ffdc, i_getStream.getFifoType());
+            // will let command processor routine handle the failure
+        }
     }
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+uint32_t sbeGetHWReg(uint8_t *i_pArg)
+{
+    #define SBE_FUNC " sbeGetHWReg "
+    SBE_ENTER(SBE_FUNC);
+
+    chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+    sbeFifoType type = static_cast<sbeFifoType>(configStr->fifoType);
+    fapi2::sbefifo_hwp_data_ostream ostream(type);
+    fapi2::sbefifo_hwp_data_istream istream(type);
+
+    uint32_t rc = sbeGetHWReg_Wrap (istream,ostream);
 
     SBE_EXIT(SBE_FUNC);
     return rc;

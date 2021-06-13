@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,6 +33,21 @@
 #define __SBEFW_SBECMDREGACCESS_H
 
 #include <stdint.h>
+#include "plat_hwp_data_stream.H"
+
+
+/**
+  * @brief sbeGetHWReg_Wrap get the reg data access wrapper function
+  *
+  * @param[in]  i_getStream      up-stream fifo for chip-op /
+  *                              memory interface for dump
+  * @param[in]  i_putStream      down-stream fifo for chip-op /
+  *                              memory interface for dump
+  *
+  * @return     Rc from the FIFO access utility
+  */
+uint32_t sbeGetHWReg_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
+                          fapi2::sbefifo_hwp_data_ostream& i_putStream );
 
 /**
   * @brief sbeGetRegs : Get the reg data
