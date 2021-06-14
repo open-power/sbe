@@ -29,11 +29,11 @@
 
 #include "sbeSecurityGen.H"
 
-
-/*List of OCMB register read access allowed.
+/*************************DO NOT MODIFY THE BELOW ARRAY WITHOUT CONSENT OF akhis023@in.ibm.com***********************
+ *List of OCMB register read access allowed.
  * TODO: This list needs to be moved into a new tag read_allowlist in .csv
  * security file. Parsing support needs to be added for the same.
- * NOTE:The below array is sorted in assending order for binary search to work on
+ * NOTE:The below array is bubble sorted in assending order for binary search to work on
  * it.
  */
 uint32_t ocmbReadAllowList[] = { 0x08010001 ,0x08010002 ,0x08010824 ,0x08010850 ,0x08010851 ,0x08010852 ,
@@ -66,8 +66,17 @@ uint32_t ocmbReadAllowList[] = { 0x08010001 ,0x08010002 ,0x08010824 ,0x08010850 
                                  0x080f0005
 };
 
-// A iterative binary search function using pointers.
-// It return's true if element is present in array else flase
+/* @brief binarySearch    - A iterative binary search function using pointers.
+ *
+ * @param[in] arr         - Input array for binary search
+ * @param[in] l           - Array start offset
+ * @param[in] r           - Array end offset
+ * @param[in] x           - Element to be searched
+ *
+ * @return                - boolean to denote if the access on the address
+ *                          is allowed or not.True if element is present in
+ *                          array else false.
+ */
 static bool binarySearch(uint32_t *arr, int l, int r, uint32_t x)
 {
     uint32_t *temp = arr;
