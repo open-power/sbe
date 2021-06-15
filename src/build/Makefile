@@ -166,7 +166,6 @@ SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe*seeprom*.bin
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeMeasurementStringFile
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_verification.syms
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeVerificationStringFile
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_verification.dis
 endif
