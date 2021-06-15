@@ -314,13 +314,13 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,TP,40022,0x00,,HWSV,TOD start fsm register,,write_allowlist
 ,TP,4000B,0x00,,HWSV,TOD misc reset register,,write_allowlist
 ,TP,4000D,0x00,,HWSV,TOD timer register,,write_allowlist
-,IOHS,1801100A,0x18-0x1F,,HWSV,DLP0.DLP.DLP_CONFIG,,write_allowlist
-,EQ,2002849B,0x20-0x27,,HWSV,Core 3 ECP.EC.PC.TFX_SM,,write_allowlist
-,EQ,2002449B,0x20-0x27,,HWSV,Core 2 ECP.EC.PC.TFX_SM,,write_allowlist
-,EQ,2002249B,0x20-0x27,,HWSV,Core 1 ECP.EC.PC.TFX_SM,,write_allowlist
-,EQ,2002149B,0x20-0x27,,HWSV,Core 0 ECP.EC.PC.TFX_SM,,write_allowlist
-,EQ,200E0122,0x20-0x27,,HWSV,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
-,EQ,460E0122,0x00,,HWSV,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
+,IOHS,1801100A,0x18-0x1F,,Paul Ganfield,DLP0.DLP.DLP_CONFIG,,write_allowlist
+,EQ,2002849B,0x20-0x27,,Jim Bishop,Core 3 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002449B,0x20-0x27,,Jim Bishop,Core 2 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002249B,0x20-0x27,,Jim Bishop,Core 1 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002149B,0x20-0x27,,Jim Bishop,Core 0 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,200E0122,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
+,EQ,460E0122,0x00,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
 ,PB,3011351,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
 ,PB,3011391,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE4_NEXT,,write_allowlist
 ,PB,30113D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE4_NEXT,,write_allowlist
@@ -452,11 +452,11 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,PB,30113CE,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE2_CURR,,write_allowlist
 ,PB,30113D0,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE3_CURR,,write_allowlist
 ,PB,30113D2,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE4_CURR,,write_allowlist
-,EQ,200E012A,0x20-0x27,,HWSV,PCBSLEQ.QME.QME_SCRB (OR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
-,EQ,200E012B,0x20-0x27,,HWSV,PCBSLEQ.QME.QME_SCRB (CLEAR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
-,TP,6C0B7,0x00,,HWSV,OCB_OCI OCC Flags 3 (OR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
-,TP,6C0B6,0x00,,HWSV,OCB_OCI OCC Flags 3 (CLEAR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
-,TP,6C002,0x00,,HWSV,OCB_OCI OCC Interrupt Source 0 Register (OR),These interrupts are used by Hcode. ,write_allowlist
+,EQ,200E012A,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_SCRB (OR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
+,EQ,200E012B,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_SCRB (CLEAR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
+,TP,6C0B7,0x00,,Greg Still,OCB_OCI OCC Flags 3 (OR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
+,TP,6C0B6,0x00,,Greg Still,OCB_OCI OCC Flags 3 (CLEAR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
+,TP,6C002,0x00,,Greg Still,OCB_OCI OCC Interrupt Source 0 Register (OR),These interrupts are used by Hcode. ,write_allowlist
 ,TP,90051,0x00,,HWSV,Topology ID Translation Table 0,,write_allowlist
 ,TP,90052,0x00,,HWSV,Topology ID Translation Table 1,,write_allowlist
 ,TP,90053,0x00,,HWSV,Topology ID Translation Table 2,,write_allowlist
@@ -610,21 +610,23 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,PAU,100110BF,0x10-0x13,,HWSV,PAU5.CS.SM1.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
 ,PAU,1001111F,0x10-0x13,,HWSV,PAU5.CS.SM2.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
 ,PAU,1001117F,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,10012C0D,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Address Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.  The I/O PPEs can only be accessed via a scom satellite.  The PPE does not have the ability to SCOM out.  There is a custom interface to communicate to the PHYs (which don't contain any customer data).   Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
+,PAU,10012C0E,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Data Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.  The I/O PPEs can only be accessed via a scom satellite.  The PPE does not have the ability to SCOM out.  There is a custom interface to communicate to the PHYs (which don't contain any customer data).   Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
 ,Nest,0201180C,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG0,,write_allowlist
 ,Nest,0201180D,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG1,,write_allowlist
 ,Nest,0201180E,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG2,,write_allowlist
 ,Nest,0201180F,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG3,,write_allowlist
-,IOHS,1801100B,0x18-0x1F,,HWSV,PowerBus OLL Control register,,write_allowlist
-,IOHS,1801100C,0x18-0x1F,,HWSV,PowerBus OLL PHY Training Config register,,write_allowlist
-,IOHS,1801100D,0x18-0x1F,,HWSV,PowerBus OLL Secondary Config register,,write_allowlist
-,IOHS,1801100F,0x18-0x1F,,HWSV,PowerBus OLL Optical Config register,,write_allowlist
-,IOHS,18011018,0x18-0x1F,,HWSV,PowerBus OLL Replay Threshold register,,write_allowlist
-,IOHS,18011019,0x18-0x1F,,HWSV,PowerBus OLL SL ECC Threshold register,,write_allowlist
-,IOHS,1801101A,0x18-0x1F,,HWSV,PowerBus OLL Retrain Threshold register,,write_allowlist
-,IOHS,18011006,0x18-0x1F,,HWSV,PowerBus OLL FIR Action 0 Register,,write_allowlist
-,IOHS,18011007,0x18-0x1F,,HWSV,PowerBus OLL FIR Action 1 Register,,write_allowlist
-,IOHS,18011003,0x18-0x1F,,HWSV,PowerBus OLL FIR Mask Register,,write_allowlist
-,IOHS,18011002,0x18-0x1F,,HWSV,PowerBus OLL FIR Register,,write_allowlist
+,IOHS,1801100B,0x18-0x1F,,Paul Ganfield,PowerBus OLL Control register,,write_allowlist
+,IOHS,1801100C,0x18-0x1F,,Paul Ganfield,PowerBus OLL PHY Training Config register,,write_allowlist
+,IOHS,1801100D,0x18-0x1F,,Paul Ganfield,PowerBus OLL Secondary Config register,,write_allowlist
+,IOHS,1801100F,0x18-0x1F,,Paul Ganfield,PowerBus OLL Optical Config register,,write_allowlist
+,IOHS,18011018,0x18-0x1F,,Paul Ganfield,PowerBus OLL Replay Threshold register,,write_allowlist
+,IOHS,18011019,0x18-0x1F,,Paul Ganfield,PowerBus OLL SL ECC Threshold register,,write_allowlist
+,IOHS,1801101A,0x18-0x1F,,Paul Ganfield,PowerBus OLL Retrain Threshold register,,write_allowlist
+,IOHS,18011006,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Action 0 Register,,write_allowlist
+,IOHS,18011007,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Action 1 Register,,write_allowlist
+,IOHS,18011003,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Mask Register,,write_allowlist
+,IOHS,18011002,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Register,,write_allowlist
 ,PB,30113B4,0x03,,HWSV,PowerBus EXTFIR Action 0 Register,,write_allowlist
 ,PB,30113B5,0x03,,HWSV,PowerBus EXTFIR Action 1 Register,,write_allowlist
 ,PB,30113B1,0x03,,HWSV,PowerBus EXTFIR mask registers,,write_allowlist
@@ -644,3 +646,4 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,MM0,2010C2D,0x02,,HWSV,topology id translation table entries 8:15,,write_allowlist
 ,MM0,2010C2E,0x02,,HWSV,topology id translation table entries 16:23,,write_allowlist
 ,MM0,2010C2F,0x02,,HWSV,topology id translation table entries 24:31,,write_allowlist
+,IOHS PHY,10012C3F,0x10-0x13,,HWSV,IOHS PHY Indirect Registers,,write_allowlist
