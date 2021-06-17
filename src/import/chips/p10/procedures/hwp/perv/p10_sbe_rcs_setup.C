@@ -58,7 +58,7 @@ enum P10_SBE_RCS_SETUP_Private_Constants
     RCS_BYPASS_NS_DELAY = 100000, // unit is nano seconds (100us)
     RCS_BYPASS_SIM_CYCLE_DELAY = 100, // unit is sim cycles
     RCS_RESET_NS_DELAY = 100000, // unit is nano seconds (100us)
-    RCS_RESSEL_NS_DELAY = 5000000, // unit is nano seconds (5ms)
+    RCS_RESSEL_NS_DELAY = 15000000, // unit is nano seconds (15ms)
     RCS_RESET_SIM_CYCLE_DELAY = 100  // unit is sim cycles
 };
 
@@ -176,108 +176,96 @@ fapi_try_exit:
 //---------------------------------------------------------------------------------
 // Function to find the deskew val from the input string of error bits
 //---------------------------------------------------------------------------------
-void p10_get_deskew_dd2(
+fapi2::ReturnCode p10_get_deskew_dd2(
     const uint32_t  i_shiftedErrVals,
+    const int32_t i_loop,
+    const bool i_side,
     int&  o_deskewVal
 )
 {
-
-    uint32_t l_streak = 0;
-    uint32_t l_streakMax = 0;
-    uint32_t l_lastGoodPos = 0;
-    uint32_t l_firstError = 32;
-    uint32_t l_firstErrorLastStep = 0;
-    bool l_foundFail = false;
-    bool l_secondFail = false;
+    const int32_t C_MIN_WINDOW = 5;
+    uint32_t l_deskew = i_shiftedErrVals;
+    int32_t l_step = 0;
+    int32_t l_firstError = 16;
+    int32_t l_lastError = 16;
     o_deskewVal = -1;
 
-
-    FAPI_DBG("Deskew Looking for Good window");
-    FAPI_DBG("Input shiftedErrVal = 0x%016X", i_shiftedErrVals);
-
-    //From the input error values i_shiftedErrVal, the algorithm will find the optimum
-    //deskew to set on the PLL.
-    //We need to find a window of good deksew that do not have an error, if we exhaust our
-    //  loop attempts, then set the value of deskew to defined offset from found error
-    //The algorithm will interate over the 16 bits in the input i_shiftedErrVal that represent
-    //output of the experiments
-    for ( uint32_t l_step = 0 ; l_step < 16; ++l_step)
+    // Case 1: If no errors, we will pass through and exit
+    while (l_deskew)
     {
-        //Check if the current bit position in the input error string represents an error
-        if ((i_shiftedErrVals >> (15 - l_step)) & 0x1)
+        if (l_deskew & 0x8000)
         {
-            if (l_step < l_firstError)      // keep track of the first deskew with an error
+            // Set the first error, this will only get set once
+            if (l_firstError > l_step)
             {
                 l_firstError = l_step;
-                l_firstErrorLastStep = l_step;
             }
-            else
+
+            // Case 2: Look for a window condition
+            // - This is where 2 sets of errors are found
+            if ( (l_step - l_lastError) > C_MIN_WINDOW)
             {
-                l_firstErrorLastStep = l_step;
+                o_deskewVal = (l_step + l_lastError) / 2;
+                break;
             }
 
-            if ((l_foundFail) && (l_streak > 0))    // if we foud a previous fail and streak>0,
-                //    we found a valid second fail window
+            l_lastError = l_step;
+        }
+
+        l_deskew = (l_deskew << 1) & 0xFFFE;
+        l_step++;
+    }
+
+    // Case 3: single set of errors
+    if (i_shiftedErrVals && o_deskewVal == -1)
+    {
+        o_deskewVal = (l_lastError < 10) ? l_lastError + 6 : l_firstError - 6;
+    }
+
+    FAPI_DBG("RCS Calc Deskew shifted(0x%08X) step(%d) firstError(%d) lastError(%d) deskew(%d)",
+             i_shiftedErrVals, l_step, l_firstError, l_lastError, o_deskewVal)
+
+    // Verify Selected Deskew is Valid
+    if (o_deskewVal != -1)
+    {
+        // Verify we are in the correct range
+        FAPI_ASSERT(((o_deskewVal >= 0) && (o_deskewVal <= 15)),
+                    fapi2::RCS_FPLL_DESKEW_CAL_ERROR()
+                    .set_SHIFTED_ERR_VAL(i_shiftedErrVals)
+                    .set_SELECTED_DESKEW_VAL(o_deskewVal)
+                    .set_STEP(l_step)
+                    .set_FIRST_ERROR(l_firstError)
+                    .set_LAST_ERROR(l_lastError)
+                    .set_LOOP(i_loop)
+                    .set_SIDE_A_NOT_B(i_side),
+                    "RCS Deskew not in valid range");
+        //"[%d]RCS Deskew %d (%d, 0x%04X) not in valid range : [%d,%d,%d]",
+        //i_loop, i_side, o_deskewVal, i_shiftedErrVals, l_step, l_firstError, l_lastError);
+
+        for (int32_t l_offset = -2; l_offset <= 2; l_offset++)
+        {
+            // Verify we have margin at the selected value
+            if (((o_deskewVal + l_offset) >= 0) && ((o_deskewVal + l_offset) <= 15))
             {
-                l_secondFail = true;
+                FAPI_ASSERT(!((0x8000 >> (o_deskewVal + l_offset)) & i_shiftedErrVals),
+                            fapi2::RCS_FPLL_DESKEW_CAL_ERROR()
+                            .set_SHIFTED_ERR_VAL(i_shiftedErrVals)
+                            .set_SELECTED_DESKEW_VAL(o_deskewVal)
+                            .set_STEP(l_step)
+                            .set_FIRST_ERROR(l_firstError)
+                            .set_LAST_ERROR(l_lastError)
+                            .set_LOOP(i_loop)
+                            .set_SIDE_A_NOT_B(i_side),
+                            "RCS Deskew error at offset");
+                //"[%d]RCS Deskew %d (%d, 0x%04X) error at offset(%d) : [%d,%d,%d]",
+                //i_loop, i_side, o_deskewVal, i_shiftedErrVals, l_offset, l_step, l_firstError, l_lastError);
             }
-
-            l_foundFail = true;
-
-            if (l_streak > l_streakMax)     //found longest good streak
-            {
-                l_streakMax = l_streak;
-                l_lastGoodPos = l_step - 1; //last good position
-            }
-
-            l_streak = 0; //restart the counter
-        }
-        else //The current position do not represent error
-        {
-            ++l_streak;
-        }
-
-
-        FAPI_DBG("[%02d]: shifted(0x%08X) streak(%d) streakMax(%d) firstError(%d) lastStep(%d) lastGoodPos(%d) secondFail(%d) output(%d)",
-                 l_step, i_shiftedErrVals, l_streak, l_streakMax, l_firstError, l_firstErrorLastStep, l_lastGoodPos, l_secondFail,
-                 o_deskewVal)
-    }
-
-    if (l_streak > l_streakMax)     //found longest good streak
-    {
-        l_streakMax = l_streak;
-    }
-
-    if ( l_streak == 16)  //This represents  a case where no error was found.  This could
-        // happen on a fast process part.  Reset the filter PLL's
-    {
-        o_deskewVal = -1;
-    }
-    else if (( l_streakMax >= 5 ) && (l_secondFail)) //If 5 consecutive non-error bits were found in a window
-    {
-        //set deskew to center of streak
-        o_deskewVal = (l_lastGoodPos - (l_streakMax / 2)) % 16;
-    }
-    else if (l_streakMax >= 5)     // if there is no window and this is the last loop, manually set
-    {
-        if ( ((l_firstErrorLastStep + 6) <= 15))
-        {
-            o_deskewVal = l_firstErrorLastStep + 6;
-        }
-        else if ( (l_firstError - 6) >= 0 )
-        {
-            o_deskewVal = l_firstError - 6;
-        }
-        else
-        {
-            o_deskewVal = -1;
         }
     }
 
-    FAPI_DBG("shifted(0x%08X) streakMax(%d) firstError(%d) lastStep(%d) lastGoodPos(%d) secondFail(%d) output(%d)",
-             i_shiftedErrVals, l_streakMax, l_firstError, l_firstErrorLastStep, l_lastGoodPos, l_secondFail, o_deskewVal)
 
-    return;
+fapi_try_exit:
+    return fapi2::current_err;
 }
 
 //---------------------------------------------------------------------------------
@@ -433,7 +421,7 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
 
                 FAPI_TRY(fapi2::delay(RCS_RESSEL_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
 
-                //read back the RCS sens register
+                //read back the RCS sense register
                 GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
 
                 FAPI_DBG("deskew loop 0x%02X, RES_SEL 0x%X, rcs sens register %#018lX", l_deskewIndex, l_ressel, l_data64_rcsns);
@@ -456,11 +444,11 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
 
         //Arrange the bit string values one after the other in-order at arrive at the
         //pattern from which three consecutive deskew that did not produce an error will be searched.
-        l_shiftedAErrVals = (l_clkAErrVals & 0xFFFF) | ((l_clkAErrVals << 16) & 0xFFFF0000);
-        l_shiftedBErrVals = (l_clkBErrVals & 0xFFFF) | ((l_clkBErrVals << 16) & 0xFFFF0000);
+        l_shiftedAErrVals = l_clkAErrVals & 0xFFFF;
+        l_shiftedBErrVals = l_clkBErrVals & 0xFFFF;
 
-        p10_get_deskew_dd2(l_shiftedAErrVals, l_goodDeskewA);
-        p10_get_deskew_dd2(l_shiftedBErrVals, l_goodDeskewB);
+        FAPI_TRY(p10_get_deskew_dd2(l_shiftedAErrVals, l_index, true, l_goodDeskewA));
+        FAPI_TRY(p10_get_deskew_dd2(l_shiftedBErrVals, l_index, false, l_goodDeskewB));
 
         FAPI_DBG("RCS Deskew Loop[%d]: DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
                  l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
@@ -505,12 +493,18 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     FAPI_ASSERT((l_goodDeskewA != INVALID_DESKEW),
                 fapi2::RCS_FPLL_DESKEW_ERR_A()
                 .set_READ_SNS1LTH(l_data64_rcsns)
-                .set_SHIFTED_ERR_VAL(l_shiftedAErrVals),
+                .set_DESKEW_A(l_goodDeskewA)
+                .set_DESKEW_B(l_goodDeskewB)
+                .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
                 "Deskew calibration failed on A-side");
     FAPI_ASSERT((l_goodDeskewB != INVALID_DESKEW),
                 fapi2::RCS_FPLL_DESKEW_ERR_B()
                 .set_READ_SNS1LTH(l_data64_rcsns)
-                .set_SHIFTED_ERR_VAL(l_shiftedBErrVals),
+                .set_DESKEW_A(l_goodDeskewA)
+                .set_DESKEW_B(l_goodDeskewB)
+                .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
                 "Deskew calibration failed on B-side");
 
     l_data64_rc6.flush<0>();
@@ -554,7 +548,29 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     SET_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_BLOCK_SWO(l_data64_rc5);
     FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL5_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc5));
 
-    FAPI_TRY(fapi2::delay(RCS_BYPASS_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+    FAPI_TRY(fapi2::delay(RCS_RESSEL_NS_DELAY, RCS_BYPASS_SIM_CYCLE_DELAY));
+
+    //read back the RCS sense register
+    GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
+
+    FAPI_ASSERT(!(l_data64_rcsns.getBit<6>() | l_data64_rcsns.getBit<7>()),
+                fapi2::RCS_FPLL_DESKEW_ERR_A()
+                .set_READ_SNS1LTH(l_data64_rcsns)
+                .set_DESKEW_A(l_goodDeskewA)
+                .set_DESKEW_B(l_goodDeskewB)
+                .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                "Deskew Calibration Final Check Failed on A-side");
+
+    FAPI_ASSERT(!(l_data64_rcsns.getBit<8>() | l_data64_rcsns.getBit<9>()),
+                fapi2::RCS_FPLL_DESKEW_ERR_B()
+                .set_READ_SNS1LTH(l_data64_rcsns)
+                .set_DESKEW_A(l_goodDeskewA)
+                .set_DESKEW_B(l_goodDeskewB)
+                .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                "Deskew Calibration Final Check Failed on B-side");
+
 
     FAPI_INF("p10_sbe_rcs_dd2_deskew_calibrate: Exiting ...");
 
