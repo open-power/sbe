@@ -627,6 +627,8 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,IOHS,18011007,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Action 1 Register,,write_allowlist
 ,IOHS,18011003,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Mask Register,,write_allowlist
 ,IOHS,18011002,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Register,,write_allowlist
+,IOHS,18011012,0x18-0x1F,,HWSV,PowerBus OLL Link0 Receive Lane Control register,,write_allowlist
+,IOHS,18011013,0x18-0x1F,,HWSV,PowerBus OLL Link1 Receive Lane Control register,,write_allowlist
 ,PB,30113B4,0x03,,HWSV,PowerBus EXTFIR Action 0 Register,,write_allowlist
 ,PB,30113B5,0x03,,HWSV,PowerBus EXTFIR Action 1 Register,,write_allowlist
 ,PB,30113B1,0x03,,HWSV,PowerBus EXTFIR mask registers,,write_allowlist
