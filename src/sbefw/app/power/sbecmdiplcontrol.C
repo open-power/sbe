@@ -53,7 +53,8 @@
 
 using namespace fapi2;
 static const uint64_t P10_SPATTN_MASK_RO = 0x20040002;
-static const uint64_t P10_SPATTN_MASK_WO = 0x20040052;
+static const uint64_t P10_SPATTN_MASK_W_OR = 0x20040052;
+static const uint64_t P10_SPATTN_MASK_W_CLR = 0x20040062;
 static const uint32_t PEC_PHB_BIT_SHIFT = 55;
 static const uint64_t PEC_PHB_BIT_MASK = 0x1ULL;
 
@@ -79,17 +80,35 @@ ReturnCode maskUnmaskSpecialAttn( const Target<TARGET_TYPE_EQ>& i_target, bool i
         }
         if(isMaskReq)
         {
+            SBE_INFO(SBE_FUNC "Masking EQ attn while entering MPIPLing Path");
             maskData = maskData | ecMask;
+            rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK_W_OR, maskData );
         }
         else
         {
-            maskData = maskData & ~ecMask;
+            SBE_INFO(SBE_FUNC "Un-Masking EQ attn while exiting MPIPLing Path");
+            rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK_W_CLR, ecMask );
         }
-        rc = putscom_abs_wrap (&i_target, P10_SPATTN_MASK_WO, maskData );
         if( rc )
         {
-            SBE_ERROR(SBE_FUNC" Failed to write P10_SPATTN_MASK_WO(0x20040052)");
+            SBE_ERROR(SBE_FUNC" Failed to write P10_SPATTN_MASK_W_OR/W_CLR(0x20040052/0x20040062)");
             break;
+        }
+        else
+        {
+            //Read the final mask set
+            maskData = 0;
+            rc = getscom_abs_wrap (&i_target, P10_SPATTN_MASK_RO, &maskData );
+            if(rc)
+            {
+                SBE_ERROR(SBE_FUNC" Failed to read final mask set in P10_SPATTN_MASK_RO");
+                break;
+            }
+            else
+            {
+                SBE_INFO(SBE_FUNC "Final EQ Attn Mask set is [0x%08X %08X]",
+                    ((maskData >> 32) & 0xFFFFFFFF), (maskData & 0xFFFFFFFF));
+            }
         }
 
     }while(0);
