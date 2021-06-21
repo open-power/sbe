@@ -33,7 +33,7 @@ namespace SBEVECTORPOOL
 static const size_t G_BLOCKSIZE = 1024;
 
 //Pool size
-static const size_t G_POOLSIZE = 6;
+static const size_t G_POOLSIZE = 8;
 
 typedef struct
 {
