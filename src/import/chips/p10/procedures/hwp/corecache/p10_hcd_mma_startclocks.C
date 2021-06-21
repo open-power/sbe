@@ -80,16 +80,66 @@ p10_hcd_mma_startclocks(
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(18);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
+#ifndef __PPE_QME
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
+        i_target;//getChildren w/o and/or
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+    uint32_t                l_eq_num   = 0;
+    uint32_t                l_core_num = 0;
+
+    // do this to avoid unused variable warning
+    static_cast<void>(l_eq_num);
+#endif
 
     FAPI_INF(">>p10_hcd_mma_startclocks");
-
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
 
     FAPI_DBG("Disable MMA Regional Fences via CPLT_CTRL1[5-8:MMA_FENCES]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
 
-    FAPI_DBG("Enable MMA Regional PSCOMs via CPLT_CTRL3[5-8:MMA_REGIONS]");
+#ifdef __PPE_QME
+
+    FAPI_DBG("Enable MMA Regional PSCOMs via CPLT_CTRL3[15-18:MMA_REGIONS]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
+#else
+    l_regions = 0;
+
+    for (auto const& l_core : l_target.getChildren<fapi2::TARGET_TYPE_CORE>())
+    {
+        fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_eq,
+                               l_attr_chip_unit_pos));
+        l_eq_num = (uint32_t)l_attr_chip_unit_pos;
+
+        // do this to avoid unused variable warning
+        static_cast<void>(l_eq_num);
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               l_core,
+                               l_attr_chip_unit_pos));
+        l_core_num = (uint32_t)l_attr_chip_unit_pos % 4;
+
+        FAPI_DBG("Checking the good setting matches for EQ %d Core %d",
+                 l_eq_num, l_core_num);
+
+        // Read partial good value from Chiplet Control 2
+        FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_scomData));
+
+        if( l_scomData.getBit(15 + l_core_num) == 0)
+        {
+            FAPI_DBG("Partial Bad detected for EQ %d Core %d, Skip",
+                     l_eq_num, l_core_num);
+            continue;
+        }
+
+        l_regions = BIT32((15 + l_core_num));
+
+        FAPI_DBG("Enable MMA Regional PSCOMs via CPLT_CTRL3[15-18:MMA_REGIONS]");
+        FAPI_TRY( HCD_PUTSCOM_Q( l_eq, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
+    }
+
+#endif
 
     FAPI_DBG("Assert MMA_AVAILABLE via CPMS_MMAR[0]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_MMAR_WO_OR, BIT64(0) ) );

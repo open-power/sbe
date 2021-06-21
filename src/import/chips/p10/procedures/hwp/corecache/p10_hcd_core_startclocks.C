@@ -93,21 +93,25 @@ fapi2::ReturnCode
 p10_hcd_core_startclocks(
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > & i_target)
 {
-    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
-        i_target;//getChildren w/o and/or
     fapi2::Target < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST, fapi2::MULTICAST_AND > eq_target =
         i_target.getParent < fapi2::TARGET_TYPE_EQ | fapi2::TARGET_TYPE_MULTICAST > ();
-    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
     uint32_t                l_regions  = i_target.getCoreSelect() << SHIFT32(8);
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
     uint32_t                l_timeout  = 0;
+    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+
+#ifndef __PPE_QME
+    const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
+        i_target;//getChildren w/o and/or
+    fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
     uint32_t                l_eq_num   = 0;
     uint32_t                l_core_num = 0;
-    fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
 
     // do this to avoid unused variable warning
     static_cast<void>(l_eq_num);
+#endif
+
 
 #ifndef __PPE__
     fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP> l_proc = eq_target.getParent <fapi2::TARGET_TYPE_PROC_CHIP> ();
@@ -161,6 +165,11 @@ p10_hcd_core_startclocks(
     FAPI_DBG("Disable ECL2 Regional Fences via CPLT_CTRL1[5-8:ECL2_FENCES]");
     FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL1_WO_CLEAR, SCOM_LOAD32H(l_regions) ) );
 
+#ifdef __PPE_QME
+    FAPI_DBG("Enable ECL2 Regional PSCOMs via CPLT_CTRL3[5-8:ECL2_REGIONS]");
+    FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
+#else
+
     for (auto const& l_core : l_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
@@ -172,7 +181,6 @@ p10_hcd_core_startclocks(
 
         // do this to avoid unused variable warning
         static_cast<void>(l_eq_num);
-
         // Read partial good value from Chiplet Control 2
         FAPI_TRY(fapi2::getScom(l_eq, CPLT_CTRL2_RW, l_scomData));
 
@@ -194,9 +202,10 @@ p10_hcd_core_startclocks(
         l_regions = BIT32((5 + l_core_num));
 
         FAPI_DBG("Enable ECL2 Regional PSCOMs via CPLT_CTRL3[5-8:ECL2_REGIONS]");
-        FAPI_TRY( HCD_PUTSCOM_Q( eq_target, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
-
+        FAPI_TRY( HCD_PUTSCOM_Q( l_eq, CPLT_CTRL3_WO_OR,  SCOM_LOAD32H(l_regions) ) );
     }
+
+#endif
 
 #ifdef __PPE_QME
     uint8_t                 l_attr_mma_poweron_disable  = 0;
