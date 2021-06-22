@@ -366,7 +366,8 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP, i_target_chip, l_pau_dts_swap));
 
-    if (l_pau_dts_swap)
+    if (l_pau_dts_swap &&
+        (ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_NONE))
     {
         FAPI_TRY(p10_sbe_gptr_time_initf_fixup_dts(i_target_chip));
     }
