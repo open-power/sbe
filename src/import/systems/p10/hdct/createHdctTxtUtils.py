@@ -159,9 +159,6 @@ def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
              chipInfo = (data & 0xFFFFC000) >> 14
              out.debug("Chip Info: %s" % chipInfo)
 
-             if cmdTxt != "getmempba":
-                 entry.chipType = "pu"
-
              chipUnitType = (chipInfo & 0x3F000) >> 12
              try:
                 chipUnitTypeTxt = dumpConstants.chipUnitTypeIdToString[struct.pack("B",chipUnitType)];
@@ -170,6 +167,9 @@ def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
                 sys.exit(-1)
              if chipUnitType != 0x00:
                 entry.chipUnitType = chipUnitTypeTxt
+
+             if ( (entry.command != "getmempba") and (entry.chipUnitType != "ocmb") ):
+                entry.chipType = "pu"
 
                 #decodeStartEnd in genericVal
              data = int.from_bytes(genericVal, "big")
