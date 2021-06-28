@@ -612,6 +612,15 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,PAU,1001117F,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
 ,PAU,10012C0D,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Address Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.  The I/O PPEs can only be accessed via a scom satellite.  The PPE does not have the ability to SCOM out.  There is a custom interface to communicate to the PHYs (which don't contain any customer data).   Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
 ,PAU,10012C0E,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Data Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.  The I/O PPEs can only be accessed via a scom satellite.  The PPE does not have the ability to SCOM out.  There is a custom interface to communicate to the PHYs (which don't contain any customer data).   Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
+,PAU,10011800,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register,,write_allowlist
+,PAU,10011801,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register (AND),,write_allowlist
+,PAU,10011802,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register (OR),,write_allowlist
+,PAU,10012C00,0x10-0x13,,HWSV,Pervasive FIR Register,,write_allowlist
+,PAU,10012C01,0x10-0x13,,HWSV,Pervasive FIR Register (AND),,write_allowlist
+,PAU,10012C02,0x10-0x13,,HWSV,Pervasive FIR Register (OR),,write_allowlist
+,PAU,10012C03,0x10-0x13,,HWSV,Pervasive FIR Mask Register,,write_allowlist
+,PAU,10012C04,0x10-0x13,,HWSV,Pervasive FIR Mask Register (AND),,write_allowlist
+,PAU,10012C05,0x10-0x13,,HWSV,Pervasive FIR Mask Register (OR),,write_allowlist
 ,Nest,0201180C,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG0,,write_allowlist
 ,Nest,0201180D,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG1,,write_allowlist
 ,Nest,0201180E,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG2,,write_allowlist
@@ -629,9 +638,20 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,IOHS,18011002,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Register,,write_allowlist
 ,IOHS,18011012,0x18-0x1F,,HWSV,PowerBus OLL Link0 Receive Lane Control register,,write_allowlist
 ,IOHS,18011013,0x18-0x1F,,HWSV,PowerBus OLL Link1 Receive Lane Control register,,write_allowlist
+,IOHS,18011000,0x18-0x1F,,HWSV,PowerBus OLL FIR Register,,write_allowlist
+,IOHS,18011001,0x18-0x1F,,HWSV,PowerBus OLL FIR Register (AND),,write_allowlist
+,IOHS,18011002,0x18-0x1F,,HWSV,PowerBus OLL FIR Register (OR),,write_allowlist
+,IOHS,1801100E,0x18-0x1F,,HWSV,PowerBus OLL Latency Measure register,,write_allowlist
+,IOHS,18011016,0x18-0x1F,,HWSV,PowerBus OLL Link0 Error Status Register,,write_allowlist
+,IOHS,18011017,0x18-0x1F,,HWSV,PowerBus OLL Link1 Error Status Register,,write_allowlist
+,IOHS,18011022,0x18-0x1F,,HWSV,PowerBus OLL Link0 Syndrome Capture register,,write_allowlist
+,IOHS,18011023,0x18-0x1F,,HWSV,PowerBus OLL Link1 Syndrome Capture register,,write_allowlist
 ,PB,30113B4,0x03,,HWSV,PowerBus EXTFIR Action 0 Register,,write_allowlist
 ,PB,30113B5,0x03,,HWSV,PowerBus EXTFIR Action 1 Register,,write_allowlist
 ,PB,30113B1,0x03,,HWSV,PowerBus EXTFIR mask registers,,write_allowlist
+,PB.ES3,30113AE,0x03,,HWSV,PowerBus EH EXTFIR register,,write_allowlist
+,PB.ES3,30113AF,0x03,,HWSV,PowerBus EH EXTFIR register (AND),,write_allowlist
+,PB.ES3,30113B0,0x03,,HWSV,PowerBus EH EXTFIR register (OR),,write_allowlist
 ,NX,20110B0,0x02,,HWSV,topology id translation table entries 0:7,,write_allowlist
 ,NX,20110B1,0x02,,HWSV,topology id translation table entries 8:15,,write_allowlist
 ,NX,20110B2,0x02,,HWSV,topology id translation table entries 16:23,,write_allowlist
