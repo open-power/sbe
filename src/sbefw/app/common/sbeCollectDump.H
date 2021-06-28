@@ -172,6 +172,7 @@ class sbeCollectDump
 {
     private:
         fapi2::sbefifo_hwp_data_ostream iv_oStream; // ostream to push FIFO data
+        uint8_t iv_dumpType;
         uint8_t iv_clockState;    //Dump collection clock state(ON or OFF)
         sbeFifoType iv_fifoType;  //Type of fifo to stream the data.
         uint16_t iv_hdctDumpTypeMap; //Equivalent HDCT dump type wrt requested dump type.
@@ -206,6 +207,7 @@ class sbeCollectDump
                          iv_clockState(i_clockState), iv_fifoType(i_type), iv_collectFastArray(i_collectFastArray)
          {
              iv_clockState = i_clockState;
+             iv_dumpType = i_dumpID;
              if (iv_clockState == SBE_DUMP_CLOCK_ON)
                  iv_clockOffEntryFlag = false;
              //Get the equivalent HDCT dump type based on the requested Dump type

@@ -654,19 +654,25 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
     reqMsg.targetType   = o_targetType;
     reqMsg.chipletId    = o_chipletId;
     reqMsg.traceArrayId = iv_hdctRow->cmdTraceArray.traceArrayID;
-    reqMsg.operation    = SBE_TA_STOP;         // 0x0004: Stop Trace array
 
-    SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
-                     " traceArrayId [0x%04X] operation [0x%04X]",
-                       reqMsg.targetType, reqMsg.chipletId,
-                       reqMsg.traceArrayId, reqMsg.operation);
-
-    sbefifo_hwp_data_istream istream( iv_fifoType, len,
-                                      (uint32_t*)&reqMsg, false );
-    rc = sbeControlTraceArrayWrap( istream, iv_oStream );
-    if(rc)
+    // Skip stopping the tracearray for PERF dump.
+    // It is handled by the HDCT.
+    if( iv_dumpType != SBE_DUMP_TYPE_PERF)
     {
-        return rc;
+        reqMsg.operation    = SBE_TA_STOP;         // 0x0004: Stop Trace array
+
+        SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                         " traceArrayId [0x%04X] operation [0x%04X]",
+                           reqMsg.targetType, reqMsg.chipletId,
+                           reqMsg.traceArrayId, reqMsg.operation);
+
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                         (uint32_t*)&reqMsg, false );
+        rc = sbeControlTraceArrayWrap( istream, iv_oStream );
+        if(rc)
+        {
+            return rc;
+        }
     }
 
     reqMsg.operation    = SBE_TA_COLLECT_DUMP; // 0x0008: Collect Trace Dump
@@ -698,17 +704,33 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
             totalCount = totalCount - 1;
         }
     }
-    reqMsg.operation    = SBE_TA_RESTART; // 0x0002: Restart Trace array
+    // Skip resetting/restarting tracearray for PERF dump.
+    // It is handled by the HDCT.
+    if(iv_dumpType != SBE_DUMP_TYPE_PERF)
+    {
+        reqMsg.operation    = SBE_TA_RESET; // 0x0001: Reset Trace array
 
-    SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
-                     " traceArrayId [0x%04X] operation [0x%04X]",
-                       reqMsg.targetType, reqMsg.chipletId,
-                       reqMsg.traceArrayId, reqMsg.operation);
+        SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                         " traceArrayId [0x%04X] operation [0x%04X]",
+                           reqMsg.targetType, reqMsg.chipletId,
+                           reqMsg.traceArrayId, reqMsg.operation);
 
-    sbefifo_hwp_data_istream istreamStop( iv_fifoType, len,
-                                      (uint32_t*)&reqMsg, false );
+        sbefifo_hwp_data_istream istreamReset( iv_fifoType, len,
+                                               (uint32_t*)&reqMsg, false );
 
-    rc = sbeControlTraceArrayWrap( istreamStop, iv_oStream );
+        rc = sbeControlTraceArrayWrap( istreamReset, iv_oStream );
+        reqMsg.operation    = SBE_TA_RESTART; // 0x0002: Restart Trace array
+
+        SBE_INFO(SBE_FUNC" targetType [0x%04X] chipletId [0x%02X]"
+                         " traceArrayId [0x%04X] operation [0x%04X]",
+                           reqMsg.targetType, reqMsg.chipletId,
+                           reqMsg.traceArrayId, reqMsg.operation);
+
+        sbefifo_hwp_data_istream istreamRestart( iv_fifoType, len,
+                                                 (uint32_t*)&reqMsg, false );
+
+        rc = sbeControlTraceArrayWrap( istreamRestart, iv_oStream );
+    }
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
