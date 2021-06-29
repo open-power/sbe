@@ -110,16 +110,17 @@ p10_hcd_cache_stopgrid(
     }
     while( (--l_timeout) != 0 );
 
-    HCD_ASSERT( (
+    HCD_ASSERT4( (
 #ifdef USE_RUNN
-                    l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) :
+                     l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) :
 #endif
-                    (l_timeout != 0) ),
-                L3_CLK_SYNC_DROP_TIMEOUT,
-                set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS,
-                set_CPMS_CGCSR, l_scomData,
-                set_CORE_TARGET, i_target,
-                "ERROR: L3 Clock Sync Drop Timeout");
+                     (l_timeout != 0) ),
+                 L3_CLK_SYNC_DROP_TIMEOUT,
+                 set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS,
+                 set_CPMS_CGCSR, l_scomData,
+                 set_MC_CORE_TARGET, i_target,
+                 set_CORE_SELECT, i_target.getCoreSelect(),
+                 "ERROR: L3 Clock Sync Drop Timeout");
 
     FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[7]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(7) ) );

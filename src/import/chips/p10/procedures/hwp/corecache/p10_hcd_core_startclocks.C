@@ -149,16 +149,17 @@ p10_hcd_core_startclocks(
     }
     while( (--l_timeout) != 0 );
 
-    HCD_ASSERT( (
+    HCD_ASSERT4( (
 #ifdef USE_RUNN
-                    l_attr_runn_mode ? ( SCOM_GET(33) == 1 ) :
+                     l_attr_runn_mode ? ( SCOM_GET(33) == 1 ) :
 #endif
-                    (l_timeout != 0) ),
-                ECL2_CLK_SYNC_DONE_TIMEOUT,
-                set_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS, HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS,
-                set_CPMS_CGCSR, l_scomData,
-                set_CORE_TARGET, i_target,
-                "ERROR: ECL2 Clock Sync Done Timeout");
+                     (l_timeout != 0) ),
+                 ECL2_CLK_SYNC_DONE_TIMEOUT,
+                 set_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS, HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS,
+                 set_CPMS_CGCSR, l_scomData,
+                 set_MC_CORE_TARGET, i_target,
+                 set_CORE_SELECT, i_target.getCoreSelect(),
+                 "ERROR: ECL2 Clock Sync Done Timeout");
 
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
 
