@@ -368,6 +368,43 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
+/// @brief Remove access to cl2/l3/mma regions in all EQs
+/// @param[in] i_target       Reference to processor chip target
+/// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
+fapi2::ReturnCode p10_sbe_scominit_prep_eqs(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
+{
+    using namespace scomt::perv;
+
+    // EQ region enablement in SBE:
+    // - p10_sbe_chiplet_reset -> +PERV/+QME/+CLKADJ       (all good regions)
+    // - p10_sbe_startclocks   -> +PG CL2/L3/MMA regions   (HW519203, to permit skew adjust function)
+    // - p10_sbe_scominit      -> -ALL CL2/L3/MMA regions  (match powered-off state of logic)
+    // - p10_sbe_select_ex     -> +USED CL2/L3/MMA regions (active cores, backing caches used for boot, primary chip only)
+    //
+    // istep15,16 and HCODE manage runtime enablement for cl2/l3/mma
+
+    FAPI_DBG("Entering ...");
+
+    auto l_mc_eq = i_target.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_ALL_EQ);
+    fapi2::buffer<uint64_t> l_data64;
+
+    // revert to only enable perv, qme, clkadj region PGOOD/PSCOM_EN controls
+    l_data64.flush<0>();
+    l_data64.setBit<4>().setBit<13>().setBit<14>();
+
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL2_RW, l_data64));
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL3_RW, l_data64));
+
+    // set DFT fence for all cl2/l3/mma regions
+    l_data64.flush<0>();
+    l_data64.setBit<5, 8>().setBit<15, 4>();
+    FAPI_TRY(fapi2::putScom(l_mc_eq, CPLT_CTRL5_RW, l_data64));
+
+fapi_try_exit:
+    FAPI_DBG("Exiting ...");
+    return fapi2::current_err;
+}
+
 
 /// Main function, see description in header
 fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
@@ -379,6 +416,7 @@ fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_C
     FAPI_TRY(p10_sbe_scominit_bars(i_target), "Error from p10_sbe_scominit_bars");
     FAPI_TRY(p10_sbe_scominit_trace(i_target), "Error from p10_sbe_scominit_trace");
     FAPI_TRY(p10_sbe_scominit_core_lpar(i_target), "Error from p10_sbe_scominit_core_lpar");
+    FAPI_TRY(p10_sbe_scominit_prep_eqs(i_target), "Error from p10_sbe_scominit_prep_eqs");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
