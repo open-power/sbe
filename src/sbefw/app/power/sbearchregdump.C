@@ -216,6 +216,16 @@ ReturnCode sbeCaptureTIMAOffsets( uint64_t  *i_timaArray)
         //Obtain the TIMA offset data
         for(auto &coreTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
+
+            //Do not consider the cores which are in ECO mode.
+            fapi2::ATTR_ECO_MODE_Type ecoMode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
+            FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, coreTgt, ecoMode);
+            if(ecoMode == fapi2::ENUM_ATTR_ECO_MODE_ENABLED)
+            {
+                continue;
+            }
+
+
             uint8_t chipUnitNum = 0;
             FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, coreTgt, chipUnitNum);
             for(uint8_t thread = SMT4_THREAD0;thread < SMT4_THREAD_MAX;thread++)
@@ -410,11 +420,24 @@ ReturnCode sbeDumpArchRegs()
                 SBE_MEM_ACCESS_WRITE,
                 sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
 
+        //Obtain the total number of Core functional core targets which are not
+        //in the ECO mode.
+        uint32_t coreCnt = 0;
+        for(auto &coreTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+        {
+            fapi2::ATTR_ECO_MODE_Type ecoMode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
+            FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, coreTgt, ecoMode);
+            if(ecoMode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED)
+            {
+                coreCnt++;
+            }
+        }
+        SBE_INFO("Total number of core excluding ECO cores=%d",coreCnt);
+
         //Build the Proc specific header and send to the host
         dumpProcHdr.ownerId = 0; //Indicates SBE
         dumpProcHdr.version = DUMP_STRUCT_VERSION_ID;
-        dumpProcHdr.core_cnt = 
-                          procTgt.getChildren<fapi2::TARGET_TYPE_CORE>().size();
+        dumpProcHdr.core_cnt = coreCnt;
         dumpProcHdr.thread_count = (dumpProcHdr.core_cnt * SMT4_THREAD_MAX);
         dumpProcHdr.reg_cnt = (sizeof(SPR_GPR_TIMA_list)/sizeof(uint16_t));
 
@@ -442,6 +465,15 @@ ReturnCode sbeDumpArchRegs()
         //Interate through all the Cores under the Proc chips
         for(auto &coreTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
+            //Do not consider the cores which are in ECO mode.
+            fapi2::ATTR_ECO_MODE_Type ecoMode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
+            FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, coreTgt, ecoMode);
+            if(ecoMode == fapi2::ENUM_ATTR_ECO_MODE_ENABLED)
+            {
+                continue;
+            }
+
+
             bool doRamming = false;
             uint8_t coreState = 0;
             uint8_t chipUnitNum = 0;
