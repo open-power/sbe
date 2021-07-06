@@ -692,7 +692,7 @@ fapi2::ReturnCode RamCore::ram_initiate_recovery()
                     .set_THREAD(iv_thread)
                     .set_CORE_FIR(l_data)
                     .set_HID(l_hid_restore_fused_peer),
-                    "Timeout waiting for recovery to clear Core FIR, FIR: 0x%.16llX",
+                    "Timeout waiting for recovery to clear Core FIR (fused peer), FIR: 0x%.16llX",
                     l_data);
 
         // unmask passed FIR indicator for future reporting
@@ -881,8 +881,9 @@ fapi2::ReturnCode RamCore::ram_cleanup()
     FAPI_DBG("Start ram cleanup");
 
     FAPI_ASSERT((iv_ram_setup || iv_fake_ramming),
-                fapi2::P10_RAM_NOT_SETUP_ERR()
-                .set_CORE_TARGET(iv_target),
+                fapi2::P10_RAM_NOT_SETUP_CLEANUP_ERR()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread),
                 "Attempting to call ram_cleanup without calling ram_setup before");
 
     if (iv_fake_ramming)
@@ -994,11 +995,12 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
     bool l_is_load_store = false;
     fapi2::ATTR_CHIP_EC_FEATURE_HW533775_Type l_hw533775 = 0;
 
-    // FIXME: Do we need to do a better job of detecting HW542214 here?
-    // Seems like ram_opcode() when called externally, is only used for test purposes.
     FAPI_ASSERT(!iv_fake_ramming,
-                fapi2::P10_RAM_INACTIVE_THREAD_HW542214()
-                .set_CORE_TARGET(iv_target),
+                fapi2::P10_OPCODE_RAM_INACTIVE_THREAD_HW542214()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread)
+                .set_OPCODE(i_opcode)
+                .set_ALLOW_MULT(i_allow_mult),
                 "Attempting to ram to inactive thread and HW542214 is present");
 
     // check the opcode for load/store
@@ -1015,8 +1017,11 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
 #else
     FAPI_ASSERT(iv_ram_mode_enable,
 #endif
-                fapi2::P10_RAM_NOT_SETUP_ERR()
-                .set_CORE_TARGET(iv_target),
+                fapi2::P10_RAM_NOT_SETUP_OPCODE_ERR()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread)
+                .set_OPCODE(i_opcode)
+                .set_ALLOW_MULT(i_allow_mult),
                 "Attempting to ram opcode without enable RAM mode before");
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
@@ -1040,14 +1045,20 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
         // attempting to ram during recovery
         FAPI_ASSERT(l_hw533775 || !l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_CONTROL_ACCESS_DURING_RECOV>(),
                     fapi2::P10_RAM_STATUS_IN_RECOVERY_ERR()
-                    .set_CORE_TARGET(iv_target),
+                    .set_CORE_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_OPCODE(i_opcode)
+                    .set_ALLOW_MULT(i_allow_mult),
                     "Attempting to ram during recovery. "
                     "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
 
         // exception or interrupt
         FAPI_ASSERT(!l_data.getBit<EC_PC_FIR_RAM_STATUS_RAM_EXCEPTION>(),
                     fapi2::P10_RAM_STATUS_EXCEPTION_ERR()
-                    .set_CORE_TARGET(iv_target),
+                    .set_CORE_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_OPCODE(i_opcode)
+                    .set_ALLOW_MULT(i_allow_mult),
                     "Exception or interrupt happened during ramming. "
                     "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
 
@@ -1074,7 +1085,10 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
 
         FAPI_ASSERT(l_poll_count > 0,
                     fapi2::P10_RAM_STATUS_POLL_THRESHOLD_ERR()
-                    .set_CORE_TARGET(iv_target),
+                    .set_CORE_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_OPCODE(i_opcode)
+                    .set_ALLOW_MULT(i_allow_mult),
                     "Timeout for ram to complete, poll count expired. "
                     "EC_PC_FIR_RAM_STATUS reg 0x%.16llX", l_data);
     }
@@ -1213,12 +1227,13 @@ fapi2::ReturnCode RamCore::get_reg(const Enum_RegType i_type,
     }
 
     FAPI_ASSERT((iv_ram_setup || iv_fake_ramming),
-                fapi2::P10_RAM_NOT_SETUP_ERR()
+                fapi2::P10_RAM_NOT_SETUP_IO_ERR()
                 .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread)
                 .set_REG_TYPE(i_type)
                 .set_REG_NUM(i_reg_num)
                 .set_ALLOW_MULT(i_allow_mult),
-                "Attempting to ram without setup before. "
+                "get_reg: Attempting to ram without setup before. "
                 "Reg type: %u, Reg num: %u, Allow Mult: %u",
                 i_type, i_reg_num, i_allow_mult);
 
@@ -1433,8 +1448,12 @@ fapi2::ReturnCode RamCore::get_reg_internal(const Enum_RegType i_type,
     {
         FAPI_ASSERT(false,
                     fapi2::P10_RAM_INVALID_REG_TYPE_ACCESS_ERR()
-                    .set_REGTYPE(i_type),
-                    "Type of reg (0x%.8X) is not supported", i_type);
+                    .set_CORE_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_REG_TYPE(i_type)
+                    .set_REG_NUM(i_reg_num)
+                    .set_ALLOW_MULT(i_allow_mult),
+                    "get_reg_internal: Type of reg (0x%.8X) is not supported", i_type);
     }
 
     if(array_op)
@@ -1531,14 +1550,23 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     }
 
     FAPI_ASSERT(!iv_fake_ramming,
-                fapi2::P10_RAM_INACTIVE_THREAD_HW542214()
-                .set_CORE_TARGET(iv_target),
+                fapi2::P10_PUT_REG_RAM_INACTIVE_THREAD_HW542214()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread)
+                .set_REG_TYPE(i_type)
+                .set_REG_NUM(i_reg_num)
+                .set_ALLOW_MULT(i_allow_mult),
                 "Attempting to ram (put_reg) to inactive thread and HW542214 is present");
 
     FAPI_ASSERT(iv_ram_setup,
-                fapi2::P10_RAM_NOT_SETUP_ERR()
-                .set_CORE_TARGET(iv_target),
-                "Attempting to ram without setup before");
+                fapi2::P10_RAM_NOT_SETUP_IO_ERR()
+                .set_CORE_TARGET(iv_target)
+                .set_REG_TYPE(i_type)
+                .set_REG_NUM(i_reg_num)
+                .set_ALLOW_MULT(i_allow_mult),
+                "put_reg: Attempting to ram without setup before. "
+                "Reg type: %u, Reg num: %u, Allow Mult: %u",
+                i_type, i_reg_num, i_allow_mult);
 
     //backup GPR0 if it is written
     if(iv_write_gpr0)
@@ -1736,8 +1764,12 @@ fapi2::ReturnCode RamCore::put_reg(const Enum_RegType i_type,
     {
         FAPI_ASSERT(false,
                     fapi2::P10_RAM_INVALID_REG_TYPE_ACCESS_ERR()
-                    .set_REGTYPE(i_type),
-                    "Type of reg (0x%.8X) is not supported", i_type);
+                    .set_CORE_TARGET(iv_target)
+                    .set_THREAD(iv_thread)
+                    .set_REG_TYPE(i_type)
+                    .set_REG_NUM(i_reg_num)
+                    .set_ALLOW_MULT(i_allow_mult),
+                    "put_reg: Type of reg (0x%.8X) is not supported", i_type);
     }
 
     if(array_op)

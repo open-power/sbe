@@ -145,6 +145,24 @@ class RamCore
                                   const fapi2::buffer<uint64_t>* i_buffer,
                                   const bool i_allow_mult = false);
 
+        //-----------------------------------------------------------------------------------
+        /// @brief Getter for iv_target
+        /// @return iv_target
+        //
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> get_target(void)
+        {
+            return iv_target;
+        }
+
+        //-----------------------------------------------------------------------------------
+        /// @brief Getter for iv_thread
+        /// @return iv_thread
+        //
+        uint8_t get_thread(void)
+        {
+            return iv_thread;
+        }
+
     private:
         fapi2::Target<fapi2::TARGET_TYPE_CORE> iv_target;  // core target
         uint8_t iv_thread;     // thread number
