@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -25,36 +25,6 @@
 <!-- EKB-Mirror-To: hw/ppe                                                  -->
 <hwpErrors>
   <hwpError>
-    <rc>RC_FASTARRAY_TARGET_MISMATCH</rc>
-    <description>An array ID was requested that does not belong to the target</description>
-    <ffdc>ARRAY_ID</ffdc>
-    <ffdc>TARGET_TYPE</ffdc>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>HIGH</priority>
-    </callout>
-  </hwpError>
-  <hwpError>
-    <rc>RC_FASTARRAY_UNKNOWN_RING</rc>
-    <description>An array specified a ring ID that was not defined in the ring table</description>
-    <ffdc>ARRAY_ID</ffdc>
-    <ffdc>RING_ID</ffdc>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>HIGH</priority>
-    </callout>
-  </hwpError>
-  <hwpError>
-    <rc>RC_FASTARRAY_INVALID_SWIZZLE_MODE</rc>
-    <description>An invalid row/bit swizzle mode has been used in a fastarray description.</description>
-    <ffdc>ARRAY_ID</ffdc>
-    <ffdc>MODE_VALUE</ffdc>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>HIGH</priority>
-    </callout>
-  </hwpError>
-  <hwpError>
     <rc>RC_FASTARRAY_HEADER_CHECK_FAILED</rc>
     <description>The header check failed after a scan operation</description>
     <ffdc>TARGET</ffdc>
@@ -68,6 +38,9 @@
       <procedure>CODE</procedure>
       <priority>MEDIUM</priority>
     </callout>
+    <deconfigure>
+        <target>TARGET</target>
+    </deconfigure>
   </hwpError>
   <hwpError>
     <rc>RC_FASTARRAY_CLOCK_TIMEOUT</rc>
@@ -81,6 +54,9 @@
       <procedure>CODE</procedure>
       <priority>MEDIUM</priority>
     </callout>
+    <deconfigure>
+        <target>TARGET</target>
+    </deconfigure>
   </hwpError>
   <hwpError>
     <rc>RC_FASTARRAY_CLEANUP_NOT_DONE</rc>
@@ -88,22 +64,13 @@
     <ffdc>TARGET</ffdc>
     <callout>
       <target>TARGET</target>
-      <priority>HIGH</priority>
+      <priority>LOW</priority>
     </callout>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>MEDIUM</priority>
-    </callout>
-  </hwpError>
-  <hwpError>
-    <rc>RC_FASTARRAY_UNKNOWN_CHIP_EC</rc>
-    <description>There is no fastarray control data available for the requested chip type / EC</description>
-    <ffdc>CHIP_NAME</ffdc>
-    <ffdc>CHIP_EC</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
     </callout>
+    <!-- No deconfigure, this is an unexpected error but the part still might be okay -->
   </hwpError>
   <hwpError>
     <rc>RC_FASTARRAY_CARE_BUFFER_OVERFLOW</rc>
