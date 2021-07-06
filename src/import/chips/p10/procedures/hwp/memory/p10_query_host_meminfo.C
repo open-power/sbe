@@ -51,79 +51,55 @@ fapi2::ReturnCode p10_query_host_meminfo(
 {
     FAPI_INF("p10_query_host_meminfo: Entering ...");
 
-    fapi2::ReturnCode l_rc;
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::Target < fapi2::TARGET_TYPE_CORE > core_target;
     fapi2::ATTR_ECO_MODE_Type l_eco_mode;
     // size of host memory in MB
     o_sizeHostMem = 0x0;
     o_hrmor = 0x0;
 
-    core_target = i_bootCore;
-
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core_target, l_eco_mode));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, i_bootCore, l_eco_mode));
     FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
                 fapi2::P10_QUERY_HOST_MEMINFO_CORE_ECO_ERROR().
-                set_MASTER_CORE(core_target),
+                set_MASTER_CORE(i_bootCore),
                 "p10_query_host_meminfo: Input target is in ECO mode!");
 
     // reflect back parent target
-    o_target = core_target.getParent
-               < fapi2::TARGET_TYPE_PROC_CHIP > ();
+    o_target = i_bootCore.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
 
     // read hostboot state from core (scratch #1)
-    l_rc = fapi2::getScom( core_target,
-                           scomt::c::EC_PC_SCR1,
-                           l_data64 );
+    FAPI_TRY(fapi2::getScom( i_bootCore,
+                             scomt::c::EC_PC_SCR1,
+                             l_data64 ));
 
-    if (l_rc)
-    {
-        FAPI_ERR("p10_query_host_meminfo:: getScom failed to read hostboot state from multicast_core_target, bailing out of function." );
-        FAPI_ASSERT( false,
-                     fapi2::P10_QUERY_HOST_MEMINFO_CORE_SCOM_ERROR().
-                     set_MASTER_CORE(core_target),
-                     "p10_query_host_meminfo: Unable to access core scratch reg 1 on master core");
-    }
-    else
-    {
-        FAPI_IMP("getScom Done: Address:[0x%08X%08X]: Data Read[0x%08X%08X]",
-                 (scomt::c::EC_PC_SCR1 >> 32), (scomt::c::EC_PC_SCR1 & 0xFFFFFFFF),
-                 (l_data64 >> 32), (l_data64 & 0xFFFFFFFF) );
+    FAPI_IMP("getScom Done: Address:[0x%08X%08X]: Data Read[0x%08X%08X]",
+             (scomt::c::EC_PC_SCR1 >> 32), (scomt::c::EC_PC_SCR1 & 0xFFFFFFFF),
+             (l_data64 >> 32), (l_data64 & 0xFFFFFFFF) );
 
-        FAPI_ASSERT( l_data64 != 0x0ULL,
-                     fapi2::P10_QUERY_HOST_MEMINFO_STATE_DETERMINATION_ERR().
-                     set_MASTER_CORE(core_target),
-                     "p10_query_host_meminfo: Unable to determine hostboot state");
+    FAPI_ASSERT(l_data64 != 0x0ULL,
+                fapi2::P10_QUERY_HOST_MEMINFO_STATE_DETERMINATION_ERR().
+                set_MASTER_CORE(i_bootCore),
+                "p10_query_host_meminfo: Unable to determine hostboot state");
 
-        // extract hostboot state data
-        l_data64.extractToRight < 52, (63 - 52) + 1 > (o_sizeHostMem);
-        // extract hrmor written by hostboot
-        l_data64.extractToRight < 4 , (51 - 4 ) + 1 > (o_hrmor);
-    }
+    // extract hostboot state data
+    l_data64.extractToRight < 52, (63 - 52) + 1 > (o_sizeHostMem);
+    // extract hrmor written by hostboot
+    l_data64.extractToRight < 4 , (51 - 4 ) + 1 > (o_hrmor);
 
-    if(!o_sizeHostMem)
-    {
-        FAPI_ERR("p10_query_host_meminfo:: Core Scratch 1 says hostboot memory size is 0, something is wrong, bailing out of function. " );
-        FAPI_ASSERT( false,
-                     fapi2::P10_QUERY_HOST_MEMINFO_INVALID_SIZE().
-                     set_MASTER_CORE(core_target),
-                     "p10_query_host_meminfo: Core Scratch 1 says Host memory size is 0, which is wrong");
-    }
-    else if(!o_hrmor)
-    {
-        FAPI_ERR("p10_query_host_meminfo:: Core Scratch 1 says HRMOR is 0, something is wrong, bailing out of function. " );
-        FAPI_ASSERT( false,
-                     fapi2::P10_QUERY_HOST_MEMINFO_INVALID_HRMOR().
-                     set_MASTER_CORE(core_target),
-                     "p10_query_host_meminfo: Core Scratch 1 says HRMOR is 0, which is wrong");
-    }
+    FAPI_ASSERT(!o_sizeHostMem,
+                fapi2::P10_QUERY_HOST_MEMINFO_INVALID_SIZE().
+                set_MASTER_CORE(i_bootCore),
+                "p10_query_host_meminfo: Core Scratch 1 says Host memory size is 0, which is wrong");
+
+    FAPI_ASSERT(!o_hrmor,
+                fapi2::P10_QUERY_HOST_MEMINFO_INVALID_HRMOR().
+                set_MASTER_CORE(i_bootCore),
+                "p10_query_host_meminfo: Core Scratch 1 says HRMOR is 0, which is wrong");
 
     // l_sizeHostMem = Number of MBs of memory to dump (hex format)
     FAPI_IMP("p10_query_host_meminfo: size of hostboot memory[0x%08X], HRMOR[0x%08X%08X]",
              o_sizeHostMem, (o_hrmor >> 32), (o_hrmor & 0xFFFFFFFF));
 
 fapi_try_exit:
-
     FAPI_INF("p10_query_host_meminfo: Exiting...");
     return fapi2::current_err;
 }

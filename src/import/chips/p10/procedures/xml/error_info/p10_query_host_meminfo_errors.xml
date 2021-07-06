@@ -38,19 +38,6 @@
   </hwpError>
   <!-- *********************************************************************** -->
   <hwpError>
-    <rc>RC_P10_QUERY_HOST_MEMINFO_CORE_SCOM_ERROR</rc>
-    <ffdc>MASTER_CORE</ffdc>
-    <description>
-        Unable to read the core scratch register 1 which tells us what addresses
-        host memory starts at and how long it is.
-    </description>
-    <callout>
-      <procedure>CODE</procedure>
-      <priority>HIGH</priority>
-    </callout>
-  </hwpError>
-  <!-- *********************************************************************** -->
-  <hwpError>
     <rc>RC_P10_QUERY_HOST_MEMINFO_CORE_ECO_ERROR</rc>
     <ffdc>MASTER_CORE</ffdc>
     <description>
