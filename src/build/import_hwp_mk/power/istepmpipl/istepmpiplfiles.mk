@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -38,7 +38,9 @@ ISTEPMPIPL-CPP-SOURCES += p10_hcd_chtm_purge.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_l3_purge.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_powerbus_purge.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_core_stopgrid.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_cache_stopclocks.C
+ISTEPMPIPL-CPP-SOURCES += p10_hcd_cache_stopgrid.C
 ISTEPMPIPL-CPP-SOURCES += p10_hcd_eq_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES += p10_common_stopclocks.C
 ISTEPMPIPL-CPP-SOURCES += p10_cplt_stopclocks.C

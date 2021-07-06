@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,7 +78,7 @@ p10_hcd_ecl2_l3_poweroff(
     //If we are in success in the above two procedure, then we need to update
     //STOP GATED and ACT_STOP_LVL bits in SSH_SRC register
 
-    FAPI_TRY( fapi2::putScom( i_target, QME_SSH_SRC, BIT64(QME_SSH_SRC_STOP_GATED)
+    FAPI_TRY( fapi2::putScom( i_target, QME_SSH_SRC, BIT64(QME_SSH_SRC_ACT_WRITE_ENABLE) | BIT64(QME_SSH_SRC_STOP_GATED)
                               | BITS64(QME_SSH_SRC_ACT_STOP_LEVEL, QME_SSH_SRC_ACT_STOP_LEVEL_LEN)) );
 
     //Clear PM Block interrupts
