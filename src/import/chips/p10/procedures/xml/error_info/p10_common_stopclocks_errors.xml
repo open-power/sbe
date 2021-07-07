@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -22,8 +22,8 @@
 <!-- permissions and limitations under the License.                         -->
 <!--                                                                        -->
 <!-- IBM_PROLOG_END_TAG                                                     -->
-<!-- File: p9_common_stopclocks_errors.xml. -->
-<!-- Halt codes for p9_common_stopclocks -->
+<!-- File: p10_common_stopclocks_errors.xml. -->
+<!-- Halt codes for p10_common_stopclocks -->
 
 <hwpErrors>
   <!-- ******************************************************************** -->
@@ -37,6 +37,14 @@
     <ffdc>CBS_CC_STAT</ffdc>
     <ffdc>TIMEOUT</ffdc>
     <ffdc>DELAY</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>TARGET_CHIP</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -45,6 +53,14 @@
       Perv Vital clocks are off
     </description>
     <ffdc>TARGET_CHIP</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>TARGET_CHIP</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -52,6 +68,19 @@
     <description>
       core_stopclocks returned with error
     </description>
+    <ffdc>MC_CORE_TARGET</ffdc>
+    <ffdc>CORE_SELECT</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <childTargets>
+        <parent>MC_CORE_TARGET</parent>
+        <childType>TARGET_TYPE_CORE</childType>
+      </childTargets>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -59,6 +88,19 @@
     <description>
       mma_stopclocks returned with error
     </description>
+    <ffdc>MC_CORE_TARGET</ffdc>
+    <ffdc>CORE_SELECT</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <childTargets>
+        <parent>MC_CORE_TARGET</parent>
+        <childType>TARGET_TYPE_CORE</childType>
+      </childTargets>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -66,6 +108,19 @@
     <description>
       cache_stopclocks returned with error
     </description>
+    <ffdc>MC_CORE_TARGET</ffdc>
+    <ffdc>CORE_SELECT</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <childTargets>
+        <parent>MC_CORE_TARGET</parent>
+        <childType>TARGET_TYPE_CORE</childType>
+      </childTargets>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -73,6 +128,15 @@
     <description>
       eq_stopclocks returned with error
     </description>
+    <ffdc>EQ_TARGET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>EQ_TARGET</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -81,6 +145,14 @@
       cplt_stopclocks returned with error
     </description>
     <ffdc>TARGET_CHIPLET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>TARGET_CHIPLET</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -88,6 +160,15 @@
     <description>
       tp_stopclocks returned with error
     </description>
+    <ffdc>PROC_TARGET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>PROC_TARGET</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -95,6 +176,15 @@
     <description>
       vital_stopclocks returned with error
     </description>
+    <ffdc>PROC_TARGET</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>PROC_TARGET</target>
+      <priority>MEDIUM</priority>
+    </callout>
   </hwpError>
   <!-- ******************************************************************** -->
 </hwpErrors>

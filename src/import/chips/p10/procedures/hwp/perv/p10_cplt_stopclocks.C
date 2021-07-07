@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -99,8 +99,11 @@ fapi2::ReturnCode p10_cplt_stopclocks(const
     for (auto l_trgt_chplt : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
          (l_io_filter, fapi2::TARGET_STATE_FUNCTIONAL))
     {
+        // We are intentionally making the trade of dropping the FFDC
+        // gathered by the sub-HWP so that we can avoid breaking from
+        // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+        // for stopclocks.
         l_rc = p10_chiplet_stopclocks(l_trgt_chplt);
-
         FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                            fapi2::CPLT_STOPCLOCKS_ERR()
                            .set_TARGET_CHIPLET(l_trgt_chplt),
@@ -114,8 +117,11 @@ fapi2::ReturnCode p10_cplt_stopclocks(const
              (static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_NEST),
               fapi2::TARGET_STATE_FUNCTIONAL))
         {
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
             l_rc = p10_chiplet_stopclocks(l_nest_chplt);
-
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::CPLT_STOPCLOCKS_ERR()
                                .set_TARGET_CHIPLET(l_nest_chplt),

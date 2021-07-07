@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -67,29 +67,41 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
              btos(i_stop_tp_clks), btos(i_stop_sbe_clks));
 #endif
 
+    // We are intentionally making the trade of dropping the FFDC
+    // gathered by the sub-HWP so that we can avoid breaking from
+    // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+    // for stopclocks.
     l_rc = p10_common_stopclock_tp_chiplet_accessible(i_target_chip, l_tp_chiplet_accessible);
-
     FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
-                       fapi2::TP_STOPCLOCKS_ERR(),
+                       fapi2::TP_STOPCLOCKS_ERR()
+                       .set_PROC_TARGET(i_target_chip),
                        "Checking tp chiplet accessible returned error, can't call stopclocks fpr tp chiplet");
 
     if(l_tp_chiplet_accessible)
     {
         if(i_stop_tp_clks)
         {
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
             l_rc = p10_tp_stopclocks_regions_all_except_sbe(i_target_chip, i_ignore_pib_net_dpllnest_ppll);
-
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::TP_STOPCLOCKS_ERR(),
+                               fapi2::TP_STOPCLOCKS_ERR()
+                               .set_PROC_TARGET(i_target_chip),
                                "p10_tp_stopclocks returned error when stopping clocks for regions all except SBE [perv, sbe, pib, occ, net, pll regions]");
         }
 
         if(i_stop_sbe_clks)
         {
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
             l_rc = p10_sbe_region_stopclocks(i_target_chip);
-
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::TP_STOPCLOCKS_ERR(),
+                               fapi2::TP_STOPCLOCKS_ERR()
+                               .set_PROC_TARGET(i_target_chip),
                                "p10_tp_stopclocks returned error when stopping clocks for sbe region");
         }
     }

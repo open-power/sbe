@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -218,17 +218,29 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         if(i_flags.stop_core_clks)
         {
             FAPI_INF("p10_stopclocks : Calling p10_hcd_core_stopclocks");
-            l_rc_core = p10_hcd_core_stopclocks(core_mc_target);
 
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
+            l_rc_core = p10_hcd_core_stopclocks(core_mc_target);
             FAPI_ASSERT_NOEXIT(l_rc_core == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::HCD_CORE_STOPCLOCKS_ERR(),
+                               fapi2::HCD_CORE_STOPCLOCKS_ERR()
+                               .set_MC_CORE_TARGET(core_mc_target)
+                               .set_CORE_SELECT(core_mc_target.getCoreSelect()),
                                "p10_hcd_core_stopclocks returned error");
 
             FAPI_INF("p10_stopclocks : Calling p10_hcd_mma_stopclocks");
-            l_rc_core = p10_hcd_mma_stopclocks(core_mc_target);
 
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
+            l_rc_core = p10_hcd_mma_stopclocks(core_mc_target);
             FAPI_ASSERT_NOEXIT(l_rc_core == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::HCD_MMA_STOPCLOCKS_ERR(),
+                               fapi2::HCD_MMA_STOPCLOCKS_ERR()
+                               .set_MC_CORE_TARGET(core_mc_target)
+                               .set_CORE_SELECT(core_mc_target.getCoreSelect()),
                                "p10_hcd_mma_stopclocks returned error");
 
         }
@@ -238,10 +250,15 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         {
             // unicast target looping
             FAPI_INF("p10_stopclocks : Calling p10_hcd_cache_stopclocks");
+            // We are intentionally making the trade of dropping the FFDC
+            // gathered by the sub-HWP so that we can avoid breaking from
+            // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+            // for stopclocks.
             l_rc_cache = p10_hcd_cache_stopclocks(core_mc_target);
-
             FAPI_ASSERT_NOEXIT(l_rc_cache == fapi2::FAPI2_RC_SUCCESS,
-                               fapi2::HCD_CACHE_STOPCLOCKS_ERR(),
+                               fapi2::HCD_CACHE_STOPCLOCKS_ERR()
+                               .set_MC_CORE_TARGET(core_mc_target)
+                               .set_CORE_SELECT(core_mc_target.getCoreSelect()),
                                "p10_hcd_cache_stopclocks returned error");
         }
 
@@ -253,8 +270,13 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
             for (const auto l_eq_target : i_target_chip.getChildren<fapi2::TARGET_TYPE_EQ>(fapi2::TARGET_STATE_FUNCTIONAL))
             {
                 l_rc_eq = p10_hcd_eq_stopclocks(l_eq_target);
+                // We are intentionally making the trade of dropping the FFDC
+                // gathered by the sub-HWP so that we can avoid breaking from
+                // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+                // for stopclocks.
                 FAPI_ASSERT_NOEXIT(l_rc_eq == fapi2::FAPI2_RC_SUCCESS,
-                                   fapi2::HCD_EQ_STOPCLOCKS_ERR(),
+                                   fapi2::HCD_EQ_STOPCLOCKS_ERR()
+                                   .set_EQ_TARGET(l_eq_target),
                                    "p10_hcd_eq_stopclocks returned error");
             }
         }
@@ -282,11 +304,14 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
     // Vital stopclocks
     if(i_flags.stop_vitl_clks)
     {
-
+        // We are intentionally making the trade of dropping the FFDC
+        // gathered by the sub-HWP so that we can avoid breaking from
+        // the current HWP by using FAPI_ASSERT_NOEXIT on a custom RC
+        // for stopclocks.
         l_rc_vitl = p10_vital_stopclocks(i_target_chip);
-
         FAPI_ASSERT_NOEXIT(l_rc_vitl == fapi2::FAPI2_RC_SUCCESS,
-                           fapi2::VITL_STOPCLOCKS_ERR(),
+                           fapi2::VITL_STOPCLOCKS_ERR()
+                           .set_PROC_TARGET(i_target_chip),
                            "p10_vital_stopclocks returned error");
     }
 
