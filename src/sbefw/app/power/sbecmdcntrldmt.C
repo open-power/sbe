@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -71,6 +71,7 @@ static timerService g_sbe_pk_dmt_timer;
 void sbeDmtPkExpiryCallback(void *)
 {
     #define SBE_FUNC "sbeDmtPkExpiryCallback"
+
     SBE_INFO (SBE_FUNC "DMT Callback Timer has expired.."
                        "No-Checkstop on the system for now"
                        "and FFDC will not be collected.");
@@ -78,10 +79,14 @@ void sbeDmtPkExpiryCallback(void *)
     captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
                      SBE_SEC_DMT_TIMEOUT);
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    fapi2::buffer<uint64_t> data(0);
+
     // check stop the system
     Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
-    fapiRc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR,
-                                        scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN58);
+    data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN58>();
+    //Set bit 58 of TP_TCN1_N1_LOCAL_FIR_WO_OR
+    fapiRc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
         // Scom failed
@@ -172,7 +177,7 @@ uint32_t sbeStartCntlDmt()
         // To start, assume no errors when starting DMT and hence default to
         // potential timeout in stopping DMT for FFDC
 
-        // TODO Remove the p9 RC and 
+        // TODO Remove the p9 RC and
         // Add a new RC for DEADMAN timeout and update the sbeFFDC.C/H
         SBE_GLOBAL->asyncFfdcRC = RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT;
         Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
@@ -257,7 +262,7 @@ uint32_t sbeStartCntlDmt()
                     {
                         hwpFailed = true;
                         // Mark the failure point ..
-                        // TODO Remove the p9 RC and 
+                        // TODO Remove the p9 RC and
                         // Add a new RC for Invalid stop sate and update the sbeFFDC.C/H
                         SBE_GLOBAL->asyncFfdcRC =
                                     RC_CHECK_MASTER_STOP15_INVALID_STATE;
@@ -284,7 +289,9 @@ uint32_t sbeStartCntlDmt()
             // and no error on either cores
             // pk_sleep(PK_MILLISECONDS(SBE_DMT_SLEEP_INTERVAL)); // alredy have 1s delay
             // loop back forever, unless there was success/failure
-        }   while (1);
+            // (or)
+            // loop back only if timer is still active
+        }   while (g_sbe_pk_dmt_timer.isActive());
 
         SBE_INFO (SBE_FUNC "2. Check Master Stop 15 Loop Passed??: %d", (hwpFailed)? true:false);
 
@@ -348,7 +355,7 @@ uint32_t sbeStartCntlDmt()
             if (fapiRc)
             {
                 // Mark the failure point .. SBE waits for DMT timer to expire
-                // TODO Remove the p9 RC and 
+                // TODO Remove the p9 RC and
                 // Add a new RC for wake up check and update the sbeFFDC.C/H
                 SBE_GLOBAL->asyncFfdcRC = RC_BLOCK_WAKEUP_INTR_CHECK_FAIL;
                 SBE_ERROR(SBE_FUNC" p10_block_wakeup_intr() failed for "
