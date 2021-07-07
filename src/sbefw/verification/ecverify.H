@@ -183,8 +183,8 @@ void bn_modsub (bn_t *a, const bn_t *b) ;
 
 int bn_cmp (const bn_t a[NWORDS], const bn_t b[NWORDS]) ;
 void bn_modmul_prime (bn_t *a, const bn_t *b);
-int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k);
-void ec_projective2affine (bn_t *x, const bn_t *z);
+int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k, const bn_t *k1);
+void ec_projective2affine (bn_t *x, bn_t *y, const bn_t *z);
 
 inline const consts_t* __attribute__((pure)) consts_p()
 {

@@ -37,6 +37,8 @@
 
 #ifdef SPPE_IMAGE
 
+bn_t *lookup[16][3];
+
 void __attribute__((noinline)) BN_COPY (bn_t *dst, const bn_t *src)
 {
     size_t i;
@@ -1028,18 +1030,22 @@ void bn_read_hash(bn_t *r, const unsigned char *data)
 
 // (x) is transformed back to affine from projective (X*Z)
 //
-void ec_projective2affine (bn_t *x, const bn_t *z)
+void ec_projective2affine (bn_t *x, bn_t *y, const bn_t *z)
 {
     bn_t zinv[ NWORDS ];
 
     EC_ASSERT(NULL != x);
+    EC_ASSERT(NULL != y);
     EC_ASSERT(NULL != z);
 
     EC_ASSERT(!bn_ge_prime(x));
+    EC_ASSERT(!bn_ge_prime(y));
     EC_ASSERT(!bn_ge_prime(z));
 
     bn_modinv(zinv, z, consts_p()->ec_prime);
     bn_modmul_prime(x, zinv);
+    bn_modmul_prime(y, zinv);  //Can be removed but we'll retain for future extensibility
+
 #ifdef EC_POWER64_RED
     bn_modred_slow(x);
 #endif
@@ -1054,7 +1060,7 @@ int ec_add (bn_t *x1,       bn_t *y1,       bn_t *z1,
 
     bn_t a[ NWORDS ], b[ NWORDS ], c[ NWORDS ],
          bs[ NWORDS ],                     // B^2
-         t1[ NWORDS ], t2[ NWORDS ];       // XXX minimize these
+         t1[ NWORDS ];       // XXX minimize these
     int inf1, inf2;
 
     EC_ASSERT(NULL != x1);
@@ -1152,46 +1158,43 @@ int ec_add (bn_t *x1,       bn_t *y1,       bn_t *z1,
 
 #else // !EC_POWER64_ALG
     BN_COPY(t1, y1);
-    bn_modmul_prime(t1, z2);    // t1 = y1 * z2
+    bn_modmul_prime(t1, z2);    // y1z2 = y1 * z2
     BN_COPY(a, y2);
-    bn_modmul_prime(a, z1);     // A = y2 * z1 - y1 * z2
-    bn_modsub(a, t1);
+    bn_modmul_prime(a, z1);
+    bn_modsub(a, t1);           // u = y2 * z1 - y1 * z2
+    BN_COPY(y1, a);
+    bn_modmul_prime(y1, y1);    // uu = u*u
 
-    bn_modmul_prime(x1, z2);    // x1 := x1 * z2     orig x1 no longer used
+    bn_modmul_prime(x1, z2);    // x1z2 = x1 * z2     orig x1 no longer used
     BN_COPY(b, x2);
     bn_modmul_prime(b, z1);
-    bn_modsub(b, x1);           // B = x2 * z1 - x1 * z2
+    bn_modsub(b, x1);           // v = x2 * z1 - x1 * z2
+
+    bn_modmul_prime(z1, z2);    // z1z2 = z1*z2
 
     BN_COPY(bs, b);
-    bn_modmul_prime(bs, bs);    // B^2
+    bn_modmul_prime(bs, bs);    // vv = v*v
+    BN_COPY(c, b);
+    bn_modmul_prime(c, bs);     // vvv = v*vv
 
-    BN_COPY(c, a);
-    bn_modmul_prime(c, c);
-    bn_modmul_prime(c, z1);
-    bn_modmul_prime(c, z2);
+    bn_modmul_prime(bs, x1);    // R = vv*x1z2
 
-    BN_COPY(t2, b);
-    bn_modadd(t2, x1);
-    bn_modadd(t2, x1);
-    bn_modmul_prime(t2, bs);
-    bn_modsub(c, t2);           // C = A^2 * z1 * z2 - B^3
-                                //     - 2 B^2 * x1 * z1
-
-    bn_modmul_prime(z1, z2);
-    bn_modmul_prime(z1, b);
-    bn_modmul_prime(z1, bs);    // z1 * z2 * B^3
-
-    bn_modmul_prime(t1, b);
-    bn_modmul_prime(t1, bs);    // (B^3 * y1 * z2)
-    // A(B 2 X1 Z2 ? C)
-    bn_modmul_prime(x1, bs);    // (B^2 * x1 * z2)
-    bn_modsub(x1, c);
-    bn_modmul_prime(x1, a);     // A *  (B^2 * x1 * z2 - C)
-    bn_modsub(x1, t1);
-    BN_COPY(y1, x1);            // Y =
+    bn_modmul_prime(y1, z1);    // uu*z1z2
+    bn_modsub(y1, c);
+    bn_modsub(y1, bs);
+    bn_modsub(y1, bs);          // A = uu*z1z2-vvv-2*R
 
     BN_COPY(x1, b);
-    bn_modmul_prime(x1, c);     // X = B * C
+    bn_modmul_prime(x1, y1);    // X3 = v*A
+
+    bn_modmul_prime(z1, c);     // Z3 = vvv*z1z2
+
+    bn_modsub(bs, y1);          // R-A
+    bn_modmul_prime(a, bs);     // u*(R-A)
+    bn_modmul_prime(t1, c);     // vvv*y1z2
+    BN_COPY(y1, a);
+    bn_modsub(y1, t1);          // Y3 = u*(R-A)-vvv*y1z2
+
 #endif
 
     return 0;
@@ -1204,7 +1207,7 @@ int ec_add (bn_t *x1,       bn_t *y1,       bn_t *z1,
 //
 int ec_double (bn_t *x, bn_t *y, bn_t *z)
 {
-    bn_t a[ NWORDS ], b[ NWORDS ], c[ NWORDS ], d[ NWORDS ], t[ NWORDS ];
+    bn_t a[ NWORDS ], b[ NWORDS ], c[ NWORDS ], d[ NWORDS ];
 
     EC_ASSERT(NULL != x);
     EC_ASSERT(NULL != y);
@@ -1281,52 +1284,41 @@ int ec_double (bn_t *x, bn_t *y, bn_t *z)
     BN_COPY(a, x);
     BN_COPY(d, z);
 
-    bn_modmul_prime(a, x);
-    bn_modmul_prime(d, z);
-    bn_modsub(a, d);
+    bn_modsub(a, z);
+    bn_modadd(d, x);
+    bn_modmul_prime(a, d);
     BN_COPY(d, a);
     bn_modadd(a, a);
-    bn_modadd(a, d);          // A = 3 * (x^2 - z^2)
-                              // P521: generally, A = 3 * x^2 - a * z^2
+    bn_modadd(a, d);          // w = 3*(X1-Z1)*(X1+Z1)
 
     BN_COPY(b, z);
-    bn_modmul_prime(b, y);    // B = y * z
-
-    BN_COPY(c, y);
-    bn_modmul_prime(c, b);
-    bn_modmul_prime(c, x);    // C = x * y * B
+    bn_modmul_prime(b, y);
+    bn_modadd(b, b);          // s = 2*Y1*Z1
 
     BN_COPY(z, b);
-    bn_modmul_prime(z, b);
-    bn_modmul_prime(z, b);
-    bn_modadd(z, z);
-    bn_modadd(z, z);
-    bn_modadd(z, z);          // Z = 8 * B^3
+    bn_modmul_prime(z, z);    // ss = s*s
+    bn_modmul_prime(z, b);    // Z3 = sss = s*ss
 
-    BN_COPY(t, c);
-    bn_modadd(t, t);
-    bn_modadd(t, t);
-    bn_modadd(t, t);
+    BN_COPY(c, b);
+    bn_modmul_prime(c, y);    // R = Y1*s
+    bn_modmul_prime(x, c);
+    bn_modadd(x, x);          // B = 2*X1*R
+    bn_modmul_prime(c, c);    // RR = R*R
+
     BN_COPY(d, a);
-    bn_modmul_prime(d, a);
-    bn_modsub(d, t);          // D = A^2 - 8*C
+    bn_modmul_prime(d, d);
+    bn_modsub(d, x);
+    bn_modsub(d, x);          // h = w*w - 2*B
 
-    BN_COPY(x, b);
-    bn_modmul_prime(x, d);
-    bn_modadd(x, x);          // X = 2 * B * D
+    bn_modsub(x, d);          // B - h
+    bn_modmul_prime(a, x);    // w*(B-h)
+    bn_modsub(a, c);
+    bn_modsub(a, c);          // Y3 = w*(B-h) - 2*RR
+    BN_COPY(y, a);
 
-    bn_modadd(c, c);
-    bn_modadd(c, c);
-    bn_modsub(c, d);
-    bn_modmul_prime(a, c);    // (A * (4*C - D))
+    BN_COPY(x, d);
+    bn_modmul_prime(x, b);    // X3 = h*s
 
-    bn_modmul_prime(y, b);
-    bn_modmul_prime(y, y);
-    bn_modadd(y, y);
-    bn_modadd(y, y);
-    bn_modadd(y, y);          // (8 * y^2 * B^2)
-    bn_modsub(a, y);
-    BN_COPY(y, a);            // Y = A * (4*C - D) - 8 * y^2 * B^2
 #endif
 
     return 0;
@@ -1343,12 +1335,12 @@ int ec_double (bn_t *x, bn_t *y, bn_t *z)
 // LIMIT: processes up to EC_PRIMEBITS in coefficient
 // z and k must not overlap
 //
-int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k)
+int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k, const bn_t *k1)
 {
 
     bn_t px[ NWORDS ], py[ NWORDS ], pz[ NWORDS ];
-    unsigned int i;
-    bn_t mask = 1;
+    unsigned int i, i1;
+    bn_t mask;
 
     EC_ASSERT(NULL != x);
     EC_ASSERT(NULL != y);
@@ -1356,8 +1348,17 @@ int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k)
     EC_ASSERT(!bn_ge_prime(x));
     EC_ASSERT(!bn_ge_prime(y));
 
-    i=bn_bits(k);
-    k += NWORDS-1;
+    i=bn_bits(k)+1;
+    i1=bn_bits(k1)+1;
+    if(i1>i)
+        i = i1;
+    int bit = (i-1)%32;
+    if(i%2==0)
+    {
+        bit--;
+    }
+    mask = (3<<bit);
+    int word = (i-1)/32;
 
     BN_COPY(px, x);
     BN_COPY(py, y);
@@ -1374,17 +1375,16 @@ int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k)
     BN_DUMP(i,px);
     BN_DUMP(i,py);
     BN_DUMP(i,pz);
-    while (0 < i--)
-    {
-        if (mask & *k)
-        {
-            ec_add(x, y, z, px, py, pz);
-        }
 
-        if (0 < i)
-        {
-            ec_double(px, py, pz);
-        }
+    while (word>=0)
+    {
+
+        ec_double(x, y, z);
+        ec_double(x, y, z);
+
+        int index = (((mask & *k)>>bit)<<2) + ((mask & *k1)>>bit);
+
+        ec_add(x, y, z, lookup[index][0], lookup[index][1], lookup[index][2]);
 
         BN_DUMP(i,x);
         BN_DUMP(i,y);
@@ -1392,11 +1392,18 @@ int ec_multiply (bn_t *x, bn_t *y, bn_t *z, const bn_t *k)
         BN_DUMP(i,px);
         BN_DUMP(i,py);
         BN_DUMP(i,pz);
-        mask <<= 1;
+        mask >>= 2;
         if (!mask)
         {
-            --k;
-            mask = 1;
+            k += 1;
+            k1 += 1;
+            mask = 0xC0000000;
+            bit = 30;
+            word--;
+        }
+        else
+        {
+            bit -= 2;
         }
     }
         BN_EXIT();
@@ -1413,8 +1420,16 @@ int ec_verify (const unsigned char *publicpt,    /* 2*EC_COORDBYTES */
                const unsigned char *signature)   /* 2*EC_COORDBYTES */
 {
     bn_t r[ NWORDS ],  s[ NWORDS ],  e[ NWORDS ],
-    px[ NWORDS ], py[ NWORDS ], pz[ NWORDS ],
-    u1[ NWORDS ], u2[ NWORDS ];
+        px[ NWORDS ], py[ NWORDS ], pz[ NWORDS ],
+        u1[ NWORDS ], u2[ NWORDS ],
+        px_cpy[ NWORDS ], py_cpy[ NWORDS ],
+        px_2[ NWORDS ], py_2[ NWORDS ], pz_2[ NWORDS ],
+        px_3[ NWORDS ], py_3[ NWORDS ], pz_3[ NWORDS ],
+        qx_2[ NWORDS ], qy_2[ NWORDS ], qz_2[ NWORDS ],
+        qx_3[ NWORDS ], qy_3[ NWORDS ], qz_3[ NWORDS ];
+    bn_t bn_zero[NWORDS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    bn_t bn_one[NWORDS] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    bn_t res_x[NWORDS], res_y[NWORDS];
 
     if ((NULL == publicpt) || (NULL == signature) || (NULL == hash))
     {
@@ -1426,6 +1441,8 @@ int ec_verify (const unsigned char *publicpt,    /* 2*EC_COORDBYTES */
     bn_read_hash(e,  hash);
     bn_read_pt  (px, publicpt);
     bn_read_pt  (py, publicpt +EC_COORDBYTES);
+    bn_read_pt  (px_cpy, publicpt);
+    bn_read_pt  (py_cpy, publicpt +EC_COORDBYTES);
 
     if (bn_ge_order(r)  || bn_ge_order(s)  ||
         bn_is_zero(s,0) || bn_is_zero(r,0))
@@ -1439,6 +1456,33 @@ int ec_verify (const unsigned char *publicpt,    /* 2*EC_COORDBYTES */
         return -1;               // admin fault; should not happen
     }
 
+    //0
+    lookup[0][0] = lookup[0][1] = bn_zero;
+    lookup[0][2] = bn_one;
+
+    //P
+    lookup[1][0] = px_cpy;
+    lookup[1][1] = py_cpy;
+    lookup[1][2] = bn_one;
+
+    //2P
+    BN_COPY(px_2, lookup[1][0]);
+    BN_COPY(py_2, lookup[1][1]);
+    BN_COPY(pz_2, lookup[1][2]);
+    ec_double(px_2, py_2, pz_2);
+    lookup[2][0] = px_2;
+    lookup[2][1] = py_2;
+    lookup[2][2] = pz_2;
+
+    //3P
+    BN_COPY(px_3, lookup[1][0]);
+    BN_COPY(py_3, lookup[1][1]);
+    BN_COPY(pz_3, lookup[1][2]);
+    ec_add(px_3, py_3, pz_3, px_2, py_2, pz_2);
+    lookup[3][0] = px_3;
+    lookup[3][1] = py_3;
+    lookup[3][2] = pz_3;
+
     bn_modinv(u1, s, consts_p()->ec_order);      // s no longer needed (NLN)
     BN_COPY(u2, r);
     bn_modmul_order(u2, u1);
@@ -1448,22 +1492,133 @@ int ec_verify (const unsigned char *publicpt,    /* 2*EC_COORDBYTES */
     BN_COPY(e, consts_p()->prime_px);            // (e,s) <- (base point)
     BN_COPY(s, consts_p()->prime_py);
 
-    ec_multiply(px, py, pz, u2);     // (px,py,pz) = u2 * (px,py);  u2 NLN
-    ec_multiply(e,  s,  u2, u1);     // (s, e, u2) = u1 * (gx,gy);  u1 NLN
+    //Q
+    lookup[4][0] = e;
+    lookup[4][1] = s;
+    lookup[4][2] = bn_one;
 
-    if (ec_add(px, py, pz, e, s, u2))  // u1 * base + u2 * public
+    //2Q
+    BN_COPY(qx_2, lookup[4][0]);
+    BN_COPY(qy_2, lookup[4][1]);
+    BN_COPY(qz_2, lookup[4][2]);
+    ec_double(qx_2, qy_2, qz_2);
+    lookup[8][0] = qx_2;
+    lookup[8][1] = qy_2;
+    lookup[8][2] = qz_2;
+
+    //3Q
+    BN_COPY(qx_3, lookup[4][0]);
+    BN_COPY(qy_3, lookup[4][1]);
+    BN_COPY(qz_3, lookup[4][2]);
+    ec_add(qx_3, qy_3, qz_3, qx_2, qy_2, qz_2);
+    lookup[12][0] = qx_3;
+    lookup[12][1] = qy_3;
+    lookup[12][2] = qz_3;
+
+    bn_t p_gx[NWORDS], p_gy[NWORDS], p_gz[NWORDS],
+         p2_gx[NWORDS], p2_gy[NWORDS], p2_gz[NWORDS],
+         p3_gx[NWORDS], p3_gy[NWORDS], p3_gz[NWORDS],
+         p_g2x[NWORDS], p_g2y[NWORDS], p_g2z[NWORDS],
+         p_g3x[NWORDS], p_g3y[NWORDS], p_g3z[NWORDS],
+         p2_g2x[NWORDS], p2_g2y[NWORDS], p2_g2z[NWORDS],
+         p2_g3x[NWORDS], p2_g3y[NWORDS], p2_g3z[NWORDS],
+         p3_g2x[NWORDS], p3_g2y[NWORDS], p3_g2z[NWORDS],
+         p3_g3x[NWORDS], p3_g3y[NWORDS], p3_g3z[NWORDS];
+
+    //P+Q
+    BN_COPY(p_gx, lookup[4][0]);
+    BN_COPY(p_gy, lookup[4][1]);
+    BN_COPY(p_gz, lookup[4][2]);
+    ec_add(p_gx, p_gy, p_gz, lookup[1][0], lookup[1][1], lookup[1][2]);
+    lookup[5][0] = p_gx;
+    lookup[5][1] = p_gy;
+    lookup[5][2] = p_gz;
+
+    //2P+Q
+    BN_COPY(p2_gx, lookup[4][0]);
+    BN_COPY(p2_gy, lookup[4][1]);
+    BN_COPY(p2_gz, lookup[4][2]);
+    ec_add(p2_gx, p2_gy, p2_gz, lookup[2][0], lookup[2][1], lookup[2][2]);
+    lookup[6][0] = p2_gx;
+    lookup[6][1] = p2_gy;
+    lookup[6][2] = p2_gz;
+
+    //3P+Q
+    BN_COPY(p3_gx, lookup[4][0]);
+    BN_COPY(p3_gy, lookup[4][1]);
+    BN_COPY(p3_gz, lookup[4][2]);
+    ec_add(p3_gx, p3_gy, p3_gz, lookup[3][0], lookup[3][1], lookup[3][2]);
+    lookup[7][0] = p3_gx;
+    lookup[7][1] = p3_gy;
+    lookup[7][2] = p3_gz;
+
+    //P+2Q
+    BN_COPY(p_g2x, lookup[1][0]);
+    BN_COPY(p_g2y, lookup[1][1]);
+    BN_COPY(p_g2z, lookup[1][2]);
+    ec_add(p_g2x, p_g2y, p_g2z, lookup[8][0], lookup[8][1], lookup[8][2]);
+    lookup[9][0] = p_g2x;
+    lookup[9][1] = p_g2y;
+    lookup[9][2] = p_g2z;
+
+    //P+3Q
+    BN_COPY(p_g3x, lookup[1][0]);
+    BN_COPY(p_g3y, lookup[1][1]);
+    BN_COPY(p_g3z, lookup[1][2]);
+    ec_add(p_g3x, p_g3y, p_g3z, lookup[12][0], lookup[12][1], lookup[12][2]);
+    lookup[13][0] = p_g3x;
+    lookup[13][1] = p_g3y;
+    lookup[13][2] = p_g3z;
+
+    //2P+2Q
+    BN_COPY(p2_g2x, lookup[2][0]);
+    BN_COPY(p2_g2y, lookup[2][1]);
+    BN_COPY(p2_g2z, lookup[2][2]);
+    ec_add(p2_g2x, p2_g2y, p2_g2z, lookup[8][0], lookup[8][1], lookup[8][2]);
+    lookup[10][0] = p2_g2x;
+    lookup[10][1] = p2_g2y;
+    lookup[10][2] = p2_g2z;
+
+    //3P+2Q
+    BN_COPY(p3_g2x, lookup[3][0]);
+    BN_COPY(p3_g2y, lookup[3][1]);
+    BN_COPY(p3_g2z, lookup[3][2]);
+    ec_add(p3_g2x, p3_g2y, p3_g2z, lookup[8][0], lookup[8][1], lookup[8][2]);
+    lookup[11][0] = p3_g2x;
+    lookup[11][1] = p3_g2y;
+    lookup[11][2] = p3_g2z;
+
+    //2P+3Q
+    BN_COPY(p2_g3x, lookup[2][0]);
+    BN_COPY(p2_g3y, lookup[2][1]);
+    BN_COPY(p2_g3z, lookup[2][2]);
+    ec_add(p2_g3x, p2_g3y, p2_g3z, lookup[12][0], lookup[12][1], lookup[12][2]);
+    lookup[14][0] = p2_g3x;
+    lookup[14][1] = p2_g3y;
+    lookup[14][2] = p2_g3z;
+
+    //3P+3Q
+    BN_COPY(p3_g3x, lookup[3][0]);
+    BN_COPY(p3_g3y, lookup[3][1]);
+    BN_COPY(p3_g3z, lookup[3][2]);
+    ec_add(p3_g3x, p3_g3y, p3_g3z, lookup[12][0], lookup[12][1], lookup[12][2]);
+    lookup[15][0] = p3_g3x;
+    lookup[15][1] = p3_g3y;
+    lookup[15][2] = p3_g3z;
+
+    memcpy(res_x, bn_zero, sizeof(res_x));
+    memcpy(res_y, bn_zero, sizeof(res_y));
+
+    ec_multiply (res_x, res_y, pz, u1, u2);
+
+    ec_projective2affine(res_x, res_y, pz);
+
+    if (bn_ge_order(res_x))
     {
-        return 0;                  // reached infinity (SNH with sig)
+        bn_sub(res_x, consts_p()->ec_order);    // px mod order
     }
 
-    ec_projective2affine(px, pz);
-
-    if (bn_ge_order(px))
-    {
-        bn_sub(px, consts_p()->ec_order);    // px mod order
-    }
-
-    return (! bn_cmp(r, px));
+    return (! bn_cmp(r, res_x));
 }
 
 #else
