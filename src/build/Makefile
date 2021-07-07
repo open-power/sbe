@@ -244,7 +244,7 @@ report: $(P9_XIP_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 
 # Create build Info file
 buildInfo:
-	python buildInfo.py $(GENFILES_DIR)
+	./buildInfo.py $(GENFILES_DIR)
 
 buildtag:
 	./updateBuildTag.py $(P9_XIP_TOOL) $(IMG_DIR) $(IMAGE_NAME)
@@ -321,7 +321,7 @@ ppe_trace_bin:
 
 # generate whitelist and blacklist security algorithm
 security: $(OBJDIR)
-	python $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
+	$(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
 
 # Build hwp_error_info.H.  If the script fails then print the contents of
 # the header and then delete whatever garbage the script left to force it to
