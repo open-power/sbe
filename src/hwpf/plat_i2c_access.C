@@ -50,6 +50,7 @@ enum i2c_reg_offset_t
     I2C_REG_RESET_SCL   = 11,
     I2C_REG_SET_SDA     = 12,
     I2C_REG_RESET_SDA   = 13,
+    I2C_REG_ATOMIC_LOCK = 0x3FB,
 
 };
 
@@ -737,6 +738,67 @@ ReturnCode i2cRead(void *o_buffer,
     #undef SBE_FUNC
 }
 
+/*
+ * @brief Lock I2C engine
+ *
+ * @param[in]  i_args         i2c arguments
+ *
+ * @return FAPI RC
+ */
+ReturnCode i2cLockEngine(misc_args_t i_args)
+{
+    #define SBE_FUNC "i2cLockEngine "
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    uint64_t interval_ns = 160000; // 160 us
+    uint64_t timeoutCount = 4000/160; // total 4 ms
+    uint64_t lock_data = 0x8000000000000000;
+
+    do
+    {
+        // Clearing the current RC, which might be set in 
+        // previous loop, while accessing locked resource
+        fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
+
+        rc = i2cRegisterOp(I2C_REG_ATOMIC_LOCK,
+                           i_args,
+                           false,
+                           &lock_data);
+        if(rc != (const uint32_t) RC_SBE_PIB_XSCOM_ERROR)
+        {
+            break;
+        }
+
+        delay(interval_ns, SIM_INTERVAL_DELAY);
+    } while(--timeoutCount);
+    if(timeoutCount == 0)
+    {
+        SBE_ERROR(SBE_FUNC "Failed to lock engine: %d", i_args.engine);
+    }
+
+    return rc;
+    #undef SBE_FUNC
+}
+
+/*
+ * @brief Unlock I2C engine
+ *
+ * @param[in]  i_args         i2c arguments
+ *
+ * @return FAPI RC
+ */
+ReturnCode i2cUnlockEngine(misc_args_t i_args)
+{
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    uint64_t unlock_data = 0;
+
+    rc = i2cRegisterOp(I2C_REG_ATOMIC_LOCK,
+                       i_args,
+                       false,
+                       &unlock_data);
+
+    return rc;
+}
+
 ////////////////////////////////End - I2C Driver//////////////////////////////////////
 
 //////////////////////////////////Plat implementation/////////////////////////////
@@ -763,6 +825,13 @@ namespace fapi2
             {
                 break;
             }
+
+            rc = i2cLockEngine(args);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
             uint8_t data[MAX_OCMB_CMD_SIZE] = {};
             ////////////////////////////////
             // I2C read with offset ///////
@@ -802,6 +871,13 @@ namespace fapi2
             {
                 break;
             }
+
+            rc = i2cUnlockEngine(args);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
             o_data.clear();
             for(size_t i = 0; i < get_size; i++)
             {
@@ -830,6 +906,13 @@ namespace fapi2
             {
                 break;
             }
+
+            rc = i2cLockEngine(args);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
             uint8_t buffer[MAX_OCMB_CMD_SIZE] = {};
             std::copy(data.begin(), data.end(), buffer);
 
@@ -839,6 +922,12 @@ namespace fapi2
             rc = i2cWrite(buffer,
                           data.size(),
                           args);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                break;
+            }
+
+            rc = i2cUnlockEngine(args);
             if(rc != FAPI2_RC_SUCCESS)
             {
                 break;
