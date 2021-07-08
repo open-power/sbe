@@ -38,14 +38,14 @@ import datetime
 import pickle
 
 ##################################### NOTE: DO NOT IMPORT ANT MODULES FROM CTE PATH WHICH USE ECMD LIBRARY/PATH #####################################
+#HDCT.bin parser(EKB Mirror File)
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$SBEROOT")+ "/src/import/systems/p10/hdct"))
+import createHdctTxtUtils as txtUtils
+
 #Supporting modules from CTE path
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$CTEPATH")+ "/tools/crondump/rel/pymod"))
 import dumpConstants
 import out
-
-#HDCT.bin parser(EKB Mirror File)
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$SBEROOT")+ "/src/import/systems/p10/hdct"))
-import createHdctTxtUtils as txtUtils
 
 #Dump tool files
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$SBEROOT")+ "/src/tools/utils/dumpParser/"))
@@ -53,10 +53,13 @@ import dump_utils as utils
 import dump_file_support as fileSupport
 
 #Tool version
-toolVersion = 1.1
+toolVersion = 1.2
 
 #Dump Footer
 dumpFooter = "DONE"
+
+#OCMB Header
+ocmbHdr = "OCMB"
 
 # Create a generic time stamp we can use throughout the program
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -95,8 +98,14 @@ ekbCommitIDFifoBin = ""
 #Debug prints - on and off
 debugPrints = ""
 
+#Verify FIFO output - on and off
+verifyFifoOutput = ""
+
 # Create the filename.
 filenames = dict()
+
+#OCMB 1st instance completion flag
+ocmbFirstInstCompletionFlag = False
 
 #Fifo Parser Stats and HDCT.bin Stats dict for single scom type
 #scomCount = Total scoms performed/found in fifo.bin including with ffdc for a given scom type
@@ -189,7 +198,10 @@ class scomData():
             stats[self.cmdType]["entriesCount"] = stats[self.cmdType]["entriesCount"] + 1
 
         #Update HDCT entrie count by comparing it with last scom addr and current scom addr
-        if len(fifoParseEntriesList) != 0 and self.cmdAddress != fifoParseEntriesList[-1].cmdAddress:
+        #Assuming all OCMB scoms are at the end of clock on HDCT entries we can
+        #stop  stats updation .The stats[self.cmdType]["scomCount"] will still
+        #contain all OCMB scom count for 16 instances .
+        if len(fifoParseEntriesList) != 0 and self.cmdAddress != fifoParseEntriesList[-1].cmdAddress and ocmbFirstInstCompletionFlag == False:
             statsAll["allscom"]["entriesCount"] = statsAll["allscom"]["entriesCount"] + 1
             stats[self.cmdType]["entriesCount"] = stats[self.cmdType]["entriesCount"] + 1
 
@@ -351,21 +363,35 @@ def parseFifoOutput(dumpFifoOutputFile):
     #Read dump header
     dumpHeader = dumpHdr(file.read(12))
     global ekbCommitIDFifoBin
+    global ocmbFirstInstCompletionFlag
     ekbCommitIDFifoBin = dumpHeader.HDCTVersion
 
     while True:
 
-        #Lets check for dump footer
-        footer = file.read(len(dumpFooter))
-        footer = binascii.hexlify(bytearray(footer)).lower()
-        footer = footer.decode('ascii')
+        #Lets check for dump footer and OCMB Header.
+        #Lets use footer size as both header and footer are same length
+        footerOrHdr = file.read(len(dumpFooter))
+        footerOrHdr = binascii.hexlify(bytearray(footerOrHdr)).lower()
+        footerOrHdr = footerOrHdr.decode('ascii')
 
-        #Convert dump footer to ascii eqv hex for comparision
+        #Convert dump footer and OCMB Header to ascii eqv hex for comparision
         tempDumpFooter = ''.join(str(format(ord(c), 'x')) for c in dumpFooter)
-        if footer != tempDumpFooter:
+        tempOCMBHeader = ''.join(str(format(ord(c), 'x')) for c in ocmbHdr)
+
+        if footerOrHdr != tempDumpFooter:
+
+            if footerOrHdr == tempOCMBHeader:
+                #If OCMB Header is found then next 4 bytes is OCMB Instance ID.
+                ocmbInstance = file.read(4)
+                utils.fancyPrint(" OCMB Instance: %s " % ocmbInstance.decode('UTF-8') , "*", "print")
+                #Set a flag to stop updating stats after 1st OCMB instance is
+                #completed
+                if ocmbInstance.decode('UTF-8') == "   1":
+                    ocmbFirstInstCompletionFlag = True
 
             #Shift file pointer footer size times
-            file.seek(file.tell() - len(dumpFooter))
+            if footerOrHdr != tempOCMBHeader:
+                file.seek(file.tell() - len(dumpFooter))
 
             #Parser scom data header
             singleScomData = scomData(file.read(16))
@@ -393,7 +419,7 @@ def parseFifoOutput(dumpFifoOutputFile):
         else:
             break
 
-    utils.fancyPrint(" Chip-op Footer: %s " % codecs.decode(footer, "hex") , "*", "print")
+    utils.fancyPrint(" Chip-op Footer: %s " % codecs.decode(footerOrHdr, "hex") , "*", "print")
 
     #Chip op end
     utils.fancyPrint(" Dump Chip Op end " , "*", "print")
@@ -524,7 +550,8 @@ reqgroup.add_argument('-k', '--clockState', required=True, help="Dump collection
 optgroup = argparser.add_argument_group('Optional Arguments')
 optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 optgroup.add_argument('-o', '--output', help="Directory to place output")
-optgroup.add_argument('-f', '--parserPrints', help="Print the Parsed output on to consol", choices=["on","off"],default = "off" )
+optgroup.add_argument('-v', '--verifyOutput', help="Verify FIFO Output with HDCT.bin and print skipped entries." , choices=["on","off"],default = "off")
+optgroup.add_argument('-f', '--parserPrints', help="Print the Parsed output on to consol", choices=["on","off"],default = "on" )
 optgroup.add_argument('-t', '--hdctLookup', help="HDCT Lookup File Path")
 optgroup.add_argument('-s', '--hdctBinFile', help="The HDCT.bin file with which fifo output need to be verified")
 optgroup.add_argument('-m', '--HBMemDump', help="Extract the HB memory dump into a .bin file(getmempba). Applicable only for HB dump in clock ON state", choices=["true","false"],default = "false" )
@@ -550,6 +577,9 @@ hdctBinFile = args.hdctBinFile
 
 #Grab the debug prints on or off
 debugPrints = args.parserPrints
+
+#Grab if verification of FIFO content is needed or not .
+verifyFifoOutput = args.verifyOutput
 
 #Grabe the host boot mem dump option
 HBMemDump = args.HBMemDump
@@ -649,7 +679,8 @@ reqHdctBinEntries = getHdctReqDumpEntries(allHdctBinEntries, dumpType)
 parseFifoOutput(dumpFifoOutput)
 
 #Verify the dump fifo output
-verifyDumpFifoOutput(fifoParseEntriesList, reqHdctBinEntries)
+if verifyFifoOutput == "on":
+    verifyDumpFifoOutput(fifoParseEntriesList, reqHdctBinEntries)
 
 #Print the fifo parser output stats
 out.print("")
