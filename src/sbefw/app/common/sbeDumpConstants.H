@@ -99,6 +99,7 @@ enum chipUnitTypes
     CHIP_UNIT_TYPE_CMIC = 0x18,
     CHIP_UNIT_TYPE_PAU = 0x19,
     CHIP_UNIT_TYPE_OMI = 0x20,
+    CHIP_UNIT_TYPE_OCMB = 0x21,
 };
 
 //Command Types(Command types encoded as in HDCT.bin)

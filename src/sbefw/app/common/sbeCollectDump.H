@@ -38,6 +38,7 @@
 //Dump chip-op Footer - DONE
 static const uint32_t DUMP_CHIP_OP_FOOTER = 0x444F4E45;
 static const uint32_t FIFO_DOUBLEWORD_LEN = 2;
+static const uint32_t OCMB_IDENTIFIER = 0x4F434D42;
 
 //Dump Pre-req bits to updates for command status
 enum preReqCommandStatus : uint8_t
@@ -127,7 +128,7 @@ typedef struct __attribute__((packed)) dumpHeader
     dumpHeader()
     {
         //TODO: Needs to be updated to right version
-        dataLayoutVersion = 0x02;
+        dataLayoutVersion = 0x03;
         chipTypeToEncode  = 0x05;  // P10 Chip Type [ 0x5 ]
                                    // More info @ dumpConstants.py
         // EC major level[1] | EC minor level[0]
@@ -185,6 +186,7 @@ class sbeCollectDump
         bool  iv_L3ScanState[CORE_TARGET_COUNT];
         bool  iv_L2ScanState[CORE_TARGET_COUNT];
         bool  iv_MMAScanState[CORE_TARGET_COUNT];
+        uint32_t iv_OCMBInstance; // OCMB instance number
 
         genericHdctRow_t *iv_hdctRow;
         genericRowTOC_t iv_tocRow;

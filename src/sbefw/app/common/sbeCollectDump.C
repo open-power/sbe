@@ -41,6 +41,8 @@
 #include "sbecmdiplcontrol.H"
 #include "p10_query_corecachemma_access_state.H"
 #include "sbecmdcntlinst.H"
+#include "plat_target_parms.H"
+#include "sbecmdregaccess.H"
 
 // FastArray Data Size for DD1
 #define FAST_ARRAY_CTRL_SET1_DD1_SIZE 0x48E18
@@ -1169,22 +1171,48 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     iv_tocRow.tocHeader.dataLength = 0x40; // 64 bits -or- 2 words
     iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
     uint64_t dumpData;
-    fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
-    fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
-    if(fapiRc != FAPI2_RC_SUCCESS)
+    if(iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_OCMB)
     {
-        //TODO: Verify and modify all error rc to handle all primary/secondary
-        //error in DUMP chipOp
-        iv_oStream.setFifoRc(fapiRc);
-        rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+        // OCMB Scoms
+        sbeGetHWRegReqMsg_t reqMsg = {};
+        len  = sizeof(sbeGetHWRegReqMsg_t)/sizeof(uint32_t);
+        reqMsg.targetType = TARGET_OCMB_CHIP;
+        reqMsg.reserved = 0x00;
+        reqMsg.targetInstance = iv_tocRow.tgtHndl.fields.chiplet_num;
+        reqMsg.hiAddr = 0x00;
+        reqMsg.lowAddr = iv_tocRow.tocHeader.address;
+        SBE_INFO(SBE_FUNC "OCMB Address[0x%08X], targetType[0x%04X] "
+                          "targetInstance number:[0x%02X]", reqMsg.lowAddr,
+                           reqMsg.targetType, reqMsg.targetInstance);
+        sbefifo_hwp_data_istream istream( iv_fifoType, len,
+                                         (uint32_t*)&reqMsg, false );
+        rc = sbeGetHWReg_Wrap( istream, iv_oStream );
+        if(rc)
+        {
+            SBE_ERROR(SBE_FUNC "sbeGetHWReg_Wrap failed for OCMB Instance");
+            iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&dumpData);
+        }       
     }
     else
     {
-        SBE_DEBUG("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ",
+        // Proc Scoms
+        fapi2::Target<TARGET_TYPE_ALL> dumpRowTgt(iv_tocRow.tgtHndl);
+        fapiRc = getscom_abs_wrap(&dumpRowTgt, iv_tocRow.tocHeader.address, &dumpData);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            //TODO: Verify and modify all error rc to handle all primary/secondary
+            //error in DUMP chipOp
+            iv_oStream.setFifoRc(fapiRc);
+            rc = SBE_SEC_INVALID_ADDRESS_PASSED;
+        }
+        else
+        {
+            SBE_DEBUG("getScom: address: 0x%08X, data HI: 0x%08X, data LO: 0x%08X ",
                    iv_tocRow.tocHeader.address, (dumpData >> 32),
                    static_cast<uint32_t>(dumpData & 0xFFFFFFFF));
+        }
+        iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&dumpData);
     }
-    iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&dumpData);
     SBE_EXIT(SBE_FUNC);
     return rc;
     #undef SBE_FUNC
@@ -1202,6 +1230,15 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             {
                 o_targetList.push_back(procTgt.get());
                 SBE_DEBUG(SBE_FUNC "PROC: [0x%08X]", procTgt.get());
+                break;
+            }
+        case CHIP_UNIT_TYPE_OCMB:
+            {
+                SBE_INFO(SBE_FUNC "OCMB Instance is %d", iv_OCMBInstance);
+                Target<TARGET_TYPE_OCMB_CHIP> ocmbTgt = plat_getOCMBTargetHandleByInstance
+                    <fapi2::TARGET_TYPE_OCMB_CHIP>(iv_OCMBInstance);
+                SBE_DEBUG(SBE_FUNC "OCMB: [0x%08X]", ocmbTgt.get());
+                o_targetList.push_back(ocmbTgt.get());
                 break;
             }
         case CHIP_UNIT_TYPE_PERV:
@@ -1418,6 +1455,10 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
             {
                 iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.getChipletNumber();
             }
+            else if(iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_OCMB)
+            {
+                iv_tocRow.tocHeader.chipUnitNum = iv_OCMBInstance;
+            }
             else
             {
                 iv_tocRow.tocHeader.chipUnitNum = dumpRowTgtHnd.get().getTargetInstance();
@@ -1528,8 +1569,19 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
         rc = iv_oStream.put(len, (uint32_t*)&iv_dumpHeader);
         // If FIFO access failure
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Store the HDCT pointer for OCMB scoms.
+        uint32_t hdctPointer = 0;
         while(sbeCollectDump::parserSingleHDCTEntry())
         {
+            // OCMB scoms are in the last of the HDCT.txt
+            // After OCMB scoms there will be no PROC entries.
+            // Once we hit the OCMB entry, we will come out of this loop.
+            if(iv_hdctRow->genericHdr.chipUnitType == CHIP_UNIT_TYPE_OCMB)
+            {
+                SBE_INFO(SBE_FUNC "Skip OCMB entries from the PROC DUMP BLOB");
+                break;
+            }
             // TODO: Verify and modify all error rc to handle all
             // primary/secondary error in DUMP chipOp
             rc = writeDumpPacketRowToFifo();
@@ -1538,6 +1590,44 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
                 SBE_ERROR(SBE_FUNC" Dump collection failed");
                 rc = SBE_PRI_GENERIC_EXECUTION_FAILURE;
                 break;
+            }
+            hdctPointer = iv_hdctXipSecDetails.currAddr;
+        }
+        // Collect all OCMB entries for an instance.
+        // Then repeat for all OCMB instances.
+        // This has to be called for only clock on.
+        if((iv_clockState == SBE_DUMP_CLOCK_ON) && (!rc))
+        {
+            for(iv_OCMBInstance = 0; iv_OCMBInstance < OCMB_TARGET_COUNT ; iv_OCMBInstance++)
+            {
+                iv_hdctXipSecDetails.currAddr = hdctPointer;
+                SBE_INFO(SBE_FUNC "OCMB Instance is %d HDCT start Address is 0x%08X and End Address is 0x%08X",
+                       iv_OCMBInstance, iv_hdctXipSecDetails.currAddr, iv_hdctXipSecDetails.endAddr);
+                // OCMB indetifer as OCMB..01
+                iv_oStream.put(OCMB_IDENTIFIER);
+
+                // Convert Instance number into ASCII
+                uint32_t ocmbInstance = 0;
+                if(iv_OCMBInstance < 10)
+                {
+                    ocmbInstance = 0x20202000 | (0x30 + (uint8_t)iv_OCMBInstance);
+                }
+                else
+                {
+                    ocmbInstance = 0x20203100 | (0x30 + (uint8_t)iv_OCMBInstance - 10); 
+                }
+                SBE_INFO(SBE_FUNC "OCMB Instance is 0x%08X", ocmbInstance);
+                iv_oStream.put(ocmbInstance);
+                while(sbeCollectDump::parserSingleHDCTEntry())
+                {
+                    rc = writeDumpPacketRowToFifo();
+                    if(rc)
+                    {
+                        SBE_ERROR(SBE_FUNC" Dump collection failed");
+                        rc = SBE_PRI_GENERIC_EXECUTION_FAILURE;
+                        break;
+                    }
+                }
             }
         }
         // setPBALastAccess will set a flag to clear all bytes to
