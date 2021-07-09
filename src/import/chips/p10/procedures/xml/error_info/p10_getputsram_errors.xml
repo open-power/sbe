@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2020                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2020,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -69,6 +69,7 @@
   <ffdc>PROC_TARGET</ffdc>
   <ffdc>PERV_CHIPLET_ID</ffdc>
   <ffdc>OCC_MODE</ffdc>
+  <ffdc>OFFSET</ffdc>
   <callout>
     <procedure>CODE</procedure>
     <priority>HIGH</priority>
