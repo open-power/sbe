@@ -29,6 +29,7 @@
 
 #include "ipl.H"
 #include "sbeConsole.H"
+#include "sbeIPLStatusLPC.H"
 #include "sbeglobals.H"
 
 #include "p9n2_perv_scom_addresses.H"
@@ -122,6 +123,7 @@ void sbeDoContinuousIpl()
                 auto istepMap = &istepTableEntry->istepMinorArr[step-1];
                 if(istepMap->istepWrapper != NULL)
                 {
+                    SBE_PUT_ISTEP_LPC(istepTableEntry->istepMajorNum, step);
                     SBE_MSG_CONSOLE("istep ", istepTableEntry->istepMajorNum, ".", step);
                     rc = istepMap->istepWrapper(istepMap->istepHwp);
                 }

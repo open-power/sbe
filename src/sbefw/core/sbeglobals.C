@@ -56,6 +56,10 @@ uint8_t  SBEGlobalsSingleton::failedCmd        = 0;
 
 bool  SBEGlobalsSingleton::isHreset = false;
 
+#ifdef SBE_IPL_STATUS_LPC_SUPPORT
+bool SBEGlobalsSingleton::sbeLPCActive = false;
+#endif
+
 #ifdef SBE_CONSOLE_SUPPORT
 bool SBEGlobalsSingleton::sbeUartActive = false;
 #endif
