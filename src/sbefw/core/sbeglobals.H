@@ -5,8 +5,9 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
+/* [+] Raptor Engineering, LLC                                            */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -84,6 +85,9 @@ class SBEGlobalsSingleton
          *
          */
         PkSemaphore sbeSemAsyncProcess;
+
+        // Binary semaphore to protect raw LPC access
+        static bool sbeLPCActive;
 
         #ifdef SBE_CONSOLE_SUPPORT
         // Binary semaphore to protect uart access

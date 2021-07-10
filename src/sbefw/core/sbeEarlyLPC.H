@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeglobals.C $                                 */
+/* $Source: src/sbefw/core/sbeConsole.H $                                 */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018-2020                        */
 /* [+] International Business Machines Corp.                              */
 /* [+] Raptor Engineering, LLC                                            */
 /*                                                                        */
@@ -23,42 +23,33 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "sbetrace.H"
-#include "sbeglobals.H"
+#pragma once
+
+#include "sbe_sp_intf.H"
 #include "sbe_build_info.H"
-////////////////////////////////////////////////////////////////
-//// @brief Stacks for Non-critical Interrupts and Threads
-//////////////////////////////////////////////////////////////////
-// Moved it out-side the scope of Global Class for symbol generation in syms
-uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
-uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
-uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
-uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
 
-SBEGlobalsSingleton* sbeGlobal = &SBEGlobalsSingleton::getInstance();
-SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
-{
-    static SBEGlobalsSingleton iv_instance;
-    return iv_instance;
+#define SBE_LPC_INIT {         \
+    SBE_GLOBAL->sbeLPCActive = true; \
 }
-// SBE commit id
-uint32_t SBEGlobalsSingleton::fwCommitId = SBE_COMMIT_ID;
 
-secureMemRegion_t SBEGlobalsSingleton::mainMemRegions[MAX_MAIN_STORE_REGIONS] = {};
-secureMemRegion_t SBEGlobalsSingleton::occSramRegions[MAX_OCC_SRAM_REGIONS] = {};
+#define SBE_LPC_DISABLE {       \
+    SBE_GLOBAL->sbeLPCActive = false; \
+}
 
-uint64_t SBEGlobalsSingleton::i2cModeRegister = 0x004D000000000000ull;
+#define LPC_IO_SPACE        0xD0010000
+#define LPC_MAX_IO_SPACE    (64*1024)
 
-uint16_t SBEGlobalsSingleton::failedPrimStatus = SBE_PRI_OPERATION_SUCCESSFUL;
-uint16_t SBEGlobalsSingleton::failedSecStatus  = SBE_SEC_OPERATION_SUCCESSFUL;
-uint16_t SBEGlobalsSingleton::failedSeqId      = 0;
-uint8_t  SBEGlobalsSingleton::failedCmdClass   = 0;
-uint8_t  SBEGlobalsSingleton::failedCmd        = 0;
+#define LPCM_OPB_MASTER_STATUS_REG        0xC0010000
+#define LPCM_OPB_MASTER_ACTUAL_STATUS_REG 0xC001004C
+#define LPC_REG_HC_IRQSTAT                0xC0012038
 
-bool  SBEGlobalsSingleton::isHreset = false;
+#define LPCM_OPB_MASTER_STATUS_ERROR_BITS 0x20000FC3
+#define LPCHC_IRQSTAT_ERROR_BITS          0x000004FC
 
-bool SBEGlobalsSingleton::sbeLPCActive = false;
-
-#ifdef SBE_CONSOLE_SUPPORT
-bool SBEGlobalsSingleton::sbeUartActive = false;
-#endif
+uint32_t readLPCReg(uint16_t i_addr, uint8_t &i_data);
+uint32_t writeLPCReg(uint16_t i_addr, uint8_t i_data);
+uint32_t readLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t &o_data);
+uint32_t writeLPCRegIndexed(uint8_t i_addr,
+                  uint8_t i_index, uint8_t i_data);
+uint32_t clearLPCErrorStatusRegister();

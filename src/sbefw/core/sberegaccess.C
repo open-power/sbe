@@ -183,7 +183,7 @@ uint32_t SbeRegAccess::init(bool forced)
             rc = getscom_abs(PERV_SCRATCH_REGISTER_6_SCOM, &iv_mbx6);
             if(PCB_ERROR_NONE != rc)
             {
-                SBE_ERROR(SBE_FUNC"Failed reading mailbox reg 6, RC: 0x%08X. "
+                SBE_ERROR(SBE_FUNC"Failed reading mailbox reg 6, RC: 0x%08X. ",
                           rc);
                 break;
             }

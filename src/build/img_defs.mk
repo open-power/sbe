@@ -520,6 +520,10 @@ ifdef SBE_CONSOLE_SUPPORT
 GCC-DEFS += -DSBE_CONSOLE_SUPPORT
 endif
 
+ifdef SBE_IPL_STATUS_LPC_SUPPORT
+GCC-DEFS += -DSBE_IPL_STATUS_LPC_SUPPORT
+endif
+
 DEFS += $(GCC-DEFS)
 ###########################################################################
 

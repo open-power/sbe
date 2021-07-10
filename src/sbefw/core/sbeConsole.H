@@ -99,6 +99,9 @@ void uartLock(void);
 void uartUnLock(void);
 void sbeMsgConsole(char const *msg);
 void sbeMsgConsole(uint32_t num);
+
+extern "C" void _putchar(char c);
+
 //
 /** UART Register Offsets */
 enum

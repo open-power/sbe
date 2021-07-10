@@ -7,6 +7,7 @@
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
+/* COPYRIGHT 2020 Raptor Engineering, LLC                                 */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -55,6 +56,7 @@ extern "C"
     const uint64_t LPC_LRESET_OUT = 22;
     const uint32_t LPC_LRESET_DELAY_NS = 200000;
     const uint32_t LPCM_OPB_MASTER_STATUS_REG = 0xC0010000;
+    const uint32_t LPCM_OPB_MASTER_ACTUAL_STATUS_REG = 0xC001004C;
     const uint32_t LPCM_OPB_MASTER_STATUS_ERROR_BITS = 0x20000FC3;
     const uint32_t LPCM_OPB_MASTER_CONTROL_REG = 0xC0010008;
     const uint32_t LPCM_OPB_MASTER_CONTROL_REG_TIMEOUT_ENABLE = 2;
@@ -63,7 +65,28 @@ extern "C"
     const uint32_t LPCM_LPC_MASTER_TIMEOUT_REG = 0xC001202C;
     const uint32_t LPCM_LPC_MASTER_TIMEOUT_VALUE = 0xFE000000;
     const uint32_t CPLT_CONF1_TC_LP_RESET = 12;
+    const uint32_t LPC_REG_OPB_BASE = 0XC0012000;
+    const uint32_t LPC_HC_IRQSTAT = 0x38;
+    const uint32_t LPC_HC_IRQ_LRESET = 0x00000400;
+    const uint32_t LPC_HC_IRQ_SYNC_ABNORM_ERR = 0x00000080;
+    const uint32_t LPC_HC_IRQ_SYNC_NORESP_ERR = 0x00000040;
+    const uint32_t LPC_HC_IRQ_SYNC_NORM_ERR = 0x00000020;
+    const uint32_t LPC_HC_IRQ_SYNC_TIMEOUT_ERR = 0x00000010;
+    const uint32_t LPC_HC_IRQ_TARG_TAR_ERR = 0x00000008;
+    const uint32_t LPC_HC_IRQ_BM_TAR_ERR = 0x00000004;
+    const uint32_t LPC_HC_IRQ_BM0_REQ = 0x00000002;
+    const uint32_t LPC_HC_IRQ_BM1_REQ = 0x00000001;
+    const uint32_t LPC_HC_IRQ_BASE_IRQS = (                    \
+        LPC_HC_IRQ_LRESET |                                  \
+        LPC_HC_IRQ_SYNC_ABNORM_ERR |                         \
+        LPC_HC_IRQ_SYNC_NORESP_ERR |                         \
+        LPC_HC_IRQ_SYNC_NORM_ERR |                           \
+        LPC_HC_IRQ_SYNC_TIMEOUT_ERR |                        \
+        LPC_HC_IRQ_TARG_TAR_ERR |                            \
+        LPC_HC_IRQ_BM_TAR_ERR);
     fapi2::ReturnCode p9_sbe_lpc_init(const
+                                      fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
+    fapi2::ReturnCode p9_sbe_lpc_clear_errors(const
                                       fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 }
 

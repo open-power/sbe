@@ -107,7 +107,7 @@ sbeSecondaryResponse SBESecureMemRegionManager::add(const uint64_t i_startAddr,
 
 sbeSecondaryResponse SBESecureMemRegionManager::remove(const uint64_t i_startAddr)
 {
-    #define SBE_FUNC "SBESecureMemRegionManager::remove";
+    #define SBE_FUNC "SBESecureMemRegionManager::remove"
     size_t i = 0;
     sbeSecondaryResponse rc = SBE_SEC_OPERATION_SUCCESSFUL;
     for(; i < iv_regionsOpenCnt; i++)
