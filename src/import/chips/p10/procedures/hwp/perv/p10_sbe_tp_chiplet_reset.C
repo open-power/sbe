@@ -250,7 +250,8 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
                 fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
                 .set_MISC_PFET_REG(l_data64)
                 .set_CHIPLET_ID(l_n1.getChipletNumber())
-                .set_TARGET(l_n1),
+                .set_TARGET(l_n1)
+                .set_EC_FEATURE(l_hw541221),
                 "ERROR:Pfet not configures for ChipletID : %#010lX", l_n1.getChipletNumber());
 
     for (auto& targ : l_perv_mc_pci_pau)
@@ -334,7 +335,8 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
                     fapi2::STATIC_POWER_GATING_PFET_CNFG_ERR()
                     .set_MISC_PFET_REG(l_data64)
                     .set_CHIPLET_ID(l_chipletID)
-                    .set_TARGET(targ),
+                    .set_TARGET(targ)
+                    .set_EC_FEATURE(l_hw541221),
                     "ERROR:Pfet not configured for ChipletID : %#010lX", l_chipletID);
 
     }
