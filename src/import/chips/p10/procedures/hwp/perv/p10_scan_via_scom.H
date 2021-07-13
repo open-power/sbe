@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,7 +55,7 @@ inline fapi2::ReturnCode _svs_wait_opcg_done(
         }
     }
 
-    FAPI_ASSERT(false, fapi2::SCAN_VIA_SCOM_TIMEOUT().set_TARGET(i_target),
+    FAPI_ASSERT(false, fapi2::SCAN_VIA_SCOM_TIMEOUT().set_TARGET(i_target).set_CPLT_STAT0(scomt::perv::CPLT_STAT0),
                 "Timed out waiting for OPCG_DONE");
 
 fapi_try_exit:
