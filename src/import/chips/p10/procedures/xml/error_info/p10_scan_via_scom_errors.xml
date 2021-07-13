@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2020                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -27,6 +27,7 @@
     <rc>RC_SCAN_VIA_SCOM_TIMEOUT</rc>
     <description>A long rotate operation did not complete within 100ms</description>
     <ffdc>TARGET</ffdc>
+    <ffdc>CPLT_STAT0</ffdc>
     <callout>
       <target>TARGET</target>
       <priority>HIGH</priority>
