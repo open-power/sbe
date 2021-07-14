@@ -115,7 +115,7 @@ def checkIfEot(i_fifoType=0, node=0, proc=0):
     eot_addr = getDsFifoStatusAddrToRead(i_fifoType) #Address: 0x2444, 0x2484
     read_addr = getDsFifoDataAddrToRead(i_fifoType)  #Address: 0x2440, 0x2480
     status = read(lbus, eot_addr, 4)
-    if( cmp((status[3] & 0x80), 0x80 )):
+    if( (status[3] & 0x80 > 0x80) - (status[3] & 0x80 < 0x80) ):
         return False
     read(lbus, read_addr, 4)
     return True

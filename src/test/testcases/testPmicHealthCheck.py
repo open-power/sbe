@@ -28,6 +28,9 @@ sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 import testMemUtil
 err = False
+fifo_type = 0
+version_1 = 1
+version_2 = 2
 
 TESTDATA_INV_TARGET = [0,0,0,3,
             0,0,0xAC,0x01,
@@ -49,8 +52,12 @@ TESTDATA = [0,0,0,3,
             0,0,0xAC,0x01,
             0, 0x4, 0, 0x8 ]
 
-EXPDATA = [
-           0x01, 0x04, 0, 0,
+EXP_HEADER = [0x00,     # structure version, can have different value
+                0x04,   # aggregate error
+                0x00,   # iv_pmic1_errors
+                0x00]   # iv_pmic2_errors
+
+EXPDATA_V1 = [
            0, 0, 0, 0,
            0, 0, 0, 0,
            0, 0, 0, 0,
@@ -100,6 +107,86 @@ EXPDATA = [
            0x00,0x0,0x0,0x0,
            0, 0, 0, 3];
 
+EXPDATA_V2 = [
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0,
+           0, 0, 0, 0xE0,           # number of bytes returned = 0
+           0xc0,0xde,0xac,0x01,
+           0x00,0x0,0x0,0x0,
+           0, 0, 0, 3];
+
+
+def readAndCompare():
+    data = testUtil.readDsEntryReturnVal(fifo_type)
+    
+    # update exp data with version value returned
+    EXP_HEADER[0] = data[0]
+
+    testUtil.checkEqual(data, tuple(EXP_HEADER))
+
+    if(data[0] == version_1):
+        testUtil.readDsFifo(EXPDATA_V1)
+    elif(data[0] == version_2):
+        testUtil.readDsFifo(EXPDATA_V2)
+    else:
+        print("Invalid structure version", data[0])
+        raise Exception('data mistmach')
+    
+    testUtil.readEot()
+
 
 # MAIN Test Run Starts Here...
 #-------------------------------------------------
@@ -122,8 +209,8 @@ def main( ):
     testUtil.runCycles( 10000000 )
     testUtil.writeUsFifo( TESTDATA )
     testUtil.writeEot( )
-    testUtil.readDsFifo( EXPDATA )
-    testUtil.readEot( )
+
+    readAndCompare()
 
 #-------------------------------------------------
 # Calling all test code
