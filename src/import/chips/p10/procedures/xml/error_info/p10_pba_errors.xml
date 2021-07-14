@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019                             -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -85,6 +85,9 @@
       <target>TARGET</target>
       <priority>HIGH</priority>
     </callout>
+    <deconfigure>
+      <target>TARGET</target>
+    </deconfigure>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -121,6 +124,9 @@
       <target>TARGET</target>
       <priority>HIGH</priority>
     </callout>
+    <deconfigure>
+      <target>TARGET</target>
+    </deconfigure>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -171,6 +177,9 @@
       <procedure>CODE</procedure>
       <priority>MEDIUM</priority>
     </callout>
+    <deconfigure>
+      <target>TARGET</target>
+    </deconfigure>
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
@@ -179,6 +188,7 @@
     <description>
       Procedure: p10_pba_coherent_utils
       Error code used to collect HWP input arguments.
+      Called with FAPI_ADD_INFO_TO_HWP_ERROR, does not need callouts.
     </description>
     <ffdc>ADDRESS</ffdc>
     <ffdc>RNW</ffdc>
