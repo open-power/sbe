@@ -74,6 +74,10 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     fapi2::ATTR_CHIP_UNIT_POS_Type l_chiplet_pos;
     fapi2::buffer<uint64_t> l_pb_mode_data;
     fapi2::buffer<uint64_t> l_pb_cfg3_data;
+    uint64_t l_tsnoop = 25;
+    fapi2::ATTR_FREQ_PAU_MHZ_Type l_fpau;
+    uint32_t l_fmc = 0;
+    bool l_fmc_valid = false;
 
     auto l_mc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MC>();
     auto l_pauc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_PAUC>();
@@ -82,6 +86,10 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_BROADCAST_MODE)");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYSTEM, l_ipl_phase),
              "Error from FAPI_ATTR_GET (ATTR_SYSTEM_IPL_PHASE)");
+
+    //
+    // STATION MODE register
+    //
 
     FAPI_TRY(GET_PB_COM_SCOM_EQ0_STATION_MODE(i_target, l_pb_mode_data),
              "Error from getScom (PB_COM_SCOM_EQ0_STATION_MODE)");
@@ -149,6 +157,10 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_MODE, l_pb_mode_data),
              "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_MODE)");
 
+    //
+    // STATION CFG3 register
+    //
+
     FAPI_TRY(GET_PB_COM_SCOM_EQ0_STATION_CFG3(i_target, l_pb_cfg3_data),
              "Error from getScom (PB_COM_SCOM_EQ0_STATION_CFG3)");
 
@@ -157,6 +169,124 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_UNIT1_SELCD(l_pb_cfg3_data);
     SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_LINK0_SELCD(l_pb_cfg3_data);
     SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_PBIASY_LINK1_SELCD(l_pb_cfg3_data);
+
+    // calculate tsnoop based on memory controller/PAU frequencies
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, l_fpau),
+             "Error from FAPI_ATTR_GET (ATTR_FREQ_PAU_MHZ)");
+
+    // find the slowest MC frequency on the chip for the purposes of tsnoop calculations
+    {
+        fapi2::ATTR_MC_PLL_BUCKET_Type l_attr_mc_pll_bucket;
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_mc_pos;
+        uint32_t l_fmc_curr = 0;
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_MC_PLL_BUCKET, i_target, l_attr_mc_pll_bucket));
+
+        for (auto& l_mc_target : i_target.getChildren<fapi2::TARGET_TYPE_MC>())
+        {
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_mc_target, l_mc_pos),
+                     "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS_Type)");
+
+            switch (l_attr_mc_pll_bucket[l_mc_pos])
+            {
+                case 0:
+                    l_fmc_curr = 1600;
+                    break;
+
+                case 1:
+                    l_fmc_curr = 1466;
+                    break;
+
+                case 2:
+                    l_fmc_curr = 1333;
+                    break;
+
+                case 4:
+                    l_fmc_curr = 2000;
+                    break;
+
+                default:
+                    l_fmc_curr = 1333;
+                    break;
+            }
+
+            FAPI_DBG("  MC pos: %d, freq: %d MHz, bucket: %d",
+                     l_mc_pos, l_fmc_curr, l_attr_mc_pll_bucket[l_mc_pos]);
+
+            // first valid MC found, start tracking slowest by its current frequency
+            if (!l_fmc_valid)
+            {
+                l_fmc = l_fmc_curr;
+                l_fmc_valid = true;
+                FAPI_DBG("  Set slowest MC freq: %d MHz",
+                         l_fmc);
+            }
+            // not the first found, update slowest frequency only if this MC is
+            // running slower than the current saved value
+            else
+            {
+                if (l_fmc_curr < l_fmc)
+                {
+                    l_fmc = l_fmc_curr;
+                    FAPI_DBG("  Updated slowest MC freq: %d MHz",
+                             l_fmc);
+                }
+            }
+        }
+    }
+
+    // backoff to safest settings if not at POR DD2 frequency setpoint
+    if (l_fpau != 2250)
+    {
+        FAPI_DBG("Tsnoop: set by non-POR PAU frequency (%d MHz)",
+                 l_fpau);
+        l_tsnoop = 27;
+    }
+    else
+    {
+        // set tsnoop based on memory controller setpoint if any functional
+        // MCs are present on this chip
+        if (l_fmc_valid)
+        {
+            FAPI_DBG("Tsnoop: set by MC freqeuncy (%d MHz)",
+                     l_fmc);
+
+            switch (l_fmc)
+            {
+                case 1333:
+                    l_tsnoop = 27;
+                    break;
+
+                case 1466:
+                    l_tsnoop = 26;
+                    break;
+
+                case 1600:
+                case 2000:
+                    l_tsnoop = 25;
+                    break;
+
+                default:
+                    l_tsnoop = 27;
+                    break;
+            }
+        }
+        // no MC snoopers, keep default tsnoop based on PAU requirement
+        else
+        {
+            FAPI_DBG("Tsnoop: set by POR PAU frequency (%d MHz)",
+                     l_fpau);
+            l_tsnoop = 25;
+        }
+    }
+
+    // convert tsnoop cycle count into register programming
+    // 0xC = 25
+    // 0xD = 26
+    // 0xE = 27
+    FAPI_DBG("Final tnsoop: %d", l_tsnoop);
+    l_tsnoop = 0xC + (l_tsnoop - 25);
+    SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_CHIP_TSNOOP_DELAY_EQ0(l_tsnoop, l_pb_cfg3_data);
 
     // apply pb cfg3 configuration to all racetrack station registers
     FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_CFG3, l_pb_cfg3_data),
