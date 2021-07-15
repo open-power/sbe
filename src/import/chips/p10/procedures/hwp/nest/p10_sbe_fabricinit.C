@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -84,7 +84,9 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     FAPI_ASSERT(!GET_TP_TPBR_AD_SND_MODE_REG_PB_STOP(l_data),
                 fapi2::P10_SBE_FABRICINIT_FBC_STOPPED()
-                .set_TARGET(i_target),
+                .set_TARGET(i_target)
+                .set_CONTAINED_IPL_TYPE(l_attr_contained_ipl_type)
+                .set_CONTAINED_LOAD_PATH(l_attr_contained_load_path),
                 "Pervasive stop control (pb_stop) is asserted, so fabric init will not run!");
 
     // setup adu utils parms for fabric init operation
