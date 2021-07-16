@@ -52,8 +52,16 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
     P9XipSection* l_pSection    =   &l_imgHdr->iv_section[l_sectionName];
     TorHeader_t* l_torHeader    =   NULL;
 
+    // Creating local variables for creating ffdc for image pointers
+    uint64_t l_imgPtr;
+
+    l_imgPtr = reinterpret_cast<uint64_t>(i_pImgPtr);
+
     FAPI_ASSERT( ( (l_pSection->iv_offset) > 0 ),
                  fapi2::INVALID_RING_SECTION()
+                 .set_RING_MODE(i_ringMode)
+                 .set_SECTION_NAME(l_sectionName)
+                 .set_IMG_POINTER(l_imgPtr)
                  .set_RING_OFFSET( l_pSection->iv_offset),
                  "Invalid Offset To Ring In SBE Image 0x%08x", rev_32( l_pSection->iv_offset));
 
@@ -61,6 +69,10 @@ fapi2::ReturnCode lookUpRingSection( uint8_t* i_pImgPtr,
 
     FAPI_ASSERT( TOR_MAGIC == (rev_32( l_torHeader->magic ) >> 8),
                  fapi2::INVALID_RING_CHIPLET_SECTION()
+                 .set_RING_MODE(i_ringMode)
+                 .set_SECTION_NAME(l_sectionName)
+                 .set_IMG_POINTER(l_imgPtr)
+                 .set_RING_OFFSET( l_pSection->iv_offset)
                  .set_TOR_MAGIC_WORD( l_torHeader->magic ),
                  "Invalid Offset To Chiplet Section 0x%08x Magic Word 0x%08x",
                  rev_32( l_pSection->iv_offset), rev_32( l_torHeader->magic ) );
@@ -406,8 +418,14 @@ fapi2::ReturnCode getRS4ImageFromTor(
         uint8_t* l_pRs4  = i_pRingSectn + rev_16(*l_pRingTor);
         CompressedScanData* l_pRs4Hdr   =  (CompressedScanData*)l_pRs4;
 
+        // Creating local variables for creating ffdc for image pointers
+        uint64_t l_ringSectionAddr = reinterpret_cast<uint64_t>(i_pRingSectn);
+
         FAPI_ASSERT( ( rev_16(l_pRs4Hdr->iv_ringId) == i_ringId ),
                      fapi2::TOR_TRAVERSAL_ERROR()
+                     .set_RING_SECTION(l_ringSectionAddr)
+                     .set_SECTION_OFFSET(l_sectionOffset)
+                     .set_RING_TYPE(l_ringType)
                      .set_ACTUAL_RING_ID( rev_16( l_pRs4Hdr->iv_ringId ) )
                      .set_EXPECTED_RING_ID( i_ringId ),
                      "Failed To Traverse To Correct Ring. Found 0x%04x Expected  0x%04x ",

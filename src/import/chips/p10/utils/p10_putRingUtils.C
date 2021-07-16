@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -740,6 +740,7 @@ fapi2::ReturnCode standardScan(
                     FAPI_ERR("Max attempts exceeded checking OPCG_DONE");
                     FAPI_ASSERT(false,
                             fapi2::P10_PUTRING_OPCG_DONE_TIMEOUT()
+                            .set_TARGET(i_target)
                             .set_SCOM_ADDRESS(l_scomAddress)
                             .set_SCOM_DATA(l_scomData)
                             .set_ROTATE_COUNT(l_rotateCount)
