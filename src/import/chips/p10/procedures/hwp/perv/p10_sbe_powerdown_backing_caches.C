@@ -162,7 +162,9 @@ p10_sbe_powerdown_backing_caches(
                     FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
                                 fapi2::PM_BACKING_CACHEPOWER_DOWN_ECO_ERR()
                                 .set_CHIP_TARGET(i_proc_target)
-                                .set_CORE_TARGET(core),
+                                .set_CORE_TARGET(core)
+                                .set_UNIT_CORE_POS(l_attr_chip_unit_core_pos)
+                                .set_REL_CORE_POS(l_relative_core_pos),
                                 "Backing cache unexpectedly in ECO mode!");
 
                     //STOP 11 entry request enable[0:3]
@@ -235,6 +237,7 @@ p10_sbe_powerdown_backing_caches(
                                         .set_SSH_OTR_DATA(l_data64)
                                         .set_CORE_TARGET(core)
                                         .set_CORE_POSITION(l_attr_chip_unit_core_pos)
+                                        .set_REL_CORE_POS(l_relative_core_pos)
                                         .set_EQ_TARGET(eq)
                                         .set_EQ_POSITION(l_attr_chip_unit_eq_pos),
                                         "Backing cache power down procedure failed");
