@@ -177,6 +177,8 @@ fapi_try_exit:
 // Function to find the deskew val from the input string of error bits
 //---------------------------------------------------------------------------------
 fapi2::ReturnCode p10_get_deskew_dd2(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+    const uint8_t i_clockPos,
     const uint32_t  i_shiftedErrVals,
     const int32_t i_loop,
     const bool i_side,
@@ -231,13 +233,15 @@ fapi2::ReturnCode p10_get_deskew_dd2(
         // Verify we are in the correct range
         FAPI_ASSERT(((o_deskewVal >= 0) && (o_deskewVal <= 15)),
                     fapi2::RCS_FPLL_DESKEW_CAL_ERROR()
+                    .set_MASTER_CHIP(i_target_chip)
                     .set_SHIFTED_ERR_VAL(i_shiftedErrVals)
                     .set_SELECTED_DESKEW_VAL(o_deskewVal)
                     .set_STEP(l_step)
                     .set_FIRST_ERROR(l_firstError)
                     .set_LAST_ERROR(l_lastError)
                     .set_LOOP(i_loop)
-                    .set_SIDE_A_NOT_B(i_side),
+                    .set_SIDE_A_NOT_B(i_side)
+                    .set_CLOCK_POS(i_clockPos),
                     "RCS Deskew not in valid range");
         //"[%d]RCS Deskew %d (%d, 0x%04X) not in valid range : [%d,%d,%d]",
         //i_loop, i_side, o_deskewVal, i_shiftedErrVals, l_step, l_firstError, l_lastError);
@@ -249,16 +253,16 @@ fapi2::ReturnCode p10_get_deskew_dd2(
             {
                 FAPI_ASSERT(!((0x8000 >> (o_deskewVal + l_offset)) & i_shiftedErrVals),
                             fapi2::RCS_FPLL_DESKEW_CAL_ERROR()
+                            .set_MASTER_CHIP(i_target_chip)
                             .set_SHIFTED_ERR_VAL(i_shiftedErrVals)
                             .set_SELECTED_DESKEW_VAL(o_deskewVal)
                             .set_STEP(l_step)
                             .set_FIRST_ERROR(l_firstError)
                             .set_LAST_ERROR(l_lastError)
                             .set_LOOP(i_loop)
-                            .set_SIDE_A_NOT_B(i_side),
+                            .set_SIDE_A_NOT_B(i_side)
+                            .set_CLOCK_POS(i_clockPos),
                             "RCS Deskew error at offset");
-                //"[%d]RCS Deskew %d (%d, 0x%04X) error at offset(%d) : [%d,%d,%d]",
-                //i_loop, i_side, o_deskewVal, i_shiftedErrVals, l_offset, l_step, l_firstError, l_lastError);
             }
         }
     }
@@ -351,6 +355,8 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     int      l_max_loop = 10;                  //The number of times PLL reset will be tried
     int      l_goodDeskewA = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
     int      l_goodDeskewB = INVALID_DESKEW;   //Initialize to a deskew non-valid deskew
+    // variable for creating clock pos ffdc
+    uint8_t l_callout_clock;
 
     for(int l_index = 0; l_index < l_max_loop ; l_index++)
     {
@@ -447,8 +453,14 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
         l_shiftedAErrVals = l_clkAErrVals & 0xFFFF;
         l_shiftedBErrVals = l_clkBErrVals & 0xFFFF;
 
-        FAPI_TRY(p10_get_deskew_dd2(l_shiftedAErrVals, l_index, true, l_goodDeskewA));
-        FAPI_TRY(p10_get_deskew_dd2(l_shiftedBErrVals, l_index, false, l_goodDeskewB));
+        FAPI_TRY(p10_get_deskew_dd2(
+                     i_target_chip,
+                     fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0,
+                     l_shiftedAErrVals, l_index, true, l_goodDeskewA));
+        FAPI_TRY(p10_get_deskew_dd2(
+                     i_target_chip,
+                     fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1,
+                     l_shiftedBErrVals, l_index, false, l_goodDeskewB));
 
         FAPI_DBG("RCS Deskew Loop[%d]: DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
                  l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
@@ -490,21 +502,27 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     }// End of loop to find the deskew
 
     GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
+    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
     FAPI_ASSERT((l_goodDeskewA != INVALID_DESKEW),
-                fapi2::RCS_FPLL_DESKEW_ERR_A()
+                fapi2::RCS_FPLL_DESKEW_ERR()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_DESKEW_A(l_goodDeskewA)
                 .set_DESKEW_B(l_goodDeskewB)
                 .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
-                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals)
+                .set_CLOCK_POS(l_callout_clock),
                 "Deskew calibration failed on A-side");
+    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1;
     FAPI_ASSERT((l_goodDeskewB != INVALID_DESKEW),
-                fapi2::RCS_FPLL_DESKEW_ERR_B()
+                fapi2::RCS_FPLL_DESKEW_ERR()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_DESKEW_A(l_goodDeskewA)
                 .set_DESKEW_B(l_goodDeskewB)
                 .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
-                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals)
+                .set_CLOCK_POS(l_callout_clock),
                 "Deskew calibration failed on B-side");
 
     l_data64_rc6.flush<0>();
@@ -553,22 +571,28 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
     //read back the RCS sense register
     GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
 
+    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
     FAPI_ASSERT(!(l_data64_rcsns.getBit<6>() | l_data64_rcsns.getBit<7>()),
-                fapi2::RCS_FPLL_DESKEW_ERR_A()
+                fapi2::RCS_FPLL_DESKEW_ERR()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_DESKEW_A(l_goodDeskewA)
                 .set_DESKEW_B(l_goodDeskewB)
                 .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
-                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals)
+                .set_CLOCK_POS(l_callout_clock),
                 "Deskew Calibration Final Check Failed on A-side");
 
+    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1;
     FAPI_ASSERT(!(l_data64_rcsns.getBit<8>() | l_data64_rcsns.getBit<9>()),
-                fapi2::RCS_FPLL_DESKEW_ERR_B()
+                fapi2::RCS_FPLL_DESKEW_ERR()
+                .set_MASTER_CHIP(i_target_chip)
                 .set_READ_SNS1LTH(l_data64_rcsns)
                 .set_DESKEW_A(l_goodDeskewA)
                 .set_DESKEW_B(l_goodDeskewB)
                 .set_SHIFTED_A_ERR_VAL(l_shiftedAErrVals)
-                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals),
+                .set_SHIFTED_B_ERR_VAL(l_shiftedBErrVals)
+                .set_CLOCK_POS(l_callout_clock),
                 "Deskew Calibration Final Check Failed on B-side");
 
 
@@ -703,11 +727,18 @@ fapi2::ReturnCode p10_sbe_rcs_deskew_calibrate(
         FAPI_TRY(PUT_FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR(i_target_chip, l_data64_rc3));
     }// End of loop to find the deskew
 
+    // As per new error xml, this assert need clock pos and shifted error value for both
+    // clock A and clock B
+    // We cannot put here, because DD1 doesnt have seperate deskew setting for clock-A and
+    // clock-B.
+    //
+    // Ignoring this problem, since this part of code will never execute, since redundacny
+    // mode will not be requested for DD1 chip.
     GET_TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_SNS1LTH_RO(i_target_chip, l_data64_rcsns);
     FAPI_ASSERT((l_goodDeskew != INVALID_DESKEW),
                 fapi2::RCS_FPLL_DESKEW_ERR()
                 .set_READ_SNS1LTH(l_data64_rcsns)
-                .set_SHIFTED_ERR_VAL(l_shiftedErrVals),
+                .set_SHIFTED_A_ERR_VAL(l_shiftedErrVals),
                 "Deskew caliberation failed");
 
     //Set deskew to 0
@@ -771,6 +802,8 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     fapi2::ReturnCode l_rc;
     uint8_t l_cp_refclck_select;
     bool skipClkCheck = false;
+    // variable for creating clock pos ffdc
+    uint8_t l_callout_clock;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
@@ -949,18 +982,24 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
             {
                 if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1)
                 {
+                    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
                     FAPI_ASSERT(((l_rcs_status.getBit<2>() == 0)),
                                 fapi2::RCS_CLOCK_ERR()
+                                .set_MASTER_CHIP(i_target_chip)
                                 .set_READ_SNS1LTH(l_rcs_status)
+                                .set_CLOCK_POS(l_callout_clock)
                                 .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
                                 "RCS_UNLOCKDET error : Clock A is not locked");
                 }
 
                 if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0)
                 {
+                    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1;
                     FAPI_ASSERT(((l_rcs_status.getBit<3>() == 0)),
                                 fapi2::RCS_CLOCK_ERR()
+                                .set_MASTER_CHIP(i_target_chip)
                                 .set_READ_SNS1LTH(l_rcs_status)
+                                .set_CLOCK_POS(l_callout_clock)
                                 .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
                                 "RCS_UNLOCKDET error : Clock B is not locked");
                 }
@@ -968,18 +1007,24 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
             if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
             {
+                l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
                 FAPI_ASSERT(((l_rcs_status.getBit<0>() == 0)),
                             fapi2::RCS_CLOCK_ERR()
+                            .set_MASTER_CHIP(i_target_chip)
                             .set_READ_SNS1LTH(l_rcs_status)
+                            .set_CLOCK_POS(l_callout_clock)
                             .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
                             "RCS_CLOCK error : Clock A is bad");
             }
 
             if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0))
             {
+                l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
                 FAPI_ASSERT(((l_rcs_status.getBit<1>() == 0)),
                             fapi2::RCS_CLOCK_ERR()
+                            .set_MASTER_CHIP(i_target_chip)
                             .set_READ_SNS1LTH(l_rcs_status)
+                            .set_CLOCK_POS(l_callout_clock)
                             .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
                             "RCS_CLOCK error : Clock B is bad");
             }
