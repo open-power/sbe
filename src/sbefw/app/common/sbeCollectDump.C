@@ -752,7 +752,20 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     // Update address, length and stream header data vai FIFO
     iv_tocRow.tocHeader.address = iv_hdctRow->cmdGetRing.strEqvHash32;
     uint32_t len = sizeof(iv_tocRow.tocHeader) / sizeof(uint32_t);
-    if(!iv_tocRow.tgtHndl.getFunctional())
+
+    bool pervTargetFunctionalState = true;
+    if( (iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_CHIP) ||
+        (iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_UNKNOWN) )
+    {
+        uint8_t chipletUnitNum = ( ( iv_hdctRow->cmdGetRing.ringAddr & 0xFF000000 ) >> 24 );
+        plat_target_handle_t tgtHndl =
+              plat_getTargetHandleByChipletNumber<TARGET_TYPE_PERV>(chipletUnitNum);
+        pervTargetFunctionalState = tgtHndl.fields.functional;
+        SBE_INFO("DUMP GETRING: Perv Target UnitNum[0x%02X], FunctionalState[0x%02X]",
+                  chipletUnitNum, pervTargetFunctionalState);
+    }
+
+    if((!iv_tocRow.tgtHndl.getFunctional()) || (!pervTargetFunctionalState) )
     {
         // Update non functional state in DUMP header
         iv_tocRow.tocHeader.preReq = PRE_REQ_NON_FUNCTIONAL;
