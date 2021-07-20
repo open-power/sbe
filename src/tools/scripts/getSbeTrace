@@ -166,10 +166,10 @@ elif [ "$BUILD_TYPE" = "SBE" ]; then
     fi
 
     if [ -z $SBE_DEBUG_TOOL ]; then
-        BUILD_LEVEL=/latest_master-p10/
+        BUILD_LEVEL=/built/
         echo "SBE tools not found in: $SBE_IMAGE_PATH .
         Fetching tools from OP build - Level: $BUILD_LEVEL"
-        SBE_DEBUG_TOOL=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/sbe-debug.py
+        SBE_DEBUG_TOOL=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
     fi
 
 else
@@ -180,7 +180,7 @@ else
 
 fi
 
-export PATH=$PATH:/afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_models/p10_e10027_vbu_sc_027u09a_01/ekb/output/bin
+export PATH=$PATH:/afs/apd.pok.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/bin
 
 #SBE symbol file will be searched/fetched from below path.
 export SBE_TOOLS_PATH=$SBE_IMAGE_PATH
@@ -189,7 +189,7 @@ export SBE_TOOLS_PATH=$SBE_IMAGE_PATH
 SBE_DEBUG_TOOL_PATH=${SBE_DEBUG_TOOL}
 
 #Default cronus settings for fetching SBE traces
-setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/vbu_models/p10_e10027_vbu_sc_027u09a_01/ekb/output/lib
+setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/lib/
 setconfig GLOBAL_DEBUG none
 
 #Run sbe-debug.py tool
