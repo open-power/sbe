@@ -316,10 +316,13 @@ ReturnCode i2cCheckForErrors(misc_args_t &args,
            status.nack_received ||
            status.stop_error)
         {
+
             rc = RC_I2C_STATUS_ERROR;
             FAPI_ASSERT(false,
                         I2C_STATUS_ERROR()
-                        .set_VALUE(status.value),
+                        .set_VALUE(status.value)
+                        .set_PORT(args.port)
+                        .set_ENGINE(args.engine),
                         "I2C Status error");
         }
 
@@ -338,7 +341,9 @@ ReturnCode i2cCheckForErrors(misc_args_t &args,
             FAPI_ASSERT(false,
                         I2C_STATUS_INTR_ERROR()
                         .set_STATUS(status.value)
-                        .set_VALUE(intreg.value),
+                        .set_VALUE(intreg.value)
+                        .set_PORT(args.port)
+                        .set_ENGINE(args.engine),
                         "I2C Interrupt Status error");
         }
     } while(0);
