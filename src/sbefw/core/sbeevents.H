@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2017                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -48,6 +49,7 @@ enum sbeEvent
     SBE_DMT_COMP_EVENT         = 0x7, // From DMT State
     SBE_FAILURE_EVENT          = 0x8, // From Any State
     SBE_QUIESCE_EVENT          = 0x9, // From Any State
+    SBE_HALT_VIA_HOST_EVENT    = 0xA, // From Runtime State
 };
 
 // Maximum number of Events per State
@@ -57,14 +59,15 @@ enum maxEventPerState
     SBE_STATE_IPLING_MAX_EVENT  = 4,
     SBE_STATE_ISTEP_MAX_EVENT   = 3,
     SBE_STATE_MPIPL_MAX_EVENT   = 3,
-    SBE_STATE_RUNTIME_MAX_EVENT = 5,
+    SBE_STATE_RUNTIME_MAX_EVENT = 6,
     SBE_STATE_DMT_MAX_EVENT     = 3,
     SBE_STATE_DUMP_MAX_EVENT    = 0,
     SBE_STATE_FAILURE_MAX_EVENT = 0,
     SBE_STATE_QUIESCE_MAX_EVENT = 0,
+    SBE_STATE_HALT_MAX_EVENT    = 0,
 
     // Total number of State Transition Events, Addition of all the above
-    SBE_MAX_TRANSITIONS = 22,
+    SBE_MAX_TRANSITIONS = 23,
 };
 
 
@@ -75,14 +78,15 @@ enum maxEventPerState
 enum entryToStateMap
 {
     SBE_STATE_UNKNOWN_ENTRY_TO_MAP = 0,
-    SBE_STATE_IPLING_ENTRY_TO_MAP  = SBE_STATE_UNKNOWN_ENTRY_TO_MAP + SBE_STATE_UNKNOWN_MAX_EVENT, // 4
+    SBE_STATE_IPLING_ENTRY_TO_MAP  = SBE_STATE_UNKNOWN_ENTRY_TO_MAP + SBE_STATE_UNKNOWN_MAX_EVENT, //4
     SBE_STATE_ISTEP_ENTRY_TO_MAP   = SBE_STATE_IPLING_ENTRY_TO_MAP + SBE_STATE_IPLING_MAX_EVENT, //8
     SBE_STATE_MPIPL_ENTRY_TO_MAP   = SBE_STATE_ISTEP_ENTRY_TO_MAP + SBE_STATE_ISTEP_MAX_EVENT, //11
     SBE_STATE_RUNTIME_ENTRY_TO_MAP = SBE_STATE_MPIPL_ENTRY_TO_MAP + SBE_STATE_MPIPL_MAX_EVENT, //14
-    SBE_STATE_DMT_ENTRY_TO_MAP     = SBE_STATE_RUNTIME_ENTRY_TO_MAP + SBE_STATE_RUNTIME_MAX_EVENT, //19
-    SBE_STATE_DUMP_ENTRY_TO_MAP    = SBE_STATE_DMT_ENTRY_TO_MAP + SBE_STATE_DMT_MAX_EVENT, //22
-    SBE_STATE_FAILURE_ENTRY_TO_MAP = SBE_STATE_DUMP_ENTRY_TO_MAP + SBE_STATE_DUMP_MAX_EVENT, //22
-    SBE_STATE_QUIESCE_ENTRY_TO_MAP = SBE_STATE_FAILURE_ENTRY_TO_MAP + SBE_STATE_FAILURE_MAX_EVENT, //22
+    SBE_STATE_DMT_ENTRY_TO_MAP     = SBE_STATE_RUNTIME_ENTRY_TO_MAP + SBE_STATE_RUNTIME_MAX_EVENT, //20
+    SBE_STATE_DUMP_ENTRY_TO_MAP    = SBE_STATE_DMT_ENTRY_TO_MAP + SBE_STATE_DMT_MAX_EVENT, //23
+    SBE_STATE_FAILURE_ENTRY_TO_MAP = SBE_STATE_DUMP_ENTRY_TO_MAP + SBE_STATE_DUMP_MAX_EVENT, //23
+    SBE_STATE_QUIESCE_ENTRY_TO_MAP = SBE_STATE_FAILURE_ENTRY_TO_MAP + SBE_STATE_FAILURE_MAX_EVENT, //23
+    SBE_STATE_HALT_ENTRY_TO_MAP    = SBE_STATE_QUIESCE_ENTRY_TO_MAP + SBE_STATE_QUIESCE_MAX_EVENT, //23
 };
 
 #endif //__SBEFW_SBEEVENTS_H

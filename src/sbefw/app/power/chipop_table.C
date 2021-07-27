@@ -285,7 +285,8 @@ CMD_ARR(
     AB,
     {sbeHostHaltReq,
      SBE_CMD_HALT,
-     SBE_NO_FENCE,
+     PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_DUMPING,
     }
 )
 
