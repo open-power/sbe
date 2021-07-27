@@ -39,6 +39,7 @@
 
 #include "p10_sbe_tp_chiplet_init.H"
 #include "p10_scom_proc_6.H"
+#include "p10_scom_proc_f.H"
 #include "p10_scom_perv_0.H"
 #include "p10_scom_perv_6.H"
 #include "p10_scom_perv_7.H"
@@ -87,12 +88,14 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
 {
     using namespace scomt;
     using namespace scomt::perv;
+    using namespace scomt::proc;
 
-    fapi2::buffer<uint64_t> l_data64;
+    fapi2::buffer<uint64_t> l_data64, l_buffer64;
     uint8_t pre_divider;
     uint32_t l_attr_pau_freq_mhz, l_pau_multiplier, l_real_pau_frequency;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    uint8_t l_cp_refclck_select;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
             (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
@@ -166,6 +169,24 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     {
         FAPI_DBG("Configure pervasive LFIR (SBE)");
         FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_WO_AND, LFIR_MASK_SBE_UPDATE));
+    }
+
+    // check RCS mode, if redundant, we need to clear the Osc error mask bits
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_cp_refclck_select),
+             "Error from FAPI_ATTR_GET (ATTR_CP_REFCLOCK_SELECT)");
+
+    if(((l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0_NORED) ||
+        (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1_NORED)))
+    {
+        // if we are in redundant mode, we need to unmask the clock A and clock B OSC errors
+        //   which are now going to be masked by default (SW530544)
+        l_buffer64.flush<1>();
+        l_buffer64.clearBit<TP_TPCHIP_TPC_EPS_FIR_LOCAL_MASK_42>();
+        l_buffer64.clearBit<TP_TPCHIP_TPC_EPS_FIR_LOCAL_MASK_43>();
+        FAPI_TRY(fapi2::putScom(i_target_chip, TP_TPCHIP_TPC_EPS_FIR_LOCAL_MASK_WO_AND, l_buffer64));
+
     }
 
     FAPI_DBG("Unmask RFIR, XFIR Mask");
