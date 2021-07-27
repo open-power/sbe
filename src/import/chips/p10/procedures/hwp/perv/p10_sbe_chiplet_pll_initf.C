@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -107,6 +107,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
 
         FAPI_ASSERT(l_pci_pll_bucket < P10_MAX_PCI_PLL_BUCKETS,
                     fapi2::P10_SBE_PLL_INITF_UNSUPPORTED_PLL_BUCKET().
+                    set_PROC_TARGET(i_target_chip).
                     set_BUCKET_INDEX(l_pci_pll_bucket).
                     set_CHIPLET_ID(0x8),
                     "Unsupported PCI PLL bucket value!");
