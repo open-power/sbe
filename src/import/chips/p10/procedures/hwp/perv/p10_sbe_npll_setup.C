@@ -137,6 +137,8 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
                                           && (l_data64 != 0), l_read_reg);
     FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
                 fapi2::FILT_PLL_LOCK_ERR()
+                .set_TARGET_CHIPLET(l_tpchiplet)
+                .set_CHIP_TARGET(i_target_chip)
                 .set_PLL_EXPECT(l_data64)
                 .set_PLL_READ(l_read_reg),
                 "One or more filter PLLs failed to lock! expected 0x%X, got 0x%X "
@@ -233,6 +235,8 @@ fapi2::ReturnCode p10_sbe_npll_setup(const
     l_rc = p10_perv_sbe_cmn_poll_pll_lock(l_tpchiplet, l_data64, 0, l_read_reg);
     FAPI_ASSERT(l_rc != fapi2::FAPI2_RC_FALSE,
                 fapi2::DPLL_LOCK_ERR()
+                .set_TARGET_CHIPLET(l_tpchiplet)
+                .set_CHIP_TARGET(i_target_chip)
                 .set_PLL_EXPECT(l_data64)
                 .set_PLL_READ(l_read_reg),
                 "One or more DPLLs failed to lock! exp/got: "
@@ -350,6 +354,7 @@ fapi2::ReturnCode p10_sbe_check_magicnumber(
 
     FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
                 fapi2::MAGIC_NUMBER_NOT_VALID()
+                .set_CHIP_TARGET(i_target_chip)
                 .set_SEEPROM_START_ADDR(l_read_reg)
                 .set_MAGIC_NUMBER_VALUE(MAGIC_NUMBER),
                 "ERROR: Magic number not matching");
