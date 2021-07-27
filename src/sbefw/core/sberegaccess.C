@@ -33,6 +33,7 @@
 #include "sbetrace.H"
 #include "fapi2.H"
 #include "sbeglobals.H"
+#include "sbeutil.H"
 #include <ppe42_scom.h>
 #include <p10_scom_perv.H>
 #include <p9_perv_scom_addresses.H>
@@ -70,6 +71,7 @@ static const stateEventRangeStr_t eventRangePerState[SBE_MAX_STATE] =
     {SBE_STATE_DUMP_ENTRY_TO_MAP, SBE_STATE_DUMP_MAX_EVENT},
     {SBE_STATE_FAILURE_ENTRY_TO_MAP, SBE_STATE_FAILURE_MAX_EVENT},
     {SBE_STATE_QUIESCE_ENTRY_TO_MAP, SBE_STATE_QUIESCE_MAX_EVENT},
+    {SBE_STATE_HALT_ENTRY_TO_MAP, SBE_STATE_HALT_MAX_EVENT},
 };
 
 // Map to connect the current State with an event along with the final state
@@ -95,6 +97,7 @@ static const stateTransitionStr_t stateTransMap[SBE_MAX_TRANSITIONS] = {
     {SBE_STATE_RUNTIME, SBE_DMT_ENTER_EVENT, SBE_STATE_DMT},
     {SBE_STATE_RUNTIME, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
     {SBE_STATE_RUNTIME, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
+    {SBE_STATE_RUNTIME, SBE_HALT_VIA_HOST_EVENT, SBE_STATE_HALT},
     {SBE_STATE_DMT, SBE_DMT_COMP_EVENT, SBE_STATE_RUNTIME},
     {SBE_STATE_DMT, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
     {SBE_STATE_DMT, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
@@ -222,6 +225,15 @@ uint32_t SbeRegAccess::updateSbeState(const sbeState &i_state)
 
     iv_prevState = iv_currState;
     iv_currState = i_state;
+
+    //Update SBE State to runtime if current sbe state is SBE_STATE_HALT and is
+    //HRESET
+    if((iv_prevState == SBE_STATE_HALT) && (iv_currState == SBE_STATE_HALT) &&
+            (SBE::isHreset()))
+    {
+        iv_currState = SBE_STATE_RUNTIME;
+    }
+
     rc = putscom_abs(PERV_SB_MSG_SCOM, iv_messagingReg);
     if(PCB_ERROR_NONE != rc)
     {

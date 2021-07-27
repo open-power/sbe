@@ -34,6 +34,8 @@
 #include "sbe_sp_intf.H"
 #include "sbetrace.H"
 #include "sbeFifoMsgUtils.H"
+#include "sberegaccess.H"
+#include "sbestates.H"
 
 #include "fapi2.H"
 #include "chipop_handler.H"
@@ -60,8 +62,14 @@ uint32_t sbeHostHaltReq (uint8_t *i_pArg)
         if(type != SBE_HB_FIFO)
         {
             //N-Ack this command and don't process
-            //TODO - Send Primary/Secondary response
+            SBE_INFO(SBE_FUNC "Request not allowed via fifo [%02X]", type);
+            respHdr.setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED,SBE_SEC_NOT_ALLOWED_VIA_FIFO_1);
+            break;
         }
+
+        //Update SBE state to HALT state
+        (void)SbeRegAccess::theSbeRegAccess().stateTransition(SBE_HALT_VIA_HOST_EVENT);
+
         SBE_INFO(SBE_FUNC "PK HALT");
         pk_halt();
     } while(0);
