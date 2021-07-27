@@ -795,10 +795,11 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 {
     using namespace scomt;
     using namespace scomt::perv;
+    using namespace scomt::proc;
 
     fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133;
     fapi2::ATTR_CHIP_EC_FEATURE_HW545231_Type l_rcs_hw545231;
-    fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_pll_expect, l_pll_status, l_rcs_status;
+    fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_pll_expect, l_pll_status, l_rcs_status, buffer64;
     fapi2::ReturnCode l_rc;
     uint8_t l_cp_refclck_select;
     bool skipClkCheck = false;
@@ -1033,6 +1034,7 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
 
         // check to make sure we come out of RCS setup on the correct side
         FAPI_TRY(p10_sbe_rcs_check_side(i_target_chip, l_cp_refclck_select));
+
 
     }
 
