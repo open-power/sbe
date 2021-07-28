@@ -78,9 +78,11 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     fapi2::ATTR_FREQ_PAU_MHZ_Type l_fpau;
     uint32_t l_fmc = 0;
     bool l_fmc_valid = false;
+    bool l_pau_async_disable[8] = { true, true, true, true, true, true, true, true };
 
     auto l_mc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MC>();
     auto l_pauc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_PAUC>();
+    auto l_pau_targets = i_target.getChildren<fapi2::TARGET_TYPE_PAU>();
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_BROADCAST_MODE, FAPI_SYSTEM, l_broadcast_mode),
              "Error from FAPI_ATTR_GET (ATTR_PROC_FABRIC_BROADCAST_MODE)");
@@ -288,9 +290,64 @@ fapi2::ReturnCode p10_sbe_scominit_fbc(const fapi2::Target<fapi2::TARGET_TYPE_PR
     l_tsnoop = 0xC + (l_tsnoop - 25);
     SET_PB_COM_SCOM_EQ0_STATION_CFG3_PB_CFG_CHIP_TSNOOP_DELAY_EQ0(l_tsnoop, l_pb_cfg3_data);
 
-    // apply pb cfg3 configuration to all racetrack station registers
+    // apply common switch CD & tsnoop settings to pb cfg3 configuration register in all racetrack stations
     FAPI_TRY(p10_fbc_utils_set_racetrack_regs(i_target, PB_COM_SCOM_EQ0_STATION_CFG3, l_pb_cfg3_data),
              "Error from p10_fbc_utils_set_racetrack_regs (PB_COM_SCOM_EQ0_STATION_CFG3)");
+
+    // customize per-station PAU async disable controls
+    // pau1/2 are physically not implemented (holes in numbering scheme), they will end up disabled
+    // based on initial value of l_pau_async_disable
+    for (const auto& l_pau : l_pau_targets)
+    {
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_unit_pos;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_pau, l_unit_pos));
+        l_pau_async_disable[l_unit_pos] = false;
+    }
+
+    // ES4 -- PA0,PA1 (always disabled)
+    if (l_pau_async_disable[0] || l_pau_async_disable[1])
+    {
+        FAPI_TRY(GET_PB_COM_SCOM_ES4_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from getScom (PB_COM_SCOM_ES4_STATION_CFG3)");
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_ES4_STATION_CFG3_PB_CFG_PBIASY_PA0_DISABLE>(l_pau_async_disable[0]);
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_ES4_STATION_CFG3_PB_CFG_PBIASY_UNIT1_DISABLE>(l_pau_async_disable[1]);
+        FAPI_TRY(PUT_PB_COM_SCOM_ES4_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from putScom (PB_COM_SCOM_ES4_STATION_CFG3)");
+    }
+
+    // EN4 -- PA2 (always disabled),PA3
+    if (l_pau_async_disable[2] || l_pau_async_disable[3])
+    {
+        FAPI_TRY(GET_PB_COM_SCOM_EN4_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from getScom (PB_COM_SCOM_EN4_STATION_CFG3)");
+        // intentional flip -- PAU3 is unit0 in this station
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_EN4_STATION_CFG3_PB_CFG_PBIASY_PA3_DISABLE>(l_pau_async_disable[3]);
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_EN4_STATION_CFG3_PB_CFG_PBIASY_UNIT1_DISABLE>(l_pau_async_disable[2]);
+        FAPI_TRY(PUT_PB_COM_SCOM_EN4_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from putScom (PB_COM_SCOM_EN4_STATION_CFG3)");
+    }
+
+    // ES1 -- PA4,PA5
+    if (l_pau_async_disable[4] || l_pau_async_disable[5])
+    {
+        FAPI_TRY(GET_PB_COM_SCOM_ES1_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from getScom (PB_COM_SCOM_ES1_STATION_CFG3)");
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_ES1_STATION_CFG3_PB_CFG_PBIASY_PA4_DISABLE>(l_pau_async_disable[4]);
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_ES1_STATION_CFG3_PB_CFG_PBIASY_PA5_DISABLE>(l_pau_async_disable[5]);
+        FAPI_TRY(PUT_PB_COM_SCOM_ES1_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from putScom (PB_COM_SCOM_ES1_STATION_CFG3)");
+    }
+
+    // EN1 - PA6,PA7
+    if (l_pau_async_disable[6] || l_pau_async_disable[7])
+    {
+        FAPI_TRY(GET_PB_COM_SCOM_EN1_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from getScom (PB_COM_SCOM_EN1_STATION_CFG3)");
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_EN1_STATION_CFG3_PB_CFG_PBIASY_PA6_DISABLE>(l_pau_async_disable[6]);
+        l_pb_cfg3_data.writeBit<PB_COM_SCOM_EN1_STATION_CFG3_PB_CFG_PBIASY_PA7_DISABLE>(l_pau_async_disable[7]);
+        FAPI_TRY(PUT_PB_COM_SCOM_EN1_STATION_CFG3(i_target, l_pb_cfg3_data),
+                 "Error from putScom (PB_COM_SCOM_EN1_STATION_CFG3)");
+    }
 
     // initialize topology table attribute for SBE platform
     FAPI_TRY(topo::init_topology_id_table(i_target));
@@ -334,7 +391,7 @@ fapi2::ReturnCode p10_sbe_scominit_int(const fapi2::Target<fapi2::TARGET_TYPE_PR
     }
 
     FAPI_TRY(PUT_INT_PC_REGS_TCTXT_CFG(i_target, l_tctxt_cfg),
-             "Error from getScom (INT_PC_REGS_TCTXT_CFG)");
+             "Error from putScom (INT_PC_REGS_TCTXT_CFG)");
 
 fapi_try_exit:
     FAPI_DBG("Exiting ...");
