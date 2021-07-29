@@ -284,6 +284,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
                 (sbeState)SbeRegAccess::theSbeRegAccess().getSbeState());
         SBE_GLOBAL->isHreset = 0;
         SBE::setHResetDoneBit();
+        SBE::unlockI2CEngineE();
     }
     else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {

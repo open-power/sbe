@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "plat_i2c_access.H"
 #include "exp_i2c_scom.H"
+#include "sbeutil.H"
 
 ////////////////////////////////I2C Driver//////////////////////////////////////
 using namespace fapi2;
@@ -656,6 +657,9 @@ ReturnCode i2cWrite(void *const buffer,
         }
     } while(0);
 
+    // Unlock the I2C Engine E
+    SBE::unlockI2CEngineE();
+
     return rc;
     #undef SBE_FUNC
 }
@@ -720,6 +724,9 @@ ReturnCode i2cRead(void *o_buffer,
             break;
         }
     } while(0);
+
+    // Unlock the I2C Engine E
+    SBE::unlockI2CEngineE();
 
     return rc;
     #undef SBE_FUNC
@@ -880,6 +887,7 @@ namespace fapi2
             // Copy contents of 64 bit buffer to o_data
             *o_data = data64;
         } while(0);
+
         return rc;
     }
 
@@ -922,6 +930,7 @@ namespace fapi2
                 }
             }
         } while(0);
+
         return rc;
     }
 };
