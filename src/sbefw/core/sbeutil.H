@@ -281,5 +281,11 @@ namespace SBE
       */
      void runSystemReset(void);
 
+     /* @brief - Unlock the i2c engine E in secure operation mode
+      *
+      *  @return - void
+      */
+     void unlockI2CEngineE(void);
+
 } // namespace SBE
 #endif //SBE_UTIL_H

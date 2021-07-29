@@ -172,5 +172,25 @@ namespace SBE
         }
         #undef SBE_FUNC
     }
+
+    void unlockI2CEngineE(void)
+    {
+        #define SBE_FUNC "SBE_UNLOCK_I2C_ENGINE_E"
+        SBE_INFO(SBE_FUNC "unlock the secure lock on i2c E engine");
+        uint64_t i2cEngineELockReset = 0xC000000000000000ULL; // Bit 0 & 1 are set
+        // Fetch the I2C Engine E Status
+        uint64_t i2cEngineEStatusReg = 0;
+        PPE_LVD(0x000A300B, i2cEngineEStatusReg);
+
+        // Check if it's secure operation and SBE is owning the secure lock
+        // Bit 52 indicates Secure Operation is going on
+        // Bit 48..51 indicates Locked PIB master Id, E is SBE, 9 is ADU/Host
+        if( ((i2cEngineEStatusReg >> 11) & 0x1) && // bit 52 set
+            ((i2cEngineEStatusReg >> 12) & 0xE) )  // Bit 48..51 as E = SBE
+        {
+            PPE_STVD(0x000A3001, i2cEngineELockReset);
+        }
+        #undef SBE_FUNC
+    }
 }
 
