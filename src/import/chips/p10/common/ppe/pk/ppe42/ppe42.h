@@ -271,6 +271,11 @@ popcount64(uint64_t x)
 #define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
     (MSR_UIE | MSR_EE | MSR_ME |MSR_IS0 | MSR_IS1 | MSR_IS2 | MSR_IPE)
 
+#elif __PPE__
+
+#define PK_THREAD_MACHINE_CONTEXT_DEFAULT \
+             (MSR_EE | MSR_ME | MSR_IS0 | MSR_IS1 | MSR_IS2)
+
 #else /* DFT */
 
 #if defined(USE_PPE_IMPRECISE_MODE)
