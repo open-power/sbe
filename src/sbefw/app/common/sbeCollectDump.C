@@ -763,6 +763,41 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
         pervTargetFunctionalState = tgtHndl.fields.functional;
         SBE_INFO("DUMP GETRING: Perv Target UnitNum[0x%02X], FunctionalState[0x%02X]",
                   chipletUnitNum, pervTargetFunctionalState);
+        // PAU chiplets are always functional, but check the individual PAUs
+
+        if((chipletUnitNum >= PAUC_CHIPLET_OFFSET) &&
+           (chipletUnitNum < (PAUC_CHIPLET_OFFSET + PAUC_TARGET_COUNT)))
+        {
+           // functional state of the PAU targets [ PAU0, PAU3, PAU4 and PAU6 ]
+           uint8_t pauRingNum = (iv_hdctRow->cmdGetRing.ringAddr & 0xF000)>>12;
+           uint8_t pauChipId = (chipletUnitNum - PAUC_CHIPLET_OFFSET);
+           static const uint8_t  pauc_pau_map[PAUC_TARGET_COUNT][PAU_PER_PAUC] = {
+                      { PAU_TARGET_OFFSET + 0, 0 },
+                      { PAU_TARGET_OFFSET + 1, 0 },
+                      { PAU_TARGET_OFFSET + 2, PAU_TARGET_OFFSET + 3 },
+                      { PAU_TARGET_OFFSET + 4, PAU_TARGET_OFFSET + 5 }
+                  };
+           if( (pauRingNum != 0x2) && (pauRingNum != 0x1) )
+           {
+               // Use PAUC funtional state: pau_func / pau_gptr / pau_repr
+               // total 6 pau targets: pau0/pau3/pau4/pau5/pau6/pau7
+               SBE_INFO("DUMP GETRING: PreCheck for Chiplet PAUC target");
+           }
+           else
+           {
+               // check pauUnitNum 0x02 bit for PAU0, PAU3, PAU4 and PAU6
+               // check pauUnitNum 0x01 bit for PAU5 and PAU7
+               uint8_t pauUnitNum = 0;
+               if( pauRingNum == 0x1 )
+               {
+                   pauUnitNum = 1;
+               }
+               SBE_INFO("DUMP GETRING: PreCheck for PAUC[%d]PAU[%d]", pauChipId, pauUnitNum);
+               uint8_t pauLogId = pauc_pau_map[pauChipId][pauUnitNum];
+               pervTargetFunctionalState
+                 =  G_vec_targets[PAU_TARGET_OFFSET + pauLogId].getFunctional();
+           }
+        }
     }
 
     if((!iv_tocRow.tgtHndl.getFunctional()) || (!pervTargetFunctionalState) )
