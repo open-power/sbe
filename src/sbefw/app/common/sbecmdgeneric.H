@@ -246,9 +246,17 @@ uint32_t sbeUpdateOCMBTarget(uint8_t *i_pArg);
  *
  *   @param[in] i_pArg Buffer to be passed to the function
  *   @return    Rc from the FIFO access utility
- *           
+ *
  */
 uint32_t sbeHostSyncFabTopologyId(uint8_t *i_pArg);
 
-
+/**
+ *   @brief sbeGetLpcAliveStatus: Check if LPC is alive
+ *          (0xA808)
+ *
+ *   @param[in] i_pArg Buffer to be passed to the function
+ *   @return    Rc from the FIFO access utility
+ *
+ */
+uint32_t sbeGetLpcAliveStatus(uint8_t *i_pArg);
 

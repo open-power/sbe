@@ -130,6 +130,11 @@ CMD_ARR(
      SBE_CMD_GET_SBE_CAPABILITIES_2,
      SBE_NO_FENCE,
     },
+
+    {sbeGetLpcAliveStatus,
+     SBE_CMD_GET_LPC_STATUS,
+     SBE_NO_FENCE,
+    }
 )
 
 //////////////////////////////////////////////////////////////

@@ -45,6 +45,7 @@
 #include "sbeMemAccessInterface.H"
 #include "sbeSecurity.H"
 #include "chipop_handler.H"
+#include "p10_lpc_test.H"
 
 #include "fapi2.H"
 //#include "p9_xip_image.h"
@@ -65,6 +66,8 @@ static const uint32_t SBE_CAPABILITES_LEN_PSU  =
             sizeof(sbeCapabilityRespMsg_t) -
             (sizeof(uint32_t) *
              (SBE_MAX_CAPABILITIES - CAPABILITIES_LAST_INDEX_PSU - 1));
+
+p10_lpc_test_t lpcTestHwp = &p10_lpc_test;
 
 sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
 {
@@ -532,6 +535,74 @@ uint32_t sbeSecurityListBinDump( uint8_t *i_pArg )
 
     // Send the response
     sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
+uint32_t sbeGetLpcAliveStatus(uint8_t *i_pArg)
+{
+    #define SBE_FUNC "sbeGetLpcAliveStatus"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t len = 0;
+    sbeFifoType type;
+    sbeRespGenHdr_t respHdr;
+    sbeResponseFfdc_t ffdc;
+    respHdr.init();
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+
+    uint32_t len2enqueue  = 0;
+    uint32_t downFifoRespBuf = LPC_ACCESS_TIMEOUT_FALSE;
+
+    do
+    {
+        chipOpParam_t* configStr = (struct chipOpParam*)i_pArg;
+        type = static_cast<sbeFifoType>(configStr->fifoType);
+        SBE_DEBUG(SBE_FUNC "Fifo Type is:[%02X]",type);
+
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL, true, false, type);
+        // If FIFO access failure
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        SBE_EXEC_HWP(fapiRc, lpcTestHwp, procTgt);
+
+        if(fapiRc == (uint32_t)fapi2::RC_LPC_ACCESS_TIMEOUT)
+        {
+            SBE_ERROR(SBE_FUNC "LPC is not alive, FapiRc[0x%08X]", fapiRc);
+            downFifoRespBuf = LPC_ACCESS_TIMEOUT_TRUE;
+        }
+
+        //Anything apart from RC_LPC_ACCESS_TIMEOUT
+        if((fapiRc != FAPI2_RC_SUCCESS) && (fapiRc != (uint32_t)fapi2::RC_LPC_ACCESS_TIMEOUT))
+        {
+            SBE_ERROR(SBE_FUNC "LPC Error FapiRc[0x%08X]", fapiRc);
+            respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, SBE_SEC_LPC_ERROR);
+            ffdc.setRc(fapiRc);
+            break;
+        }
+
+        // Push the data into downstream FIFO
+        len2enqueue = 1;
+        rc = sbeDownFifoEnq_mult (len2enqueue, &downFifoRespBuf, type);
+        if (rc)
+        {
+            // will let command processor routine handle the failure
+            break;
+        }
+
+    }while(0);
+
+    // Create the Response to caller
+    // there was a FIFO error, will skip sending the response,
+    // instead give the control back to the command processor thread
+    if(SBE_SEC_OPERATION_SUCCESSFUL == rc)
+    {
+        rc = sbeDsSendRespHdr( respHdr, &ffdc, type);
+    }
 
     SBE_EXIT(SBE_FUNC);
     return rc;
