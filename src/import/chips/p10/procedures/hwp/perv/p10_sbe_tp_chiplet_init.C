@@ -62,9 +62,6 @@ enum P10_SBE_TP_CHIPLET_INIT_Private_Constants
     //   file=361e143b-4808-4e36-a594-9d3d64bd5ad6
     // using chips/p10/procedures/utils/perv_lfir/gen_lfir_settings.sh
 
-    // AND mask to unmask "SBE halted" FIR
-    LFIR_MASK_SBE_UPDATE = 0b1111111111111111111111111111111110111111111111111111111111111111,
-
     START_CMD = 0x1,
     REGIONS_PERV = 0x4000,
     REGIONS_PERV_PSI = 0x4100,
@@ -163,13 +160,6 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
 
     FAPI_DBG("Clear pervasive LFIR");
     FAPI_TRY(fapi2::putScom(l_tpchiplet, LOCAL_FIR_RW, 0));
-
-    // If on SBE, additionally unmask "SBE halted" errors
-    if (fapi2::is_platform<fapi2::PLAT_SBE>())
-    {
-        FAPI_DBG("Configure pervasive LFIR (SBE)");
-        FAPI_TRY(fapi2::putScom(l_tpchiplet, EPS_FIR_LOCAL_MASK_WO_AND, LFIR_MASK_SBE_UPDATE));
-    }
 
     // check RCS mode, if redundant, we need to clear the Osc error mask bits
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_REFCLOCK_SELECT, i_target_chip, l_cp_refclck_select),
