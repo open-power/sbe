@@ -166,6 +166,7 @@ enum sbeGenericMessageCommands
     SBE_CMD_GET_FREQ_SUPPORTED      = 0x03, /* Get Supported frequencies */
     SBE_CMD_QUIESCE                 = 0x06, /* Sbe Quiesce */
     SBE_CMD_GET_SBE_CAPABILITIES_2  = 0x07, /* GET SBE capabilities including new additions */
+    SBE_CMD_GET_LPC_STATUS          = 0x08, /* GET LPC Alive Status */
 };
 
 enum sbeMpIplCommands
@@ -323,6 +324,7 @@ enum sbeSecondaryResponse
     SBE_SEC_PMIC_HEALTH_CHECK_FAILED          = 0x48,
     SBE_SEC_INVALID_I2C_CONFIG_VERSION        = 0x49,
     SBE_SEC_INVALID_I2C_TARGET_SUPPORT        = 0x4A,
+    SBE_SEC_LPC_ERROR                         = 0x4B,
 };
 
 /**
@@ -420,6 +422,7 @@ enum
     GET_SBE_CAPABILITIES_SUPPORTED      = 0xA8000002,
     SBE_QUIESCE_SUPPPORTED              = 0xA8000004,
     GET_SBE_CAPABILITIES_2_SUPPORTED    = 0xA8000008,
+    GET_SBE_LPC_STATUS_SUPPORTED        = 0xA8000010,
     RESERVED_A8_CAPABILITIES            = 0xA8800000,
 
     ENTER_MPIPL_SUPPORTED               = 0xA9000001,
@@ -513,6 +516,16 @@ enum sbeThreadOps
     THREAD_STOP_INS        = 0x1,
     THREAD_STEP_INS        = 0x2,
     THREAD_SRESET_INS      = 0x3,
+};
+
+
+/**
+ * @brief LPC Access Timeout Flag
+ */
+enum LPCAccessTimeoutFlag
+{
+    LPC_ACCESS_TIMEOUT_TRUE  = 0x0,
+    LPC_ACCESS_TIMEOUT_FALSE = 0x1,
 };
 
 /**

@@ -64,6 +64,7 @@ ISTEP3-CPP-SOURCES += p10_trace_pau_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_pci_scom.C
 ISTEP3-CPP-SOURCES += p10_trace_perv_scom.C
 ISTEP3-CPP-SOURCES += p10_sbe_check_master.C
+ISTEP3-CPP-SOURCES += p10_lpc_test.C
 #ifdef DFT
 ISTEP3-CPP-SOURCES += p10_sbe_skew_adjust_setup.C
 #endif

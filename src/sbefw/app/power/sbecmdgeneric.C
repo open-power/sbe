@@ -155,7 +155,8 @@ void updateFifoCapabilities(uint32_t * capability)
                                 GET_SBE_CAPABILITIES_SUPPORTED |
                                 GET_SBE_FFDC_SUPPPORTED |
                                 SBE_QUIESCE_SUPPPORTED |
-                                GET_SBE_CAPABILITIES_2_SUPPORTED;
+                                GET_SBE_CAPABILITIES_2_SUPPORTED |
+                                GET_SBE_LPC_STATUS_SUPPORTED;
     capability[GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                 RESERVED_A8_CAPABILITIES;
 
