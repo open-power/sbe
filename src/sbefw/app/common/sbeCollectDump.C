@@ -940,7 +940,27 @@ uint32_t sbeCollectDump::writeGetMemPBAPacketToFifo()
             len  = sizeof(sbeMemAccessReqMsgHdr_t)/sizeof(uint32_t);
             sbefifo_hwp_data_istream istream(iv_fifoType, len,
                                             (uint32_t*)&dumpPbaReq, false);
+            uint32_t startCount = iv_oStream.words_written();
             rc = sbeMemAccess_Wrap( istream, iv_oStream, true );
+            uint32_t endCount = iv_oStream.words_written();
+            uint32_t totalCount = 32; // 1024 bits == 128 Bytes == 32 words
+            uint32_t dummyData = 0x00;
+            if(endCount == startCount || ((endCount - startCount) != totalCount))
+            {
+                totalCount = totalCount - (endCount - startCount);
+                while(totalCount !=0)
+                {
+                    iv_oStream.put(dummyData);
+                    totalCount = totalCount - 1;
+                }
+            }
+
+            // Verify and modify all error rc and FFDC id's as per ChipOp RC
+            if(iv_oStream.getFifoRc() == FAPI2_RC_SUCCESS)
+            {
+                iv_oStream.setFifoRc(fapiRc);
+            }
+            rc = SBE_SEC_INVALID_ADDRESS_PASSED;
             break;
         }
         SBE_INFO("sizeHostMem:[0x%08X], hrmor:[0x%08X%08X]", sizeHostMem,
