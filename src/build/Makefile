@@ -309,6 +309,9 @@ endif
 ifeq ($(VERIFICATION_IMAGE_SUPPORTED), 1)
 	$(MAKE) verification_branch
 endif
+ifeq ($(VERIFICATION_IMAGE_SUPPORTED), 0)
+	$(MAKE) use_locked_verification
+endif
 endif
 ## TODO:: Look into all pre linked info for verification image
 pre_verify_image: verify_xml ppe_trace_bin buildInfo linker_verify
@@ -370,6 +373,11 @@ add_VerifyLoaderAddr:
 # Copy golden/locked measurement from local PPE Repository into image directory
 copy_measure_image:
 	cp $(MEAS_IMAGE_DIR)/* $(IMG_DIR)
+
+# Copy golden/locked verification image from local PPE Repository into image directory
+copy_verification_image:
+	cp $(VERF_IMAGE_DIR)/* $(IMG_DIR)
+	$(MAKE) appendverification
 
 boot_branch:
 	$(MAKE) $(OBJDIR)
@@ -436,6 +444,9 @@ verification_branch:
 	$(MAKE) verify_report
 	$(MAKE) appendverification
 	$(MAKE) report
+
+use_locked_verification:
+	$(MAKE) copy_verification_image
 
 ifneq ($(project), $(filter $(project), power_dft))
 tar:

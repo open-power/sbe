@@ -7,6 +7,7 @@
 #
 # Contributors Listed Below - COPYRIGHT 2017,2021
 # [+] International Business Machines Corp.
+# [+] Justin.Ginn@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,15 +39,18 @@ HOST_INTERFACE_AVAILABLE = 1
 PERIODIC_IO_TOGGLE_SUPPORTED = 1
 
 SBE_CONSOLE_SUPPORT = 1
-#If MEASUREMENT_IMAGE_SUPPORTED is 1 then only sbe_measurement_seeprom image will creates
 
+#If MEASUREMENT_IMAGE_SUPPORTED is 1 then only sbe_measurement_seeprom image will creates
 #This is a terminology used in this makefile that only means the compilation of measurement
 #seeprom is blocked. But the over-all support of measurement seeprom is still there from the
 #locked/golden measurement image already present in the PPE repository
 export MEASUREMENT_IMAGE_SUPPORTED = 0
 
 #If VERIFICATION_IMAGE_SUPPORTED is 1 then only sbe_verification image will create
-export VERIFICATION_IMAGE_SUPPORTED = 1
+#This is a terminology used in this makefile that only means the compilation of verification
+#image is blocked. But the over-all support of verification image is still there from the
+#locked/golden verification image already present in the PPE repository
+export VERIFICATION_IMAGE_SUPPORTED = 0
 
 AWAN_NMZ_MODEL = 1
 
