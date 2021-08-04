@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,7 +33,6 @@
 
 //#include "p9n2_perv_scom_addresses.H"
 #include "p10_scom_perv_b.H"
-#include "p10_scom_proc_9.H"
 using namespace fapi2;
 
 sbeRole g_sbeRole = SBE_ROLE_MASTER;
@@ -61,18 +60,6 @@ bool isSystemCheckstop()
     if( fapiRc == FAPI2_RC_SUCCESS )
     {
         checkstop = attnReg.getBit<2>();
-    }
-
-    //Read the TP_TCN1_N1_LOCAL_FIR_RW register to get the 
-    //bits set in the checkstop register
-    uint64_t regData=0;
-    fapiRc = getscom_abs_wrap(&hndl,
-                              scomt::proc::TP_TCN1_N1_LOCAL_FIR_RW,
-                              &regData);
-    if(fapiRc == FAPI2_RC_SUCCESS)
-    {
-       SBE_INFO("TP_TCN1_N1_LOCAL_FIR_RO Data=0x%.8x%.8x",
-           ((regData & 0xFFFFFFFF00000000ull) >> 32),(regData & 0xFFFFFFFF));
     }
     return checkstop;
 }
