@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,6 +41,9 @@
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
 
+const uint64_t SECURITY_SWITCH_REG_ADDR = 0x00010005; // Security Switch Register Address
+#define TPM_DECONFIG_BIT 12
+
 enum P10_SBE_TP_DPLL_BYPASS_Private_Constants
 {
     STOP_CMD = 0x2,
@@ -52,7 +55,7 @@ fapi2::ReturnCode p10_sbe_tp_dpll_bypass(const fapi2::Target<fapi2::TARGET_TYPE_
 {
     using namespace scomt;
 
-    fapi2::buffer<uint64_t> l_sl_clock_status, l_temp_rc4, l_data64;
+    fapi2::buffer<uint64_t> l_sl_clock_status, l_temp_rc4, l_data64, l_tpmDeconfigData;
     fapi2::buffer<uint16_t> l_attr_spi_bus_div_ref;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
@@ -103,8 +106,21 @@ fapi2::ReturnCode p10_sbe_tp_dpll_bypass(const fapi2::Target<fapi2::TARGET_TYPE_
 
         FAPI_DBG("Restore bit rate divisor and delay into all SPI masters");
 
-        for (uint32_t l_addr = 0x000C0003; l_addr <= 0x000C0083; l_addr += 0x20)
+        for (uint32_t l_addr = 0x000C0003; l_addr <= 0x000C0063; l_addr += 0x20)
         {
+            FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
+            l_data64.insert< 0, 12, 0 >(l_attr_spi_bus_div_ref);
+            l_data64.insertFromRight< 12, 8 >(0x80 >> l_attr_spi_bus_div_ref.getBits< 12, 4>());
+            FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
+        }
+
+        FAPI_DBG("Restore bit rate divisor and delay into all SPI masters");
+        FAPI_DBG("Read the TPM deconfig Bit");
+        FAPI_TRY(fapi2::getScom(i_target_chip, SECURITY_SWITCH_REG_ADDR, l_tpmDeconfigData));
+
+        if(!l_tpmDeconfigData.getBit<TPM_DECONFIG_BIT>())
+        {
+            uint32_t l_addr = 0x000C0083;
             FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
             l_data64.insert< 0, 12, 0 >(l_attr_spi_bus_div_ref);
             l_data64.insertFromRight< 12, 8 >(0x80 >> l_attr_spi_bus_div_ref.getBits< 12, 4>());

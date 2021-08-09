@@ -37,6 +37,9 @@
 #include "p10_scom_proc.H"
 #include "p10_scom_perv.H"
 
+const uint64_t SECURITY_SWITCH_REG_ADDR = 0x00010005; // Security Switch Register Address
+#define TPM_DECONFIG_BIT 12
+
 enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
 {
     SCAN_RATIO_4TO1           = 0x3,
@@ -115,7 +118,7 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
 {
     using namespace scomt;
 
-    fapi2::buffer<uint64_t> l_data64, l_read_reg;
+    fapi2::buffer<uint64_t> l_data64, l_read_reg, l_tpmDeconfigData;
     fapi2::buffer<uint64_t> l_opcg_align;
     fapi2::buffer<uint32_t> l_attr_freq_pau_mhz;
     unsigned int sck_clock_divider, tpm_sck_clock_divider;
@@ -183,11 +186,17 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
         // To be calculated on the fly from PAU and update into c0083, this is a
         // common clock divider to be used across the system to keep the TPM SPI
         // clock at 24MHz
-        uint32_t l_addr = 0x000C0083;
-        FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
-        l_data64.insertFromRight< 0, 12 >(tpm_sck_clock_divider);
-        l_data64.insertFromRight< 12, 8 >((0x80 >> tpm_spi_clock_delay));
-        FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
+        FAPI_DBG("Read the TPM deconfig Bit");
+        FAPI_TRY(fapi2::getScom(i_target_chip, SECURITY_SWITCH_REG_ADDR, l_tpmDeconfigData));
+
+        if(!l_tpmDeconfigData.getBit<TPM_DECONFIG_BIT>())
+        {
+            uint32_t l_addr = 0x000C0083;
+            FAPI_TRY(fapi2::getScom(i_target_chip, l_addr, l_data64));
+            l_data64.insertFromRight< 0, 12 >(tpm_sck_clock_divider);
+            l_data64.insertFromRight< 12, 8 >((0x80 >> tpm_spi_clock_delay));
+            FAPI_TRY(fapi2::putScom(i_target_chip, l_addr, l_data64));
+        }
 
         // adjust scan ratio
         FAPI_DBG("Adjust scan rate to 4:1");
