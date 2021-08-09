@@ -85,12 +85,12 @@ fapi2::ReturnCode p10_query_host_meminfo(
     // extract hrmor written by hostboot
     l_data64.extractToRight < 4 , (51 - 4 ) + 1 > (o_hrmor);
 
-    FAPI_ASSERT(!o_sizeHostMem,
+    FAPI_ASSERT(o_sizeHostMem,
                 fapi2::P10_QUERY_HOST_MEMINFO_INVALID_SIZE().
                 set_MASTER_CORE(i_bootCore),
                 "p10_query_host_meminfo: Core Scratch 1 says Host memory size is 0, which is wrong");
 
-    FAPI_ASSERT(!o_hrmor,
+    FAPI_ASSERT(o_hrmor,
                 fapi2::P10_QUERY_HOST_MEMINFO_INVALID_HRMOR().
                 set_MASTER_CORE(i_bootCore),
                 "p10_query_host_meminfo: Core Scratch 1 says HRMOR is 0, which is wrong");
