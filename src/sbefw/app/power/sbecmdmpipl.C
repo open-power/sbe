@@ -56,6 +56,10 @@
 #include "chipop_handler.H"
 #include "sbearchregdump.H"
 #include "sbeCollectDump.H"
+#include "sbecmdcntlinst.H"
+#include "p10_scom_pibms.H"
+#include "p10_sbe_sync_quiesce_states.H"
+#include "p10_scom_proc_9.H"
 
 using namespace fapi2;
 
@@ -293,6 +297,8 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     sbeResponseFfdc_t ffdc;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+
     do
     {
         if (!SBE::isMpiplReset())
@@ -300,6 +306,81 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             // Dequeue the EOT entry as no more data is expected.
             rc = sbeUpFifoDeq_mult (len, NULL);
             CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+            // Stop all the instructions before going into Mpipl reset path.
+            // Phyp might be performing some operation on TPM Sequencer.
+            rc = stopAllCoreInstructions();
+            if(rc)
+            {
+                SBE_ERROR(SBE_FUNC "Stop all core instructions failed before"
+                    " Mpipl Reset, RC=[0x%08X]", rc);
+                break;
+            }
+            // Use the LQA bit to indicate the other chips that Stop Instruction
+            // is done on this chip.
+            uint64_t data = 0x1000000000000000ULL; //Set bit3
+            // Set bit3(SECURITY_SWITCH_LOCAL_QUIESCE_ACHIEVED) on 0x00010005
+            rc = putscom_abs_wrap(&procTgt, OTP_SECURITY_SWITCH, data);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "PutScom failed for OTP_SECURITY_SWITCH(0x10005)"
+                    " before Mpipl Reset, RC=[0x%08X]", rc);
+                break;
+            }
+
+            // Sync with all the chips before invoking measurement Seeprom sequence
+            // of TPM Reset. This will make sure no thread from any chip is accessing
+            // TPM SPI
+            uint8_t status = 0;
+            size_t timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
+            while(timeOut)
+            {
+                rc = p10_sbe_sync_quiesce_states(procTgt, status);
+                if(rc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states failed before "
+                        "MPIPL Reset, RC=[0x%08X]",rc);
+                    break;
+                }
+                if(status)
+                {
+                    SBE_INFO(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System "
+                        "Quiesce done before Mpipl Reset");
+                    break;
+                }
+                else
+                {
+                    timeOut--;
+                    // delay prior to repeating the above
+                    fapi2::delay(SBE_LQA_DELAY_HW_US, SBE_LQA_DELAY_SIM_CYCLES);
+                }
+            }
+            if(!status || rc)
+            {
+                SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
+                    "failed, Either System Quiesce Achieved not true or procedure failed "
+                    "before Mpipl Reset, RC=[0x%08X] Status[0x%02X]", rc, status);
+
+                SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
+                    "failure before Mpipl Reset !!");
+
+                //Force System Checkstop
+                fapi2::buffer<uint64_t> data(0);
+                data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
+                rc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+                if(rc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR("Failed to force system checkstop to indicate failure in"
+                              "p10_sbe_sync_quiesce_states HWP before Mpipl Reset");
+                }
+                break;
+            }
+
+            // Hard-Reset SPI TPM engine.
+            uint64_t loadData =0x0008000000000000ULL;
+            PPE_STVD(0xc0002010, loadData);
+            PPE_STVD(0xc0002018, loadData);
+            SBE_INFO(SBE_FUNC "Hard-resetting the TPM SPI engine before Mpipl Reset");
 
             // Create MPIPL Reset request for the Otprom to execute
             // Set bit 14 in 0xc0002040 and jump to otprom addr 0x18040
@@ -348,8 +429,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
 
         //WORKAROUND:Force TOD RUNNING status to be OFF
         //TODO:Remove this once TOD procedure is updated.
-        Target<TARGET_TYPE_PROC_CHIP > l_proc = plat_getChipTarget();
-        fapiRc = putscom_abs_wrap(&l_proc, 0x40024,0x1000000000000000);
+        fapiRc = putscom_abs_wrap(&procTgt, 0x40024, 0x1000000000000000);
         if(fapiRc)
         {
             SBE_ERROR("Failed in applying TOD workaround in MPIPL Path");
@@ -368,7 +448,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
         CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-        rc = sbeDsSendRespHdr( respHdr, &ffdc);
+        rc = sbeDsSendRespHdr(respHdr, &ffdc);
         if(SBE::isMpiplResetDone())
         {
             sbeHandleFifoResponse (rc, SBE_FIFO);
