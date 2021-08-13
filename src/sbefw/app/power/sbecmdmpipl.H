@@ -40,6 +40,11 @@
 #define PBA_GRAN_SIZE 128 // PBA has to read in multiple of 128 Bytes.
 #define CORE_SCRATCH_REG0 0x20028486
 
+//Variables used for LQA sync and quiesce procedures
+static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 20000;
+static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms 
+static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
+
 /* @brief Bitmapped enumeration to identify the stop clock HWP call
  */
 enum stopClockHWPType
