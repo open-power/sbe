@@ -53,6 +53,7 @@
 #include <p10_scom_proc.H>
 #include <p10_scom_c.H>
 #include <p10_scom_eq.H>
+#include <p10_hcd_common.H>
 
 
 using namespace scomt;
@@ -75,14 +76,23 @@ fapi2::ReturnCode p10_cl2_l3_cleanup(
 {
     FAPI_IMP (">>p10_cl2_l3_cleanup");
     uint8_t l_core_unit_pos;
+    fapi2::buffer< uint64_t > l_data;
 
     for (const auto& l_core : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
         FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS,
                                 l_core,
                                 l_core_unit_pos));
-        FAPI_IMP("Core present but non functional %d",
-                 l_core_unit_pos);
+
+        auto l_eq_target = l_core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        FAPI_TRY( fapi2::getScom( l_eq_target, QME_SCRA_RW, l_data));
+
+        if ( l_data.getBit(l_core_unit_pos % 4))
+        {
+            FAPI_IMP("Skip dead core %d for cleanup procedure", l_core_unit_pos);
+            continue;
+        }
 
         FAPI_TRY(cleanup_cl2_l3_states(l_core, l_core_unit_pos));
     }
