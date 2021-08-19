@@ -277,7 +277,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
             }
         }
 
-        if (!b_master_found)
+        if (!b_master_found && !b_skip_active)
         {
             b_master_found = true;
             FAPI_TRY(FAPI_ATTR_SET( fapi2::ATTR_MASTER_CORE,
