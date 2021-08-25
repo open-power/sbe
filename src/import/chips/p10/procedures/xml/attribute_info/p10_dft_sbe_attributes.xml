@@ -337,6 +337,10 @@
     <value>0x0</value>
   </entry>
   <entry>
+    <name>ATTR_SYSTEM_RESCLK_ISTEP4_ENABLE</name>
+    <value>0x01</value>
+  </entry>
+  <entry>
     <name>ATTR_SKEWADJ_BYPASS</name>
     <value>0x0</value>
   </entry>
@@ -577,6 +581,10 @@
   </entry>
   <entry>
     <name>ATTR_SYSTEM_MMA_POWERON_DISABLE</name>
+    <value>0x00</value>
+  </entry>
+  <entry>
+    <name>ATTR_ECO_MODE</name>
     <value>0x00</value>
   </entry>
   <!-- virtual attributes -->

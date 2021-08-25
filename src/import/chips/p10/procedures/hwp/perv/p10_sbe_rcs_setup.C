@@ -224,8 +224,10 @@ fapi2::ReturnCode p10_get_deskew_dd2(
         o_deskewVal = (l_lastError < 10) ? l_lastError + 6 : l_firstError - 6;
     }
 
-    FAPI_DBG("RCS Calc Deskew shifted(0x%08X) step(%d) firstError(%d) lastError(%d) deskew(%d)",
+#ifndef DFT
+    FAPI_DBG("RCS Calc Deskew shifted(0x%08X) step(%d) firstError(%d), lastError(%d) deskew(%d)",
              i_shiftedErrVals, l_step, l_firstError, l_lastError, o_deskewVal)
+#endif //DFT
 
     // Verify Selected Deskew is Valid
     if (o_deskewVal != -1)
@@ -462,13 +464,17 @@ fapi2::ReturnCode p10_sbe_rcs_dd2_deskew_calibrate(
                      fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1,
                      l_shiftedBErrVals, l_index, false, l_goodDeskewB));
 
+#ifndef DFT
         FAPI_DBG("RCS Deskew Loop[%d]: DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
                  l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
+#endif //DFT
 
         if((l_goodDeskewA == INVALID_DESKEW) || (l_goodDeskewB == INVALID_DESKEW))
         {
+#ifndef DFT
             FAPI_DBG("Valid deskew not found, loop count 0x%02x  DeskewA(0x%08X)[%d] DeskewB(0x%08X)[%d]",
                      l_index, l_clkAErrVals, l_goodDeskewA, l_clkBErrVals, l_goodDeskewB);
+#endif //DFT
 
             //reset the RCS PLL before entering the new loop
             l_data64_rc3.flush<0>();
