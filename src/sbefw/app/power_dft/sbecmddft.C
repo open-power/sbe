@@ -26,7 +26,6 @@
 
 #include "sbefifo.H"
 #include "sbetrace.H"
-//#include "sbe_sp_intf.H"
 #include "sbeFifoMsgUtils.H"
 #include "assert.h"
 #include "sberegaccess.H"
@@ -44,6 +43,7 @@
 #include <plat_hw_access.H>
 #include <fapi2_attribute_service.H> // for FAPI_ATTR_GET
 #include "sbe_spi_cmd.h"
+#include "sbe_spi_cmd_secure_mode.h"
 
 #include <p10_contained_run.H>
 
@@ -79,24 +79,19 @@ uint32_t sbeSeepromLoad (uint8_t *i_pArg)
 
         Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
 
-        uint32_t l_seeprom_img_bytes = 0;
-        FAPI_ATTR_GET(ATTR_SEEPROM_IMG_SIZE, proc, l_seeprom_img_bytes);
-        SBE_DEBUG(f"ATTR_SEEPROM_IMG_SIZE: 0x%08x", l_seeprom_img_bytes);
-
-        uint32_t l_seeprom_starting_addr = 0;
-        FAPI_ATTR_GET(ATTR_SEEPROM_STARTING_ADDR, proc, l_seeprom_starting_addr);
-        SBE_DEBUG(f"ATTR_SEEPROM_STARTING_ADDR: 0x%08x", l_seeprom_starting_addr);
-
-        uint32_t l_arry_size = l_seeprom_img_bytes;
-        // if the image is not 8 byte aligned, add byte buffer so it is
-        if (l_seeprom_img_bytes % 8 != 0){
-            l_arry_size = l_seeprom_img_bytes + ( 8 - (l_seeprom_img_bytes % 8));
-        }
-
         uint32_t brd        = req.brd;
         uint16_t rcv_dly    = 4;
         uint8_t spi_engine  = req.engine;
         uint16_t port       = 1;
+        
+        uint64_t l_seeprom_starting_addr = req.seeprom_start_addr;
+		uint64_t l_seeprom_img_bytes = req.seeprom_img_size;
+
+        uint32_t l_arry_size = l_seeprom_img_bytes ;
+        // if the image is not 8 byte aligned, add byte buffer so it is
+        if (l_seeprom_img_bytes % 8 != 0){
+            l_arry_size = l_seeprom_img_bytes + ( 8 - (l_seeprom_img_bytes % 8));
+        }
 
         SpiControlHandle handle = SpiControlHandle(proc, PIB, brd, rcv_dly, spi_engine, port, transparent, no_ecc_address_correction, mmSPIsm_disable);
         SpiInit(handle);
@@ -108,46 +103,69 @@ uint32_t sbeSeepromLoad (uint8_t *i_pArg)
         fapi2::buffer<uint64_t> o_data;
         fapi2::putScom(proc, l_addr_reg, l_occ_start_addr);
 
-        uint8_t w_buffer[256];
+        fapi2::buffer<uint64_t> l_cplt_cnfg_data;
+        uint64_t l_cplt_cnfg_addr = 0x010009;
+        bool l_secure_mode = false;
+		fapi2::getScom(proc, l_cplt_cnfg_addr, l_cplt_cnfg_data);
+		l_secure_mode = l_cplt_cnfg_data.getBit<12>() == 1;
+		
+		uint8_t w_buffer[256];
         uint8_t r_buffer[256];
         bool l_false_compare = false;
-        uint32_t i = 0, j = 0, k = l_seeprom_starting_addr;
-        for ( ; i < l_arry_size; i++) {
+        uint32_t l_page_size = 256;
+
+        uint32_t i = 0, page_idx = 0, seeprom_addr = l_seeprom_starting_addr;
+		// page_idx - offset of bytes to be written in a 256B page
+		// seeprom_addr - offset of bytes from beginning addr of seeprom
+		// i - offset of bytes to be written in given array size
+        for ( ; i < l_arry_size && !l_false_compare; i++) {
 
             //Read OCC sram
-            if (i % 8 == 0) fapi2::getScom(proc, l_data_reg, o_data);
+            if (i % 8 == 0) { fapi2::getScom(proc, l_data_reg, o_data);FAPI_INF("o_data is now: %d", o_data);}
 
-            w_buffer[j] = (o_data >>((7-(i%8))*8)) & 0xff;
+            w_buffer[page_idx] = (o_data >>((7-(i%8))*8)) & 0xff;
 
             //Write, read, compare
-            if (k % 256 == 255 || (i == (l_arry_size - 1))) {
-                SpiPageWrite(handle, k - j, j + 1, w_buffer);
-                SpiRead(handle, k - j, j + 1, r_buffer, 0);
+            if ( (page_idx % l_page_size == (l_page_size - 1)) || (i == (l_arry_size - 1))) {
+                if (l_secure_mode){
+					// Chunk functions breaks up 256B pages into 40B pages
+					SpiWriteChunkSECURE(handle, seeprom_addr - page_idx, page_idx + 1, w_buffer, 0);
+					SpiReadChunkSECURE(handle, seeprom_addr - page_idx, page_idx + 1, r_buffer, 0);
+					FAPI_INF("FINISHED WRITING/READING SECURE, addr: %d, len: %d", seeprom_addr - page_idx, page_idx + 1);
+				}
+				else{
+					SpiPageWrite(handle, seeprom_addr - page_idx, page_idx + 1, w_buffer);
+					SpiRead(handle, seeprom_addr - page_idx, page_idx + 1, r_buffer, 0);
+					FAPI_INF("FINISHED WRITING/READING, addr: %d, len: %d", seeprom_addr - page_idx, page_idx + 1);
+				}
 
-                for(uint32_t x=0; x<256; x++){
+				FAPI_INF("COMPARING PAGE NUM %d, page size:%d", i/l_page_size, l_page_size);
+                for(uint32_t x=0; x < (page_idx + 1) && !l_false_compare; x++){
                     if(r_buffer[x]!=w_buffer[x]){
-                            FAPI_INF("ERROR: False compare on page-byte %d, read %d, expected %d", i, r_buffer[x], w_buffer[x]);
+                            FAPI_INF("ERROR: False compare on page-byte %d, read %d, expected %d", x, r_buffer[x], w_buffer[x]);
                             l_false_compare = true;
-                            i = l_arry_size; //break the outer loop
-                            break; //break the inner loop
                     }
                 }
-                FAPI_INF("Completed a write, read, compare to seeprom")
-                k++; j = 0;
+                FAPI_INF("Completed a write, read, compare of %dB page to seeprom", l_page_size)
+                page_idx = 0;
             }
             else {
-                j++; k++;
+                page_idx++;
             }
+			seeprom_addr++;
         }
 
-//        for (uint8_t z=0; z < 255; z++){
-//            FAPI_INF("index:%x r_buffer:%x", z, r_buffer[z]);
-//        }
+        for (uint8_t z=0; z < 100; z++){
+            FAPI_INF("index:%d r_buffer:%x w_buffer:%x", z, r_buffer[z], w_buffer[z]);
+        }
         FAPI_INF("ATTR_SEEPROM_IMG_SIZE: 0x%08x", l_seeprom_img_bytes);
         FAPI_INF("l_false_compare: %d", l_false_compare);
         FAPI_INF("l_arry_size: 0x%08x", l_arry_size);
         FAPI_INF("i: %x", i);
-        FAPI_INF("k: %x", k);
+        FAPI_INF("seeprom_addr: %x", seeprom_addr);
+        FAPI_INF("l_secure_mode: %d", l_secure_mode);
+        FAPI_INF("l_page_size: %d", l_page_size);
+        FAPI_INF("last scom out: 0x%08x", o_data);
 
         //End of chipop code
         if( l_false_compare )

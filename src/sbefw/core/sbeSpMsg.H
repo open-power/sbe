@@ -839,10 +839,12 @@ typedef struct
   */
 typedef struct
 {
-    uint32_t reserved1:8;
-    uint32_t reserved2:8;
-    uint32_t engine:8;
-    uint32_t brd:8;
+    uint64_t engine:8;
+	uint64_t brd:8;
+	uint64_t reserved1:16;
+	uint64_t reserved2:32;
+	uint64_t seeprom_start_addr;
+	uint64_t seeprom_img_size;
 }sbeSeepromEngine_t;
 
 /**

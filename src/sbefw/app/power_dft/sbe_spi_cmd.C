@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -34,17 +35,6 @@
 using namespace std;
 
 using namespace fapi2;
-
-//static inline uint64_t EndianSwap64(uint64_t value) {
-//return (((value & 0x00000000000000ffLL) << 56) |
-//		((value & 0x000000000000ff00LL) << 40) |
-//		((value & 0x0000000000ff0000LL) << 24) |
-//		((value & 0x00000000ff000000LL) << 8)  |
-//		((value & 0x000000ff00000000LL) >> 8)  |
-//		((value & 0x0000ff0000000000LL) >> 24) |
-//		((value & 0x00ff000000000000LL) >> 40) |
-//		((value & 0xff00000000000000LL) >> 56));
-//}
 
 //selects between pib and fcam bus access
 fapi2::ReturnCode putScomSelect(SpiControlHandle& handle, const uint64_t address, const uint64_t data){
@@ -136,28 +126,6 @@ uint64_t SpiInit(SpiControlHandle& handle){
   return fapi2::current_err;
 }
 
-//uint64_t SpiMasterLock(SpiControlHandle& handle, uint64_t PIB_master_ID){
-//	uint32_t base_addr = (PIB_master_ID<<20) + (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
-//	fapi2::buffer<uint64_t> data64 =0x0800000000000000ULL +(PIB_master_ID<<60);
-//
-//	FAPI_TRY(putScomSelect(handle, base_addr + SpimConfigReg1, data64));
-//
-//	return fapi2::FAPI2_RC_SUCCESS;
-//		fapi_try_exit:
-//	return fapi2::current_err;
-//}
-//
-//uint64_t SpiMasterRelinquish(SpiControlHandle& handle, uint64_t PIB_master_ID){
-//	uint32_t base_addr = (PIB_master_ID<<20) + (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
-//	fapi2::buffer<uint64_t> data64 = (PIB_master_ID<<60) + 0x00000000;
-//
-//	FAPI_TRY(putScomSelect(handle, base_addr + SpimConfigReg1, data64));
-//
-//	return fapi2::FAPI2_RC_SUCCESS;
-//		fapi_try_exit:
-//	return fapi2::current_err;
-//}
-
 //waits for transmit-data-register empty
 uint64_t SpiWaitForTdrEmpty(SpiControlHandle& handle){
   uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
@@ -228,7 +196,6 @@ uint64_t WaitForSeqIndexPass(SpiControlHandle& handle, uint32_t index){
 uint64_t SpiWaitForIdle(SpiControlHandle& handle){
   uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
   fapi2::buffer<uint64_t> data64;
-  FAPI_INF("SPI wait for idle: Entering ...");
   while(1) {
 	 FAPI_TRY(getScomSelect(handle, base_addr +  SpimStatusReg, data64));
 	 if((data64.getBit<50>())){//checking for multiplexing error
@@ -269,13 +236,6 @@ uint64_t SpiWaitForWriteComplete(SpiControlHandle& handle){
   	  fapi_try_exit:
   return fapi2::current_err;
 }
-
-////access the spi_slave reset latch
-//void SpiSlaveReset(SpiControlHandle& handle, uint8_t set){
-//	uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
-//	uint64_t data = (uint64_t)set<<39;
-//	FAPI_TRY(putScomSelect(handle, base_addr +  SpimPortControlReg, data));
-//}
 
 //enables spi-slave write
 uint64_t SpiSetWriteEnable(SpiControlHandle& handle){
@@ -348,10 +308,6 @@ uint64_t SpiPageWrite(SpiControlHandle& handle, uint32_t address, uint32_t lengt
 
 //reads data
 uint64_t SpiRead(SpiControlHandle& handle, uint32_t address, uint32_t length, uint8_t *buffer, bool ecc){
-  /*if(length>256){
-	  FAPI_INF("The length is to large  >256");
-	  return fapi2::current_err;
-  }*/
   uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
   fapi2::buffer<uint64_t> data64;
   uint64_t temp;
@@ -384,228 +340,3 @@ uint64_t SpiRead(SpiControlHandle& handle, uint32_t address, uint32_t length, ui
    fapi_try_exit:
   return fapi2::current_err;
 }
-
-//uint64_t SpiReadModifyWrite(SpiControlHandle& handle, uint32_t address, uint32_t length, uint8_t *buffer, bool ecc){
-//	uint32_t  alignedStart, alignedEnd, frontCut, backCut;
-//	uint8_t tempFrontRead[8], tempBackRead[8];
-//
-//	alignedStart = (address/8)*8;
-//	alignedEnd = ((address+length)/8)*8;
-//	frontCut = (8-(address-alignedStart))%8;
-//	backCut = ((address+length))-alignedEnd;
-//
-//	FAPI_INF("alignedStart : %d",alignedStart);
-//	FAPI_INF("alignedEnd   : %d",alignedEnd);
-//	FAPI_INF("frontCut     : %d",frontCut);
-//	FAPI_INF("backCut      : %d",backCut);
-//
-//	bool oneBlock = (alignedStart == alignedEnd);
-//	bool middleBlock = !((alignedEnd-8)<=(alignedStart));
-//
-//	/*if(ecc){
-//		address = (address * 9) / 8;
-//		alignedStart = (alignedStart * 9) / 8;
-//		alignedEnd = (alignedEnd * 9) / 8;
-//		handle.ecc_select = ecc_on;
-//		handle.addr_corr = no_ecc_address_correction;
-//	}
-//	else{
-//		handle.ecc_select = transparent;
-//		handle.addr_corr = no_ecc_address_correction;
-//	}*/
-//
-//	SpiReadChunk(handle, alignedStart, 8, tempFrontRead, ecc);
-//	SpiReadChunk(handle, alignedEnd, 8, tempBackRead, ecc);
-//
-//	if(oneBlock){
-//		for(uint32_t i=0; i<length; i++){
-//			tempFrontRead[i+(8-frontCut)] = buffer[i];
-//		}
-//		SpiWriteChunk(handle, alignedStart, 8, tempFrontRead, ecc);
-//	}
-//	else{
-//		for(uint32_t i=0; i<frontCut; i++){
-//			tempFrontRead[(8-frontCut)+i] = buffer[i];
-//		}
-//		SpiWriteChunk(handle, alignedStart, 8, tempFrontRead, ecc);
-//
-//		if(middleBlock){
-//			if(frontCut>0){
-//				SpiWriteChunk(handle, alignedStart+8, (length-(frontCut+backCut)), buffer+frontCut, ecc);
-//			}
-//			else{
-//				SpiWriteChunk(handle, alignedStart, (length-(frontCut+backCut)), buffer, ecc);
-//			}
-//		}
-//
-//		for(uint32_t i=0; i<backCut; i++){
-//			tempBackRead[i] = buffer[(length-backCut)+i];
-//		}
-//		SpiWriteChunk(handle, alignedEnd, 8, tempBackRead, ecc);
-//	}
-//
-//	return fapi2::FAPI2_RC_SUCCESS;
-//		fapi_try_exit:
-//	return fapi2::current_err;
-//}
-//
-////generates for an 8-byte array one additional ecc-byte
-//uint8_t SpiEccGen(uint8_t *bytes) {
-//    const uint64_t ecc_mask[] = {
-//      0xFF0000E8423C0F99ll,
-//      0x99FF0000E8423C0Fll,
-//      0x0F99FF0000E8423Cll,
-//      0x3C0F99FF0000E842ll,
-//      0x423C0F99FF0000E8ll,
-//      0xE8423C0F99FF0000ll,
-//      0x00E8423C0F99FF00ll,
-//      0x0000E8423C0F99FFll
-//    };
-//    
-//    uint8_t value = 0;
-//    uint64_t data=0;
-//    for (uint32_t i = 0; i < 8; i++) {
-//      //FAPI_INF("ECC Byte %#08lX  %#08lX ", i, bytes[i]);
-//      data=data<<8;
-//      data=data|bytes[i];
-//    }
-//    //FAPI_INF("ECC Word %#010lX ", data);
-//
-//    for(uint32_t ecc_bit = 0; ecc_bit < 8; ecc_bit++ ) {
-//	  uint64_t scratch;
-//      scratch=ecc_mask[ecc_bit] & data;
-//      uint64_t ones=0;
-//      for(int i=0;i<64;i++){
-//          if(scratch&1) ones++;
-//          scratch=scratch>>1;
-//      }
-//      if( (ones & 1) ) {
-//	value |= (0x80 >> ecc_bit);
-//      }
-//    }
-//   // FAPI_INF("ECC Byte %#04lX", value);
-//    return value;
-//}
-
-///*
-// * writs a chunck of data to memory
-// * handles the page boundary's as well as ecc generation if necessary
-// */
-//fapi2::ReturnCode SpiWriteChunk(SpiControlHandle& handle, uint32_t address, uint32_t length, uint8_t *buffer, bool ecc) {
-//	ECCSelect ecc_select_temp = handle.ecc_select;
-//	handle.ecc_select = transparent;
-//	SpiInit(handle);
-//
-//	uint8_t pbuffer[256];
-//  //FAPI_INF("SPI write chunk: Entering ...");
-//  if (address % 8 != 0) {
-//    FAPI_ERR("Address not 8 byte aligned!");
-//  }
-//  if (length % 8 != 0) {
-//    FAPI_ERR("Length not 8 byte aligned!");
-//  }
-//  if (ecc) {
-//  //if(handle.ecc_select==ecc | handle.ecc_select==discard){
-//    address = (address * 9) / 8;
-//  }
-//  //FAPI_INF("Device Address %#08lX", address);
-//
-//  for (uint32_t i = 0, j = 0, k = address; i < length; i++) {
-//      pbuffer[j] = buffer[i];
-//      if (k % 256 == 255 || (i == (length - 1))) {
-//        SpiPageWrite(handle, k - j, j + 1, pbuffer);
-//        k++;
-//        j = 0;
-//      } else {
-//        j++; k++;
-//      }
-//      if (i % 8 == 7 && ecc) {
-//      //if (i % 8 == 7 && (handle.ecc_select==ecc | handle.ecc_select==discard)) {
-//        pbuffer[j] = SpiEccGen(&(buffer[i-7]));
-//        //FAPI_INF("%02x",pbuffer[j]);
-//        if ((k % 256 == 255) || (i == (length - 1U))) {
-//  		SpiPageWrite(handle, k - j, j + 1, pbuffer);
-//  			//FAPI_INF("length: %d",(j+1));
-//  			k++;
-//  			j = 0;
-//        } else {
-//        	j++; k++;
-//        }
-//      }
-//    }
-//
-//  handle.ecc_select = ecc_select_temp;
-//  SpiInit(handle);
-//
-//  //FAPI_INF("SPI write chunk: Exiting ...");
-//  return fapi2::FAPI2_RC_SUCCESS;
-//  	  fapi_try_exit:
-//  return fapi2::current_err;
-//} 
-
-///*
-// * reads a chunck of data from memory
-// * handles the page boundary's as well as ecc-process if necessary
-// */
-//fapi2::ReturnCode SpiReadChunk(SpiControlHandle& handle, uint32_t address, uint32_t length, uint8_t *buffer, bool ecc) {
-//  //FAPI_INF("SPI read chunk: Entering ...");
-//  if (address % 8 != 0) {
-//    FAPI_ERR("Address not 8 byte aligned!");
-//  }
-//  if (length % 8 != 0) {
-//    FAPI_ERR("Length not 8 byte aligned!");
-//  }
-//  if(ecc){
-//  //if(handle.ecc_select==ecc | handle.ecc_select==discard){
-//	  address = (address * 9) / 8;
-//  }
-//
-//  SpiRead(handle, address, length, buffer, ecc);
-//
-//  //FAPI_INF("SPI read chunk: Exiting ...");
-//  return fapi2::FAPI2_RC_SUCCESS;
-//  	  fapi_try_exit:
-//  return fapi2::current_err;
-//} 
-//
-////erases 4kb sector in which address is located
-//fapi2::ReturnCode SpiSectorErase(SpiControlHandle& handle, uint32_t address) {
-//	uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
-//
-//	SpiSetWriteEnable(handle);
-//
-//	uint64_t seq = 0x1034100000000000ULL | ((uint64_t)handle.port << 56);
-//	uint64_t tdr = 0x2000000000000000ULL | (((uint64_t)address << 32)&0x00ffffffffffffffULL);
-//
-//	FAPI_TRY(putScomSelect(handle, base_addr +  SpimSequencerOpReg, seq));
-//	FAPI_TRY(putScomSelect(handle, base_addr +  SpimTransmitDataReg, tdr));
-//	SpiWaitForIdle(handle);
-//
-//	SpiWaitForWriteComplete(handle);
-//
-//	//FAPI_INF("SPI read chunk: Exiting ...");
-//	return fapi2::FAPI2_RC_SUCCESS;
-//		fapi_try_exit:
-//	return fapi2::current_err;
-//}
-//
-////erases 32kb block in which address is located
-//fapi2::ReturnCode SpiBlockErase(SpiControlHandle& handle, uint32_t address) {
-//	uint32_t base_addr = (SpimBaseAddress<<16) + handle.engine * SpimEngineOffset;
-//
-//	SpiSetWriteEnable(handle);
-//
-//	uint64_t seq = 0x1034100000000000ULL | ((uint64_t)handle.port << 56);
-//	uint64_t tdr = 0x5200000000000000ULL | (((uint64_t)address << 32)&0x00ffffffffffffffULL);
-//
-//	FAPI_TRY(putScomSelect(handle, base_addr +  SpimSequencerOpReg, seq));
-//	FAPI_TRY(putScomSelect(handle, base_addr +  SpimTransmitDataReg, tdr));
-//	SpiWaitForIdle(handle);
-//
-//	SpiWaitForWriteComplete(handle);
-//
-//	//FAPI_INF("SPI read chunk: Exiting ...");
-//	return fapi2::FAPI2_RC_SUCCESS;
-//		fapi_try_exit:
-//	return fapi2::current_err;
-//}
