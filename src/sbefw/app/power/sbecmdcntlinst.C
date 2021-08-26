@@ -110,7 +110,7 @@ static uint32_t specialWakeUpCoreAssert(
             break;
         }
 
-        //Check if the QME is halted 
+        //Check if the QME is halted
         //TODO: This check is only for DD1
         fapi2::buffer<uint64_t> l_qmeIar;
         auto l_parentEq  =  i_target.getParent< fapi2::TARGET_TYPE_EQ >();
@@ -475,6 +475,15 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
         SBE_INFO(SBE_FUNC "mode[0x%02X] coreId[0x%02X] threadId[0x%02X] "
             "threadOps[0x%04X]",req.mode,req.coreId,req.threadId,req.threadOps);
 
+        //Block start instruction in secure mode/production
+        if((SBE_GLOBAL->sbeFWSecurityEnabled) && (!SBE::isSimicsRunning())
+                && (req.threadOps == THREAD_START_INS))
+        {
+            SBE_ERROR(SBE_FUNC "threadOps[0x%02X] blocked in secure mode",(uint8_t)req.threadOps);
+            respHdr.setStatus( SBE_PRI_UNSECURE_ACCESS_DENIED, SBE_SEC_BLACKLISTED_CHIPOP_ACCESS);
+            break;
+        }
+
         // Validate Input Args
         if( false == req.validateInputArgs())
         {
@@ -685,7 +694,7 @@ fapi2::ReturnCode checkCoreCheckStopAndUpdateFuncState()
         for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
             //getChildren() returns functional core targets, but the logic below
-            //can mark the paired fused core as non-functional. This check is to 
+            //can mark the paired fused core as non-functional. This check is to
             //skip acting upon those cores which were marked non-functional due
             //to the pressence of local checkstop on their parter core Targets.
             bool coreFuncState = static_cast<plat_target_handle_t&>(
@@ -700,7 +709,7 @@ fapi2::ReturnCode checkCoreCheckStopAndUpdateFuncState()
               //If in fused mode, update the pair code as non-functional
               if(fuseMode)
               {
-                  fapi2::ATTR_CHIP_UNIT_POS_Type pairCoreId = 
+                  fapi2::ATTR_CHIP_UNIT_POS_Type pairCoreId =
                                                  (coreId % 2) ? (coreId - 1) : (coreId + 1);
                   G_vec_targets[CORE_TARGET_OFFSET+ pairCoreId].setFunctional(false);
                   SBE_INFO("Paired Core:0x%.8x marked non-functional due to local checkstop"
