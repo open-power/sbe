@@ -225,20 +225,29 @@ ReturnCode sbeCaptureTIMAOffsets( uint64_t  *i_timaArray)
                 continue;
             }
 
-
             uint8_t chipUnitNum = 0;
             FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, coreTgt, chipUnitNum);
             for(uint8_t thread = SMT4_THREAD0;thread < SMT4_THREAD_MAX;thread++)
             {
                 //Set the Thread related information into the Debug address register
                 data.flush<0>();
-                uint64_t threadInstance = (chipUnitNum*4)+thread;
+
+                //TIMA SCOMS are on big core(SMT8 core), so its important to
+                //configure the thread id into the debug address SCOM register
+                //as shown below
+                //SMT4 C0(T1,T2,T3,T4) == FUSED CORE0: (T0, T2, T4, T6)
+                //SMT4 C1(T1,T2,T3,T4) == FUSED CORE1: (T1, T3, T5, T7)
+                //SMT4 C2(T1,T2,T3,T4) == FUSED CORE2: (T8, T10, T12, T14)
+                //SMT4 C2(T1,T2,T3,T4) == FUSED CORE3: (T9, T11, T13, T15)
+
+                uint64_t threadInstance = ((chipUnitNum / 2) * 8) + (thread * 2 + chipUnitNum % 2);
                 //Move the Thread id to bits(8..15)in the 64 bit value
                 data = threadInstance << 48;
                 //Set the auto increment mode.
                 data.setBit<0>();
                 SBE_DEBUG("Writing 0x%.8x%.8x into debut address register(0x02010b2c) ",
                          (((uint64_t)data & 0xFFFFFFFF00000000ull) >> 32),((uint64_t)data & 0xFFFFFFFF));
+
                 //Write to the debug address register
                 fapiRc =putscom_abs_wrap(&nest0, INT_PC_REGS_TCTXT_DEBUG_ADDR, data);
                 if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
@@ -276,6 +285,7 @@ ReturnCode sbeCaptureTIMAOffsets( uint64_t  *i_timaArray)
                     (i_timaArray[timaIndex] & 0xFFFFFFFF));
                 }
             }
+
         }
         //If we have failure FAPIRC at this point , indicates turining off the FIR was not successfull.
         //because all other FAPI_RC are ignored. So no need to turn ON the FIR.
