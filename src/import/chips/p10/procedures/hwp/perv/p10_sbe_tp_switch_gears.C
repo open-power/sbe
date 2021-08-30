@@ -46,6 +46,8 @@ enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
     SPI_RECEIVE_DELAY_ENCODED = 1,  // Might need to be adapted once we get some lab experience
     SPI_RECEIVE_DELAY_DECODED = 0x80 >> SPI_RECEIVE_DELAY_ENCODED,
     SBE_LFR                   = 0x000C0002040,
+    MAILBOX_SCRATCH_REG16     = 0x50187,
+    MAILBOX_SCRATCH_REG13     = 0x50184,
     GLSMUX_DELAY_NS           = 100,
     GLSMUX_DELAY_CYCLES       = 1000,
 };
@@ -168,6 +170,22 @@ fapi2::ReturnCode p10_sbe_tp_switch_gears(const
             l_data64.insertFromRight< 20, 4 >(SPI_RECEIVE_DELAY_ENCODED);
             l_data64.insertFromRight< 48, 16 >(l_attr_freq_pau_mhz); //Save this to be used in HReset/Mpipl Reset
             FAPI_TRY(fapi2::putScom(i_target_chip, SBE_LFR, l_data64));
+
+            // To Support the new hreset flow changes update scratch reg16, where we have
+            // lost all of LFR, Scratch16 is SBE owned scratch register in the system.
+            l_data64 = 0;
+            l_data64.insertFromRight< 0, 12 >(sck_clock_divider);
+            l_data64.insertFromRight< 12, 4 >(SPI_RECEIVE_DELAY_ENCODED);
+            l_data64.insertFromRight< 16, 8 >(tpm_spi_freq_mhz);
+            l_data64.insertFromRight< 24, 4 >(tpm_spi_clock_delay);
+            FAPI_TRY(fapi2::putScom(i_target_chip, MAILBOX_SCRATCH_REG16, l_data64));
+
+            // To support the restoring of lost memory after an hreset, move PAU Frequency into
+            // scratch_reg13, These 2bytes in scratch13 are SBE only use-case
+            l_data64 = 0;
+            FAPI_TRY(fapi2::getScom(i_target_chip, MAILBOX_SCRATCH_REG13, l_data64));
+            l_data64.insertFromRight< 16, 16 >(l_attr_freq_pau_mhz);
+            FAPI_TRY(fapi2::putScom(i_target_chip, MAILBOX_SCRATCH_REG13, l_data64));
         }
 
         FAPI_DBG("Update clock divider and receive delay in SPI masters");
