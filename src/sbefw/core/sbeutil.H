@@ -274,18 +274,60 @@ namespace SBE
      */
     bool isMpiplReset(void);
 
-     /* @brief - Set OTPROM_ORIGIN value to g_ivprLoc and
-      *          jump to 0x00018040 address to reset of SBE
-      *
-      * @return - void
-      */
-     void runSystemReset(void);
+    /* @brief - Set OTPROM_ORIGIN value to g_ivprLoc and
+     *          jump to 0x00018040 address to reset of SBE
+     *
+     * @return - void
+     */
+    void runSystemReset(void);
 
-     /* @brief - Unlock the i2c engine E in secure operation mode
-      *
-      *  @return - void
-      */
-     void unlockI2CEngineE(void);
+    /* @brief - Unlock the i2c engine E in secure operation mode
+     *
+     *  @return - void
+     */
+    void unlockI2CEngineE(void);
+
+    /* @brief - Check if the boot is IPL Reset of SBE
+     *
+     * @return - True if IPL Reset, false otherwise
+     */
+    bool isIplReset(void);
+
+    /* @brief - Update Scratch Reg 16 from LFR in IPL Reset flow
+     *
+     * @return - void
+     */
+    void updateScratchReg16fromLFRinIplReset(void);
+
+    /* @brief - Update LFR from scratch reg 16 in HReset flow
+     *
+     * @return - void
+     */
+    void updateLFRfromSrcatchReg16inHReset(void);
+
+    /* @brief - Update LFR from scratch reg 13 in HReset flow
+     *
+     * @return - void
+     */
+    void updateLFRfromScratchReg13inHReset(void);
+
+    /* @brief - Update Scratch Reg 13 from LFR in IPL Reset flow
+     *
+     * @return - void
+     */
+    void updateScratchReg13fromLFRinIplReset(void);
+
+    /* @brief - Enable Xscoms in MPIPL flow
+     *
+     * @return - void
+     */
+    void enableXscoms(void);
+
+    /* @brief - Hard reset the TPM SPI Engine
+     *
+     * @return - void
+     */
+    void hardResetTPMSpiEngine(void);
 
 } // namespace SBE
 #endif //SBE_UTIL_H

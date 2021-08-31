@@ -266,50 +266,63 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
     // is ready now to receive data on its interfaces
     (void)SbeRegAccess::theSbeRegAccess().setSbeReady();
 
-    // This is test function to test the MPIPL path in case of MPIPL Reset
-    // Presently there is no mechanism to force it, simply set ivpr to 0x18000
-    // and iar to 0x18040. Before triggering MPIPL make sure you are setting
-    // 0xc0002040 bit 14 to set, so that OTPROM can act on this info.
+    if (SBE::isIplReset())
+    {
+        SBE_INFO(SBE_FUNC "Ipl Reset path");
+        // Update Scratch Register 16 from LFR to keep a copy of SPI, Delay etc
+        SBE::updateScratchReg16fromLFRinIplReset();
+        // This is to keep scratch13 update to date, basis the LFR at this point
+        // this will get updated again in istep 2.9 basis the new PAU frequency
+        SBE::updateScratchReg13fromLFRinIplReset();
+    }
+
+    // MPIPL Reset path in the boot seeprom, before triggering MPIPL make sure
+    // you are setting LFR bit 14 to set, so that OTPROM can act on this info.
     if (SBE::isMpiplReset())
     {
-        SBE_INFO(SBE_FUNC"Mpipl reset, going back to the state before reset");
+        SBE_INFO(SBE_FUNC "Mpipl reset, going back to the state before reset");
         SBE::setMpiplResetDoneBit();
+        SBE::enableXscoms();
         sbeEnterMpipl(NULL);
     }
     else if (SBE_GLOBAL->isHreset)
     {
-        SBE_INFO(SBE_FUNC"Hreset, going back to the state before reset");
+        SBE_INFO(SBE_FUNC "Hreset, going back to the state before reset");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(
                 (sbeState)SbeRegAccess::theSbeRegAccess().getSbeState());
         SBE_GLOBAL->isHreset = 0;
         SBE::setHResetDoneBit();
+        // This is to keep scratch13 update to date, basis the LFR at this point
+        // this will get updated again in istep 2.9 basis the new PAU frequency
+        SBE::updateLFRfromScratchReg13inHReset();
+        SBE::updateLFRfromSrcatchReg16inHReset();
         SBE::unlockI2CEngineE();
     }
     else if(true == SbeRegAccess::theSbeRegAccess().isDestBitRuntime())
     {
         // Check the destination bit at the start
-        SBE_INFO(SBE_FUNC"Destination bit tells us to go to runtime");
+        SBE_INFO(SBE_FUNC "Destination bit tells us to go to runtime");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_RUNTIME);
         // Do the runtime setup
         ReturnCode rc = sbeDestRuntimeSetup();
         if( rc != FAPI2_RC_SUCCESS )
         {
-            SBE_ERROR(SBE_FUNC"sbeDestRuntimeSetup failed");
+            SBE_ERROR(SBE_FUNC "sbeDestRuntimeSetup failed");
             pk_halt();
         }
     }
     else if(SbeRegAccess::theSbeRegAccess().isIstepMode())
     {
-        SBE_INFO(SBE_FUNC"Continuous IPL mode not set, will wait for "
+        SBE_INFO(SBE_FUNC "Continuous IPL mode not set, will wait for "
                 "commands...");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_ISTEP);
     }
     else
     {
-        SBE_INFO(SBE_FUNC"Continuous IPL Mode set... IPLing");
+        SBE_INFO(SBE_FUNC "Continuous IPL Mode set... IPLing");
         (void)SbeRegAccess::theSbeRegAccess().
               updateSbeState(SBE_STATE_IPLING);
         sbeDoContinuousIpl();

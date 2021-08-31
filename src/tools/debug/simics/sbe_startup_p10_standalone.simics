@@ -84,6 +84,8 @@ foreach $proc in (get-component-list -all proc_p10) {
 
     # Set clock divider in first 12bit, round trip delay in next 4bits in Scratch Reg4
     $proc.cfam_cmp.lbus_map.write 0x2800 + 0x3B*4 0x00420000 4 -b
+    echo "Setting cbs_autostart"
+    $proc.cfam_cmp.fsi2host_mbox->cbs_autostart = TRUE
 
     if $proc == "backplane0.dcm[0].chip[0]"{
         # Set bit24 for Scratch Reg6 - Master Proc

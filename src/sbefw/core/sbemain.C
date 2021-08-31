@@ -341,6 +341,7 @@ uint32_t main(int argc, char **argv)
     SBE_ENTER(SBE_FUNC);
     int l_rc = 0;
     uint64_t rootCtrlReg3 = 0;
+    sbe_scratch_reg13_reuse scratchReg13;
     sbe_local_LFR lfrReg;
 
     uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_MAIN_MSG)<<32;
@@ -370,6 +371,11 @@ uint32_t main(int argc, char **argv)
         PPE_LVD(0x50013, rootCtrlReg3);
         if(!(rootCtrlReg3 & MASK_BIT25))
         {
+            if(SBE::isHreset())
+            {
+                PPE_LVD(0x50184, scratchReg13);
+                lfrReg.pau_freq_in_mhz = scratchReg13.pau_freq_in_mhz;
+            }
             SBE_GLOBAL->sbefreq = (lfrReg.pau_freq_in_mhz * 1000 * 1000)/4; // this is required for pk init;
         }
         // initializes kernel data -
