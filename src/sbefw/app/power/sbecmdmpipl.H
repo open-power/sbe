@@ -42,8 +42,12 @@
 
 //Variables used for LQA sync and quiesce procedures
 static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 20000;
-static const uint64_t SBE_LQA_DELAY_HW_US = 1000000ULL; // 1ms 
+static const uint64_t SBE_LQA_DELAY_HW_US = 10000000ULL; //10msec
 static const uint64_t SBE_LQA_DELAY_SIM_CYCLES = 0x1ULL;
+static const uint64_t SBE_DELAY_SIM_CYCLES = 0x1ULL;
+static const uint64_t SBE_DELAY_HW_1MSEC = 1000000ULL; //1msec
+static const uint64_t SBE_DELAY_1SEC_TIMEOUT_LOOP = 1000;
+static const uint64_t SBE_DELAY_2SEC_TIMEOUT_LOOP = 2000;
 
 /* @brief Bitmapped enumeration to identify the stop clock HWP call
  */

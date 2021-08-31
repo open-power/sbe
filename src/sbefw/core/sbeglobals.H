@@ -234,5 +234,40 @@ typedef struct sbe_scratch_reg13 {
     }
 }sbe_scratch_reg13;
 
-#endif //__SBE_GLOBALS_H
+// This is the struct definition for scratch register 13, to be reused in the
+// hreset path to support Mpipl related use-case. 
+typedef struct sbe_scratch_reg13_reuse {
+    uint32_t unused :16;                  // unused
+    uint32_t pau_freq_in_mhz :16;         // PAU frequency in MHz
+    uint32_t reserved;                    // reserved
 
+    sbe_scratch_reg13_reuse()
+    {
+        unused = 0;
+        pau_freq_in_mhz = 0;
+        reserved = 0;
+    }
+}sbe_scratch_reg13_reuse;
+
+// This is the struct definition for scratch register 16, to be used in the
+// CBS path to support Hreset use-case
+typedef struct sbe_scratch_reg16 {
+    uint32_t spi_clock_divider :12;       // Bit0-11 clock divider Bits
+    uint32_t spi_clock_delay :4;          // Bit12-15 round trip delay
+    uint32_t tpm_spi_clock_freq_Mhz :8;   // Bit16-23 tpm clock divider
+    uint32_t tpm_spi_clock_delay :4;      // Bit24-27 tpm clock delay
+    uint32_t unused :4;                   // Bit28-31 unused
+    uint32_t reserved;                    // reserved
+
+    sbe_scratch_reg16()
+    {
+        spi_clock_divider = 0;
+        spi_clock_delay = 0;
+        tpm_spi_clock_freq_Mhz = 0;
+        tpm_spi_clock_delay = 0;
+        unused = 0;
+        reserved = 0;
+    }
+}sbe_scratch_reg16;
+
+#endif //__SBE_GLOBALS_H

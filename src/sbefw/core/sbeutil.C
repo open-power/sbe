@@ -61,7 +61,7 @@ namespace SBE
         FAPI_ATTR_GET( ATTR_FREQ_PAU_MHZ, sys, pauFreqMhz );
         SBE_INFO(SBE_FUNC "Attr PAU Frequency in MHz [0x%08X]", pauFreqMhz);
         assert( pauFreqMhz );
-        SBE_GLOBAL->sbefreq = 
+        SBE_GLOBAL->sbefreq =
             ( pauFreqMhz * 1000 * 1000 ) / SBE::SBE_TO_NEST_FREQ_FACTOR;
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
@@ -72,7 +72,7 @@ namespace SBE
     {
         #define SBE_FUNC "updatePkFreqRefClk "
         using namespace fapi2;
-        SBE_GLOBAL->sbefreq = SBE_REF_BASE_FREQ_HZ; 
+        SBE_GLOBAL->sbefreq = SBE_REF_BASE_FREQ_HZ;
         SBE_INFO(SBE_FUNC"Setting new frequency:0x%08X", SBE_GLOBAL->sbefreq);
         pk_timebase_freq_set(SBE_GLOBAL->sbefreq);
         #undef SBE_FUNC
@@ -85,7 +85,6 @@ namespace SBE
         sbe_local_LFR lfrReg;
         PPE_LVD(0xc0002040, lfrReg);
         isHreset = lfrReg.runtime_reset;
-        //SBE_INFO(SBE_FUNC" [%d]", isHreset);
         return (isHreset);
         #undef SBE_FUNC
     }
@@ -117,7 +116,6 @@ namespace SBE
         sbe_local_LFR lfrReg;
         PPE_LVD(0xc0002040, lfrReg);
         isMpiplDone = lfrReg.mpipl_reset_done;
-        //SBE_INFO(SBE_FUNC" [%d]", isMpiplDone);
         return (isMpiplDone);
         #undef SBE_FUNC
     }
@@ -136,7 +134,7 @@ namespace SBE
     {
         #define SBE_FUNC "CLEAR_MPIPL_RESET"
         sbe_local_LFR lfrReg;
-        // Set the mpiplreset bit and write to WO_OR Reg to clear
+        // Set the mpiplreset bit and write to WO_CLR Reg to clear
         lfrReg.mpipl = 1;
         PPE_STVD(0xc0002058, lfrReg);
         #undef SBE_FUNC
@@ -144,12 +142,11 @@ namespace SBE
 
     bool isMpiplReset(void)
     {
-        #define SBE_FUNC "IS_MPIPL"
+        #define SBE_FUNC "IS_MPIPL_RESET"
         bool isMpipl = false;
         sbe_local_LFR lfrReg;
         PPE_LVD(0xc0002040, lfrReg);
         isMpipl = lfrReg.mpipl;
-        //SBE_INFO(SBE_FUNC" [%d]", isMpipl);
         return (isMpipl);
         #undef SBE_FUNC
     }
@@ -157,7 +154,7 @@ namespace SBE
     void runSystemReset(void)
     {
         #define SBE_FUNC "RUN_SYSTEM_RESET"
-        SBE_INFO(SBE_FUNC" System is going for manual Reset");
+        SBE_INFO(SBE_FUNC" System is going for manual Reset/Jump to Reset location");
         uint32_t reset_msr = 0;
         mtmsr(reset_msr);
         uint64_t data = (uint64_t)(OTPROM_ORIGIN) << 32;
@@ -190,6 +187,92 @@ namespace SBE
         {
             PPE_STVD(0x000A3001, i2cEngineELockReset);
         }
+        #undef SBE_FUNC
+    }
+
+    bool isIplReset(void)
+    {
+        #define SBE_FUNC "IS_IPL_RESET"
+        bool isIplReset = false;
+        sbe_local_LFR lfrReg;
+        PPE_LVD(0xc0002040, lfrReg);
+        isIplReset = lfrReg.ipl_reset;
+        return (isIplReset);
+        #undef SBE_FUNC
+    }
+
+    void updateScratchReg16fromLFRinIplReset()
+    {
+        #define SBE_FUNC "UPDATE_SCRATCH_REG16_FROM_LFR_IPL_RESET"
+        sbe_local_LFR lfrReg;
+        sbe_scratch_reg16 scratchReg16;
+        PPE_LVD(0x50187, scratchReg16);
+        PPE_LVD(0xc0002040, lfrReg);
+        scratchReg16.spi_clock_divider = lfrReg.spi_clock_divider;
+        scratchReg16.spi_clock_delay = lfrReg.round_trip_delay;
+        scratchReg16.tpm_spi_clock_freq_Mhz = lfrReg.tpm_spi_clock_freq_Mhz;
+        scratchReg16.tpm_spi_clock_delay =  lfrReg.tpm_spi_clock_delay;
+        PPE_STVD(0x50187, scratchReg16);
+        #undef SBE_FUNC
+    }
+
+    void updateLFRfromSrcatchReg16inHReset()
+    {
+        #define SBE_FUNC "UPDATE_LFR_FROM_SCRATCH_REG16_HRESET"
+        SBE_INFO(SBE_FUNC " Hreset path updating LFR from scratch16");
+        sbe_local_LFR lfrReg;
+        sbe_scratch_reg16 scratchReg16;
+        PPE_LVD(0x50187, scratchReg16);
+        PPE_LVD(0xc0002040, lfrReg);
+        lfrReg.tpm_spi_clock_freq_Mhz = scratchReg16.tpm_spi_clock_freq_Mhz;
+        lfrReg.tpm_spi_clock_delay = scratchReg16.tpm_spi_clock_delay;
+        PPE_STVD(0xc0002040, lfrReg);
+        #undef SBE_FUNC
+    }
+
+    void updateLFRfromScratchReg13inHReset()
+    {
+        #define SBE_FUNC "UPDATE_LFR_FROM_SCRATCH_REG13_HRESET"
+        SBE_INFO(SBE_FUNC " Hreset path updating LFR from scratch13");
+        sbe_local_LFR lfrReg;
+        sbe_scratch_reg13_reuse scratchReg13;
+        PPE_LVD(0x50184, scratchReg13);
+        PPE_LVD(0xc0002040, lfrReg);
+        lfrReg.pau_freq_in_mhz = scratchReg13.pau_freq_in_mhz;
+        PPE_STVD(0xc0002040, lfrReg);
+        #undef SBE_FUNC
+    }
+
+    void updateScratchReg13fromLFRinIplReset()
+    {
+        #define SBE_FUNC "UPDATE_SCRATCH_REG13_FROM_LFR_IPL_RESET"
+        sbe_local_LFR lfrReg;
+        sbe_scratch_reg13_reuse scratchReg13;
+        PPE_LVD(0x50184, scratchReg13);
+        PPE_LVD(0xc0002040, lfrReg);
+        scratchReg13.pau_freq_in_mhz = lfrReg.pau_freq_in_mhz;
+        PPE_STVD(0x50184, scratchReg13);
+        #undef SBE_FUNC
+    }
+
+    void enableXscoms(void)
+    {
+        #define SBE_FUNC "ENABLE_XSCOMS"
+        SBE_INFO(SBE_FUNC " Enable Xscoms after an mpipl reset");
+        uint64_t data = 0;
+        PPE_LVD(0x90010, data);
+        data = (data & 0xfffffffffffffffeull);
+        PPE_STVD(0x90010, data);
+        #undef SBE_FUNC
+    }
+
+    void hardResetTPMSpiEngine(void)
+    {
+        #define SBE_FUNC "HARD_RESET_TPM_SPI_ENGINE"
+        uint64_t loadData =0x0008000000000000ULL;
+        PPE_STVD(0xc0002010, loadData);
+        PPE_STVD(0xc0002018, loadData);
+        SBE_INFO( SBE_FUNC " Hard-resetting the TPM SPI engine before Mpipl Reset");
         #undef SBE_FUNC
     }
 }

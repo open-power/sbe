@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2021                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -50,7 +51,8 @@ void securityState_PCR6::update(uint32_t sbe_role)
 
     //Fetch Minimum Secure Version
     minimumSecureVersion = *(uint8_t*)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + SHA512_DIGEST_LENGTH);
-    SBEM_INFO("MinimumSecureVersion: [%d]  Jumper State: [%d]", minimumSecureVersion, jumperState);
+
+    SBEM_INFO("MinimumSecureVersion:[%d] Jumper State:[%d]", minimumSecureVersion, jumperState);
 
     SBEM_EXIT(SBEM_FUNC);
     #undef SBEM_FUNC
@@ -65,16 +67,20 @@ void securityState_PCR1::update(uint32_t sbe_role)
     fapi2::buffer<uint64_t> cbs_cs_reg;
     sbe_local_LFR lfrReg;
 
+    //Fetch the Boot Seeprom Selection and Mpipl from LFR
+    PPE_LVD(0xc0002040, lfrReg);
+
     //Fetch Jumper state
     getscom_abs(scomt::perv::FSXCOMP_FSXLOG_CBS_CS, &cbs_cs_reg());
     jumperState = cbs_cs_reg.getBit<5>();
 
-    //Fetch the MPIPL state from LFR
-    PPE_LVD(0xc0002040, lfrReg);
     if (lfrReg.mpipl)
     {
         isMpipl = 0x1;
     }
+
+    // Boot Seeprom Selection
+    bootSeepromSelection = lfrReg.sec_boot_seeprom;
 
     //Check if primary proc
     if(sbe_role == SBE_ROLE_MASTER)
@@ -91,9 +97,12 @@ void securityState_PCR1::update(uint32_t sbe_role)
 
     //Fetch Measurement Image version
     mSeepromVersion = *(uint32_t*)(getXipOffsetAbsMeasurement(P9_XIP_SECTION_SBE_SB_SETTINGS));
+
     SBEM_INFO("Jumper State: [%d] Primary Proc: [%d]  MeasurementSeepromLock: [%d] "
         "Minimum Secure Version: [%d]", jumperState, isPrimary, mSeepromLock, minimumSecureVersion);
-    SBEM_INFO("Measurement Image Version [0x%08X]", mSeepromVersion);
+
+    SBEM_INFO("Measurement Image Version [0x%08X], isMpipl[%d], bootSeepromSelection[%d]",
+        mSeepromVersion, isMpipl, bootSeepromSelection);
 
     SBEM_EXIT(SBEM_FUNC);
     #undef SBEM_FUNC

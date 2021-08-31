@@ -78,7 +78,11 @@ p10_hcd_core_stopclocks_FP_t p10_hcd_core_stopclocks_hwp = &p10_hcd_core_stopclo
 p10_hcd_core_stopgrid_FP_t p10_hcd_core_stopgrid_hwp = &p10_hcd_core_stopgrid;
 p10_hcd_core_stopclocks_FP_t p10_hcd_mma_stopclocks_hwp = &p10_hcd_mma_stopclocks;
 p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
+p10_adu_utils_reset_adu_FP_t p10_adu_utils_reset_adu_hwp = &p10_adu_utils_reset_adu;
+p10_adu_utils_cleanup_adu_FP_t p10_adu_utils_cleanup_adu_hwp = &p10_adu_utils_cleanup_adu;
 #endif
+
+fapi2::ReturnCode sbeSyncWithAllSbeUsingLQA(bool i_ignoreAduAddrError, uint8_t& o_quiesced_status);
 
 static const uint32_t SBE_ISTEP_MPIPL_START         = 96;
 static const uint32_t MPIPL_START_MAX_SUBSTEPS      = 9;
@@ -298,6 +302,9 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    size_t timeOut = SBE_DELAY_2SEC_TIMEOUT_LOOP;
+    bool ignoreAddrError = false;
+    uint8_t status = 0;
 
     do
     {
@@ -316,45 +323,10 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
                     " Mpipl Reset, RC=[0x%08X]", rc);
                 break;
             }
-            // Use the LQA bit to indicate the other chips that Stop Instruction
-            // is done on this chip.
-            uint64_t data = 0x1000000000000000ULL; //Set bit3
-            // Set bit3(SECURITY_SWITCH_LOCAL_QUIESCE_ACHIEVED) on 0x00010005
-            rc = putscom_abs_wrap(&procTgt, OTP_SECURITY_SWITCH, data);
-            if(rc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "PutScom failed for OTP_SECURITY_SWITCH(0x10005)"
-                    " before Mpipl Reset, RC=[0x%08X]", rc);
-                break;
-            }
-
-            // Sync with all the chips before invoking measurement Seeprom sequence
-            // of TPM Reset. This will make sure no thread from any chip is accessing
-            // TPM SPI
-            uint8_t status = 0;
-            size_t timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
-            while(timeOut)
-            {
-                rc = p10_sbe_sync_quiesce_states(procTgt, status);
-                if(rc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states failed before "
-                        "MPIPL Reset, RC=[0x%08X]",rc);
-                    break;
-                }
-                if(status)
-                {
-                    SBE_INFO(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System "
-                        "Quiesce done before Mpipl Reset");
-                    break;
-                }
-                else
-                {
-                    timeOut--;
-                    // delay prior to repeating the above
-                    fapi2::delay(SBE_LQA_DELAY_HW_US, SBE_LQA_DELAY_SIM_CYCLES);
-                }
-            }
+            ignoreAddrError = false;
+            status = 0;
+            // Perform Sync up with other SBEs in the system
+            rc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
             if(!status || rc)
             {
                 SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
@@ -377,18 +349,52 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             }
 
             // Hard-Reset SPI TPM engine.
-            uint64_t loadData =0x0008000000000000ULL;
-            PPE_STVD(0xc0002010, loadData);
-            PPE_STVD(0xc0002018, loadData);
-            SBE_INFO(SBE_FUNC "Hard-resetting the TPM SPI engine before Mpipl Reset");
+            SBE::hardResetTPMSpiEngine();
 
             // Create MPIPL Reset request for the Otprom to execute
             // Set bit 14 in 0xc0002040 and jump to otprom addr 0x18040
             SBE::setMpiplReset();
+
+            // one or more SBEs may run faster and can go to the xscom disable in
+            // measurement path which will block the above sync path on other SBEs.
+            // This timeout will give enough time to other SBEs to finish the sync.
+            timeOut = SBE_DELAY_2SEC_TIMEOUT_LOOP;
+            while(timeOut)
+            {
+                fapi2::delay(SBE_DELAY_HW_1MSEC, SBE_DELAY_SIM_CYCLES);
+                timeOut--;
+            }
             SBE::runSystemReset();
             // There is no execution after this.. SBE is taking a reset.
         }
 
+        // Call the Sync again here before you execute mpipl procedure.
+        ignoreAddrError = true;
+        status = 0;
+        SBE_INFO(SBE_FUNC " LQA SBE System Quiesce After Mpipl Reset before Procedures - Starting");
+        rc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
+        if(!status || rc)
+        {
+            SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
+                    "failed, Either System Quiesce Achieved not true or procedure failed "
+                    "After Mpipl Reset before Procedures, RC=[0x%08X] Status[0x%02X]", rc, status);
+
+            SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
+                    "failure after Mpipl Reset !!");
+
+            //Force System Checkstop
+            fapi2::buffer<uint64_t> data(0);
+            data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
+            rc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR("Failed to force system checkstop to indicate failure in"
+                        "p10_sbe_sync_quiesce_states HWP After Mpipl Reset before Procedures");
+            }
+            break;
+        }
+
+        SBE_INFO(SBE_FUNC " Starting Mpipl Procedures");
         fapiRc = startMpiplIstepsExecute();
         bool checkstop = isSystemCheckstop();
         if((fapiRc != FAPI2_RC_SUCCESS) || checkstop)
@@ -1015,5 +1021,77 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     #undef SBE_FUNC
     return 0;
 }
+
+fapi2::ReturnCode sbeSyncWithAllSbeUsingLQA(bool i_ignoreAduAddrError, uint8_t& o_quiesced_status)
+{
+    #define SBE_FUNC " SBE_SYNC_WITH_ALL_SBE_USING_LQA "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    size_t timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
+    o_quiesced_status = 0;
+    // Use the LQA bit to indicate the other chips
+    uint64_t data = 0x1000000000000000ULL; //Set bit3
+    // Set bit3(SECURITY_SWITCH_LOCAL_QUIESCE_ACHIEVED) on 0x00010005
+    rc = putscom_abs_wrap(&procTgt, OTP_SECURITY_SWITCH, data);
+    if(rc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(SBE_FUNC "PutScom failed for OTP_SECURITY_SWITCH(0x10005) RC=[0x%08X]", rc);
+    }
+    else
+    {
+        // Sync with all the chips before invoking measurement Seeprom sequence
+        // of TPM Reset. This will make sure no thread from any chip is accessing
+        // TPM SPI
+        timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
+        while(timeOut)
+        {
+            rc = p10_sbe_sync_quiesce_states(procTgt, o_quiesced_status);
+            if(rc != FAPI2_RC_SUCCESS)
+            {
+                if((rc == RC_P10_ADU_STATUS_REG_ADDRESS_ERR) && (i_ignoreAduAddrError == true))
+                {
+                    SBE_INFO(SBE_FUNC " Adu Address Error, Retry with Adu Reset and Cleanup, FapiRC[0x%08X]", rc);
+                    rc= FAPI2_RC_SUCCESS;
+                    o_quiesced_status = 0;
+                    SBE_EXEC_HWP(rc, p10_adu_utils_reset_adu_hwp, procTgt);
+                    if(rc != FAPI2_RC_SUCCESS)
+                    {
+                        SBE_ERROR(SBE_FUNC " Adu reset Error, rc[0x%08X]", rc);
+                        break;
+                    }
+                    SBE_EXEC_HWP(rc, p10_adu_utils_cleanup_adu_hwp, procTgt);
+                    if(rc != FAPI2_RC_SUCCESS)
+                    {
+                        SBE_ERROR(SBE_FUNC " Adu reset Error, rc[0x%08X]", rc);
+                        break;
+                    }
+                }
+                else
+                {
+                    SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states failed before MPIPL Reset, RC=[0x%08X]",rc);
+                    break;
+                }
+            }
+            if(o_quiesced_status)
+            {
+                SBE_INFO(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System "
+                        "Quiesce done before Mpipl Reset");
+                break;
+            }
+            else
+            {
+                timeOut--;
+                // delay prior to repeating the above
+                fapi2::delay(SBE_LQA_DELAY_HW_US, SBE_LQA_DELAY_SIM_CYCLES);
+            }
+        }
+    }
+
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
+    return rc;
+}
+
 
 #endif //__SBEFW_SEEPROM__
