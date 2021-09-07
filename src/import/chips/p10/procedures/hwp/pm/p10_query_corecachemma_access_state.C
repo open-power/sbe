@@ -146,6 +146,20 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
             l_scanStateData.setBit(MMA_START_POSITION + l_core_num);
         }
 
+        //Read Clock grid control status data and if Bit 11 is not set, then
+        //core rings can't be read
+        l_rc = fapi2::getScom(l_core, CPMS_CGCSR, l_scomData);
+
+        if (l_rc)
+        {
+            FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_CGCSR);
+            goto scom_check;
+        }
+
+        if (!l_scomData.getBit<CPMS_CGCSR_CL2_CLKGLM_SEL>())
+        {
+            l_scanStateData.clearBit(CORE_START_POSITION + l_core_num);
+        }
     }
 
     o_scanStateData.scanState = l_scanStateData;
