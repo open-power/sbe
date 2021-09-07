@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,7 +28,7 @@
 OUTPUT_FORMAT(elf32-powerpc);
 
 #ifndef INITIAL_STACK_SIZE
-#define INITIAL_STACK_SIZE 256
+#define INITIAL_STACK_SIZE 512
 #endif
 
 MEMORY
@@ -218,7 +218,6 @@ SECTIONS
 
 
     . = ALIGN(8); _DATA_SECTION_BASE = .;
-    _SDA_BASE_ = .;
     .data . : {
               *(.data*)  *(.comment)
      } > pibmem
@@ -238,9 +237,11 @@ SECTIONS
     _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
 #endif
 
+    _SDA_BASE_ = .;
+
     _sbss_start = .;
     .sbss   . : {
-    *(.bss*) *(.sbss*);
+    *(.sbss*) *(.bss*);
     . = ALIGN(8);
    } > pibmem
     _sbss_end = .;
