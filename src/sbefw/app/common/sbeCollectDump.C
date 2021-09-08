@@ -797,7 +797,7 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
                SBE_INFO("DUMP GETRING: PreCheck for PAUC[%d]PAU[%d]", pauChipId, pauUnitNum);
                uint8_t pauLogId = pauc_pau_map[pauChipId][pauUnitNum];
                pervTargetFunctionalState
-                 =  G_vec_targets[PAU_TARGET_OFFSET + pauLogId].getFunctional();
+                                =  G_vec_targets[pauLogId].getFunctional();
            }
         }
     }
