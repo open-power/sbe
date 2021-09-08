@@ -525,8 +525,8 @@ enum sbeThreadOps
  */
 enum LPCAccessTimeoutFlag
 {
-    LPC_ACCESS_TIMEOUT_TRUE  = 0x0,
-    LPC_ACCESS_TIMEOUT_FALSE = 0x1,
+    LPC_ACCESS_TIMEOUT_FALSE  = 0x0,
+    LPC_ACCESS_TIMEOUT_TRUE = 0x1,
 };
 
 /**
