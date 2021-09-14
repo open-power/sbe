@@ -1197,7 +1197,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     iv_chipOpffdc.setCmdInfo(0, SBE_CMD_CLASS_SCOM_ACCESS, SBE_CMD_GETSCOM );
     // Add HWP specific ffdc data length
     iv_chipOpffdc.lenInWords = 0;
-    iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
+    iv_oStream.setFifoRc(FAPI2_RC_SUCCESS);
     iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
 
     // Update address, length and stream header data vai FIFO
@@ -1242,9 +1242,12 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
         sbefifo_hwp_data_istream istream( iv_fifoType, len,
                                          (uint32_t*)&reqMsg, false );
         rc = sbeGetHWReg_Wrap( istream, iv_oStream );
-        if(rc)
+        if( (rc != SBE_SEC_OPERATION_SUCCESSFUL) ||
+            (iv_oStream.getFifoRc() != FAPI2_RC_SUCCESS) ||
+            (iv_oStream.getPriSecRc() != SBE_SEC_OPERATION_SUCCESSFUL) )
         {
             SBE_ERROR(SBE_FUNC "sbeGetHWReg_Wrap failed for OCMB Instance");
+            rc = SBE_SEC_INVALID_ADDRESS_PASSED;
             iv_oStream.put(FIFO_DOUBLEWORD_LEN, (uint32_t*)&dumpData);
         }       
     }
