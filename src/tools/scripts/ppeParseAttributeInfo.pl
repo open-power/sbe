@@ -496,7 +496,7 @@ foreach my $entr (@{$entries->{entry}}) {
                 if($targType ~~ ["TARGET_TYPE_PROC_CHIP", "TARGET_TYPE_SYSTEM",
                     "TARGET_TYPE_CORE", "TARGET_TYPE_PAU", "TARGET_TYPE_PERV",
                     "TARGET_TYPE_EQ", "TARGET_TYPE_NMMU", "TARGET_TYPE_PHB",
-                    "TARGET_TYPE_PEC", "TARGET_TYPE_MC", "TARGET_TYPE_MI",
+                    "TARGET_TYPE_PEC", "TARGET_TYPE_MC", "TARGET_TYPE_MI", "TARGET_TYPE_MCC",
                     "TARGET_TYPE_PAUC", "TARGET_TYPE_IOHS", "TARGET_TYPE_OCMB_CHIP",
                     "TARGET_TYPE_PMIC", "TARGET_TYPE_GENERICI2CSLAVE"])
                 {

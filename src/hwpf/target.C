@@ -231,6 +231,12 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type = PPE_TARGET_TYPE_MI;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    else if(K & TARGET_TYPE_MCC)
+    {
+        l_handle.fields.chiplet_num = (i_plat_argument / MCC_PER_MC) + MC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_MCC;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
     else if(K & TARGET_TYPE_NMMU)
     {
         l_handle.fields.chiplet_num = i_plat_argument + NEST_CHIPLET_OFFSET;
@@ -555,6 +561,9 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MC:
                 l_targetType = TARGET_TYPE_MC;
                 break;
+            case PPE_TARGET_TYPE_MCC:
+                l_targetType = TARGET_TYPE_MCC;
+                break;
             case PPE_TARGET_TYPE_PEC:
                 l_targetType = TARGET_TYPE_PEC;
                 break;
@@ -763,6 +772,18 @@ fapi_try_exit:
             }
         }
 
+        // Loop over all MC targets for MCC, OMIC and OMI targets
+        // and update functional/non-functional state as per parent MC
+        for(uint32_t i=0; i<MC_TARGET_COUNT; ++i)
+        {
+            plat_target_handle &mcRef = G_vec_targets[i + MC_TARGET_OFFSET];
+            bool mcfunc = mcRef.fields.functional;
+            for(uint32_t j=0; j<MCC_PER_MC; ++j)
+            {
+                G_vec_targets[j + MCC_TARGET_OFFSET + (i*MCC_PER_MC)].setFunctional(mcfunc);
+            }
+        }
+
         // EQs are always functional, find the logical Cores Target
         // and update functional/non-functional state
         for(uint32_t i=0; i<EQ_TARGET_COUNT; ++i)
@@ -913,6 +934,15 @@ fapi_try_exit:
          for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
         {
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
+        }
+
+        /*
+         *  MCC Target
+         */
+        l_beginning_offset = MCC_TARGET_OFFSET;
+         for (uint32_t i = 0; i < MCC_TARGET_COUNT; ++i)
+        {
+            G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_MCC>(i);
         }
 
         /*

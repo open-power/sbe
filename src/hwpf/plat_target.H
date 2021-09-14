@@ -41,6 +41,7 @@
 static const uint8_t CORES_PER_QUAD     = 4;
 static const uint8_t PAU_PER_PAUC       = 2;
 static const uint8_t MI_PER_MC          = 1;
+static const uint8_t MCC_PER_MC         = 2;
 static const uint8_t PHB_PER_PEC        = 3;
 static const uint8_t PARTIAL_GOOD_CORE0 = 13;
 static const uint8_t PARTIAL_GOOD_PAU0  = 13;
@@ -81,6 +82,7 @@ namespace fapi2
         PPE_TARGET_TYPE_OCMB              = 0x0F,
         PPE_TARGET_TYPE_PMIC              = 0x10,
         PPE_TARGET_TYPE_GENERICI2CSLAVE   = 0x11,
+        PPE_TARGET_TYPE_MCC               = 0x12,
 
         // 0x12 is free
     } plat_target_type_t;
@@ -107,7 +109,7 @@ namespace fapi2
         { false, 0                   }, // PPE_TARGET_TYPE_OCMB
         { false, 0                   }, // PPE_TARGET_TYPE_PMIC
         { false, 0                   }, // PPE_TARGET_TYPE_GENERICI2CSLAVE
-        { false, 0                   }, // 0x12
+        { false, 0                   }, // PPE_TARGET_TYPE_MCC
     };
 
     template <plat_target_type T>

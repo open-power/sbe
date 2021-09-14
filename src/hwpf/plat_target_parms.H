@@ -123,6 +123,10 @@ CONST_UINT32_T(PMIC_TARGET_COUNT,      64); // 4 per OCMB in 4U
 CONST_UINT32_T(GI2C_TARGET_OFFSET, PMIC_TARGET_OFFSET + PMIC_TARGET_COUNT);
 CONST_UINT32_T(GI2C_TARGET_COUNT,      64); // 4 per OCMB in 4U
 
+// MCC Targets
+CONST_UINT32_T(MCC_TARGET_OFFSET,  GI2C_TARGET_OFFSET + GI2C_TARGET_COUNT);
+CONST_UINT32_T(MCC_TARGET_COUNT,          8);
+
 // First non-chiplet target
 CONST_UINT32_T(NON_CHIPLET_TARGET_OFFSET, CORE_TARGET_OFFSET);
 
@@ -137,7 +141,8 @@ CONST_UINT32_T(TARGET_COUNT,        CHIP_TARGET_COUNT +
                                     SYSTEM_TARGET_COUNT +
                                     OCMB_TARGET_COUNT +
                                     PMIC_TARGET_COUNT +
-                                    GI2C_TARGET_COUNT);
+                                    GI2C_TARGET_COUNT +
+                                    MCC_TARGET_COUNT );
 
 // Maximum possible Pervasive chiplets
 CONST_UINT32_T(MAX_PERV_CHIPLETS, 96);

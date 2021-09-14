@@ -127,6 +127,12 @@ namespace fapi2
     }
 
     template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_MCC>()
+    {
+        return PPE_TARGET_TYPE_MCC;
+    }
+
+    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PAUC>()
     {
         return PPE_TARGET_TYPE_PAUC;
@@ -309,6 +315,7 @@ namespace fapi2
                          "Invalid child target for MC parent");
             return get().template convertToChiplet<PPE_TARGET_TYPE_MC>();
         }
+
         // Anything to PEC, regardless of multicast or not
         else if (T_NO_MCAST == TARGET_TYPE_PEC)
         {
