@@ -237,6 +237,18 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
         l_handle.fields.type = PPE_TARGET_TYPE_MCC;
         l_handle.fields.type_target_num = i_plat_argument;
     }
+    else if(K & TARGET_TYPE_OMIC)
+    {
+        l_handle.fields.chiplet_num = (i_plat_argument / OMIC_PER_MC) + MC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_OMIC;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
+    else if(K & TARGET_TYPE_OMI)
+    {
+        l_handle.fields.chiplet_num = (i_plat_argument / OMI_PER_MC) + MC_CHIPLET_OFFSET;
+        l_handle.fields.type = PPE_TARGET_TYPE_OMI;
+        l_handle.fields.type_target_num = i_plat_argument;
+    }
     else if(K & TARGET_TYPE_NMMU)
     {
         l_handle.fields.chiplet_num = i_plat_argument + NEST_CHIPLET_OFFSET;
@@ -564,6 +576,12 @@ fapi_try_exit:
             case PPE_TARGET_TYPE_MCC:
                 l_targetType = TARGET_TYPE_MCC;
                 break;
+            case PPE_TARGET_TYPE_OMIC:
+                l_targetType = TARGET_TYPE_OMIC;
+                break;
+            case PPE_TARGET_TYPE_OMI:
+                l_targetType = TARGET_TYPE_OMI;
+                break;
             case PPE_TARGET_TYPE_PEC:
                 l_targetType = TARGET_TYPE_PEC;
                 break;
@@ -782,6 +800,14 @@ fapi_try_exit:
             {
                 G_vec_targets[j + MCC_TARGET_OFFSET + (i*MCC_PER_MC)].setFunctional(mcfunc);
             }
+            for(uint32_t j=0; j<OMIC_PER_MC; ++j)
+            {
+                G_vec_targets[j + OMIC_TARGET_OFFSET + (i*OMIC_PER_MC)].setFunctional(mcfunc);
+            }
+            for(uint32_t j=0; j<OMI_PER_MC; ++j)
+            {
+                G_vec_targets[j + OMI_TARGET_OFFSET + (i*OMI_PER_MC)].setFunctional(mcfunc);
+            }
         }
 
         // EQs are always functional, find the logical Cores Target
@@ -931,7 +957,7 @@ fapi_try_exit:
          *       uses MC constants
          */
         l_beginning_offset = MC_TARGET_OFFSET;
-         for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
+        for (uint32_t i = 0; i < MC_TARGET_COUNT; ++i)
         {
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_MC>(i);
         }
@@ -940,9 +966,27 @@ fapi_try_exit:
          *  MCC Target
          */
         l_beginning_offset = MCC_TARGET_OFFSET;
-         for (uint32_t i = 0; i < MCC_TARGET_COUNT; ++i)
+        for (uint32_t i = 0; i < MCC_TARGET_COUNT; ++i)
         {
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_MCC>(i);
+        }
+
+        /*
+         * OMIC Target
+         */ 
+        l_beginning_offset = OMIC_TARGET_OFFSET;
+        for (uint32_t i = 0; i < OMIC_TARGET_COUNT; ++i)
+        {
+            G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_OMIC>(i);
+        }
+
+        /*
+         * OMI Target
+         */
+        l_beginning_offset = OMI_TARGET_OFFSET;
+        for (uint32_t i = 0; i < OMI_TARGET_COUNT; ++i)
+        {
+            G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_OMI>(i);
         }
 
         /*
@@ -958,7 +1002,7 @@ fapi_try_exit:
          * IOHS Targets
          */
         l_beginning_offset = IOHS_TARGET_OFFSET;
-         for (uint32_t i = 0; i < IOHS_TARGET_COUNT; ++i)
+        for (uint32_t i = 0; i < IOHS_TARGET_COUNT; ++i)
         {
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_IOHS>(i);
         }
@@ -968,7 +1012,7 @@ fapi_try_exit:
          */
         l_beginning_offset = EQ_TARGET_OFFSET;
         for (uint32_t i = 0; i < EQ_TARGET_COUNT; ++i)
-         {
+        {
             G_vec_targets[l_beginning_offset + i] = createPlatTargetHandle<fapi2::TARGET_TYPE_EQ>(i);
         }
 

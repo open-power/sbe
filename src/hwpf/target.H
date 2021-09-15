@@ -133,6 +133,18 @@ namespace fapi2
     }
 
     template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_OMIC>()
+    {
+        return PPE_TARGET_TYPE_OMIC;
+    }
+
+    template<>
+    constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_OMI>()
+    {
+        return PPE_TARGET_TYPE_OMI;
+    }
+
+    template<>
     constexpr plat_target_type_t fapiTargetTypeToPlatTargetType<TARGET_TYPE_PAUC>()
     {
         return PPE_TARGET_TYPE_PAUC;

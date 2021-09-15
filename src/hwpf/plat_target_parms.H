@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -127,6 +127,14 @@ CONST_UINT32_T(GI2C_TARGET_COUNT,      64); // 4 per OCMB in 4U
 CONST_UINT32_T(MCC_TARGET_OFFSET,  GI2C_TARGET_OFFSET + GI2C_TARGET_COUNT);
 CONST_UINT32_T(MCC_TARGET_COUNT,          8);
 
+// OMIC Targets
+CONST_UINT32_T(OMIC_TARGET_OFFSET,  MCC_TARGET_OFFSET + MCC_TARGET_COUNT);
+CONST_UINT32_T(OMIC_TARGET_COUNT,          8);
+
+// OMI Targets
+CONST_UINT32_T(OMI_TARGET_OFFSET,  OMIC_TARGET_OFFSET + OMIC_TARGET_COUNT);
+CONST_UINT32_T(OMI_TARGET_COUNT,          16);
+
 // First non-chiplet target
 CONST_UINT32_T(NON_CHIPLET_TARGET_OFFSET, CORE_TARGET_OFFSET);
 
@@ -142,7 +150,9 @@ CONST_UINT32_T(TARGET_COUNT,        CHIP_TARGET_COUNT +
                                     OCMB_TARGET_COUNT +
                                     PMIC_TARGET_COUNT +
                                     GI2C_TARGET_COUNT +
-                                    MCC_TARGET_COUNT );
+                                    MCC_TARGET_COUNT +
+                                    OMIC_TARGET_COUNT +
+                                    OMI_TARGET_COUNT );
 
 // Maximum possible Pervasive chiplets
 CONST_UINT32_T(MAX_PERV_CHIPLETS, 96);
