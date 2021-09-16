@@ -985,32 +985,6 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
             FAPI_DBG("Check for clock errors");
             FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_SNS1LTH_RO, l_rcs_status));
 
-            if(!l_rcs_hw545231)
-            {
-                if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC1)
-                {
-                    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC0;
-                    FAPI_ASSERT(((l_rcs_status.getBit<2>() == 0)),
-                                fapi2::RCS_CLOCK_ERR()
-                                .set_MASTER_CHIP(i_target_chip)
-                                .set_READ_SNS1LTH(l_rcs_status)
-                                .set_CLOCK_POS(l_callout_clock)
-                                .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                                "RCS_UNLOCKDET error : Clock A is not locked");
-                }
-
-                if (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_BOTH_OSC0)
-                {
-                    l_callout_clock = fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1;
-                    FAPI_ASSERT(((l_rcs_status.getBit<3>() == 0)),
-                                fapi2::RCS_CLOCK_ERR()
-                                .set_MASTER_CHIP(i_target_chip)
-                                .set_READ_SNS1LTH(l_rcs_status)
-                                .set_CLOCK_POS(l_callout_clock)
-                                .set_ATTR_CP_REFCLOCK_SELECT_VALUE(l_cp_refclck_select),
-                                "RCS_UNLOCKDET error : Clock B is not locked");
-                }
-            }
 
             if (! (l_cp_refclck_select == fapi2::ENUM_ATTR_CP_REFCLOCK_SELECT_OSC1))
             {
