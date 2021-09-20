@@ -1428,7 +1428,36 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 }
             }
             break;
-        //TODO: omic and mcc target types are not yet implemented.
+        case CHIP_UNIT_TYPE_MCC:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_MCC>(fapi2::TARGET_STATE_PRESENT))
+            {
+                if(isChipUnitNumAllowed(target))
+                {
+                    o_targetList.push_back(target);
+                    SBE_DEBUG(SBE_FUNC " MCC: [0x%08X]",target.get());
+                }
+            }
+            break;
+        case CHIP_UNIT_TYPE_OMIC:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_OMIC>(fapi2::TARGET_STATE_PRESENT))
+            {
+                if(isChipUnitNumAllowed(target))
+                {
+                    o_targetList.push_back(target);
+                    SBE_DEBUG(SBE_FUNC " OMIC: [0x%08X]",target.get());
+                }
+            }
+            break;
+        case CHIP_UNIT_TYPE_OMI:
+            for( auto& target : procTgt.getChildren<fapi2::TARGET_TYPE_OMI>(fapi2::TARGET_STATE_PRESENT))
+            {
+                if(isChipUnitNumAllowed(target))
+                {
+                    o_targetList.push_back(target);
+                    SBE_DEBUG(SBE_FUNC " OMI: [0x%08X]",target.get());
+                }
+            }
+            break;
         /*
         //TODO: Bellow targets are required or not should be checked.
         case CHIP_UNIT_TYPE_MCS:
@@ -1445,10 +1474,6 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
             return procTgt.getChildren<fapi2::TARGET_TYPE_MBA>();
         case CHIP_UNIT_TYPE_DMI:
             return procTgt.getChildren<fapi2::TARGET_TYPE_DMI>();
-        case CHIP_UNIT_TYPE_MCC:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_MCC>();
-        case CHIP_UNIT_TYPE_OMI:
-            return procTgt.getChildren<fapi2::TARGET_TYPE_OMI>();
         */
         default:
         {
