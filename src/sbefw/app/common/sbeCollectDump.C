@@ -476,7 +476,7 @@ uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
         if( !checkScomAndScanStateForCore() )
         {
             // Update Core Stop Status DUMP header
-            iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+            iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_NOT_SCOM_SCAN_STATE;
             iv_tocRow.tocHeader.dataLength = 0x00;
             iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
             SBE_INFO("DUMP GETTRAEARRAY: StopStatus Enabled Target UnitNum[0x%08X]",
@@ -632,7 +632,7 @@ uint32_t sbeCollectDump::writeGetTracearrayPacketToFifo()
     if( !checkScomAndScanStateForCore() )
     {
         // Update Core Stop Status DUMP header
-        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_NOT_SCOM_SCAN_STATE;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETTRAEARRAY: StopStatus Enabled Target UnitNum[0x%08X]",
@@ -816,7 +816,7 @@ uint32_t sbeCollectDump::writeGetRingPacketToFifo()
     if( !checkScomAndScanStateForCore() )
     {
         // Update Core Stop Status DUMP header
-        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_NOT_SCOM_SCAN_STATE;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETRING: StopStatus Enabled Target UnitNum[0x%08X]",
@@ -1216,7 +1216,7 @@ uint32_t sbeCollectDump::writeGetScomPacketToFifo()
     if( !checkScomAndScanStateForCore() )
     {
         // Update Core Stop Status DUMP header
-        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_STOP_STATE;
+        iv_tocRow.tocHeader.preReq = PRE_REQ_CORE_NOT_SCOM_SCAN_STATE;
         iv_tocRow.tocHeader.dataLength = 0x00;
         iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
         SBE_INFO("DUMP GETSCOM: Core Stop State Target UnitNum[0x%08X]",

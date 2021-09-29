@@ -46,7 +46,7 @@ enum preReqCommandStatus : uint8_t
     PRE_REQ_PASSED          = 0x80, // Good Status
     PRE_REQ_NON_FUNCTIONAL  = 0x40, // Non Functional
     PRE_REQ_CLOCK_ON_STATE  = 0x20, // Clock On in ChipOp
-    PRE_REQ_CORE_STOP_STATE = 0x10, // Target in Stop State
+    PRE_REQ_CORE_NOT_SCOM_SCAN_STATE = 0x10, // Target in Stop State
 };
 
 extern size_t genericHdctRowSize_table[NO_OF_CMD_TYPES];
