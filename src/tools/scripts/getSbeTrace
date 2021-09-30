@@ -56,7 +56,7 @@ usage()
     echo "Fetch SBE Traces from OP or FIPS Builds:"
     echo "./getSbeTrace -t <Build_type> -l <Build_level>"
     echo "Example for FIPS Builds: getSbeTrace -t FIPS -l b0205a2105.1010"
-    echo "Example for OP Builds: getSbeTrace -t OP -l oprai.2099.20201109t"
+    echo "Example for OP Builds: getSbeTrace -t OP -l 1020.2138.20210922b"
     echo " "
     echo "Example:"
     echo "Fetch SBE Traces of SBE custom image or when using crorecoversbe"
@@ -111,8 +111,7 @@ do
     esac
 done
 
-OP_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/opprainier/Builds/
-FIPS_BUILD_BASE=/afs/rchland.ibm.com/projects/esw/fips1010/Builds/
+BUILD_BASE=/afs/rchland.ibm.com/projects/esw/
 
 #Check if user has passed all required arguments, if not raise error
 if [ -z $BUILD_TYPE ]; then
@@ -138,13 +137,19 @@ fi
 #check if Build Type entered is valid(OP/FIPS/SBE). If valid populate required fields
 if [ "$BUILD_TYPE" = "OP" ]; then
 
-    SBE_IMAGE_PATH=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/
-    SBE_DEBUG_TOOL=${OP_BUILD_BASE}/${BUILD_LEVEL}/op-build/output/host/powerpc64le-buildroot-linux-gnu/sysroot/sbe_sim_data/sbe-debug.py
+    #Split build level to get build info
+    IFS='.' read -r -a BUILD <<< "$BUILD_LEVEL"
+
+    SBE_IMAGE_PATH=${BUILD_BASE}/fw${BUILD[0]}/Builds/${BUILD_LEVEL}/ebmc-pkg/staging-dir/host-fw-elements/sbe-sim-data/
+    SBE_DEBUG_TOOL=${BUILD_BASE}/fw${BUILD[0]}/Builds/${BUILD_LEVEL}/ebmc-pkg/staging-dir/host-fw-elements/sbe-sim-data/sbe-debug.py
 
 elif [ "$BUILD_TYPE" = "FIPS" ]; then
 
-    SBE_IMAGE_PATH=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/x86.nfp/sbei/sbfw/simics/
-    SBE_DEBUG_TOOL=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
+    #Split build level to get build info
+    IFS='.' read -r -a BUILD <<< "$BUILD_LEVEL"
+
+    SBE_IMAGE_PATH=${BUILD_BASE}/fips${BUILD[1]}/Builds/${BUILD_LEVEL}/obj/x86.nfp/sbei/sbfw/simics/
+    SBE_DEBUG_TOOL=${BUILD_BASE}/fips${BUILD[1]}/Builds/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
 
 elif [ "$BUILD_TYPE" = "SBE" ]; then
 
@@ -166,10 +171,9 @@ elif [ "$BUILD_TYPE" = "SBE" ]; then
     fi
 
     if [ -z $SBE_DEBUG_TOOL ]; then
-        BUILD_LEVEL=/built/
         echo "SBE tools not found in: $SBE_IMAGE_PATH .
-        Fetching tools from OP build - Level: $BUILD_LEVEL"
-        SBE_DEBUG_TOOL=${FIPS_BUILD_BASE}/${BUILD_LEVEL}/obj/ppc/sbei/sbfw/simics/sbe-debug.py
+        Fetching tools from FIPS latest build level"
+        SBE_DEBUG_TOOL=${BUILD_BASE}/fips1010/Builds/built/obj/ppc/sbei/sbfw/simics/sbe-debug.py
     fi
 
 else
@@ -193,7 +197,10 @@ setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/ekb_mas
 setconfig GLOBAL_DEBUG none
 
 #Run sbe-debug.py tool
-$SBE_DEBUG_TOOL_PATH -t HW $OPERATION
+CMD="$SBE_DEBUG_TOOL_PATH -t HW $OPERATION"
+echo " "
+echo "$CMD"
+$CMD
 
 #Set back cronus settings to actual
 setconfig HW_PROCEDURE_PATH none
