@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -28,9 +28,10 @@
 #include <endian.h>
 
 //Bit mapped identifiers
-#define SBE_FFDC_ATTR_DUMP      0x0001
-#define SBE_FFDC_TRACE_DUMP     0x0002
-#define SBE_FFDC_ALL_DUMP       0xFFFF
+#define SBE_FFDC_ATTR_DUMP         0x0001
+#define SBE_FFDC_TRACE_DUMP        0x0002
+#define SBE_FFDC_COLLECT_REG_DUMP  0x0004
+#define SBE_FFDC_ALL_DUMP          0xFFFF
 
 enum SBE_FFDC_DD_LEVEL
 {
@@ -41,6 +42,7 @@ enum SBE_FFDC_DD_LEVEL
  * value 'true' - field present;value 'false' - field not present
  * bit_0 - attribute dump
  * bit_1 - trace buffer dump
+ * bit_2 - collect reg ffdc dump
  * bit 2-31 - reserved
  */
 typedef struct
@@ -48,9 +50,11 @@ typedef struct
 #if __BYTE_ORDER == __BIG_ENDIAN
     uint32_t attrField:1;
     uint32_t traceField:1;
-    uint32_t reserved:30;
+    uint32_t regField:1;
+    uint32_t reserved:29;
 #else
-    uint32_t reserved:30;
+    uint32_t reserved:29;
+    uint32_t regField:1;
     uint32_t traceField:1;
     uint32_t attrField:1;
 #endif
@@ -68,6 +72,10 @@ typedef struct
         {
             traceField = true;
         }
+        if(val & SBE_FFDC_COLLECT_REG_DUMP)
+        {
+            regField = true;
+        }
     }
     /* @brief - get dump fields as uint32_t
      *
@@ -83,6 +91,10 @@ typedef struct
         if(traceField)
         {
             l_val |= SBE_FFDC_TRACE_DUMP;
+        }
+        if(regField)
+        {
+            l_val |= SBE_FFDC_COLLECT_REG_DUMP;
         }
         return l_val;
     }

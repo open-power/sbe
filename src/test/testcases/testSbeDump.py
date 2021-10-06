@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -104,6 +104,10 @@ def main():
         elif(id == 0x0001):
             fileName = "attr.bin"
             print ("\nlength of attr dump " + str(len))
+        #if it is trace field SBE_FFDC_REG_DUMP
+        elif(id == 0x0004):
+            fileName = "collectReg.bin"
+            print ("\nlength of collect Reg dump " + str(len))
         myBin = open(fileName, 'wb')
         print ("\nwriting "+fileName)
         loopCount = (len )// 4

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,9 @@
 //PIBMEM attribute dump
 extern G_sbe_attrs_t G_sbe_attrs;
 
+// CollectRegisterFfdc dump
+extern fapi2::SbeFfdcData_t G_sbe_reg_ffdc;
+
 /*
  * @brief - Capture Async failure FFDC
  *
@@ -61,6 +64,10 @@ const sbeFFDCUserData_t sbeFFDCUserDataArray[] =
                                                {{SBE_FFDC_ATTR_DUMP,
                                                 sizeof(G_sbe_attrs_t)},
                                                 (const void *)&G_sbe_attrs,
+                                                },
+                                               {{SBE_FFDC_COLLECT_REG_DUMP,
+                                                sizeof(SbeFfdcData_t)},
+                                                (const void *)&G_sbe_reg_ffdc,
                                                 },
                                               };
 
@@ -98,6 +105,8 @@ public:
                         "G_sbe_attrs not 4byte aligned");
         static_assert((sizeof(PkTraceBuffer) % 4) == 0,
                         "g_pk_trace_buf not 4byte aligned");
+        static_assert((sizeof(SbeFfdcData_t) % 4) == 0,
+                        "G_sbe_reg_ffdc not 4byte aligned");
 
         iv_sbeFFDCHeader.fapiRc = fapi2::FAPI2_RC_PLAT_ERR_SEE_DATA;
 

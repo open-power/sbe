@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021
+# Contributors Listed Below - COPYRIGHT 2021,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -162,7 +162,7 @@ def writeStart(rcTankHash):
         filePointer.write("                         uint32_t & numTanks);\n\n\n")
         filePointer.write("    void regIdToRegisters(\n")
         filePointer.write("                         Regs regId,\n")
-        filePointer.write("                         std::vector<uint64_t>& registerAddress ,\n")
+        filePointer.write("                         std::vector<uint32_t>& registerAddress ,\n")
         filePointer.write("                         uint32_t & numTanks);\n")
         filePointer.write("#endif \n\n")
 
@@ -171,7 +171,7 @@ def populateFiles(tankRegisterHash, rcTankHash, regNameValueDic):
         # write tankToRegisters function
         filePointer.write("\n    void regIdToRegisters(\n")
         filePointer.write("                         Regs regId,\n")
-        filePointer.write("                         std::vector<uint64_t>& registerAddress ,\n")
+        filePointer.write("                         std::vector<uint32_t>& registerAddress ,\n")
         filePointer.write("                         uint32_t & numTanks)\n")
         filePointer.write("    {\n")
         filePointer.write("        SBE_DEBUG(\"regIdToRegisters. REG ID: 0x%x\", regId);\n")

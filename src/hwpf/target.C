@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,6 +34,7 @@
 #include <sbeutil.H>
 #endif
 
+#include <error_info.H>
 
 #define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
 #define N1_PG_NMMU1_BIT                     17
@@ -67,7 +68,7 @@ extern std::vector<fapi2::plat_target_handle_t> G_vec_targets;
 
 // Global variable for fixed section in pibmem
 extern G_sbe_attrs_t G_sbe_attrs;
-
+fapi2::SbeFfdcData_t  G_sbe_reg_ffdc;
 extern fapi2attr::SystemAttributes_t*    G_system_attributes_ptr;
 extern fapi2attr::ProcChipAttributes_t*  G_proc_chip_attributes_ptr;
 extern fapi2attr::PervAttributes_t*      G_perv_attributes_ptr;
