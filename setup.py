@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +22,25 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-from setuptools import setup, find_packages
+import os.path
+"""
+ Setuptools is an open source package.
+ Documentation on setuptools can be found on the web.
+
+"""
+from setuptools import setup
+
+package_directories = {
+    # User Data packages.
+    # Component package names must be in the form of: `udparsers.bxxxx`. Where
+    # 'xxxx' is the 4 digit component ID (lowercase).
+
+    "udparsers.o3500":   "modules/udparsers/o3500/",
+}
 
 setup(
-    name        = "SBE",
-    version     = "0.1",
-    packages    = find_packages("modules"),
-    package_dir = { "": "modules" },
+    name          = "SBE",
+    version       = "0.1",
+    packages      = package_directories.keys(),
+    package_dir   = package_directories,
 )
