@@ -683,4 +683,8 @@
     <name>ATTR_SBE_MINIMUM_SECURE_VERSION</name>
     <value>0x0</value>
   </entry>
+  <entry>
+    <name>ATTR_DEFAULT_HB_CORE</name>
+    <value>0xFF</value>
+  </entry>
 </entries>
