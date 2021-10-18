@@ -319,6 +319,18 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,EQ,2002449B,0x20-0x27,,Jim Bishop,Core 2 ECP.EC.PC.TFX_SM,,write_allowlist
 ,EQ,2002249B,0x20-0x27,,Jim Bishop,Core 1 ECP.EC.PC.TFX_SM,,write_allowlist
 ,EQ,2002149B,0x20-0x27,,Jim Bishop,Core 0 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,20028498,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_AND),,write_allowlist
+,EQ,20024498,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_AND),,write_allowlist
+,EQ,20022498,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_AND),,write_allowlist
+,EQ,20021498,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_AND),,write_allowlist
+,EQ,20028497,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_OR),,write_allowlist
+,EQ,20024497,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_OR),,write_allowlist
+,EQ,20022497,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_OR),,write_allowlist
+,EQ,20021497,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_OR),,write_allowlist
+,EQ,20028499,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (RWX),,write_allowlist
+,EQ,20024499,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (RWX),,write_allowlist
+,EQ,20022499,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(RWX),,write_allowlist
+,EQ,20021499,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(RWX),,write_allowlist
 ,EQ,200E0122,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
 ,EQ,460E0122,0x00,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
 ,PB,3011351,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
