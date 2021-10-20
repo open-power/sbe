@@ -215,6 +215,12 @@ static uint32_t specialWakeUpCoreDeAssert(
     #undef SBE_FUNC
 }
 
+bool isEqScanEnabled(scanStatus_t& i_scanStateData)
+{
+        return(i_scanStateData.qme);
+}
+
+
 
 bool isCoreOrL2CacheScomEnabled(const Target<TARGET_TYPE_CORE>& i_coreTgt,scomStatus_t& i_scomStateData)
 {

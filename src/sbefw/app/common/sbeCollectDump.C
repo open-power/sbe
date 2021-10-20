@@ -310,6 +310,7 @@ void sbeCollectDump::populateAllCoresScomScanState()
         {
             scomStatus_t scomStateData;
             scanStatus_t scanStateData;
+            uint32_t eqNum = eqTgt.get().getTargetInstance();
             SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
                                           scomStateData, scanStateData);
             SBE_DEBUG(SBE_FUNC "scomStateData and scanstateData is 0x%08X 0x%08X", scomStateData.scomState, scanStateData.scanState);
@@ -319,6 +320,7 @@ void sbeCollectDump::populateAllCoresScomScanState()
                                    " failed. RC=[0x%08X]", fapiRc);
                 continue;
             }
+            iv_EQScanState[eqNum] = isEqScanEnabled(scanStateData);
 
             //For all Core targets associated with the EQ target,
             //populate the scom and scan state.
@@ -356,6 +358,14 @@ bool sbeCollectDump::checkScomAndScanStateForCore()
     bool scomAndScanState = true;
     do
     {
+        if(iv_tocRow.tocHeader.chipUnitType == CHIP_UNIT_TYPE_EQ)
+        {
+            if( iv_tocRow.tocHeader.cmdType == CMD_GETRING )
+            {
+                scomAndScanState = iv_EQScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum]; 
+            }
+        }
+
         // StopState verification only for Core
         if(iv_tocRow.tocHeader.chipUnitType != CHIP_UNIT_TYPE_C)
         {
@@ -1551,6 +1561,8 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
                 case CMD_STOPCLOCKS:
                 {
                     rc = stopClocksOff();
+                    // Gather scom and scan state for all the cores.
+                    populateAllCoresScomScanState();
                     break;
                 }
                 case CMD_GETMEMPBA:

@@ -193,6 +193,7 @@ class sbeCollectDump
         dumpHeader_t iv_dumpHeader;
         hdctXipSecDetails_t iv_hdctXipSecDetails;
         sbeResponseFfdc_t iv_chipOpffdc;
+        uint8_t iv_EQScanState[8];
 
     public:
 

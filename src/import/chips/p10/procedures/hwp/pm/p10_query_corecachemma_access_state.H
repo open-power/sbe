@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -102,7 +102,7 @@ typedef union scanStatus
         uint32_t l31     : 1;
         uint32_t l32     : 1;
         uint32_t l33     : 1;
-        uint32_t reserved1: 1;
+        uint32_t qme     : 1;
         uint32_t reserved2: 1;
         uint32_t mma0    : 1;
         uint32_t mma1    : 1;
@@ -116,7 +116,7 @@ typedef union scanStatus
         uint32_t mma1    : 1;
         uint32_t mma0    : 1;
         uint32_t reserved2: 1;
-        uint32_t reserved1: 1;
+        uint32_t qme     : 1;
         uint32_t l33     : 1;
         uint32_t l32     : 1;
         uint32_t l31     : 1;
@@ -133,7 +133,7 @@ typedef union scanStatus
 
 typedef fapi2::ReturnCode
 (*p10_query_corecachemma_access_state_FP_t) (const fapi2::Target <fapi2::TARGET_TYPE_EQ>&, scomStatus_t&,
-        scanStatus_t&);
+        scanStatus_t&, bool);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -153,7 +153,8 @@ extern "C"
     fapi2::ReturnCode p10_query_corecachemma_access_state(
         const fapi2::Target < fapi2::TARGET_TYPE_EQ >& i_target,
         scomStatus_t& o_scomStateData,
-        scanStatus_t& o_scanStateData);
+        scanStatus_t& o_scanStateData,
+        bool i_scanClockState = false);
 } // extern "C"
 
 #endif // _PROC_SBE_INSTRUCT_START_H_

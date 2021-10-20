@@ -114,7 +114,7 @@ p10_sbe_powerdown_backing_caches(
             l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
                                    l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
 
-            FAPI_TRY(p10_query_corecachemma_access_state(eq, l_scomState, l_scanState));
+            FAPI_TRY(p10_query_corecachemma_access_state(eq, l_scomState, l_scanState, true));
             uint32_t l_core_powered = l_scanState.scanState >> 23;
 
             if ( (l_relative_core_pos & l_core_powered)  != l_relative_core_pos )

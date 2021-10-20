@@ -51,6 +51,9 @@ fapi2::ReturnCode stopAllCoreInstructions( );
   */
 uint32_t sbeCntlInst (uint8_t *i_pArg);
 
+
+bool isEqScanEnabled(scanStatus_t& i_scanStateData);
+
 /**
   * @brief Returns SCANable states for input Core and L2
   *

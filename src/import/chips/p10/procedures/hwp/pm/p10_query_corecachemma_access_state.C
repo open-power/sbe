@@ -50,12 +50,23 @@
 using namespace scomt::c;
 using namespace scomt::eq;
 
+enum
+{
+    CL2 = 0,
+    L3 = 1,
+    MMA = 2,
+    QME = 3,
+    MAX_UNITS = 4,
+};
+void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
+                       uint32_t i_fenceState);
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
 #define CORE_START_POSITION 5
 #define CACHE_START_POSITION 9
 #define MMA_START_POSITION 15
+#define QME_BIT_POS 13
 
 // ----------------------------------------------------------------------
 // Procedure Function
@@ -63,7 +74,8 @@ using namespace scomt::eq;
 fapi2::ReturnCode p10_query_corecachemma_access_state(
     const fapi2::Target < fapi2::TARGET_TYPE_EQ >& i_target,
     scomStatus_t& o_scomStateData,
-    scanStatus_t& o_scanStateData
+    scanStatus_t& o_scanStateData,
+    bool i_scanClockState
 )
 {
     //Initialize the output variables
@@ -191,6 +203,16 @@ scom_check:
 
     o_scomStateData.scomState = (~l_clockState) & (~l_fenceState) & (l_pgState) & (l_pscomState);
 
+    //The clock state needs to be checked only for the dump case
+    if (!i_scanClockState)
+    {
+        update_scanState(l_scanStateData, o_scomStateData.scomState, l_clockState, l_fenceState);
+
+        o_scanStateData.scanState = l_scanStateData;
+        FAPI_INF("QUAD Status : scan access state(0x%08X)",
+                 o_scanStateData.scanState);
+    }
+
 #ifndef __PPE__
     FAPI_INF("QUAD Status : clock state(0x%08X), fence state(0x%08X), "
              "pgood state(0x%08X), pscom state(0x%08X),scom state(0x%08X)",
@@ -205,4 +227,56 @@ fapi_try_exit:
     FAPI_INF("< p10_query_access_state...");
     fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
     return fapi2::current_err;
+}
+
+void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
+                       uint32_t i_fenceState)
+{
+    uint32_t pos = 0;
+    uint32_t max_units = 0;
+
+    for ( uint32_t x = 0; x < MAX_UNITS; x++)
+    {
+        switch (x)
+        {
+            case CL2:
+                pos = CORE_START_POSITION;
+                max_units = 4;
+                break;
+
+            case L3:
+                pos = CACHE_START_POSITION;
+                max_units = 4;
+                break;
+
+            case MMA:
+                pos = MMA_START_POSITION;
+                max_units = 4;
+                break;
+
+            case QME:
+                pos = QME_BIT_POS;
+                max_units = 1;
+                break;
+        }
+
+        for (auto i = pos; i < (pos + max_units); i++)
+        {
+            if ( i_scomGrpState & BIT32(i))
+            {
+                o_scanState.clearBit(i);
+            }
+            else
+            {
+                if ( (i_clockState & i_fenceState) & BIT32(i) )
+                {
+                    o_scanState.setBit(i);
+                }
+                else
+                {
+                    o_scanState.clearBit(i);
+                }
+            }
+        }
+    }
 }
