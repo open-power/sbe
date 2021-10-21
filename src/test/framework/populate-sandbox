@@ -100,6 +100,7 @@ cp $SBEROOT/src/tools/debug/sbeModifyPGvalue.py $SBETESTDIR/ || exit -1
 cp $SBEROOT/src/import/chips/p9/security/p9_security_white_black_list.csv $SBETESTDIR/ || exit -1
 cp $SBEROOT/src/build/security/securityRegListGen.py $SBETESTDIR/ || exit -1
 cp $SBEROOT/src/tools/debug/simics/sbe_startup_p10_standalone.simics $SBETESTDIR/ || exit -1
+cp $SBEROOT/src/tools/debug/simics/sbe_startup.simics $SBETESTDIR/ || exit -1
 cp $SBEROOT/src/tools/debug/simics/sbe-start-slaveProc.py $SBETESTDIR/ || exit -1
 cp $SBEROOT/src/test/testcases/testP10_standalone.simics $SBETESTDIR/ || exit -1
 cp $SBEROOT/images/*.syms $SBETESTDIR/ || exit -1
