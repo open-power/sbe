@@ -23,11 +23,11 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,INT,2010B26,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_10,Read has side-effects on LSI state,read_denylist
 ,INT,2010B27,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_11,Read has side-effects on LSI state,read_denylist
 ,MCD,301080F,0x03,,J. Liberty,MCD.BANK0_MCD_RW,Read might show snapshot of some state of  MCD MDI storage.  ,read_denylist
-,MM (NMMU),2010C4D,0x02,,J. Truelove,MM0.MM_NMMU_PMU0_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
-,MM (NMMU),2010C4E,0x02,,J. Truelove,MM0.MM_NMMU_PMU1_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
-,MM (NMMU),2010C4F,0x02,,J. Truelove,MM0.MM_NMMU_PMU0_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
-,MM (NMMU),2010C50,0x02,,J. Truelove,MM0.MM_NMMU_PMU1_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
-,MM (NMMU),2010C51,0x02,,J. Truelove,MM0.MM_NMMU_FLT_STAT_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C4D,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU0_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C4E,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU1_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C4F,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU0_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C50,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU1_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C51,0x02-0x03,,J. Truelove,MM0.MM_NMMU_FLT_STAT_REG,Could reverse engineer NMMUs actions,read_denylist
 ,NX,2011040,0x02,,J. Reilly,NX.DMA.SU_STATUS,Can see signs of NX activity,read_denylist
 ,NX,20110A7,0x02,,J. Reilly,NX.PBI.CQ_WRAP.NXCQ_SCOM.NX_PMU0_COUNTER_REG,Can see signs of NX activity,read_denylist
 ,NX,20110AA,0x02,,J. Reilly,NX.PBI.CQ_WRAP.NXCQ_SCOM.NX_PMU1_COUNTER_REG,Can see signs of NX activity,read_denylist
@@ -676,8 +676,8 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,INT,2010805,0x02,,HWSV,Topology ID Translation Table Register 1,,write_allowlist
 ,INT,2010806,0x02,,HWSV,Topology ID Translation Table Register 2,,write_allowlist
 ,INT,2010807,0x02,,HWSV,Topology ID Translation Table Register 3,,write_allowlist
-,MM0,2010C2C,0x02,,HWSV,topology id translation table entries 0:7,,write_allowlist
-,MM0,2010C2D,0x02,,HWSV,topology id translation table entries 8:15,,write_allowlist
-,MM0,2010C2E,0x02,,HWSV,topology id translation table entries 16:23,,write_allowlist
-,MM0,2010C2F,0x02,,HWSV,topology id translation table entries 24:31,,write_allowlist
+,MMx,2010C2C,0x02-0x03,,HWSV,topology id translation table entries 0:7,,write_allowlist
+,MMx,2010C2D,0x02-0x03,,HWSV,topology id translation table entries 8:15,,write_allowlist
+,MMx,2010C2E,0x02-0x03,,HWSV,topology id translation table entries 16:23,,write_allowlist
+,MMx,2010C2F,0x02-0x03,,HWSV,topology id translation table entries 24:31,,write_allowlist
 ,IOHS PHY,10012C3F,0x10-0x13,,HWSV,IOHS PHY Indirect Registers,,write_allowlist
