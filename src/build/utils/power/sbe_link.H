@@ -91,9 +91,9 @@
 #define SBE_SHA_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 264 // This needs to be updated.
 // Base Loader start address
-#define SBE_LOADER_BASE_ORIGIN 0xFFFFD400
+#define SBE_LOADER_BASE_ORIGIN 0xFFFFD000
 // Base Loader length - Pibmem control area for P10
-#define SBE_LOADER_BASE_LENGTH (0x2C00 - 0x80)
+#define SBE_LOADER_BASE_LENGTH (0x3000 - 0x80)
 
 // Base Loader start address
 #define SBE_VERIFICATION_PIBMEM_ORIGIN 0xFFFA0000

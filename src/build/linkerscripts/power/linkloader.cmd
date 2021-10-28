@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #undef powerpc
 
 #ifndef BASE_LOADER_STACK_SIZE
-#define BASE_LOADER_STACK_SIZE 10240
+#define BASE_LOADER_STACK_SIZE 11264
 #endif
 #include "sbe_link.H"
 
