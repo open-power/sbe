@@ -5,7 +5,12 @@ if defined sbe_scripts_path {
 }
 # Load SBE debug tools.
 try {
-    run-python-file (lookup-file "%script%/simics-debug-framework_rainier.py")
+
+    if($machine_name == "p10_standalone") {
+        run-python-file (lookup-file "%script%/simics-debug-framework.py")
+    } else {
+        run-python-file (lookup-file "%script%/simics-debug-framework_rainier.py")
+    }
     # Set mailbox scratch registers so that the SBE starts in plck mode
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
