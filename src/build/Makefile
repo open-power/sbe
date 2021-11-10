@@ -594,6 +594,7 @@ xml: $(FAPI_RC)
 
 $(FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 	$(IMPORT_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(ERROR_XML_FILES)
+	python $(SBE_SRC_DIR)/tools/scripts/xmlErrorInfo.py --output_dir $(GENFILES_DIR) --list_xmls $(ERROR_XML_FILES)
 
 $(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin

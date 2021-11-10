@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2018
+# Contributors Listed Below - COPYRIGHT 2015,2021
 # [+] International Business Machines Corp.
 #
 #
@@ -33,4 +33,6 @@
 P9_PERV_CURR_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # This variable name must not change
-ERROR_XML_FILES += $(wildcard $(P9_PERV_CURR_DIR)/*.xml)
+ERROR_XML_FILES += $(wildcard $(P9_PERV_CURR_DIR)/p9_sbe_check_master_stop15_errors.xml)
+ERROR_XML_FILES += $(wildcard $(P9_PERV_CURR_DIR)/p9_sbe_tracearray_errors.xml)
+ERROR_XML_FILES += $(wildcard $(P9_PERV_CURR_DIR)/p9_block_wakeup_intr_errors.xml)

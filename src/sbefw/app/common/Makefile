@@ -5,7 +5,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2021
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +35,7 @@ GCC-DEFS += -D__SBEFW_SEEPROM__=1
 OBJS = $(addprefix $(OBJDIR)/, $(APPCOMMONSEEPROM_OBJECTS))
 LIBNAME = libsbeappcommonseeprom
 endif
-
+export VPATH = $(GENFILES_DIR)
 include img_defs.mk
 include appcommonfiles.mk
 
