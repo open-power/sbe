@@ -126,6 +126,7 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num,
     fapi2::buffer<uint32_t>& o_eco_caches_bvec,
+    fapi2::buffer<uint32_t>& o_dead_core_vec,
     uint32_t& o_eco_caches_num);
 
 fapi2::ReturnCode select_ex_pfet_delay(
@@ -153,12 +154,14 @@ fapi2::ReturnCode p10_sbe_select_ex(
     fapi2::buffer<uint32_t> l_active_config_bvec = 0;
     fapi2::buffer<uint32_t> l_backing_config_bvec = 0;
     fapi2::buffer<uint32_t> l_eco_config_bvec = 0;
+    fapi2::buffer<uint32_t> l_dead_core_vec = 0;
     fapi2::buffer<uint32_t> l_needed_config_bvec = 0;
     fapi2::buffer<uint64_t> l_data64;
 
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
     fapi2::ATTR_ACTIVE_CORES_NUM_Type l_attr_num_active = 0;
     fapi2::ATTR_BACKING_CACHES_NUM_Type l_attr_num_backing = 0;
+    fapi2::ATTR_IS_MPIPL_Type l_attr_is_mpipl;
     uint32_t l_num_active = 0;
     uint32_t l_num_backing = 0;
     uint32_t l_num_eco = 0;
@@ -199,6 +202,7 @@ fapi2::ReturnCode p10_sbe_select_ex(
                  l_attr_num_active,
                  l_attr_num_backing,
                  l_eco_config_bvec,
+                 l_dead_core_vec,
                  l_num_eco),
                  "Error from select_ex_calc_active_backing_nums");
 
@@ -231,6 +235,9 @@ fapi2::ReturnCode p10_sbe_select_ex(
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
 
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_attr_is_mpipl),
+             "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
+
     for (auto const& core : l_core_functional_vector)
     {
         fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
@@ -248,6 +255,18 @@ fapi2::ReturnCode p10_sbe_select_ex(
         bool b_skip_active = l_eco_mode;
         bool b_skip_backing = l_eco_mode && (l_attr_contained_ipl_type !=
                                              fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP);
+
+        if (l_attr_is_mpipl)
+        {
+            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, core, l_core_num));
+
+            if ( l_dead_core_vec.getBit(l_core_num))
+            {
+                b_skip_active = true;
+                b_skip_backing = true;
+            }
+        }
 
         if (b_fused)
         {
@@ -439,6 +458,7 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_active_cores_num,
     fapi2::ATTR_ACTIVE_CORES_NUM_Type& o_backing_caches_num,
     fapi2::buffer<uint32_t>& o_eco_caches_bvec,
+    fapi2::buffer<uint32_t>& o_dead_core_vec,
     uint32_t& o_eco_caches_num)
 {
     FAPI_DBG("> select_ex_calc_active_backing_nums...");
@@ -456,6 +476,7 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     o_backing_caches_num = 0;
     o_eco_caches_num = 0;
     o_eco_caches_bvec.flush<0>();
+    o_dead_core_vec.flush<0>();
 
     uint8_t l_functional_cores_num = i_core_functional_vector.size();
 
@@ -470,6 +491,28 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core, l_core_num));
             FAPI_TRY(o_eco_caches_bvec.setBit(l_core_num));
             o_eco_caches_num++;
+        }
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_attr_is_mpipl),
+             "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
+
+    if ( l_attr_is_mpipl )
+    {
+        for (const auto& l_core : i_core_functional_vector)
+        {
+            fapi2::buffer <uint64_t> l_data;
+            auto l_eq   =   l_core.getParent< fapi2::TARGET_TYPE_EQ >( );
+
+            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core, l_core_num));
+            FAPI_TRY( fapi2::getScom( l_eq, scomt::eq::QME_SCRA_RW, l_data ) );
+
+            if (l_data.getBit(l_core_num % 4))
+            {
+                FAPI_TRY(o_dead_core_vec.setBit(l_core_num));
+                l_functional_cores_num--;
+            }
         }
     }
 
@@ -489,8 +532,6 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_attr_is_mpipl),
-             "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE, FAPI_SYSTEM, l_attr_fused_core_mode),
              "Error from FAPI_ATTR_GET (ATTR_FUSED_CORE_MODE)");
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_SELECT_EX_POLICY, FAPI_SYSTEM, l_attr_sbe_select_ex_policy),
