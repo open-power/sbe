@@ -70,6 +70,29 @@ PkTraceBuffer g_pk_trace_buf __attribute__ ((section (".sdata"))) =
 //Needed for buffer extraction in simics for now
 PkTraceBuffer* g_pk_trace_buf_ptr = &g_pk_trace_buf;
 
+#if (PK_OP_TRACE_SUPPORT)
+//Static initialization of the pk op trace buffer
+PkOpTraceBuffer g_pk_op_trace_buf __attribute__ ((section (".sdata"))) =
+{
+    .version            = PK_TRACE_VERSION,
+    .image_str          = PPE_IMG_STRING,
+    .hash_prefix        = PK_TRACE_HASH_PREFIX,
+    .partial_trace_hash =
+    trace_ppe_hash("PARTIAL TRACE ENTRY. HASH_ID = %d", PK_TRACE_HASH_PREFIX),
+    .size               = PK_OP_TRACE_SZ,
+    .max_time_change    = PK_TRACE_MTBT,
+    .hz                 = 25000000, //Actula value set by pk_trace_set_freq()
+    .time_adj64         = 0,
+    .state.word64       = 0,
+    .cb                 = {0}
+};
+
+//Needed for buffer extraction in simics for now
+PkOpTraceBuffer* g_pk_op_trace_buf_ptr = &g_pk_op_trace_buf;
+
+#endif
+
+
 #ifdef PK_TRACE_BUFFER_WRAP_MARKER
     uint32_t G_wrap_mask = 0;
 #endif

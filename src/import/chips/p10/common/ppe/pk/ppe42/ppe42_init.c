@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -83,6 +83,11 @@ __ppe42_system_setup()
     //set the ppe instance id
     g_pk_trace_buf.instance_id = (uint16_t)(mfspr(SPRN_PIR) & PIR_PPE_INSTANCE_MASK);
 #endif  /* PK_TRACE_SUPPORT */
+#if PK_OP_TRACE_SUPPORT
+    extern PkOpTraceBuffer g_pk_op_trace_buf;
+    //set the ppe instance id
+    g_pk_op_trace_buf.instance_id = (uint16_t)(mfspr(SPRN_PIR) & PIR_PPE_INSTANCE_MASK);
+#endif /*PK_OP_TRACE_SUPPORT*/
 #endif  /* PK_TIMER_SUPPORT */
 
     //call macro-specific setup

@@ -60,8 +60,24 @@
     #error "PK_TRACE_SZ must be at least 64 bytes!!!"
 #endif
 
+#ifndef PK_OP_TRACE_SZ
+    #define PK_OP_TRACE_SZ 256
+#endif
+
+//Fail compilation if size is not a power of 2
+#if ((PK_OP_TRACE_SZ - 1) & PK_OP_TRACE_SZ)
+    #error "PK_OP_TRACE_SZ is not a power of two!!!"
+#endif
+
+//Fail compilation if size is smaller than 64 bytes
+#if (PK_OP_TRACE_SZ < 64)
+    #error "PK_OP_TRACE_SZ must be at least 64 bytes!!!"
+#endif
+
+
 //Mask for calculating offsets into the trace circular buffer
 #define PK_TRACE_CB_MASK (PK_TRACE_SZ - 1)
+#define PK_OP_TRACE_CB_MASK (PK_OP_TRACE_SZ - 1)
 
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
@@ -366,7 +382,34 @@ typedef struct
     uint8_t             cb[PK_TRACE_SZ];
 } PkTraceBuffer; //pk_trace_buffer_t;
 
+//Header data for the trace buffer that is used for parsing the data.
+typedef struct
+{
+    //these values are needed by the parser
+    uint16_t            version;
+    uint16_t            rsvd;
+    char                image_str[PK_TRACE_IMG_STR_SZ];
+    uint16_t            instance_id;
+    uint16_t            partial_trace_hash;
+    uint16_t            hash_prefix;
+    uint16_t            size;
+    uint32_t            max_time_change;
+    uint32_t            hz;
+    uint32_t            pad;
+    uint64_t            time_adj64;
+
+    //updated with each new trace entry
+    PkTraceState        state;
+
+    //circular trace buffer
+    uint8_t             cb[PK_OP_TRACE_SZ];
+} PkOpTraceBuffer; //pk_trace_buffer_t;
+
+
 extern PkTraceBuffer g_pk_trace_buf __attribute__((section (".sdata")));
+#if (PK_OP_TRACE_SUPPORT)
+    extern PkOpTraceBuffer g_pk_op_trace_buf __attribute__((section (".sdata")));
+#endif
 
 #ifdef PK_TRACE_BUFFER_WRAP_MARKER
     extern uint32_t G_wrap_mask;
