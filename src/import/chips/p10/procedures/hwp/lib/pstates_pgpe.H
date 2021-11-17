@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -724,8 +724,12 @@ typedef struct
     uint16_t array_write_vdd_mv;
 
     uint8_t rvrm_deadzone_mv;
+    uint8_t pad[3];  // word alignment
 
-    uint8_t reserved[87];
+    // Placeholder field whose value comes from ATTR_DVFS_ADJUSMENT.
+    uint32_t dvfs_adjustment;
+
+    uint8_t reserved[80];
 } GlobalPstateParmBlockBase_t;
 
 //WOF
