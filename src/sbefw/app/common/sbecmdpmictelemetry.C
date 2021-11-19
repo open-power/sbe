@@ -162,3 +162,97 @@ uint32_t sbePmicHealthCheck( uint8_t *i_pArg )
     return l_rc;
     #undef SBE_FUNC
 }
+
+uint32_t sbePsuPmicHealthCheck(uint8_t *i_pArg)
+{
+#define SBE_FUNC " sbePsuPmicHealthCheck "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    psu2SbePmicTelemetry_t hbReq = {};
+    sbeResponseFfdc_t ffdc;
+    sbeRespGenHdr_t respHdr;
+    respHdr.init();
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    do
+    {   // Extract the request
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                                 ( sizeof(hbReq) /sizeof(uint64_t)),
+                                 (uint64_t*)&hbReq,
+                                 true);
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to extract SBE_HOST_PSU_MBOX_REG1 and "
+                    "SBE_HOST_PSU_MBOX_REG2");
+            break;
+        }
+        // OStream for PBA space
+        // SBE_FIFO is dummy argument
+        fapi2::sbefifo_hwp_data_ostream pmicDataOstream(SBE_FIFO, false, hbReq.hbAddress);
+        SBE_INFO(SBE_FUNC" targetType [0x%04X] targetInstance [0x%02X] ",
+                 hbReq.pmicDataMsg.targetType,
+                 hbReq.pmicDataMsg.targetInstance);
+
+        // Validate Target type.
+        if(!hbReq.pmicDataMsg.validateTargetType())
+        {
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]",
+                      (uint32_t)hbReq.pmicDataMsg.targetType, (uint32_t)hbReq.pmicDataMsg.targetInstance);
+            respHdr.setStatus( SBE_PRI_INVALID_DATA,
+                               SBE_SEC_INVALID_TARGET_TYPE_PASSED );
+            break;
+        }
+        //Validate OCMB instance ID.
+        if(!hbReq.pmicDataMsg.validateInstance())
+        {
+            SBE_ERROR(SBE_FUNC"Invalid OCMB Instance ID 0x%08X",
+                (uint8_t)hbReq.pmicDataMsg.targetInstance);
+            respHdr.setStatus(SBE_PRI_INVALID_DATA,
+                            SBE_SEC_INVALID_OCMB_INSTANCE);
+            break;
+        }
+        //Validate OCMB functional
+        if(!hbReq.pmicDataMsg.validateFunctional())
+        {
+            SBE_ERROR(SBE_FUNC"Non functional target selected 0x%08X",
+                (uint8_t)hbReq.pmicDataMsg.targetInstance);
+            respHdr.setStatus(SBE_PRI_INVALID_DATA,
+                            SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL);
+            break;
+        }
+        Target<TARGET_TYPE_OCMB_CHIP> handle = plat_getOCMBTargetHandleByInstance
+                <fapi2::TARGET_TYPE_OCMB_CHIP>(hbReq.pmicDataMsg.targetInstance);
+
+        SBE_DEBUG(SBE_FUNC"OCMB target instance is %d and target is 0x%08X",hbReq.pmicDataMsg.targetInstance, handle.get());
+
+        fapiRc = pmic_n_mode_detect(handle, pmicDataOstream);
+        if(fapiRc != FAPI2_RC_SUCCESS)
+        {
+            SBE_ERROR(SBE_FUNC" HWP failure:targetType [0x%04X] "
+                    "targetInstance [0x%02X]",
+                    (uint32_t)hbReq.pmicDataMsg.targetType,
+                    (uint32_t)hbReq.pmicDataMsg.targetInstance);
+            respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                            SBE_SEC_PMIC_HEALTH_CHECK_FAILED);
+            ffdc.setRc(fapiRc);
+        }
+        // dummy null pointer to push the data to memory
+        //writing is to flush remaining data (not 128 byte aligned ) to PBA
+        pmicDataOstream.setPBALastAccess();
+        pmicDataOstream.put(0, NULL);
+        
+        uint64_t pmicLength = pmicDataOstream.words_written() * 4;
+        rc = sbeWriteSbe2PsuMbxReg(SBE_HOST_PSU_MBOX_REG5,
+                                   &pmicLength,
+                                   sizeof(pmicLength)/sizeof(uint64_t));
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC "Failed to update SBE_HOST_PSU_MBOX_REG5 for PMIC Data length ");
+            break;
+        }
+    }while(0);
+    // Send the response
+    sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+#undef SBE_FUNC
+}

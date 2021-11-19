@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -64,6 +65,15 @@ typedef struct
     }
 } sbePmicHealthCheckCmdHdr_t;
 
+// Structure to parse arguments for PMIC Health Check chipop (0xD7, 0x0C)
+typedef struct
+{
+      sbePmicHealthCheckCmdHdr_t pmicDataMsg;
+      uint32_t reserved     :32;
+      uint64_t hbAddress    :64;
+} psu2SbePmicTelemetry_t;
+
+
 /**
   * @brief check the health status of PMIC in DIMM. (0xAC01)
   *
@@ -73,4 +83,13 @@ typedef struct
   */
 uint32_t sbePmicHealthCheck( uint8_t *i_pArg );
 
+
+/**
+ *  * @brief check the PSU health status of PMIC in DIMM. (0xD70C)
+ *
+ *  @param[in] i_pArg Buffer to be passed to the function (not used as of now)
+ *
+ *  @return    Rc from the PSU access utility
+ */
+uint32_t sbePsuPmicHealthCheck( uint8_t *i_pArg );
 #endif // __SBE_CMD_PMIC_TELEMETRY__

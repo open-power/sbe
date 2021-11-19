@@ -428,7 +428,13 @@ CMD_ARR(
    {sbePsuMemConfig,
     SBE_PSU_GENERIC_CMD_MEM_CONFIG,
     SBE_NO_FENCE,
-   }
+   },
+
+   {sbePsuPmicHealthCheck,
+    SBE_PSU_PMIC_HEALTH_CHECK,
+    PUT_HARDWARE_FENCED_STATE|SBE_FENCE_AT_ISTEP|
+    SBE_FENCE_AT_DUMPING,
+   },
 )
 
 // Mandatory macro inclusion
