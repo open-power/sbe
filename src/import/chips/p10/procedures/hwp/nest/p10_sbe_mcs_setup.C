@@ -137,22 +137,6 @@ fapi2::ReturnCode set_hb_dcbz_config(
 
     FAPI_TRY(PUT_SCOMFIR_MCPERF1(i_target_mc, l_mcperf1));
 
-    // Get state of FIRMASK before mcs_setup///////////////////////////////////
-    FAPI_TRY(GET_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
-    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRMASK] = l_mcfirmask;
-
-    l_mcfirmask.flush<1>();
-    PREP_SCOMFIR_MCFIR_RW(i_target_mc);
-    CLEAR_SCOMFIR_MCFIR_COMMAND_LIST_TIMEOUT(l_mcfirmask);
-    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcfirmask);
-    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR(l_mcfirmask);
-    CLEAR_SCOMFIR_MCFIR_POWERBUS_PROTOCOL_ERROR(l_mcfirmask);
-    CLEAR_SCOMFIR_MCFIR_MULTIPLE_BAR_HIT(l_mcfirmask);
-    CLEAR_SCOMFIR_MCFIR_INVALID_SMF_ACCESS(l_mcfirmask);
-
-    PREP_SCOMFIR_MCFIRMASK_RW(i_target_mc);
-    FAPI_TRY(PUT_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
-
     // Unmask MC FIR
     // Set MC Fault Isolation Action0 Register/////////////////////////////////
     FAPI_TRY(GET_SCOMFIR_MCFIRACT0(i_target_mc, l_mcaction0));
@@ -168,6 +152,22 @@ fapi2::ReturnCode set_hb_dcbz_config(
     SET_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcaction1);
     PREP_SCOMFIR_MCFIRACT1(i_target_mc);
     FAPI_TRY(PUT_SCOMFIR_MCFIRACT1(i_target_mc, l_mcaction1));
+
+    // Get state of FIRMASK before mcs_setup///////////////////////////////////
+    FAPI_TRY(GET_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
+    l_register_states[fapi2::ENUM_ATTR_PROC_SBE_MCS_SETUP_REG_STATES_MCFIRMASK] = l_mcfirmask;
+
+    l_mcfirmask.flush<1>();
+    PREP_SCOMFIR_MCFIR_RW(i_target_mc);
+    CLEAR_SCOMFIR_MCFIR_COMMAND_LIST_TIMEOUT(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_RECOVERABLE_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MC_INTERNAL_NONRECOVERABLE_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_POWERBUS_PROTOCOL_ERROR(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_MULTIPLE_BAR_HIT(l_mcfirmask);
+    CLEAR_SCOMFIR_MCFIR_INVALID_SMF_ACCESS(l_mcfirmask);
+
+    PREP_SCOMFIR_MCFIRMASK_RW(i_target_mc);
+    FAPI_TRY(PUT_SCOMFIR_MCFIRMASK_RW(i_target_mc, l_mcfirmask));
 
     // MCTO ///////////////////////////////////////////////////////////////////
     FAPI_TRY(GET_SCOMFIR_MCTO(i_target_mc, l_mcto));
