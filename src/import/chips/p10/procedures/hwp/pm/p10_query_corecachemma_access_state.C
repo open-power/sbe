@@ -59,7 +59,7 @@ enum
     MAX_UNITS = 4,
 };
 void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
-                       uint32_t i_fenceState);
+                       uint32_t i_fenceState, uint32_t i_corePowerState);
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
@@ -91,6 +91,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
     uint8_t l_attr_chip_unit_pos = 0;
     uint8_t l_core_num = 0;
     uint32_t l_pfet_senses = 0;
+    uint32_t l_corePowerState = BIT32(QME_BIT_POS);
     fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
 
     FAPI_INF("> p10_query_access_state..");
@@ -124,6 +125,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if( l_pfet_senses & BIT32(CPMS_CL2_PFETSTAT_VDD_PFETS_ENABLED_SENSE))
         {
             l_scanStateData.setBit(CORE_START_POSITION + l_core_num);
+            l_corePowerState |= BIT32(CORE_START_POSITION + l_core_num);
         }
 
         //Read the power state of l3
@@ -140,6 +142,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if( l_pfet_senses & BIT32(CPMS_L3_PFETSTAT_VDD_PFETS_ENABLED_SENSE))
         {
             l_scanStateData.setBit(CACHE_START_POSITION + l_core_num);
+            l_corePowerState |= BIT32(CACHE_START_POSITION + l_core_num);
         }
 
         //Read the power state of mma
@@ -156,6 +159,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if( l_pfet_senses & BIT32(CPMS_MMA_PFETSTAT_S_ENABLED_SENSE))
         {
             l_scanStateData.setBit(MMA_START_POSITION + l_core_num);
+            l_corePowerState |= BIT32(MMA_START_POSITION + l_core_num);
         }
 
         //Read Clock grid control status data and if Bit 11 is not set, then
@@ -206,7 +210,7 @@ scom_check:
     //The clock state needs to be checked only for the dump case
     if (!i_scanClockState)
     {
-        update_scanState(l_scanStateData, o_scomStateData.scomState, l_clockState, l_fenceState);
+        update_scanState(l_scanStateData, o_scomStateData.scomState, l_clockState, l_fenceState, l_corePowerState);
 
         o_scanStateData.scanState = l_scanStateData;
         FAPI_INF("QUAD Status : scan access state(0x%08X)",
@@ -230,7 +234,7 @@ fapi_try_exit:
 }
 
 void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
-                       uint32_t i_fenceState)
+                       uint32_t i_fenceState, uint32_t i_corePowerState)
 {
     uint32_t pos = 0;
     uint32_t max_units = 0;
@@ -262,19 +266,22 @@ void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpS
 
         for (auto i = pos; i < (pos + max_units); i++)
         {
-            if ( i_scomGrpState & BIT32(i))
+            if ( i_corePowerState & BIT32(i))
             {
-                o_scanState.clearBit(i);
-            }
-            else
-            {
-                if ( (i_clockState & i_fenceState) & BIT32(i) )
+                if ( i_scomGrpState & BIT32(i))
                 {
-                    o_scanState.setBit(i);
+                    o_scanState.clearBit(i);
                 }
                 else
                 {
-                    o_scanState.clearBit(i);
+                    if ( (i_clockState & i_fenceState) & BIT32(i) )
+                    {
+                        o_scanState.setBit(i);
+                    }
+                    else
+                    {
+                        o_scanState.clearBit(i);
+                    }
                 }
             }
         }
