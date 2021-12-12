@@ -59,6 +59,7 @@ sbe_string_file = ""
 sbe_tracMERG_file = ""
 sbe_syms_file = ""
 output_path = os.getcwd()+"/"
+unTaredDumpFile = ""
 
 '''
 -----------------------------------------------------------------------------
@@ -169,6 +170,14 @@ def updateHwTraceFiles(sbe_tracMERG_file,sbe_string_file,sbe_syms_file):
 --------------------------------------------------------------------------------
 '''
 def collectTrace(string_file,tracMERG_file):
+    if(target == 'FILE'):
+        endianChar = getEndian(unTaredDumpFile)
+        if(endianChar == "<"):
+            #Convert the complete pibmem dump from Little Endian to Big endian, and
+            #lets use same tools as used for denali pibmem dumps.
+            invokeOsCmd("hexdump -v -e \'1/8 \"%016x\"\' -e \'\"\\n\"\' " + file_path + "| xxd -r -p > output_file")
+            invokeOsCmd("cp output_file " + file_path)
+
     getSymbolVal('g_pk_trace_buf' )
     stringFile = getFilePath(string_file)
     print("\n String File: [" + stringFile + "]")
@@ -181,6 +190,14 @@ def collectTrace(string_file,tracMERG_file):
 
 # Can be used if proper sbe symbol files are not available
 def forcedCollectTrace(string_file,tracMERG_file):
+    if(target == 'FILE'):
+        endianChar = getEndian(unTaredDumpFile)
+        if(endianChar == "<"):
+            #Convert the complete pibmem dump from Little Endian to Big endian, and
+            #lets use same tools as used for denali pibmem dumps.
+            invokeOsCmd("hexdump -v -e \'1/8 \"%016x\"\' -e \'\"\\n\"\' " + file_path + "| xxd -r -p > output_file")
+            invokeOsCmd("cp output_file " + file_path)
+
     stringFile = getFilePath(string_file)
     print("\n String File: [" + stringFile + "]")
     # Collect entire PIBMEM
@@ -322,6 +339,7 @@ Please verify sbe_DD1.syms is valid for this dump, before depending on the value
 
 def ppeState():
     if(target == 'FILE'):
+        endianChar = getEndian(unTaredDumpFile)
         regNameMapSPR = {
                          # SPRs and XIR
                          9 : ["CTR", False],
@@ -375,7 +393,8 @@ def ppeState():
         print('Reg'.ljust(15),'Reg Value'.ljust(20))
         print('--------------------------------------------------------------------')
         while(l_cnt < os.path.getsize(file_path)):
-            regNum = int(binascii.hexlify(fileHandle.read(2)), 16)
+            regNum = struct.unpack(endianChar + "H",fileHandle.read(2))
+            regNum = int(regNum[0])
             str1 = ''
             try:
                 if((regNum in regNameMapSPR.keys())
@@ -387,8 +406,8 @@ def ppeState():
                     regNameMapGPR[regNum][1] = True
             except:
                 str1 = hex(regNum)
-            str3 = binascii.hexlify(fileHandle.read(4))
-            print(str(str1).ljust(15),str(str3).ljust(20))
+            str3 = struct.unpack(endianChar + "I",fileHandle.read(4))
+            print(str(str1).ljust(15),str(format(str3[0],'08X')).ljust(20))
             str4 = fileHandle.read(4)
             #2Bytes(SPR/GPR number) + 4Bytes(Value) + 4Bytes(Name)
             l_cnt = l_cnt + 10; #
@@ -401,16 +420,17 @@ def ppeState():
 
 def sbeLocalRegister():
     if(target == 'FILE'):
+        endianChar = getEndian(unTaredDumpFile)
         print("File path: ", file_path)
         fileHandle = open(file_path)
         l_cnt = 0
         print('********************************************************************')
         print('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
-            str1 = binascii.hexlify(fileHandle.read(2))
+            str1 = struct.unpack(endianChar + "H",fileHandle.read(2))
             str2 = fileHandle.read(32)
-            str3 = binascii.hexlify(fileHandle.read(8))
-            print(str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40))
+            str3 = struct.unpack(endianChar + "Q",fileHandle.read(8))
+            print(str(format(str1[0],'02X')).ljust(11),str(format(str3[0],'016X')).ljust(20),str2.ljust(40))
             l_cnt = l_cnt + 42;
 
         print('********************************************************************')
@@ -441,18 +461,19 @@ def secMeasSeepromDump():
 
 def sbeState():
     if(target == 'FILE'):
+        endianChar = getEndian(unTaredDumpFile)
         print("File path: ", file_path)
         fileHandle = open(file_path)
         l_cnt = 0
         print('********************************************************************')
-        print('Reg Number  Reg Value            Reg String')
+        print('Reg Number       Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
-            str1 = binascii.hexlify(fileHandle.read(8))
+            str1 = struct.unpack(endianChar + "Q",fileHandle.read(8))
             str2 = fileHandle.read(32)
-            str3 = binascii.hexlify(fileHandle.read(4))
-            str4 = binascii.hexlify(fileHandle.read(8))
-            print(str(str1).ljust(11),str(str3).ljust(20),str(str3).ljust(20),str2.ljust(40))
-            l_cnt = l_cnt + 44;
+            str3 = struct.unpack(endianChar + "I",fileHandle.read(4))
+            str4 = struct.unpack(endianChar + "Q",fileHandle.read(8))
+            print(str(format(str1[0],'016X')).ljust(11),str(format(str3[0],'08X')).ljust(20),str2.ljust(40))
+            l_cnt = l_cnt + 52;
 
         print('********************************************************************')
         fileHandle.close()
@@ -525,6 +546,43 @@ def parsevalue(iValue):
     tempVal = iValue[30:34]
     print("SBE Progress Code [28:31] : Code reached to %s (%s)" %(progressCode[tempVal],tempVal))
 
+def getEndian(unTaredDumpBinFile):
+    '''
+    Get Endian's of a system basis bit 0x290 in dump header.
+    If set implies BMC system => little endian
+    If not set implies FSP system => big endian
+    '''
+    if(unTaredDumpBinFile == ''):
+        print("Enter -r option. Untared Dump File path")
+        exit(-1)
+
+    fileObj=open(unTaredDumpBinFile, 'rb')
+
+    print("Parsing the Dump header")
+    dumpSummaryOffset = 0xD0
+    missingSecIndicatorOffset = 0x83
+
+    # If the missing section indicator is on, then adjust the dump summary location
+    fileObj.seek(missingSecIndicatorOffset, 0)
+    oneByteChunk = fileObj.read(1)
+    missingSecIndicator = struct.unpack('b', oneByteChunk)[0]
+    print("Missing section indicator is %s" %hex(missingSecIndicator))
+    if (hex(missingSecIndicator) == 0x01):
+        print("Adjusting the dump summary location")
+        dumpSummaryOffset -= 0x30
+
+    isBmcSystemOffset = dumpSummaryOffset + 0x290
+    fileObj.seek(isBmcSystemOffset, 0)
+    isBmcSystem = fileObj.read(1)
+    isBmcSystem = struct.unpack('B',isBmcSystem)
+    if(isBmcSystem[0] == 1):
+        print("BMC System: %s" % isBmcSystem[0])
+        endianChar = "<"
+    else:
+        print("Not BMC System: %s" % isBmcSystem[0])
+        endianChar = ">"
+
+    return endianChar
 
 def extractSbeDump(dumpFile):
     print("Extract dump File")
@@ -556,11 +614,16 @@ def extractSbeDump(dumpFile):
         print("Adjusting the dump summary location")
         dumpSummaryOffset -= 0x30
 
+    #Just for info print lets parse header and check system type
+    getEndian(dumpFile)
+    #By default we read data as big endian for FSP and BMC system
+    endianChar = ">"
+
     #Read the dump content type
     dumpContentOffset = dumpSummaryOffset + 0x260
     fileObj.seek(dumpContentOffset, 0)
     fourByteChunk = fileObj.read(4)
-    dumpContentType = struct.unpack('>i', fourByteChunk)[0]
+    dumpContentType = struct.unpack(endianChar + 'i', fourByteChunk)[0]
     print("Dump Content Type is %s" %hex(dumpContentType))
     if(dumpContentType == 0x40000 or dumpContentType == 0x80000000):
         print("Extract MPIPL Dump")
@@ -576,13 +639,13 @@ def extractSbeDump(dumpFile):
     #Read the sysdatalength.
     fileObj.seek(hwDataLenOffest, 0)
     fourByteChunk = fileObj.read(4)
-    sysDataSize = struct.unpack('>i', fourByteChunk)[0]
+    sysDataSize = struct.unpack(endianChar + 'i', fourByteChunk)[0]
     print("Sys data size is %s" %hex(sysDataSize));
 
     #Read the hwdatalength.
     fileObj.seek(hwDataLenOffest + 4, 0)
     fourByteChunk = fileObj.read(4)
-    hwDataSize = struct.unpack('>i', fourByteChunk)[0]
+    hwDataSize = struct.unpack(endianChar + 'i', fourByteChunk)[0]
     print("HW data size is %s" %hex(hwDataSize));
 
     length = hwDataSize - sysDataSize
@@ -631,18 +694,23 @@ optional arguments:
   -f, --file_path       Path of the file if Target is FILE
   -o, --output_path     Path to put the outfiles
   -e, --extract         Extract Sbe Dump.
+  -r, --unTaredDumpBin  Un-Tared dump output file containing dump header, to
+                        fetch system type(BMC/FSP) and ultimately endian's.
   ''')
 
 def main( argv ):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "l:t:i:n:p:d:s:f:o:e:h", ['level=', 'target=', 'image_type=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=', 'extract=', 'help'])
+        opts, args = getopt.getopt(sys.argv[1:], "l:t:i:n:p:d:s:f:o:e:r:h",
+                ['level=', 'target=', 'image_type=', 'node=', 'proc=',
+                    'ddlevel=', 'symbol=', 'file_path=', 'output_path=',
+                    'extract=', 'unTaredDumpBin', 'help'])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
         exit(1)
 
     # Default values
-    global target, image_type, node, proc, ddsuffix, file_path, output_path
+    global target, image_type, node, proc, ddsuffix, file_path, output_path, unTaredDumpFile
     level = 'trace'
     symbol = ''
     dumpFile = ''
@@ -710,6 +778,13 @@ def main( argv ):
                 exit(1)
         elif opt in ('-s', '--symbol'):
             symbol = arg
+        elif opt in ('-r', '--unTaredDumpBin'):
+            try:
+                unTaredDumpFile = arg
+                assert os.path.exists(arg), "Did not find the un-tared dump file at,"+str(arg)
+            except:
+                print("un tared dump file path should be a string path")
+                exit(1)
 
     if (dumpFile != '' ):
         extractSbeDump(dumpFile)
