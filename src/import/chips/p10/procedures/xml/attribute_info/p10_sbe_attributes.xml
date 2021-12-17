@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2022                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -686,5 +686,9 @@
   <entry>
     <name>ATTR_DEFAULT_HB_CORE</name>
     <value>0xFF</value>
+  </entry>
+  <entry>
+    <name>ATTR_HB_FALLBACK_CORES</name>
+    <value>0xFFFFFFFF</value>
   </entry>
 </entries>
