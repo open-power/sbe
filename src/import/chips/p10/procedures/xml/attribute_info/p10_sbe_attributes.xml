@@ -684,10 +684,6 @@
     <value>0x0</value>
   </entry>
   <entry>
-    <name>ATTR_DEFAULT_HB_CORE</name>
-    <value>0xFF</value>
-  </entry>
-  <entry>
     <name>ATTR_HB_FALLBACK_CORES</name>
     <value>0xFFFFFFFF</value>
   </entry>
