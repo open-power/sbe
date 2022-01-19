@@ -6,7 +6,8 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021
+# Contributors Listed Below - COPYRIGHT 2021,2022
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,8 @@ import sys
 import os
 import argparse
 import textwrap
-import fetchSbeTrace
+import parseSbeFfdcBlob
+
 ############################################################
 # Variables - Variables - Variables - Variables - Variables
 ############################################################
@@ -38,19 +40,22 @@ toolVersion = 1.0
 ############################################################
 # Function - Functions - Functions - Functions - Functions
 ############################################################
-#import fetchSbeTrace
 
 def parseUDToJson(subType, ver, data):
-    # Create a binary file with the SBE data.
 
+    # Create a binary file with the SBE data.
     with open('sbeffdcFile', "wb") as ffdcFile:
         ffdcFile.write(data)
 
     ffdcFile.close();
 
-    # Parse and populate data into dictionary
-    fetchSbeTrace.fetchSbeTraces("sbeffdcFile", "sbeTraceFile")
+    #Parse the FFDC blob and fetch ppeTrace.bin,attr.bin and hwData.bin
+    parseSbeFfdcBlob.parseSbeUserDataBlob(sbeffdcFile)
 
+    #Parse ppeTrace.bin file to fetch SBE Traces
+    parseSbeFfdcBlob.fetchSbeTraces()
+
+    # Parse and populate data into dictionary
     #with open("sbeTraceFile", 'rb') as rspBin:
     with open("sbeTraceFile", 'r') as rspBin:
         readData = rspBin.read()
@@ -63,38 +68,34 @@ def parseUDToJson(subType, ver, data):
 # Create the argparser object
 # We'll do it in a way so we can create required/optional cmdline arg groups
 
-#argparser = argparse.ArgumentParser(description="Tool to parse SBE traces from SBE FDDC",
+#argparser = argparse.ArgumentParser(description="Tool to parse SBE FFDC Blob from BMC Systems.This tool is integrated with BMC peltool and will parse ppe traces, sbe attr's and sbe HW data",
 #                                    add_help=False,
 #                                    formatter_class=argparse.RawDescriptionHelpFormatter,
 #                                    epilog=textwrap.dedent('''
 #Version: ''' + str(toolVersion) + '''
-
-#Examples:  > o3500.py -i <sbeFFDCFile> -o <ppeTraceFile>
-
+#
+#Examples:  > o3500.py -i <sbeFFDCFile>
+#
 #'''))
-
-# Create our group of required cmdline args
+#
+## Create our group of required cmdline args
 #reqgroup = argparser.add_argument_group('Required Arguments')
 #reqgroup.add_argument('-i', '--respBinFile', required=True, help="SBE FFDC response in a file")
-#reqgroup.add_argument('-o', '--ppeTraceFile', required=True, help="Output file containing the PPE trace")
-
-# Create our group of optional cmdline args
+#
+## Create our group of optional cmdline args
 #optgroup = argparser.add_argument_group('Optional Arguments')
 #optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
 #optgroup.add_argument('-v', '--verbose', action='store_true', help="Show all traces")
-
-# cmdline loaded up, now parse for it and handle what is found
+#
+## cmdline loaded up, now parse for it and handle what is found
 #args = argparser.parse_args()
-
-#Get the response bin file
+#
+## Get the response bin file
 #sbeRespBinFile = args.respBinFile
-
-# Get the PPE Trace Bin file path
-#ppeTraceFile = args.ppeTraceFile
-
-# Read the file and store the content in buffer.
+#
+## Read the file and store the content in buffer.
 #with open(sbeRespBinFile, 'rb') as rspBin:
 #        readData = rspBin.read()
-
-# Execute parseUDToJson
+#
+## Execute parseUDToJson
 #print(parseUDToJson(0x3500, 1, readData))

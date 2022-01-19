@@ -2,11 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: modules/udparsers/o3500/fetchSbeTrace.py $
+# $Source: modules/udparsers/o3500/parseSbeFfdcBlob.py $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2021
+# Contributors Listed Below - COPYRIGHT 2020,2022
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 # IBM_PROLOG_END_TAG
 
 # Akhilesh S - created 07/21/2021
-# Python module to extract PPE trace's from SBE chip-op response
+# Python utility module to process SBE FFDC Packet in BMC systems.
 
 ############################################################
 # Imports - Imports - Imports - Imports - Imports - Imports
@@ -32,20 +32,15 @@
 #Python Provided
 import sys
 import os
-import argparse
-import textwrap
 
 ############################################################
 # Variables - Variables - Variables - Variables - Variables
 ############################################################
 
-#Tool version
-toolVersion = 1.0
-
 ############################################################
 # Function - Functions - Functions - Functions - Functions
 ############################################################
-#Check if trace buffer is present in SBE Chip-op response.
+#Check if trace buffer is present in SBE FFDC Chip-op response.
 def checkForPpeTraceBuff(sbeRespBinFile):
 
     #Componenet ID
@@ -63,41 +58,68 @@ def checkForPpeTraceBuff(sbeRespBinFile):
     else:
         sys.exit("PPE Trace Buffer not found\n")
 
-#Find the start offset and size of the trace buffer
+#This function will extract sbe_trace.bin,sbe_attr.bin and sbe_hw_data.bin
+#from the sbeUserDataBlob/sbeFFDC into 3 sepearte bin files for further usage.
+#We will extract all .bin basis trace buffer reference offset.
 #For offset details refer:
 #/ppe-p10/src/tools/trace/ppe2fsp.py (or)
 #/ppe-p10/src/import/chips/p10/common/ppe/ppetrace/pk_trace.h
-def getBuffDetails(sbeRespBinFile, bufferNameOffset):
-
-    pkTraceBuffHdrSize = 56
-    buffStartOffset = bufferNameOffset - 4
-    buffSizeOffset = bufferNameOffset + 22
+#For FFDC offset's refer FFDC packed structure
+def parseSbeUserDataBlob(sbeRespBinFile):
 
     file = open(sbeRespBinFile, "rb")
-    file.seek(buffSizeOffset)
-    #Read 2 bytes of buffer size
-    bufferSize = file.read(2)
-    file.close()
-    #TODO:Check for right endians
-    bufferSize = int.from_bytes(bufferSize,"big")
-    totalBuffSize = bufferSize + pkTraceBuffHdrSize
+    #First blob of data in FFDC packet is SBE Trace buffer
 
-    return(buffStartOffset,totalBuffSize)
-
-################################## Main ###############################################
-
-################################################
-def fetchSbeTraces(sbeRespBinFile, sbeTraceFile):
     #check if PPE trace buffer is present
     componentIdOffset = checkForPpeTraceBuff(sbeRespBinFile)
+    buffStartOffset = componentIdOffset - 4
+    buffSizeOffset = componentIdOffset - 6
+    file.seek(buffSizeOffset)
+    #Read 2 bytes of buffer size
+    traceBufferSize = file.read(2)
+    #TODO:Check for right endians
+    traceBufferSize = int.from_bytes(traceBufferSize,"big")
 
-    #Get the start offset and size of the trace buffer
-    (startOffset,size) = getBuffDetails(sbeRespBinFile, componentIdOffset)
+    #Second blob of data in FFDC packet is attr.bin
+
+    attrBinStartOffset = buffStartOffset + traceBufferSize + 4
+    attrBinSizeOffset = buffStartOffset + traceBufferSize + 2
+    file.seek(attrBinSizeOffset)
+    #Read 2 bytes of attr bin size
+    attrBinSize = file.read(2)
+    #TODO:Check for right endians
+    attrBinSize = int.from_bytes(attrBinSize,"big")
+    print(attrBinSize)
+
+    #Third blob of data in FFDC packet is hw_data.bin
+
+    hwDataBinStartOffset = attrBinStartOffset + attrBinSize + 4
+    hwDataBinSizeOffset = attrBinStartOffset + attrBinSize + 2
+    file.seek(hwDataBinSizeOffset)
+    #Read 2 bytes of hw data bin size
+    hwDataBinSize = file.read(2)
+    #TODO:Check for right endians
+    hwDataBinSize = int.from_bytes(hwDataBinSize,"big")
+    print(hwDataBinSize)
+
+    file.close()
 
     #Extract out the pk trace buffer
-    cmd = "dd skip=" + str(startOffset) + " count=" + str(size) + " if=" + sbeRespBinFile  + " of=ppeTrace.bin bs=1"
+    cmd = "dd skip=" + str(buffStartOffset) + " count=" + str(traceBufferSize) + " if=" + sbeRespBinFile  + " of=ppeTrace.bin bs=1"
     print(cmd)
     os.system(cmd)
+
+    #Extract out the attr bin
+    cmd = "dd skip=" + str(attrBinStartOffset) + " count=" + str(attrBinSize) + " if=" + sbeRespBinFile  + " of=attr.bin bs=1"
+    print(cmd)
+    os.system(cmd)
+
+    #Extract out the hw data bin
+    cmd = "dd skip=" + str(hwDataBinStartOffset) + " count=" + str(hwDataBinSize) + " if=" + sbeRespBinFile  + " of=hwData.bin bs=1"
+    print(cmd)
+    os.system(cmd)
+
+def fetchSbeTraces():
 
     #Execute ppe2fsp tool to convert ppe trace to fsp trace.
     #TODO:Provide the right path to the tool as per BMC env
@@ -106,7 +128,8 @@ def fetchSbeTraces(sbeRespBinFile, sbeTraceFile):
     os.system(cmd)
 
     #TODO:We can execute the fspTrace tool in same script or seperately
-    #TODO:Get the filepath for fsp-trace and ppe2fsp otherwise copy both the files with ppe2fsp.py 
+    #TODO:Get the filepath for fsp-trace and ppe2fsp otherwise copy both the files with ppe2fsp.py
+    #TODO:Need to be provided by HB Team
 #    cmd = "fsp-trace -s sbeStringFile sbetrace.bin > sbeTraceFile"
 #    print(cmd)
 #    os.system(cmd)
