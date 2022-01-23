@@ -44,23 +44,29 @@ toolVersion = 1.0
 def parseUDToJson(subType, ver, data):
 
     # Create a binary file with the SBE data.
-    with open('sbeffdcFile', "wb") as ffdcFile:
+    with open("/tmp/sbeffdcFile", "wb") as ffdcFile:
         ffdcFile.write(data)
 
     ffdcFile.close();
 
     #Parse the FFDC blob and fetch ppeTrace.bin,attr.bin and hwData.bin
-    parseSbeFfdcBlob.parseSbeUserDataBlob(sbeffdcFile)
+    parseSbeFfdcBlob.parseSbeUserDataBlob("/tmp/sbeffdcFile")
 
-    #Parse ppeTrace.bin file to fetch SBE Traces
-    parseSbeFfdcBlob.fetchSbeTraces()
+    ##Parse ppeTrace.bin file to fetch SBE Traces
+    #parseSbeFfdcBlob.fetchSbeTraces()
 
-    # Parse and populate data into dictionary
-    #with open("sbeTraceFile", 'rb') as rspBin:
-    with open("sbeTraceFile", 'r') as rspBin:
-        readData = rspBin.read()
+    ## Parse and populate data into dictionary
+    ##with open("sbeTraceFile", 'rb') as rspBin:
+    #with open("sbeTraceFile", 'r') as rspBin:
+    #    readData = rspBin.read()
+    #jsonStr = json.dumps({"Data": readData})
 
+    #Parse hwData.bin file to fetch SBE HwRegData
+    parseSbeFfdcBlob.fetchSbeHwRegData()
+    with open("/tmp/sbeHwRegTraceFile", 'r') as rspHwBin:
+        readData = rspHwBin.read()
     jsonStr = json.dumps({"Data": readData})
+
     return jsonStr
 
 ############################################ Main ###################################

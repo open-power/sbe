@@ -7,6 +7,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2020,2022
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,17 +106,20 @@ def parseSbeUserDataBlob(sbeRespBinFile):
     file.close()
 
     #Extract out the pk trace buffer
-    cmd = "dd skip=" + str(buffStartOffset) + " count=" + str(traceBufferSize) + " if=" + sbeRespBinFile  + " of=ppeTrace.bin bs=1"
+    ppeTraceName = "/tmp/ppeTrace.bin"
+    cmd = "dd skip=" + str(buffStartOffset) + " count=" + str(traceBufferSize) + " if=" + sbeRespBinFile  + " of=" + ppeTraceName + " bs=1"
     print(cmd)
     os.system(cmd)
 
     #Extract out the attr bin
-    cmd = "dd skip=" + str(attrBinStartOffset) + " count=" + str(attrBinSize) + " if=" + sbeRespBinFile  + " of=attr.bin bs=1"
+    attrName = "/tmp/attr.bin"
+    cmd = "dd skip=" + str(attrBinStartOffset) + " count=" + str(attrBinSize) + " if=" + sbeRespBinFile  + " of=" + attrName + " bs=1"
     print(cmd)
     os.system(cmd)
 
     #Extract out the hw data bin
-    cmd = "dd skip=" + str(hwDataBinStartOffset) + " count=" + str(hwDataBinSize) + " if=" + sbeRespBinFile  + " of=hwData.bin bs=1"
+    hwDataName = "/tmp/hwData.bin"
+    cmd = "dd skip=" + str(hwDataBinStartOffset) + " count=" + str(hwDataBinSize) + " if=" + sbeRespBinFile  + " of=" + hwDataName + " bs=1"
     print(cmd)
     os.system(cmd)
 
@@ -123,7 +127,7 @@ def fetchSbeTraces():
 
     #Execute ppe2fsp tool to convert ppe trace to fsp trace.
     #TODO:Provide the right path to the tool as per BMC env
-    cmd =  os.environ['PATH_PYTHON3'] + " " + "ppe2fsp.py -i ./ppeTrace.bin -o ./sbetrace.bin -e big"
+    cmd =  "./ppe2fsp.py -i ./ppeTrace.bin -o ./sbetrace.bin -e big"
     print(cmd)
     os.system(cmd)
 
@@ -133,3 +137,12 @@ def fetchSbeTraces():
 #    cmd = "fsp-trace -s sbeStringFile sbetrace.bin > sbeTraceFile"
 #    print(cmd)
 #    os.system(cmd)
+
+def fetchSbeHwRegData():
+
+    #Execute sbeHwRegData tool to convert hwReg Struct trace to Data.
+    #TODO:Provide the right path to the tool as per BMC env
+    cmd = "./fetchSbehwRegData.py -i /tmp/hwData.bin > /tmp/sbeHwRegTraceFile"
+    print(cmd)
+    os.system(cmd)
+
