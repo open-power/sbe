@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -466,11 +466,11 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
     fapi2::ATTR_IS_MPIPL_Type l_attr_is_mpipl;
-    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_core_mode;
     fapi2::ATTR_CHIP_CONTAINED_ACTIVE_CORES_VEC_Type l_attr_chip_contained_active_cores_vec;
     fapi2::ATTR_CHIP_CONTAINED_BACKING_CACHES_VEC_Type l_attr_chip_contained_backing_caches_vec;
-    fapi2::ATTR_SBE_SELECT_EX_POLICY_Type l_attr_sbe_select_ex_policy;
     fapi2::ATTR_ZERO_CORE_CHIP_Type l_zero_core_chip;
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type l_active_cores_num = 0;
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type l_backing_caches_num = 0;
 
     o_active_cores_num = 0;
     o_backing_caches_num = 0;
@@ -532,10 +532,6 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
              "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE, FAPI_SYSTEM, l_attr_fused_core_mode),
-             "Error from FAPI_ATTR_GET (ATTR_FUSED_CORE_MODE)");
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_SELECT_EX_POLICY, FAPI_SYSTEM, l_attr_sbe_select_ex_policy),
-             "Error from FAPI_ATTR_GET (ATTR_SBE_SELECT_EX_POLICY)");
 
     if (l_attr_contained_ipl_type == fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE)
     {
@@ -582,40 +578,14 @@ fapi2::ReturnCode select_ex_calc_active_backing_nums(
     }
     else
     {
-        // non contained IPL type -- remove ECO cores from count of functional cores on this chip,
-        // as we won't process them as part of istep 4
-        l_functional_cores_num -= o_eco_caches_num;
+        // non contained IPL type
+        FAPI_TRY(p10_perv_sbe_cmn_min_active_backing_nums(i_target, i_core_functional_vector,
+                 l_active_cores_num, l_backing_caches_num),
+                 "Error from p10_perv_sbe_cmn_min_active_backing_nums");
 
-        if (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_CRONUS_MAX_ACTIVE)
-        {
-            o_active_cores_num = l_functional_cores_num;
-            o_backing_caches_num = 0;
-        }
-        else
-        {
-            // default to minset of active cores / backing caches
-            o_active_cores_num = ((l_attr_fused_core_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED) ? (2) : (1));
-            o_backing_caches_num = 2;
+        o_active_cores_num = l_active_cores_num;
+        o_backing_caches_num = l_backing_caches_num;
 
-            if ((l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT) ||
-                (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT_MAX_THREADS))
-            {
-                // maximal set of backing caches
-                // backing cache configuration can only grow in powers of 2
-                while (((o_backing_caches_num * 2) + o_active_cores_num) <=
-                       l_functional_cores_num)
-                {
-                    o_backing_caches_num *= 2;
-                }
-            }
-
-            if ((l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_THREADS) ||
-                (l_attr_sbe_select_ex_policy == fapi2::ENUM_ATTR_SBE_SELECT_EX_POLICY_HB_MAX_FOOTPRINT_MAX_THREADS))
-            {
-                // maximal set of active cores
-                o_active_cores_num = (l_functional_cores_num - o_backing_caches_num);
-            }
-        }
 
         if (l_attr_is_mpipl)
         {

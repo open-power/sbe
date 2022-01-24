@@ -38,7 +38,7 @@
 #include <target_filters.H>
 #include <p10_sbe_hb_structures.H>
 #include <p10_determine_eco_mode.H>
-
+#include <p10_perv_sbe_cmn.H>
 
 const uint32_t NUM_EQS_PER_CHIP  = 8;  // Num of EQ pervasive chiplets per chip
 const uint32_t NUM_CORES_PER_EQ  = 4;  // Num of cores per EQ chiplet
@@ -50,7 +50,6 @@ const uint32_t CORE0_L3_PG_BIT   = 17; // L3 bit in EQ ATTR_PG
 const uint32_t CORE0_MMA_PG_BIT  = 23; // MMA bit in EQ ATTR_PG
 
 const uint32_t SBE_LFR_REG       = 0x000C0002040;
-
 
 /// @brief detect presence of at least one runnable core within an EQ, given
 ///        the chiplet level partial good information
@@ -83,7 +82,54 @@ p10_sbe_scratch_regs_eq_has_runnable_cores(
 
 ///
 /// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MPVD
-///        driven partial good (ATTR_PG_MPVD) and mailbox gard records
+///        driven partial good (ATTR_PG_MPVD).
+///
+/// @param[in] i_target_chip  Processor chip target
+///
+/// @return fapi2::ReturnCode
+///
+fapi2::ReturnCode
+p10_sbe_attr_update_eq_pg_from_mvpd(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    FAPI_DBG("Start");
+    bool l_good_core_chip_detected = false;
+
+    for (const auto& l_perv : i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(static_cast<fapi2::TargetFilter>
+            (fapi2::TARGET_FILTER_ALL_EQ),
+            fapi2::TARGET_STATE_PRESENT))
+    {
+        // read MVPD attribute for that eq and write it to PG attribute.
+        fapi2::ATTR_PG_Type l_pg;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
+        FAPI_DBG("  PG via ATTR_PG_MVPD: 0x%08X  Inverse:  0x%08X", l_pg, ~l_pg);
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
+
+        // For IOSCM, no elements in the EQ MVPD record will be marked good
+        // However, we only care about cores, L3s, and MMAs
+
+        if (p10_sbe_scratch_regs_eq_has_runnable_cores(l_pg))
+        {
+            l_good_core_chip_detected = true;
+            FAPI_DBG("  SBE Good core chip detected");
+        }
+    }
+
+    if (!l_good_core_chip_detected)
+    {
+        FAPI_INF("  Chip with no good cores detected");
+        fapi2::ATTR_ZERO_CORE_CHIP_Type l_all_zero_core_chip = fapi2::ENUM_ATTR_ZERO_CORE_CHIP_TRUE;
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_ZERO_CORE_CHIP, i_target_chip, l_all_zero_core_chip));
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
+///
+/// @brief Set platform ATTR_PG attribute for EQ chiplets, based on MVPD
+///        driven partial good (ATTR_PG_MVPD) and mailbox gard records
 ///
 /// @param[in] i_target_chip  Processor chip target
 /// @param[in] i_scratch1_reg Buffer reflecting mailbox1 gard record content
@@ -122,6 +168,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
 
         // For IOSCM, no elements in the EQ MVPD record will be marked good
         // However, we only care about cores, L3s, and MMAs
+
         if (p10_sbe_scratch_regs_eq_has_runnable_cores(l_pg))
         {
             l_good_core_chip_detected = true;
@@ -140,6 +187,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
         // For Cronus, detect if there is at least 1 core good in this quad.
         // This is done post-gard as this is how Cronus communicates desired
         // configuration.
+
         if (p10_sbe_scratch_regs_eq_has_runnable_cores(l_pg))
         {
             l_good_core_chip_detected = true;
@@ -160,7 +208,6 @@ fapi_try_exit:
     FAPI_DBG("End");
     return fapi2::current_err;
 }
-
 
 ///
 /// @brief Set platform ATTR_PG attribute for non-EQ chiplets, based on MPVD
@@ -402,7 +449,6 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-
 ///
 /// @brief Update platform ATTR_PG attribute for EQ chiplets, in a fused core mode.
 ///        If only one core is functional in fused mode, SBE will gard that core.
@@ -473,6 +519,151 @@ p10_sbe_update_eq_pg_for_fusedcore(
         FAPI_TRY(fapi2::putScom(i_target_chip,
                                 scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW, scratch1_reg),
                  "Error writing Scratch 1 mailbox register");
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
+///
+/// @brief Set platform ATTR_PG attribute for EQ chiplets, incase minimum
+///        config is not met.
+///
+/// @param[in] i_target_chip  Processor chip target
+///
+/// @return fapi2::ReturnCode
+///
+fapi2::ReturnCode
+p10_sbe_scratch_regs_resource_recovery_flow(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    FAPI_DBG("Start");
+
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type l_attr_num_active = 0;
+    fapi2::ATTR_ACTIVE_CORES_NUM_Type l_attr_num_backing = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_EQ> l_eq_target;
+    uint32_t l_num_active = 0;
+    uint32_t l_num_backing = 0;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    uint32_t l_fused_core_num_base = 0;
+    bool b_fused = false;
+    bool b_fused_first_half = false;
+
+    auto l_core_functional_vector = i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>
+                                    (fapi2::TARGET_STATE_FUNCTIONAL);
+
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                           FAPI_SYSTEM,
+                           l_attr_fused_mode));
+
+    if (l_attr_fused_mode == fapi2::ENUM_ATTR_FUSED_CORE_MODE_CORE_FUSED)
+    {
+        b_fused = true;
+        FAPI_DBG("Fused core mode detected");
+    }
+
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYSTEM, l_attr_contained_ipl_type),
+             "Error from FAPI_ATTR_GET (ATTR_CONTAINED_IPL_TYPE)");
+
+    // Compute the number of active cores/backing caches need to be configured
+    FAPI_TRY(p10_perv_sbe_cmn_min_active_backing_nums(i_target_chip, l_core_functional_vector,
+             l_attr_num_active, l_attr_num_backing),
+             "Error from p10_perv_sbe_cmn_min_active_backing_nums");
+
+    for (auto const& core : l_core_functional_vector)
+    {
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_chip_unit_pos = 0;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                               core,
+                               l_attr_chip_unit_pos));
+
+        uint32_t l_core_num  = (uint32_t)l_attr_chip_unit_pos;
+
+        l_eq_target = core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core, l_eco_mode));
+
+        bool b_skip_active = l_eco_mode;
+        bool b_skip_backing = l_eco_mode && (l_attr_contained_ipl_type !=
+                                             fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CHIP);
+
+        if (b_fused)
+        {
+            if (b_fused_first_half)
+            {
+                // Check that the second normal core is functional.
+                FAPI_DBG("Odd core check: base core == %d, core num = %d",
+                         l_fused_core_num_base, l_core_num);
+                FAPI_ASSERT(l_core_num == l_fused_core_num_base + 1,
+                            fapi2::SBE_SELECT_EX_FUSED_ODD_ERROR()
+                            .set_CHIP(i_target_chip)
+                            .set_CORE_NUM(l_core_num)
+                            .set_FUSED_CORE_NUM_BASE(l_fused_core_num_base),
+                            "Odd core within fused set is not functional");
+                b_fused_first_half = false;
+            }
+            else
+            {
+                // Check that the first normal core is even.
+                FAPI_ASSERT(l_core_num % 2 == 0,
+                            fapi2::SBE_SELECT_EX_FUSED_NOT_EVEN_ERROR()
+                            .set_CHIP(i_target_chip)
+                            .set_CORE_NUM(l_core_num),
+                            "The first core found in fused mode was not an even core");
+                b_fused_first_half = true;
+                l_fused_core_num_base = l_core_num;
+            }
+        }
+
+        // Skip cache only cores in trying to fullfil the active cores
+        if ((l_num_active < l_attr_num_active) && !b_skip_active)
+        {
+            ++l_num_active;
+            continue;  // next core
+        }
+
+        if ((l_num_backing < l_attr_num_backing) && !b_skip_backing)
+        {
+            ++l_num_backing;
+            continue;  // next core
+        }
+    }
+
+    if((l_num_active != l_attr_num_active) || (l_num_backing != l_attr_num_backing))
+    {
+        // Minimum config of cores to boot the system is not met.
+        // In this case SBE will rely on fallBackCoreAttr.
+
+        // Read the attribute.
+        fapi2::ATTR_HB_FALLBACK_CORES_Type fallBackCoreAttr = 0;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_HB_FALLBACK_CORES, i_target_chip, fallBackCoreAttr));
+
+        if(fallBackCoreAttr == 0xFFFFFFFF)
+        {
+            // fallBackCoreAttr is not set. This can be first IPL.
+            // So, SBE will update the PG attribute for EQ based on PG_MVPD.
+
+            FAPI_TRY(p10_sbe_attr_update_eq_pg_from_mvpd(i_target_chip),
+                     "Error from p10_sbe_attr_update_eq_pg_from_mvpd");
+        }
+        else
+        {
+            // Not first IPL.
+            // fallBackCoreAttr is set by HB.
+            // SBE will not use the scratch reg 2838. Instead it will use fallBackCoreAttr
+            // to update ATTR_PG for EQ chiplets.
+
+            FAPI_TRY(p10_sbe_scratch_regs_write_eq_pg_from_scratch(i_target_chip,
+                     fallBackCoreAttr),
+                     "Error from p10_sbe_scratch_regs_write_eq_pg_from_scratch");
+        }
+
+        FAPI_TRY(p10_sbe_update_eq_pg_for_fusedcore(i_target_chip),
+                 "Error from p10_sbe_update_eq_pg_for_fusedcore");
     }
 
 fapi_try_exit:
@@ -1179,6 +1370,15 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                      "Error from FAPI_ATTR_SET (ATTR_TPM_SPI_BUS_DIV)");
         }
     }
+
+#ifdef __PPE__
+    // Check for minimum config of cores.
+    // If minimum config is not met, look at the fallbackCoreAttr.
+    // If the fallbackCoreAttr is not set, update PG with MVPD.
+    // else update PG with fallbackCoreAttr.
+    FAPI_TRY(p10_sbe_scratch_regs_resource_recovery_flow(i_target_chip),
+             "Error from p10_sbe_scratch_regs_resource_recovery_flow");
+#endif
 
     FAPI_INF("p10_sbe_attr_setup: Exiting ...");
 
