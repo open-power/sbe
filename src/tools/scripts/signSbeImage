@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -184,12 +184,11 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SIGNING_DIR
 PATH=$SIGNING_DIR:$PATH
 
 # Check for signing mode passed in by environment
-if [ "$BR2_OPENPOWER_SECUREBOOT_SIGN_MODE" = "production" ]; then
-    SIGNING_MODE="Production"
-fi
+if [ ! -z $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE ]; then
+    SIGNING_MODE=$BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
 
 #Check if user has passed signing mode
-if [ -z $SIGNING_MODE ]; then
+elif [ -z $SIGNING_MODE ]; then
     SIGNING_MODE="Development"
     echo "***INFO | SBE | signSbeImage : Defaulting signing mode to $SIGNING_MODE "
 fi
@@ -201,7 +200,8 @@ if [ "$SIGNING_MODE" = "Development" ]; then
                    --hwKeyA ${DEV_KEY_DIR}/hw_key_a.key --hwKeyB ${DEV_KEY_DIR}/hw_key_b.key \
                    --hwKeyC ${DEV_KEY_DIR}/hw_key_c.key --swKeyP ${DEV_KEY_DIR}/sw_key_a.key "
 
-elif [ "$SIGNING_MODE" = "Production" ]; then
+elif [ "$SIGNING_MODE" = "Production" ] ||
+     [ "$SIGNING_MODE" = "production" ]; then
     echo "***INFO | SBE | signSbeImage : Production Mode Signing"
 
     if [ -z $SB_PROJECT_INI ] || [ ! -e $SB_PROJECT_INI ]; then
@@ -232,7 +232,12 @@ if [ -z $SV ]; then
     # Build process can pass in the secure version through the environment
     if [ ! -z $SIGNING_SECURITY_VERSION ]; then
         SV=$SIGNING_SECURITY_VERSION
-        echo "***INFO | SBE | signSbeImage : SV(Secure Version) passed via SIGNING_SECURITY_VERSION as $SV"
+        echo "***INFO | SBE | signSbeImage : SV(Secure Version) passed via " \
+             "SIGNING_SECURITY_VERSION as $SV"
+    elif [ ! -z $BR2_OPENPOWER_SIGNED_SECURITY_VERSION ]; then
+        SV=$BR2_OPENPOWER_SIGNED_SECURITY_VERSION
+        echo "***INFO | SBE | signSbeImage : SV(Secure Version) passed via " \
+             "BR2_OPENPOWER_SIGNED_SECURITY_VERSION as $SV"
     else
         SV=0
         echo "***INFO | SBE | signSbeImage : SV(Secure Version) not entered. Defaulting to $SV"
