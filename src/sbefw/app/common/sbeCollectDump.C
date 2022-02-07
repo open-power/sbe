@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -312,7 +312,7 @@ void sbeCollectDump::populateAllCoresScomScanState()
             scanStatus_t scanStateData;
             uint32_t eqNum = eqTgt.get().getTargetInstance();
             SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
-                                          scomStateData, scanStateData);
+                                          scomStateData, scanStateData,false);
             SBE_DEBUG(SBE_FUNC "scomStateData and scanstateData is 0x%08X 0x%08X", scomStateData.scomState, scanStateData.scanState);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {

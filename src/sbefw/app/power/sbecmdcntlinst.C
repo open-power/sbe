@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -404,7 +404,7 @@ ReturnCode stopAllCoreInstructions( )
             scomStatus_t scomStateData;
             scanStatus_t scanStateData;
             SBE_EXEC_HWP(fapiRc,p10_query_corecachemma_access_state, eqTgt,
-                    scomStateData,scanStateData);
+                    scomStateData,scanStateData,false);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC " p10_query_corecachemma_access_state failed, "
