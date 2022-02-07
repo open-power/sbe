@@ -2,11 +2,11 @@
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
-# $Source: src/import/systems/p10/hdct/createHdctTxtUtils.py $
+# $Source: src/import/systems/p10/hdct/pymod/createHdctTxtUtils.py $
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2021
+# Contributors Listed Below - COPYRIGHT 2022
 # [+] International Business Machines Corp.
 #
 #
@@ -39,9 +39,12 @@ import binascii
 ################################################# NOTE: DO NOT IMPORT ANY MODULES WHICH USE ECMD LIBRARY/PATH ############################################
 #This module is mirrored into ppe repo which has no ecmd support in simics env where this module is called in a test case
 # Add the common modules to the path
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.path.expandvars("$CTEPATH") + "/tools/crondump/dev/pymod"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__))))
 # Our supporting modules
-import out
+from dumpConstants import out
+# Since this script can be called stand alone, define out if not already defined
+if (out == None):
+    out = output.out()
 import dumpConstants
 
 ############################################################
