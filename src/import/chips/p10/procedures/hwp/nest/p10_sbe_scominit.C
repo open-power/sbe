@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -446,8 +446,8 @@ fapi2::ReturnCode p10_sbe_scominit_trace(const fapi2::Target<fapi2::TARGET_TYPE_
 /// @return fapi::ReturnCode  FAPI2_RC_SUCCESS if success, else error code.
 fapi2::ReturnCode p10_sbe_scominit_core_lpar(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 {
-
     using namespace scomt;
+    using namespace scomt::proc;
     using namespace scomt::eq;
     using namespace scomt::c;
 
@@ -458,9 +458,43 @@ fapi2::ReturnCode p10_sbe_scominit_core_lpar(const fapi2::Target<fapi2::TARGET_T
     auto l_eq_mc  = i_target.getMulticast<fapi2::TARGET_TYPE_EQ>(fapi2::MCGROUP_ALL_EQ);
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::ATTR_CORE_LPAR_MODE_Type l_core_lpar_mode;
-
-
     fapi2::ATTR_CHIP_EC_FEATURE_DYN_CORE_LPAR_Type l_ec_dyn_core_lpar;
+    fapi2::buffer<uint64_t> l_perv_ctrl0;
+    fapi2::buffer<uint64_t> l_export_regl_status;
+    bool l_smt8_req = false;
+    bool l_smt8_act = false;
+
+    // confirm that requested core mode (fused/normal) aligns with feedback reported from export regulation
+    // status registers
+    // - HWP code in p10_setup_sbe_config will alwasy place request in PERV_CTRL0[22], based on HWSV/Cronus platform
+    //   state of ATTR_FUSED_CORE_MODE
+    // - HW will reflect actual state (considering OTPROM programmed restrictions) in EXPORT_REGL_STATUS
+    // - cross-checking HW state here should work across different platform implementations, to ensure that
+    //   ATTR_FUSED_CORE mode attribute matches actual HW state going forward
+    //   (PPE platform currently updates ATTR_FUSED_CORE_MODE based on EXPORT_REGL_STATUS to reflect true
+    //    state, Cronus platform currently does not)
+    FAPI_TRY(fapi2::getScom(i_target, TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_PERV_CTRL0_RW, l_perv_ctrl0))
+    l_smt8_req = l_perv_ctrl0.getBit<TP_TPVSB_FSI_W_MAILBOX_FSXCOMP_FSXLOG_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>();
+
+    FAPI_DBG("Read EXPORT_REGL_STATUS to confirm core fused state");
+    FAPI_TRY(fapi2::getScom(i_target, TP_TPCHIP_PIB_OTP_OTPC_M_EXPORT_REGL_STATUS, l_export_regl_status));
+    l_smt8_act = l_export_regl_status.getBit<TP_TPCHIP_PIB_OTP_OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_SMT8_CTYPE_EN_DC>();
+
+    FAPI_ASSERT(l_smt8_req == l_smt8_act,
+                fapi2::P10_SBE_SCOMINIT_FUSED_CORE_MISMATCH_ERR()
+                .set_TARGET_CHIP(i_target)
+                .set_FUSED_CORE_REQ(l_smt8_req)
+                .set_FUSED_CORE_ACT(l_smt8_act),
+#ifdef __PPE__
+                "HW export regulation status fused core state (%d) does not match mailbox request (%d)!",
+                ((l_smt8_act) ? 1 : 0),
+                ((l_smt8_req) ? 1 : 0));
+#else
+                "HW export regulation status fused core state (%s) does not match mailbox request (%s)!",
+                ((l_smt8_act) ? ("fused") : ("normal")),
+                ((l_smt8_req) ? ("fused") : ("normal")));
+#endif
+
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_DYN_CORE_LPAR, i_target, l_ec_dyn_core_lpar));
 
     //Skip if we are in DD1 hw
@@ -534,7 +568,6 @@ fapi_try_exit:
     FAPI_DBG("Exiting ...");
     return fapi2::current_err;
 }
-
 
 /// Main function, see description in header
 fapi2::ReturnCode p10_sbe_scominit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)

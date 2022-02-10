@@ -686,11 +686,8 @@ fapi2::ReturnCode p10_sbe_attr_setup(
 
     // set core LPAR mode, confirm fused core mode
     {
-        fapi2::buffer<uint64_t> l_perv_ctrl0;
-        fapi2::buffer<uint64_t> l_export_regl_status;
         fapi2::ATTR_CORE_LPAR_MODE_Type l_attr_core_lpar_mode = fapi2::ENUM_ATTR_CORE_LPAR_MODE_LPAR_PER_THREAD;
-        bool l_smt8_req = false;
-        bool l_smt8_act = false;
+        fapi2::buffer<uint64_t> l_perv_ctrl0;
 
         FAPI_DBG("Read PERV_CTRL0 to set core LPAR mode");
         FAPI_TRY(fapi2::getScom(i_target_chip, FSXCOMP_FSXLOG_PERV_CTRL0_RW, l_perv_ctrl0));
@@ -698,36 +695,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         l_attr_core_lpar_mode = l_perv_ctrl0.getBit<FSXCOMP_FSXLOG_PERV_CTRL0_TP_EX_SINGLE_LPAR_EN_DC>();
 
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_CORE_LPAR_MODE, FAPI_SYSTEM, l_attr_core_lpar_mode));
-
-        // confirm that requested core mode (fused/normal) aligns with feedback reported from export regulation
-        // status registers
-        // - HWP code in p10_setup_sbe_config will alwasy place request in PERV_CTRL0[22], based on HWSV/Cronus platform
-        //   state of ATTR_FUSED_CORE_MODE
-        // - HW will reflect actual state (considering OTPROM programmed restrictions) in EXPORT_REGL_STATUS
-        // - cross-checking HW state here should work across different platform implementations, to ensure that
-        //   ATTR_FUSED_CORE mode attribute matches actual HW state going forward
-        //   (PPE platform currently updates ATTR_FUSED_CORE_MODE based on EXPORT_REGL_STATUS to reflect true
-        //    state, Cronus platform currently does not)
-        l_smt8_req = l_perv_ctrl0.getBit<FSXCOMP_FSXLOG_PERV_CTRL0_TP_OTP_SCOM_FUSED_CORE_MODE>();
-
-        FAPI_DBG("Read EXPORT_REGL_STATUS to confirm core fused state");
-        FAPI_TRY(fapi2::getScom(i_target_chip, OTPC_M_EXPORT_REGL_STATUS, l_export_regl_status));
-        l_smt8_act = l_export_regl_status.getBit<OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_SMT8_CTYPE_EN_DC>();
-
-        FAPI_ASSERT(l_smt8_req == l_smt8_act,
-                    fapi2::P10_SBE_ATTR_SETUP_FUSED_CORE_MISMATCH_ERR()
-                    .set_TARGET_CHIP(i_target_chip)
-                    .set_FUSED_CORE_REQ(l_smt8_req)
-                    .set_FUSED_CORE_ACT(l_smt8_act),
-#ifdef __PPE__
-                    "HW export regulation status fused core state (%d) does not match mailbox request (%d)!",
-                    ((l_smt8_act) ? 1 : 0),
-                    ((l_smt8_req) ? 1 : 0));
-#else
-                    "HW export regulation status fused core state (%s) does not match mailbox request (%s)!",
-                    ((l_smt8_act) ? ("fused") : ("normal")),
-                    ((l_smt8_req) ? ("fused") : ("normal")));
-#endif
     }
 
     FAPI_DBG("Read Scratch8 for validity of Scratch register");
