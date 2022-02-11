@@ -719,9 +719,15 @@ fapi2::ReturnCode p10_sbe_attr_setup(
                     .set_TARGET_CHIP(i_target_chip)
                     .set_FUSED_CORE_REQ(l_smt8_req)
                     .set_FUSED_CORE_ACT(l_smt8_act),
+#ifdef __PPE__
+                    "HW export regulation status fused core state (%d) does not match mailbox request (%d)!",
+                    ((l_smt8_act) ? 1 : 0),
+                    ((l_smt8_req) ? 1 : 0));
+#else
                     "HW export regulation status fused core state (%s) does not match mailbox request (%s)!",
                     ((l_smt8_act) ? ("fused") : ("normal")),
                     ((l_smt8_req) ? ("fused") : ("normal")));
+#endif
     }
 
     FAPI_DBG("Read Scratch8 for validity of Scratch register");
