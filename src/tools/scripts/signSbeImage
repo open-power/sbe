@@ -183,8 +183,12 @@ fi
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SIGNING_DIR
 PATH=$SIGNING_DIR:$PATH
 
-# Check for signing mode passed in by environment
-if [ ! -z $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE ]; then
+# Check for signing mode passed in by environment (p10)
+if [ ! -z $BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE ]; then
+    SIGNING_MODE=$BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE
+
+# Check for signing mode passed in by environment (p9)
+elif [ ! -z $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE ]; then
     SIGNING_MODE=$BR2_OPENPOWER_SECUREBOOT_SIGN_MODE
 
 #Check if user has passed signing mode
@@ -222,7 +226,7 @@ elif [ "$SIGNING_MODE" = "Production" ] ||
 
 
 else
-    echo "***ERROR | SBE | signSbeImage : Invalid signing mode option. Enter correct -f option"
+    echo "***ERROR | SBE | signSbeImage : Invalid signing mode option: $SIGNING_MODE. Enter correct -f option"
     usage
     exit -1
 fi
