@@ -649,6 +649,10 @@
   </entry>
   <!-- override-only attributes -->
   <entry>
+    <name>ATTR_PROC_LCO_MODE_DISABLE</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
     <name>ATTR_PROC_FORCE_MC_PLL_BANDSEL</name>
     <value>0x0</value>
   </entry>
