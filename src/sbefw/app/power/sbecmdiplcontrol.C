@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -360,6 +360,20 @@ ReturnCode performAttrSetup( )
         }
 
         SBE_EXEC_HWP(rc, p10_sbe_attr_setup, proc)
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+
+        // Now update functional state again, picking up any updates that
+        // attr_setup may have done.
+        rc = plat_UpdateFunctionalState();
+        if( rc != FAPI2_RC_SUCCESS )
+        {
+            break;
+        }
+
+        rc = p10_sbe_scratch_regs_resource_recovery_flow(proc);
         if( rc != FAPI2_RC_SUCCESS )
         {
             break;
