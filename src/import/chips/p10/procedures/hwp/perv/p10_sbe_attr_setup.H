@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,6 +41,18 @@
 
 typedef fapi2::ReturnCode (*p10_sbe_attr_setup_FP_t)(const
         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&);
+
+///
+/// @brief Set platform ATTR_PG attribute for EQ chiplets, incase minimum
+///        config is not met.
+///
+/// @param[in] i_target_chip  Processor chip target
+///
+/// @return fapi2::ReturnCode
+///
+fapi2::ReturnCode
+p10_sbe_scratch_regs_resource_recovery_flow(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip);
 
 /// @brief HWP will read the contents of Byte 0 of scratch register 8 indicates validity of mailbox register
 /// and call FAPI2 APIs to set the values into the corresponding platform ATTR

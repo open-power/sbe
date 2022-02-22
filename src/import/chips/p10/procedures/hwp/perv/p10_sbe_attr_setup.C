@@ -526,14 +526,6 @@ fapi_try_exit:
     return fapi2::current_err;
 }
 
-///
-/// @brief Set platform ATTR_PG attribute for EQ chiplets, incase minimum
-///        config is not met.
-///
-/// @param[in] i_target_chip  Processor chip target
-///
-/// @return fapi2::ReturnCode
-///
 fapi2::ReturnCode
 p10_sbe_scratch_regs_resource_recovery_flow(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
