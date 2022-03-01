@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2021
+# Contributors Listed Below - COPYRIGHT 2020,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -53,23 +53,28 @@ def main(expStatus = [0, 0, 0, 0]):
 
     print("Write TI data to TI location")
     tiRandomData = os.urandom(TI_LEN)
+    print("python version is {}".format(sys.version_info.major))
     if(sys.version_info.major > 2):
        tiData = list(tiRandomData)
     else:
        tiData = [ord(c) for c in tiRandomData]
+    print(tiData)
     testMemUtil.putmem(tiLocation, tiData, 0x02)
-
+    print("here afer putmem")
     #Get TI Info test.
     testUtil.writeUsFifo(GETTIINFO_TESTDATA, i_fifoType)
+    print("here after write us fifo")
     testUtil.writeEot(i_fifoType)
-
+    print("write Eot")
     expData = GETTIINFO_EXPDATA + expStatus
-
+    print(expData)
     success = False
     if(expStatus == [0, 0, 0, 0]):
         success = True
 
     length = TI_LEN
+    print(success)
+    print(TI_LEN)
     data = [0]*0
     while length > 0: 
         data += testUtil.readDsEntryReturnVal(i_fifoType)

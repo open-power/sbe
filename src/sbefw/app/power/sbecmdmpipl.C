@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -921,6 +921,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     #define SBE_FUNC " sbeGetTIInfo "
     SBE_ENTER(SBE_FUNC);
 
+    bool isAttn = false;
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     sbeRespGenHdr_t hdr;
@@ -942,68 +943,117 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
             // Let command processor routine to handle the RC.
             break;
         }
+
         //Read the Scratch register to get the TI data location.
         //First get the master core for the proc. The scratch reg is
         //for the master core.
         uint8_t coreId = 0;
         Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,coreId);
-        fapi2::Target<fapi2::TARGET_TYPE_CORE >
-        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
+        fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTgt;
 
-        uint64_t tiDataLoc = 0;
-        fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
-        if(fapiRc != FAPI2_RC_SUCCESS)
+        for (auto findTgt : procTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486");
-            hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                           SBE_SEC_TI_CORE_SCRATCH_READ_FAILED);
-            ffdc.setRc(fapiRc);
-            break;
+            uint64_t spaRegData = 0;
+            uint64_t maskRegData = 0;
+            SBE_DEBUG(SBE_FUNC " For Core target is : 0x%08X",findTgt.get());
+            rc = getscom_abs_wrap(&findTgt, CORE_ATTN_REG0, &spaRegData);
+            if( rc )
+            {
+                SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_REG0 0x%08X for core target 0x%08X", CORE_ATTN_REG0, findTgt.get());
+                continue;
+            }
+            SBE_DEBUG(SBE_FUNC"SPA: HI:0x%08X, data LO:0x%08X"\
+            (spaRegData >> 32), (spaRegData & 0xFFFFFFFF));
+            rc = getscom_abs_wrap(&findTgt, CORE_ATTN_MASK_REG0, &maskRegData);
+            if( rc )
+            {
+                SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_MASK_REG0 0x%08X for core target 0x%08X", CORE_ATTN_MASK_REG0, findTgt.get());
+                continue;
+            }
+            SBE_DEBUG(SBE_FUNC"MASK: HI:0x%08X, data LO:0x%08X"\
+            (maskRegData >> 32), (maskRegData & 0xFFFFFFFF) );
+
+            //If attention found then set the flag and break
+            if ( spaRegData & ~maskRegData)
+            {
+                isAttn = true;
+                coreTgt = findTgt;
+                SBE_INFO(SBE_FUNC" Attention Found : core id: %d, core target:\
+                0x%08X" coreTgt.get().getTargetInstance(), coreTgt.get());
+                break;
+            }
         }
-        SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
-                  SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
-                  coreTgt.get());
-        //Bit 0 of the core scratch reg meant to ignore hrmor.
-        tiDataLoc = tiDataLoc & 0x7FFFFFFFFFFFFFFF;
-        //Now we got the TI data location. Read TI_DATA_LEN bytes from
-        //that location.
-        uint32_t bytesRemaining = TI_DATA_LEN;
-        do
+
+        if ( SBE::isSimicsRunning() )
         {
-            uint8_t tiData[PBA_GRAN_SIZE] = {0};
-            SBE_EXEC_HWP(fapiRc, p10_getmempba, procTgt, (tiDataLoc + bytesRead), PBA_GRAN_SIZE,
-                         reinterpret_cast<uint8_t*>(tiData), flags);
+            FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,coreId);
+            coreTgt=(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
+        }
+
+        if ( SBE::isSimicsRunning() || isAttn )
+        {
+            uint64_t tiDataLoc = 0;
+            fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBE_ERROR(SBE_FUNC "Failed in p10_getmempba() ,Addr[0x%08X%08X] "
-                "bytes[0x%08X]",SBE::higher32BWord(tiDataLoc),
-                SBE::lower32BWord(tiDataLoc), flags);
+                SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486");
                 hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                               SBE_SEC_TI_DATA_READ_FAILED);
+                               SBE_SEC_TI_CORE_SCRATCH_READ_FAILED);
                 ffdc.setRc(fapiRc);
                 break;
             }
-            for(uint32_t i = 0; i < PBA_GRAN_SIZE; i++)
-                SBE_DEBUG("TI data[%d] is 0x%08X ", i, tiData[i]);
-
-            uint32_t len2enqueue  = 0;
-            len2enqueue = PBA_GRAN_SIZE/sizeof(uint32_t);
-            //Create the response for TI Data.
-
-            rc = sbeDownFifoEnq_mult (len2enqueue, reinterpret_cast<uint32_t *>(tiData));
-            if (rc)
+            SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
+                SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
+                coreTgt.get());
+            //Bit 0 of the core scratch reg meant to ignore hrmor.
+            tiDataLoc = tiDataLoc & 0x7FFFFFFFFFFFFFFF;
+            //Now we got the TI data location. Read TI_DATA_LEN bytes from
+            //that location.
+            uint32_t bytesRemaining = TI_DATA_LEN;
+            do
             {
-               // will let command processor routine handle the failure
-               break;
-            }
-            bytesRemaining = bytesRemaining - PBA_GRAN_SIZE;
-            bytesRead = bytesRead + PBA_GRAN_SIZE;
-        }while(bytesRemaining > 0);
+                uint8_t tiData[PBA_GRAN_SIZE] = {0};
+                SBE_EXEC_HWP(fapiRc, p10_getmempba, procTgt,
+                        (tiDataLoc + bytesRead), PBA_GRAN_SIZE,
+                        reinterpret_cast<uint8_t*>(tiData), flags);
+                if(fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "Failed in p10_getmempba() ,Addr[0x%08X%08X] "
+                    "bytes[0x%08X]",SBE::higher32BWord(tiDataLoc),
+                    SBE::lower32BWord(tiDataLoc), flags);
+                    hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                SBE_SEC_TI_DATA_READ_FAILED);
+                    ffdc.setRc(fapiRc);
+                    break;
+                }
+                for(uint32_t i = 0; i < PBA_GRAN_SIZE; i++)
+                    SBE_DEBUG("TI data[%d] is 0x%08X ", i, tiData[i]);
+
+                uint32_t len2enqueue  = 0;
+                len2enqueue = PBA_GRAN_SIZE/sizeof(uint32_t);
+                //Create the response for TI Data.
+
+                rc = sbeDownFifoEnq_mult (len2enqueue,
+                        reinterpret_cast<uint32_t *>(tiData));
+                if (rc)
+                {
+                    // will let command processor routine handle the failure
+                    break;
+                }
+                bytesRemaining = bytesRemaining - PBA_GRAN_SIZE;
+                bytesRead = bytesRead + PBA_GRAN_SIZE;
+            }while(bytesRemaining > 0);
+        }
+        else
+        {
+            //TODO: Need to handle when isAttn is false.
+            //Neither simics nor got the attention.
+            SBE_INFO(SBE_FUNC "isAttn flag= false");
+        }
     }while(0);
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
-    // instead give the control back to the command processor thread
+    // instead give the control back to the command processor thread   
     do
     {
         // Build the response header packet

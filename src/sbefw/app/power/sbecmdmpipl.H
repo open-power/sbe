@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -39,6 +39,8 @@
 #define TI_DATA_LEN 1024
 #define PBA_GRAN_SIZE 128 // PBA has to read in multiple of 128 Bytes.
 #define CORE_SCRATCH_REG0 0x20028486
+#define CORE_ATTN_REG0  0x20028499
+#define CORE_ATTN_MASK_REG0 0x2002849A
 
 //Variables used for LQA sync and quiesce procedures
 static const uint32_t SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP = 20000;
