@@ -1336,15 +1336,6 @@ fapi2::ReturnCode p10_sbe_attr_setup(
         }
     }
 
-#ifdef __PPE__
-    // Check for minimum config of cores.
-    // If minimum config is not met, look at the fallbackCoreAttr.
-    // If the fallbackCoreAttr is not set, update PG with MVPD.
-    // else update PG with fallbackCoreAttr.
-    FAPI_TRY(p10_sbe_scratch_regs_resource_recovery_flow(i_target_chip),
-             "Error from p10_sbe_scratch_regs_resource_recovery_flow");
-#endif
-
     FAPI_INF("p10_sbe_attr_setup: Exiting ...");
 
 fapi_try_exit:
