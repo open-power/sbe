@@ -346,6 +346,19 @@ static uint32_t recoverPibErr( const uint32_t i_addr, uint64_t *io_data,
 static fapi2::ReturnCode handle_scom_error(const uint32_t i_addr, uint64_t *io_data,
         uint8_t i_pibRc, const bool i_isRead)
 {
+    static const uint32_t MULTICAST_MASK = 0x40000000;
+    if (i_addr & MULTICAST_MASK)
+    {
+        uint64_t data;
+        for (int i = 0; i < 4; i++)
+        {
+            static const int CTL_ID = 0xE; // SBE
+            getscom_abs(0xF0040 + 4 * CTL_ID + i, &data);
+            FAPI_IMP("Per chiplet mcast responses (%02d..%02d): %08x%08x", i*16, i*16+15, data >> 32, data & 0xFFFFFFFF);
+        }
+        getscom_abs((i_addr & 0x07000000) | 0x500F0001, &data);
+        FAPI_IMP("Group membership: %08x%08x", data >> 32, data & 0xFFFFFFFF);
+    }
     // Need a clean-up later. Presently no re-tries required.
     // Fail at the first instance.
     /* Attempt recovery */
