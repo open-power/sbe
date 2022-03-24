@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2021
+# Contributors Listed Below - COPYRIGHT 2018,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -179,11 +179,11 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         echo "*******************Run testGetTIInfo.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
+        #run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
 
-        echo "*******************Run testFifoReset.py*******************"
+        #echo "*******************Run testFifoReset.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+        #run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
 
         # echo "*******************Run testEnterMpipl.py*******************"
         # TODO: As the changes enable the MPIPL flow , this will fail the CI
