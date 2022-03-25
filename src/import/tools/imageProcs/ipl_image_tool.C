@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -939,7 +939,7 @@ dumpHeader(void* i_image, image_section_type_t i_imageSectionType)
                     printf("  %04d            ", val);
 
                     //Get service bit vector
-                    val64 = (uint64_t*)(malloc(sizeof(8 * numOf64BitsSet)));
+                    val64 = (uint64_t*)(malloc(sizeof(uint64_t) * numOf64BitsSet));
                     dynamic_get_bitVector_perValue(i_image, i, val64);
 
                     for ( j = 0; j < numOf64BitsSet; j++ )
