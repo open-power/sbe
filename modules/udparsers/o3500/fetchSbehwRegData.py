@@ -71,7 +71,7 @@ def parseHwRegBuff(sbeHwRegBinFile):
     #First word of data in bin packet is FFDC RC buffer
     rcNumber = file.read(4)
     rcNumber = int.from_bytes(rcNumber,"big")
-    print("""'{ SBE FFDC RC Number        :  %s , """ % hex(rcNumber), end =" ")
+    print("  SBE FFDC RC Number                       :  %s "  % hex(rcNumber), end ="\n")
 
     #Second word of data in size of HwReg Number in Bytes
     countHwReg = file.read(4)
@@ -79,7 +79,7 @@ def parseHwRegBuff(sbeHwRegBinFile):
 
     #Third blob of data in FFDC packet is hw_data.bin
     count = countHwReg // eachHwRegRowSize
-    print(""" "Count of SbeHwReg Data rows in FFDC blob": " %s ", """ % hex(rcNumber), end =" ")
+    print("  Count of SbeHwReg Data rows in FFDC blob :  %s " % hex(count), end ="\n")
 
     assert count <= maxInputRowSize, "Input sbe hw reg data exceeds max size of %s bytes" % maxInputRowSize
     while(count):
@@ -91,8 +91,8 @@ def parseHwRegBuff(sbeHwRegBinFile):
         #Read 8 bytes of hw reg address data from bin
         hwRegData = file.read(8)
         hwRegData = int.from_bytes(hwRegData,"big")
-        print(""" "    Scom Address[%s] ": "Data[%s]", """  % (hex(hwRegAddr),hex(hwRegData)), end =" ")
-    print("}'")
+        print("    Scom Address[%s]"  %hex(hwRegAddr) )
+        print("    Hw Reg Data [%s]"  %hex(hwRegData), end ="\n")
     file.close()
 
 ################################## Main ########################################

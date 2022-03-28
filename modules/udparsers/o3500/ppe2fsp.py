@@ -647,7 +647,8 @@ def fspTraceBin(fspTraceBinFile, fspTraceHeader, ppe2fspEntriesAll):
     file.write(struct.pack("16s", fspTraceHeader.comp))
     file.write(struct.pack(endianChar + "I", fspTraceHeader.size))
     file.write(struct.pack(endianChar + "I", fspTraceHeader.times_wrap))
-    file.write(struct.pack(endianChar + "I", fspTraceHeader.next_free))
+    #TODO: Need to check with HB team regarding this change in fsp-trace header.
+    file.write(struct.pack(endianChar + "I", fspTraceHeader.size))
     file.write(struct.pack(endianChar + "I", fspTraceHeader.te_count))
     file.write(struct.pack(endianChar + "I", fspTraceHeader.extracted))
 
