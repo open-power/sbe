@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2016                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,8 +37,10 @@ namespace fapi2
 ///
 enum TargetState
 {
-    TARGET_STATE_PRESENT    = 0x00000001,
-    TARGET_STATE_FUNCTIONAL = 0x00000002,
+    TARGET_STATE_PRESENT     = 0x00000001,
+    TARGET_STATE_FUNCTIONAL  = 0x00000002,
+    TARGET_STATE_NOT_PRESENT = 0x00000004, // Not valid in eCMD/Cronus
+    TARGET_STATE_ALL         = 0x00000005,
 };
 }
 
