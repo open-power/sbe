@@ -956,30 +956,35 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
             uint64_t spaRegData = 0;
             uint64_t maskRegData = 0;
             SBE_DEBUG(SBE_FUNC " For Core target is : 0x%08X",findTgt.get());
-            rc = getscom_abs_wrap(&findTgt, CORE_ATTN_REG0, &spaRegData);
-            if( rc )
+            fapiRc = getscom_abs_wrap(&findTgt, CORE_ATTN_REG0, &spaRegData);
+            if( fapiRc )
             {
                 SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_REG0 0x%08X for core target 0x%08X", CORE_ATTN_REG0, findTgt.get());
+                // Clear the fapiRc, incase of scom failure.
+                // PHYP may have put the core ins stop states.
+                fapiRc = FAPI2_RC_SUCCESS;
                 continue;
             }
             SBE_DEBUG(SBE_FUNC"SPA: HI:0x%08X, data LO:0x%08X"\
             (spaRegData >> 32), (spaRegData & 0xFFFFFFFF));
-            rc = getscom_abs_wrap(&findTgt, CORE_ATTN_MASK_REG0, &maskRegData);
-            if( rc )
+            fapiRc = getscom_abs_wrap(&findTgt, CORE_ATTN_MASK_REG0, &maskRegData);
+            if( fapiRc )
             {
                 SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_MASK_REG0 0x%08X for core target 0x%08X", CORE_ATTN_MASK_REG0, findTgt.get());
+                // Clear the fapiRc, incase of scom failure.
+                // PHYP may have put the core ins stop states.
+                fapiRc = FAPI2_RC_SUCCESS;
                 continue;
             }
             SBE_DEBUG(SBE_FUNC"MASK: HI:0x%08X, data LO:0x%08X"\
             (maskRegData >> 32), (maskRegData & 0xFFFFFFFF) );
 
-            //If attention found then set the flag and break
+            // If attention found then set the flag and break
             if ( spaRegData & ~maskRegData)
             {
                 isAttn = true;
                 coreTgt = findTgt;
-                SBE_INFO(SBE_FUNC" Attention Found : core id: %d, core target:\
-                0x%08X" coreTgt.get().getTargetInstance(), coreTgt.get());
+                SBE_INFO(SBE_FUNC" Attention Found : core target: 0x%08X", coreTgt.get());
                 break;
             }
         }
