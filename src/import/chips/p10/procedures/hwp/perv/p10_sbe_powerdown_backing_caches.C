@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -117,11 +117,19 @@ p10_sbe_powerdown_backing_caches(
             FAPI_TRY(p10_query_corecachemma_access_state(eq, l_scomState, l_scanState, true));
             uint32_t l_core_powered = l_scanState.scanState >> 23;
 
+            //Cores which are powered on need to be powered down. But as cores
+            //used for backing caches can be powered off due to Field Core
+            //Option
+            //(FCO) in istep 16.1, the backing cache vector needs to be
+            //filtered to only those that remain powered.
             if ( (l_relative_core_pos & l_core_powered)  != l_relative_core_pos )
             {
-                l_tmp_backing_vec = (l_tmp_backing_vec & ~(0xF << SHIFT32(l_eq_pos - 1)));
+                l_core_powered = (~(l_core_powered  << SHIFT32(l_eq_pos - 1))) ^ (0xF << SHIFT32(l_eq_pos - 1));
+                l_tmp_backing_vec = l_tmp_backing_vec & l_core_powered;
             }
         }
+
+        l_scrb_data = 0;
 
         if ( !l_tmp_backing_vec)
         {

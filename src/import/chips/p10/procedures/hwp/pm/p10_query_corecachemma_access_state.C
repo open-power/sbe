@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -178,11 +178,14 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         }
     }
 
+
+scom_check:
+    //Save the data, here so that any scom fails above will not skip saving the
+    //data that was captured for the previous cores
     o_scanStateData.scanState = l_scanStateData;
     FAPI_INF("QUAD Status : scan access state(0x%08X)",
              o_scanStateData.scanState);
 
-scom_check:
     // A region is scomable if following four factors are fulfilled
     // 1) Clock should be on for that region
     // 2) The region must not be fenced
