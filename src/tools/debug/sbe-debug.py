@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -472,7 +472,7 @@ def sbeState():
             str2 = fileHandle.read(32)
             str3 = struct.unpack(endianChar + "I",fileHandle.read(4))
             str4 = struct.unpack(endianChar + "Q",fileHandle.read(8))
-            print(str(format(str1[0],'016X')).ljust(11),str(format(str3[0],'08X')).ljust(20),str2.ljust(40))
+            print(str(format(str1[0],'016X')).ljust(11),str(format(str4[0],'016X')).ljust(20),str2.ljust(40))
             l_cnt = l_cnt + 52;
 
         print('********************************************************************')
