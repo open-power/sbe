@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -100,7 +100,36 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
         l_read_attr_pg.invert();
         l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_read_attr_pg);
 
-        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64));
+        // SW547918
+        {
+            fapi2::ReturnCode l_rc;
+            fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_clock_mux_pci_lcpll_input;
+            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_clock_mux_pci_lcpll_input));
+            l_rc = fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64);
+
+            if (l_rc != fapi2::FAPI2_RC_SUCCESS)
+            {
+                uint8_t l_chiplet_number = targ.getChipletNumber();
+
+                if (((l_chiplet_number == 0x8) && (l_clock_mux_pci_lcpll_input[0] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23))
+                    ||
+                    ((l_chiplet_number == 0x9) && (l_clock_mux_pci_lcpll_input[1] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23)))
+                {
+                    FAPI_ASSERT(false,
+                                fapi2::P10_PCI_REFCLOCK_ERR()
+                                .set_TARGET(i_target_chip)
+                                .set_CHIPLET_NUM(l_chiplet_number)
+                                .set_CLOCK_MUX((l_chiplet_number == 0x8) ? (l_clock_mux_pci_lcpll_input[0]) : (l_clock_mux_pci_lcpll_input[1])),
+                                "First SCOM attempted into PCI chiplet failed, returning callout for chip/ref clock!")
+                }
+                else
+                {
+                    fapi2::current_err = l_rc;
+                    goto fapi_try_exit;
+                }
+            }
+        }
+
         FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL3_RW, l_data64));
     }
 
