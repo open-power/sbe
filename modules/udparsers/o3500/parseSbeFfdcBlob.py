@@ -37,10 +37,12 @@ import json
 
 from udparsers.helpers.miscUtils import getLid
 from udparsers.helpers.hostfw_trace import get_binary_trace_data_as_string
+from udparsers.o3500.fetchSbehwRegData import parseHwRegBuff
+import udparsers.o3500.ppe2fsp
 ############################################################
 # Variables - Variables - Variables - Variables - Variables
 ############################################################
-SBE_STRING_LID_FILE = "81E0068A.lid"
+SBE_STRING_LID_FILE = "81e0068a.lid"
 
 ############################################################
 # Function - Functions - Functions - Functions - Functions
@@ -135,13 +137,13 @@ def parseSbeUserDataBlob(data):
 def fetchSbeTraces():
 
     #Execute ppe2fsp tool to convert ppe trace to fsp trace.
-    #TODO:Provide the right path to the tool as per BMC env
-    cmd =  "/usr/lib/python3.9/site-packages/udparsers/o3500/ppe2fsp.py -i /tmp/ppeTrace.bin -o /tmp/sbetrace.bin -e big"
-    print(cmd)
-    os.system(cmd)
+    #This provide the right path to the tool as per BMC env
+    ppeFile = "/tmp/ppeTrace.bin"
+    sbeFile = "/tmp/sbetrace.bin"
+    udparsers.o3500.ppe2fsp.get_sbe_trace_data_as_string(ppeFile, sbeFile)
 
     # Create an stream from sbetrace.bin
-    with open('/tmp/sbetrace.bin', 'rb') as rspBin:
+    with open(sbeFile, 'rb') as rspBin:
         readData = rspBin.read()
 
     # Create a dictionary to hold the trace output
@@ -150,7 +152,6 @@ def fetchSbeTraces():
     # Get the LID file for the HB string file
     stringFile = getLid(SBE_STRING_LID_FILE)
 
-
     if stringFile == "":
         d["File not found"]=SBE_STRING_LID_FILE
         jsonStr = json.dumps(d)
@@ -158,14 +159,12 @@ def fetchSbeTraces():
 
     startingPosition = 0
     printNumberOfTraces = -1 # -1 means to get all traces
-    (retVal, traceDataString) = get_binary_trace_data_as_string(readData, startingPosition, printNumberOfTraces, stringFile)
-
+    (retVal, traceDataString, warningMessages) = get_binary_trace_data_as_string(readData, startingPosition, printNumberOfTraces, stringFile)
     return traceDataString
 
 def fetchSbeHwRegData():
     #Execute sbeHwRegData tool to convert hwReg Struct trace to Data.
-    #TODO:Provide the right path to the tool as per BMC env
-    cmd = "/usr/lib/python3.9/site-packages/udparsers/o3500/fetchSbehwRegData.py -i /tmp/hwData.bin > /tmp/sbeHwRegTraceFile"
-    print(cmd)
-    os.system(cmd)
+    hwRegFile = "/tmp/hwData.bin"
+    sbeRegFile = "/tmp/sbeHwRegTraceFile"
+    parseHwRegBuff(hwRegFile, sbeRegFile)
 

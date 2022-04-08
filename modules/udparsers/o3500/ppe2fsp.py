@@ -63,7 +63,7 @@ sizeofWord = 4
 verbose = False
 
 #FSP trace bin file endian format
-fspTraceEndianFormat = ""
+fspTraceEndianFormat = "big"
 
 #Trace formats that are supported
 traceFormats = { 0x0 : "PK_TRACE_FORMAT_EMPTY",
@@ -676,63 +676,13 @@ def fspTraceBin(fspTraceBinFile, fspTraceHeader, ppe2fspEntriesAll):
     assert fspTraceBinFileSize == fspTraceHeader.size, "Mismatch in FSP Trace Bin file size"
     assert fspTraceBinFileSize <= maxOutputSize, "FSP trace bin file exceeds max size %s" % maxOutputSize
 
-################################## Main ###############################################
+def get_sbe_trace_data_as_string(ppeTraceBinFile, o_fspTraceBinFile):
 
-################################################
-# Command line options
-# Create the argparser object
-# We'll do it in a way so we can create required/optional cmdline arg groups
-argparser = argparse.ArgumentParser(description="Tool To convert PPE trace to FSP trace format",
-                                    add_help=False,
-                                    formatter_class=argparse.RawDescriptionHelpFormatter,
-                                    epilog=textwrap.dedent('''
-Version: ''' + str(toolVersion) + '''
+    #Parse contents of PK trace bufer
+    (pkTraceBuff, pkTraceEntryAll) = parsePkTraceBuff(ppeTraceBinFile)
 
-Examples:  > ppe2fsp.py -i <ppeTraceBinFile> -o <fspTraceBinFile>
+    #Convert ppe trace to fsp trace format
+    (fspTraceHdr, ppe2fspEntriesAll) = ppe2fsp(pkTraceBuff, pkTraceEntryAll)
 
-'''))
-
-# Create our group of required cmdline args
-reqgroup = argparser.add_argument_group('Required Arguments')
-reqgroup.add_argument('-i', '--ppeTraceBinFile', required=True, help="PPE Trace Bin File which needs to be converted to FSP trace format")
-reqgroup.add_argument('-o', '--fspTraceBinFile', required=True, help="Output file in FSP trace format")
-
-# Create our group of optional cmdline args
-optgroup = argparser.add_argument_group('Optional Arguments')
-optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
-optgroup.add_argument('-v', '--verbose', action='store_true', help="Show all traces")
-optgroup.add_argument('-e', '--endianFormat', help="Endian format of FSP trace", choices=["big","little","auto"], default = "auto" )
-
-# cmdline loaded up, now parse for it and handle what is found
-args = argparser.parse_args()
-
-# Get the PPE Trace Bin file path
-ppeTraceBinFile = args.ppeTraceBinFile
-
-# Get the FSP Trace Bin file name and output path
-fspTraceBinFile = args.fspTraceBinFile
-
-# Get the verbose flag
-verbose = args.verbose
-
-# Get the fsp trace bin file endian format.
-# By default this is always auto, based on machine script will internally
-# find endian format and create the fsp trace bin.
-# But an option has been provided to create fsp trace bin file as per user choice.
-fspTraceEndianFormat = args.endianFormat
-
-#If endian format is auto lets find out the endian format based on the machine
-if fspTraceEndianFormat == "auto":
-    fspTraceEndianFormat = sys.byteorder
-
-#Parse contents of PK trace bufer
-(pkTraceBuff, pkTraceEntryAll) = parsePkTraceBuff(ppeTraceBinFile)
-
-#Convert ppe trace to fsp trace format
-(fspTraceHdr, ppe2fspEntriesAll) = ppe2fsp(pkTraceBuff, pkTraceEntryAll)
-
-#Create the FSP trace bin file
-fspTraceBin(fspTraceBinFile, fspTraceHdr, ppe2fspEntriesAll)
-
-print(textwrap.dedent(''' \n Converted ppe trace to fsp trace successfully.
- Output path: %s''' % fspTraceBinFile ))
+    #Create the FSP trace bin file
+    fspTraceBin(o_fspTraceBinFile, fspTraceHdr, ppe2fspEntriesAll)

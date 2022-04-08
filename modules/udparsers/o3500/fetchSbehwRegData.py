@@ -64,14 +64,15 @@ maxInputRowSize = eachHwRegRowSize * 20
 # Function - Functions - Functions - Functions - Functions
 ############################################################
 #Parse the sbe hw reg data and extract addr and scom data info
-def parseHwRegBuff(sbeHwRegBinFile):
+def parseHwRegBuff(sbeHwRegBinFile, sbeHwRegTraceFile):
 
     file = open(sbeHwRegBinFile, "rb")
+    fileWrite = open(sbeHwRegTraceFile, "w")
 
     #First word of data in bin packet is FFDC RC buffer
     rcNumber = file.read(4)
     rcNumber = int.from_bytes(rcNumber,"big")
-    print("  SBE FFDC RC Number                       :  %s "  % hex(rcNumber), end ="\n")
+    fileWrite.write("  SBE FFDC RC Number                       :  %s \n"  % hex(rcNumber))
 
     #Second word of data in size of HwReg Number in Bytes
     countHwReg = file.read(4)
@@ -79,9 +80,11 @@ def parseHwRegBuff(sbeHwRegBinFile):
 
     #Third blob of data in FFDC packet is hw_data.bin
     count = countHwReg // eachHwRegRowSize
-    print("  Count of SbeHwReg Data rows in FFDC blob :  %s " % hex(count), end ="\n")
+    if count >= maxInputRowSize:
+        fileWrite.write("    Input sbe hw reg data exceeds max size of %s bytes \n" % maxInputRowSize)
+        return
 
-    assert count <= maxInputRowSize, "Input sbe hw reg data exceeds max size of %s bytes" % maxInputRowSize
+    fileWrite.write("  Count of SbeHwReg Data rows in FFDC blob :  %s \n" % hex(count))
     while(count):
         count -= 1
         #Read 4 bytes of hw reg address from bin
@@ -91,53 +94,8 @@ def parseHwRegBuff(sbeHwRegBinFile):
         #Read 8 bytes of hw reg address data from bin
         hwRegData = file.read(8)
         hwRegData = int.from_bytes(hwRegData,"big")
-        print("    Scom Address[%s]"  %hex(hwRegAddr) )
-        print("    Hw Reg Data [%s]"  %hex(hwRegData), end ="\n")
+        fileWrite.write("    Scom Address[%s] "  %hex(hwRegAddr) )
+        fileWrite.write("    Hw Reg Data [%s] \n"  %hex(hwRegData))
+
     file.close()
-
-################################## Main ########################################
-# Command line options
-# Create the argparser object
-# We'll do it in a way so we can create required/optional cmdline arg groups
-argparser = argparse.ArgumentParser(
-                 description="Tool To convert HwReg Data into BMC trace format",
-                 add_help=False,
-                 formatter_class=argparse.RawDescriptionHelpFormatter,
-                 epilog=textwrap.dedent('''
-Version: ''' + str(toolVersion) + '''
-Examples:  > fetchSbehwRegData.py -i <sbeHwRegFfdcBinFile> > <sbeHwRegFfdcTraceFile>
-
-'''))
-
-# Create our group of required cmdline args
-reqgroup = argparser.add_argument_group('Required Arguments')
-reqgroup.add_argument('-i', '--sbeHwRegFfdcBinFile', required=True, help="Sbe HwReg Data File which needs to be converted to BMC trace format")
-
-# Create our group of optional cmdline args
-optgroup = argparser.add_argument_group('Optional Arguments')
-optgroup.add_argument('-h', '--help', action="help", help="Show this help message and exit")
-optgroup.add_argument('-v', '--verbose', action='store_true', help="Show all traces")
-optgroup.add_argument('-e', '--endianFormat', help="Endian format of FSP trace", choices=["big","little","auto"], default = "auto" )
-
-# cmdline loaded up, now parse for it and handle what is found
-args = argparser.parse_args()
-
-# Get the FFDC HwReg Data Bin file path
-sbeHwRegFfdcBinFile = args.sbeHwRegFfdcBinFile
-
-# Get the verbose flag
-verbose = args.verbose
-
-# Get the fsp trace bin file endian format.
-# By default this is always auto, based on machine script will internally
-# find endian format and create the fsp trace bin.
-# But an option has been provided to create fsp trace bin file as per user choice.
-fspTraceEndianFormat = args.endianFormat
-
-#If endian format is auto lets find out the endian format based on the machine
-if fspTraceEndianFormat == "auto":
-    fspTraceEndianFormat = sys.byteorder
-
-#Create the FSP trace bin file
-parseHwRegBuff(sbeHwRegFfdcBinFile)
-
+    fileWrite.close()

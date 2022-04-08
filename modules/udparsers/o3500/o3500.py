@@ -76,5 +76,3 @@ def parseUDToJson(subType, ver, data):
 
     jsonStr = json.dumps(d)
     return jsonStr
-
-############################################ Main ###################################
