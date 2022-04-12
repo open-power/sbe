@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,7 +48,7 @@ enum P10_SBE_TP_SWITCH_GEARS_Private_Constants
     SBE_LFR                   = 0x000C0002040,
     MAILBOX_SCRATCH_REG16     = 0x50187,
     MAILBOX_SCRATCH_REG13     = 0x50184,
-    GLSMUX_DELAY_NS           = 100,
+    GLSMUX_DELAY_NS           = 1000,
     GLSMUX_DELAY_CYCLES       = 1000,
 };
 
@@ -89,13 +89,16 @@ static fapi2::ReturnCode switch_nest_to_2to1(
 
     // Then bring the DPLL out of bypass without turning it on. This will glitchlessly disable its output.
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_CLEAR_WO_CLEAR, l_dpll_bypass));
+    fapi2::delay(GLSMUX_DELAY_NS, GLSMUX_DELAY_CYCLES); // Add some delay for poultry reasons
 
     // Then put MUX3 into reset. This would glitch, but its input clock is already inactive so we're safe.
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_SET_WO_OR, l_mux345_reset));
+    fapi2::delay(GLSMUX_DELAY_NS, GLSMUX_DELAY_CYCLES); // Add some delay for poultry reasons
 
     // Now put the DPLL back into bypass, turning its output back on. This will glitch, but since we
     // disabled MUX3 the glitch will not reach the mesh.
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL3_SET_WO_OR, l_dpll_bypass));
+    fapi2::delay(GLSMUX_DELAY_NS, GLSMUX_DELAY_CYCLES); // Add some delay for poultry reasons
 
     // While MUX3 is reset, flip it back to its original setting.
     if (l_mux3_prev_state)
@@ -107,6 +110,7 @@ static fapi2::ReturnCode switch_nest_to_2to1(
     // By this time the mesh is inactive, and we can proceed to flipping MUX4A without danger of
     // breaking PCB alignment.
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_mux4a_select));
+    fapi2::delay(GLSMUX_DELAY_NS, GLSMUX_DELAY_CYCLES); // Add some delay for poultry reasons
 
     // And finally, release MUX3 reset to (glitchlessly) turn the mesh back on, now at half speed.
     FAPI_TRY(fapi2::putScom(i_target_chip, FSXCOMP_FSXLOG_ROOT_CTRL4_CLEAR_WO_CLEAR, l_mux345_reset));
