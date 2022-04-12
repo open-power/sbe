@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -74,9 +74,12 @@ def updateBuildTag(argv):
     cmd_build_host = cmd_build_host+" "+socket.gethostname()
     proc = subprocess.Popen(cmd_build_host, shell=True, stdout=subprocess.PIPE)
 
-    head_commit_cmd = "git log |grep commit -m1 |awk '{ print $NF }' |awk '{print substr ($0, 0, 7)}'"
-    proc = subprocess.Popen(head_commit_cmd, shell=True, stdout=subprocess.PIPE)
-    head_commit_id = proc.stdout.read()
+    if 'SBE_COMMIT_ID' in os.environ:
+        head_commit_id = os.environ['SBE_COMMIT_ID'][:8]
+    else:
+        head_commit_cmd = "git log |grep commit -m1 |awk '{ print $NF }' |awk '{print substr ($0, 0, 7)}'"
+        proc = subprocess.Popen(head_commit_cmd, shell=True, stdout=subprocess.PIPE)
+        head_commit_id = proc.stdout.read()
     cmd_build_head_commit = cmd_build_head_commit+" "+head_commit_id
     proc = subprocess.Popen(cmd_build_head_commit, shell=True, stdout=subprocess.PIPE)
 
