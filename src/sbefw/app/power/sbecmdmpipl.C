@@ -921,7 +921,6 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     #define SBE_FUNC " sbeGetTIInfo "
     SBE_ENTER(SBE_FUNC);
 
-    bool isAttn = false;
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     sbeRespGenHdr_t hdr;
@@ -931,6 +930,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                      fapi2::SBE_MEM_ACCESS_FLAGS_FAST_MODE_ON |
                      fapi2::SBE_MEM_ACCESS_FLAGS_LCO_MODE;
     uint32_t bytesRead = 0;
+    uint64_t tiDataLoc = 0;
     do
     {
         //Will attempt to dequeue for the expected EOT entry at the end.
@@ -944,10 +944,6 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
             break;
         }
 
-        //Read the Scratch register to get the TI data location.
-        //First get the master core for the proc. The scratch reg is
-        //for the master core.
-        uint8_t coreId = 0;
         Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
         fapi2::Target<fapi2::TARGET_TYPE_CORE> coreTgt;
 
@@ -982,34 +978,22 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
             // If attention found then set the flag and break
             if ( spaRegData & ~maskRegData)
             {
-                isAttn = true;
                 coreTgt = findTgt;
                 SBE_INFO(SBE_FUNC" Attention Found : core target: 0x%08X", coreTgt.get());
-                break;
+                fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
+                if(fapiRc != FAPI2_RC_SUCCESS)
+                {
+                    SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486 for core target 0x%08X", coreTgt.get());
+                    fapiRc = FAPI2_RC_SUCCESS;
+                    continue;
+                }
+                if(tiDataLoc != 0)
+                    break;
             }
         }
 
-        if ( SBE::isSimicsRunning() )
+        if ( tiDataLoc != 0 )
         {
-            FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,coreId);
-            coreTgt=(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
-        }
-
-        if ( SBE::isSimicsRunning() || isAttn )
-        {
-            uint64_t tiDataLoc = 0;
-            fapiRc = getscom_abs_wrap(&coreTgt, CORE_SCRATCH_REG0, &tiDataLoc);
-            if(fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486");
-                hdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                               SBE_SEC_TI_CORE_SCRATCH_READ_FAILED);
-                ffdc.setRc(fapiRc);
-                break;
-            }
-            SBE_INFO("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
-                SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
-                coreTgt.get());
             //Bit 0 of the core scratch reg meant to ignore hrmor.
             tiDataLoc = tiDataLoc & 0x7FFFFFFFFFFFFFFF;
             //Now we got the TI data location. Read TI_DATA_LEN bytes from
@@ -1051,9 +1035,9 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
         }
         else
         {
-            //TODO: Need to handle when isAttn is false.
-            //Neither simics nor got the attention.
-            SBE_INFO(SBE_FUNC "isAttn flag= false");
+            SBE_ERROR("tiDataLoc is 0x%08X%08X and core target is 0x%08X",
+                SBE::higher32BWord(tiDataLoc), SBE::lower32BWord(tiDataLoc),
+                coreTgt.get());
         }
     }while(0);
     // Create the Response to caller
