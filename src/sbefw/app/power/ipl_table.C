@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1319,6 +1319,15 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
     return l_rc;
     #undef SBE_FUNC
 }
+//----------------------------------------------------------------------------
+void setFunctionalStateByCoreNum(uint32_t coreNum)
+{
+   SBE_INFO("Making %d'th core non-functional", coreNum);
+   fapi2::Target<fapi2::TARGET_TYPE_CORE> target = G_vec_targets.at(coreNum + CORE_TARGET_OFFSET);
+   static_cast<plat_target_handle_t&>(target.operator ()()).setFunctional(false);
+   G_vec_targets.at(coreNum + CORE_TARGET_OFFSET) = target.get();
+   SBE_DEBUG("Core target is 0x%08X", G_vec_targets.at(coreNum + CORE_TARGET_OFFSET));
+}
 
 //----------------------------------------------------------------------------
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
@@ -1373,18 +1382,41 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
             //0..31 bits indicate CORE GARD state for all cores with
             //respect to the PROC chip.
             scratchReg1.extract<0, 32>(ecMask);
+            SBE_INFO(SBE_FUNC "Scratch reg 1 is 0x%08X", ecMask);
+            fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core;
+            FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                             fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                             l_fused_core);
+            SBE_INFO(SBE_FUNC "Fused core mode is 0x%02X", l_fused_core);
             uint32_t shiftCnt = (CORE_TARGET_COUNT - 1);
-            for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; ++idx)
-            { 
+            for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; idx++)
+            {
+                FAPI_IMP("Core target count is %d", idx);
                 //Pick Core specific bit , If set , then mark the core
-                //NON-Functional 
-                if( (ecMask >> (shiftCnt-idx) ) & 0x1  )
+                //NON-Functional
+                if(l_fused_core)
                 {
-                    FAPI_INF("Making %d'th EC non-functional", idx);
-                    // EC chiplet idx is to be marked non-functional
-                    fapi2::Target<fapi2::TARGET_TYPE_CORE> target = G_vec_targets.at(idx + CORE_TARGET_OFFSET);
-                    static_cast<plat_target_handle_t&>(target.operator ()()).setFunctional(false);
-                    G_vec_targets.at(idx + CORE_TARGET_OFFSET) = target.get();
+                   if( ((ecMask >> (shiftCnt-idx) ) & 0x1  ) || ((ecMask >> (shiftCnt-idx - 1))  & 0x1))
+                   {
+                       // EC chiplet idx is to be marked non-functional
+                       for(uint32_t coreCount = 0; coreCount < 2; coreCount++)
+                       {
+                           setFunctionalStateByCoreNum(idx + coreCount);
+                       }
+                   }
+                   ++idx;
+                }
+                else
+                {
+                    if((ecMask >> (shiftCnt-idx) ) & 0x1 )
+                    {
+                        //Pick Core specific bit , If set , then mark the core
+                        //NON-Functional
+                        if( (ecMask >> (shiftCnt-idx) ) & 0x1  )
+                        {
+                            setFunctionalStateByCoreNum(idx);
+                        }
+                    }
                 }
             }
             //If SBE is master call the procedure p10_sbe_select_ex
