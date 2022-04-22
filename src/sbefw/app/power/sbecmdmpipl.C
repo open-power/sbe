@@ -958,7 +958,10 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                 SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_REG0 0x%08X for core target 0x%08X", CORE_ATTN_REG0, findTgt.get());
                 // Clear the fapiRc, incase of scom failure.
                 // PHYP may have put the core ins stop states.
+                // Successfuls scoms does not set the fapi2 current error.
+                // Do it explicitly. 
                 fapiRc = FAPI2_RC_SUCCESS;
+                fapi2::current_err = FAPI2_RC_SUCCESS;
                 continue;
             }
             SBE_DEBUG(SBE_FUNC"SPA: HI:0x%08X, data LO:0x%08X"\
@@ -969,7 +972,10 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                 SBE_ERROR(SBE_FUNC" Failed to read CORE_ATTN_MASK_REG0 0x%08X for core target 0x%08X", CORE_ATTN_MASK_REG0, findTgt.get());
                 // Clear the fapiRc, incase of scom failure.
                 // PHYP may have put the core ins stop states.
+                // Successfuls scoms does not set the fapi2 current error.
+                // Do it explicitly. 
                 fapiRc = FAPI2_RC_SUCCESS;
+                fapi2::current_err = FAPI2_RC_SUCCESS;
                 continue;
             }
             SBE_DEBUG(SBE_FUNC"MASK: HI:0x%08X, data LO:0x%08X"\
@@ -984,7 +990,12 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                 if(fapiRc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR(SBE_FUNC "GetScom failed for address 0x20028486 for core target 0x%08X", coreTgt.get());
+                    // Clear the fapiRc, incase of scom failure.
+                    // PHYP may have put the core ins stop states.
+                    // Successfuls scoms does not set the fapi2 current error.
+                    // Do it explicitly. 
                     fapiRc = FAPI2_RC_SUCCESS;
+                    fapi2::current_err = FAPI2_RC_SUCCESS;
                     continue;
                 }
                 if(tiDataLoc != 0)
