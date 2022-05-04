@@ -44,6 +44,8 @@
 #include "p9_misc_scom_addresses.H"
 #include "p10_scom_perv_9.H"
 #include "p10_scom_proc_9.H"
+#include "p10_scom_proc_2.H"
+#include "p10_scom_proc_d.H"
 // Pervasive HWP Header Files ( istep 2)
 #include <p10_sbe_attr_setup.H>
 #include <p10_sbe_tp_dpll_bypass.H>
@@ -200,6 +202,7 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp );
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
 ReturnCode istepHwpPauBypass( voidfuncptr_t i_hwp);
+ReturnCode istepSpiScreen( voidfuncptr_t i_hwp );
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
 ReturnCode istepCollectArcRegData(voidfuncptr_t i_hwp);
@@ -304,7 +307,7 @@ static istepMap_t g_istep2PtrTbl[] =
              ISTEP_MAP( istepHwpTpSwitchGears, p10_sbe_tp_switch_gears),
              ISTEP_MAP( istepNestFreq, p10_sbe_npll_setup),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_repr_initf),
-             ISTEP_MAP( istepWithProc, p10_sbe_tp_abist_setup),
+             ISTEP_MAP( istepSpiScreen, NULL),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_arrayinit),
              ISTEP_MAP( istepWithProc, p10_sbe_tp_initf),
              ISTEP_MAP( istepNoOp, p10_sbe_dft_probe_setup_2), //DFT only
@@ -1450,7 +1453,179 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
     #undef SBE_FUNC
 }
 
+enum P10_ISTEP_2_10_Private_Constants
+{
+    PLL_LOCK_DELAY_NS = 100000,
+    PLL_LOCK_DELAY_CYCLES = 100000,
+    PLL_LOCK_DELAY_LOOPS = 10,
+};
 
+ReturnCode updateSpiClockRegWithNewPAU(uint32_t freq_pau_mhz)
+{
+    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    fapi2::buffer<uint64_t> data64;
+    uint32_t sck_clock_divider = ((freq_pau_mhz / 40) - 1 ); // freq = pau_freq/4*2*(divider + 1)
+
+    for (uint32_t spiAddr = 0x000C0003; spiAddr <= 0x000C0023; spiAddr += 0x20)
+    {
+        data64.flush<0>();
+        FAPI_TRY(fapi2::getScom(procTgt, spiAddr, data64));
+        data64.insertFromRight< 0, 12 >(sck_clock_divider);
+        data64.insertFromRight< 12, 8 >(0x80 >> 1);
+        FAPI_TRY(fapi2::putScom(procTgt, spiAddr, data64));
+    }
+fapi_try_exit:
+    if(fapi2::current_err)
+    {
+        fapiRc = fapi2::current_err;
+        fapi2::current_err = FAPI2_RC_SUCCESS;
+    }
+    return fapiRc;
+}
+
+ReturnCode pauDpllLockNewFreq(uint32_t freq_pau_mhz, bool & o_lockStatus)
+{
+    using namespace scomt;
+    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    fapi2::buffer<uint64_t> read_reg;
+    o_lockStatus = false;
+    uint16_t timeout = PLL_LOCK_DELAY_LOOPS;
+
+    uint32_t freq_calculated = (((freq_pau_mhz + 1) * 3) / 50);
+    uint64_t NEST_DPLL_INITIALIZE_MODE2 = 0x8001010000000000ULL;
+
+    //uint64_t freq = 0x0970097009700000ULL;
+    //PPE_STVD(0x01060052, NEST_DPLL_INITIALIZE_MODE2);
+    //PPE_STVD(0x01060051, freq);
+
+    // enable slewing
+    FAPI_TRY(fapi2::putScom(procTgt, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_CTRL_RW, NEST_DPLL_INITIALIZE_MODE2));
+
+    // write the new frequency
+    read_reg.flush<0>();
+    read_reg.insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX,
+              proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMAX_LEN > (freq_calculated);
+    read_reg.insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT,
+              proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMULT_LEN > (freq_calculated);
+    read_reg.insertFromRight < proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN,
+              proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN_LEN > (freq_calculated);
+    FAPI_TRY(fapi2::putScom(procTgt, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, read_reg));
+
+    //poll DPLL_STAT bit 61 (FREQ_CHANGE) until it is zero 
+    while (timeout)
+    {
+        read_reg.flush<0>();
+        FAPI_TRY(fapi2::getScom(procTgt, 0x1060055, read_reg)); // DPLL Control Status
+
+        if ((read_reg & 0x9ULL) == 0x9ULL)
+        {
+            o_lockStatus = true;
+            break;
+        }
+        timeout--;
+        fapi2::delay(PLL_LOCK_DELAY_NS, PLL_LOCK_DELAY_CYCLES);
+    }
+    if(o_lockStatus == false)
+    {
+        SBE_ERROR("PAU DPLL Lock failed ");
+    }
+
+fapi_try_exit:
+    if(fapi2::current_err)
+    {
+        fapiRc = fapi2::current_err;
+        fapi2::current_err = FAPI2_RC_SUCCESS;
+    }
+    return fapiRc;
+}
+
+ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
+{
+    #define SBE_FUNC "istepSpiScreen"
+    SBE_ENTER(SBE_FUNC);
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t attr_freq_pau_mhz;
+    bool lockStatus = false;
+    bool spiChipSelectIssueFound = false;
+    mailbox2_cmdhdr_spics_screen_reg0 boot_seeprom_screen_reg;
+    uint32_t NEW_PAU_FREQ = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, attr_freq_pau_mhz));
+
+    SBE_INFO(SBE_FUNC " System Default PAU DPLL is 0x%08X", attr_freq_pau_mhz);
+
+    for(uint8_t freqOffset = 1; freqOffset <= 15; freqOffset++)
+    {
+        NEW_PAU_FREQ = attr_freq_pau_mhz + (freqOffset * 50); // In MHz
+        SBE_INFO(SBE_FUNC " Starting PAU Freq Experimentation is [0x%08X][%d] ", NEW_PAU_FREQ, NEW_PAU_FREQ);
+        lockStatus = false;
+        fapiRc = pauDpllLockNewFreq(NEW_PAU_FREQ, lockStatus);
+        if( ! ((fapiRc == FAPI2_RC_SUCCESS) && (lockStatus == true)) )
+        {
+            SBE_ERROR(SBE_FUNC " PAU DPLL Lock Failed with New Freq[0x%08X][%d] LockStatus[0x%02X] FapiRc[0x%08X]",
+                NEW_PAU_FREQ, NEW_PAU_FREQ,lockStatus, fapiRc);
+            break;
+        }
+
+        // Update SPI Registers to match up to the new PAU DPLL
+        // Update clock divider and receive delay
+        fapiRc = updateSpiClockRegWithNewPAU(NEW_PAU_FREQ);
+        if(fapiRc == FAPI2_RC_SUCCESS)
+        {
+            //SBE_INFO("SPI Clock Divider Updated for New PAU, Doing Seeprom Reads");
+            for(uint32_t cnt=0; cnt<1024; cnt++)
+            {
+                volatile uint64_t A = *(volatile uint64_t *)(0xFF800000);
+                volatile uint64_t B = *(volatile uint64_t *)(0xFF800008);
+                volatile uint64_t C = *(volatile uint64_t *)(0xFF800010);
+                volatile uint64_t D = *(volatile uint64_t *)(0xFF800018);
+                if( (A==0) || (B==0) || (C==0) || (D==0) )
+                {
+                    SBE_ERROR(SBE_FUNC " $$$$ SPI CS issue reproduced at PAU Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
+                    spiChipSelectIssueFound = true;
+                    //Update mailbox2 Header Commond 0 to let user know that it failed on a PAU Freq
+                    PPE_LVD(0x50029, boot_seeprom_screen_reg);
+                    boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ;
+                    PPE_STVD(0x50029, boot_seeprom_screen_reg);
+                    break;
+                }
+            }
+            if(spiChipSelectIssueFound == true)
+            {
+                break;
+            }
+        }
+        else
+        {
+            SBE_ERROR(SBE_FUNC " updateSpiClockRegWithNewPAU failed with fapiRc[0x%8X]", fapiRc);
+            break;
+        }
+    }
+    if(spiChipSelectIssueFound == false)
+    {
+        // Update 0xf, so that user know it is latest screener code.
+        PPE_LVD(0x50029, boot_seeprom_screen_reg);
+        boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ; // It should be 2250 + 15*50 = 3000MHz
+        PPE_STVD(0x50029, boot_seeprom_screen_reg);
+    }
+
+    // Get Back Original PAU Freq Lock
+    SBE_INFO(SBE_FUNC " Reverting back to original Pau Freq [0x%08X][%d]", attr_freq_pau_mhz, attr_freq_pau_mhz);
+    lockStatus = false;
+    pauDpllLockNewFreq(attr_freq_pau_mhz, lockStatus);
+    updateSpiClockRegWithNewPAU(attr_freq_pau_mhz);
+fapi_try_exit: 
+    if(lockStatus == false || fapiRc)
+    {
+        // Shift back to Original PAU DPLL
+        SBE_ERROR(SBE_FUNC " Can't Do much, Something failed, FapiRc[0x%08X] lockStatus[%d]", fapiRc, lockStatus);
+    }
+    SBE_EXIT(SBE_FUNC);
+    return fapiRc;
+    #undef SBE_FUNC
+}
 //----------------------------------------------------------------------------
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
 {

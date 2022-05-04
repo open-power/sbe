@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -269,5 +269,37 @@ typedef struct sbe_scratch_reg16 {
         reserved = 0;
     }
 }sbe_scratch_reg16;
+
+// This is the struct definition for Mailbox2 Cmd Header0 Register,
+// used to contain the SPI CS screen frequency results
+// Each two bytes will be used to store the failing PAU for Boot
+// Seeproms attached (i.e Primary/Secondary Boot)
+typedef struct mailbox2_cmdhdr_spics_screen_reg0 {
+    uint16_t boot_seeprom_pri_screen_freq;
+    uint16_t boot_seeprom_sec_screen_freq;
+    uint32_t reserved;
+
+    mailbox2_cmdhdr_spics_screen_reg0()
+    {
+        boot_seeprom_pri_screen_freq = 0;
+        boot_seeprom_sec_screen_freq = 0;
+    }
+} mailbox2_cmdhdr_spics_screen_reg0;
+
+// This is the struct definition for Mailbox2 Cmd Header1 Register,
+// used to contain the SPI CS screen frequency results
+// Each two bytes will be used to store the failing PAU for Measurement
+// Seeproms attached (i.e Primary/Secondary Measurement)
+typedef struct mailbox2_cmdhdr_spics_screen_reg1 {
+    uint16_t meas_seeprom_pri_screen_freq;
+    uint16_t meas_seeprom_sec_screen_freq;
+    uint32_t reserved;
+
+    mailbox2_cmdhdr_spics_screen_reg1()
+    {
+        meas_seeprom_pri_screen_freq = 0;
+        meas_seeprom_sec_screen_freq = 0;
+    }
+} mailbox2_cmdhdr_spics_screen_reg1;
 
 #endif //__SBE_GLOBALS_H
