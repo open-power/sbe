@@ -1086,12 +1086,12 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
         // Create the req struct for the SRAM Chip-op
         sbeSramAccessReqMsgHdr_t dumpSramReq = {0};
         len  = sizeof(sbeSramAccessReqMsgHdr_t)/sizeof(uint32_t);
-        dumpSramReq.chipletId = iv_tocRow.tocHeader.chipUnitNum;
+        dumpSramReq.chipletId = iv_tocRow.tgtHndl.fields.chiplet_num;
         dumpSramReq.multicastAccess = 0x00;
         dumpSramReq.reserved = 0x00;
         if( iv_hdctRow->cmdGetSram.extGenericHdr.mode )
-        {
-            dumpSramReq.mode = 0b01000000;
+        {// Normal Mode (0b01), Default Chl(0b000)=3, Interleaved (0b1)
+            dumpSramReq.mode = 0b01000100;
         }
         else
         {
