@@ -1549,12 +1549,20 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     uint32_t attr_freq_pau_mhz;
     bool lockStatus = false;
     bool spiChipSelectIssueFound = false;
+    fapi2::buffer<uint64_t> data64;
     mailbox2_cmdhdr_spics_screen_reg0 boot_seeprom_screen_reg;
     uint32_t NEW_PAU_FREQ = 0;
+    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, attr_freq_pau_mhz));
 
     SBE_INFO(SBE_FUNC " System Default PAU DPLL is 0x%08X", attr_freq_pau_mhz);
+
+    // Mask the PAU DPLL Error bit18 in register 0x10F001E
+    data64.flush<0>();
+    FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
+    data64.setBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
+    FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
 
     for(uint8_t freqOffset = 1; freqOffset <= 15; freqOffset++)
     {
@@ -1616,6 +1624,13 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     lockStatus = false;
     pauDpllLockNewFreq(attr_freq_pau_mhz, lockStatus);
     updateSpiClockRegWithNewPAU(attr_freq_pau_mhz);
+
+    // Clear the PAU DPLL Error bit18 Mask in register 0x10F001E
+    data64.flush<0>();
+    FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
+    data64.clearBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
+    FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
+
 fapi_try_exit: 
     if(lockStatus == false || fapiRc)
     {
