@@ -1457,7 +1457,7 @@ enum P10_ISTEP_2_10_Private_Constants
 {
     PLL_LOCK_DELAY_NS     = 100000,
     PLL_LOCK_DELAY_CYCLES = 100000,
-    PLL_LOCK_DELAY_LOOPS  = 10,
+    PLL_LOCK_DELAY_LOOPS  = 50,
     MEASUREMENT_SELECT    = 1,
     BOOT_SELECT           = 2,
     PRIMARY_ROLE          = 1,
@@ -1517,11 +1517,17 @@ ReturnCode pauDpllLockNewFreq(uint32_t freq_pau_mhz, bool & o_lockStatus)
               proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ_FMIN_LEN > (freq_calculated);
     FAPI_TRY(fapi2::putScom(procTgt, proc::TP_TPCHIP_TPC_DPLL_CNTL_PAU_REGS_FREQ, read_reg));
 
+    // Pre-delay of 5msec added before polling for getscom after a frequency change
+    fapi2::delay(PLL_LOCK_DELAY_NS * PLL_LOCK_DELAY_LOOPS, PLL_LOCK_DELAY_CYCLES);
+
     //poll DPLL_STAT bit 61 (FREQ_CHANGE) until it is zero 
     while (timeout)
     {
         read_reg.flush<0>();
-        FAPI_TRY(fapi2::getScom(procTgt, 0x1060055, read_reg)); // DPLL Control Status
+        //FAPI_TRY(fapi2::getScom(procTgt, 0x1060055, read_reg)); // DPLL Control Status
+        //Doing direct LVD, so that we don't jump out of the loop because of scom errors
+        PPE_LVD(0x1060055, read_reg);
+        //SBE_INFO(" DPLL Control Status Reg [0x%08X %08X]", (read_reg >> 32 & 0xFFFFFFFF), (read_reg & 0xFFFFFFFF));
 
         if ((read_reg & 0x9ULL) == 0x9ULL)
         {
