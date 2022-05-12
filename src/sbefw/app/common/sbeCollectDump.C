@@ -1609,13 +1609,9 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
                 }
             } // End switch
 
-            if(rc == SBE_SEC_OPERATION_SUCCESSFUL)
-            {
-                uint32_t ffdcDataLength = 0x00;
-                // write FFDC data as a zero for success using FIFO
-                iv_oStream.put(ffdcDataLength);
-            }
-            else
+            if( (rc != SBE_SEC_OPERATION_SUCCESSFUL) ||
+                (iv_oStream.getFifoRc() != FAPI2_RC_SUCCESS) ||
+                (iv_oStream.getPriSecRc() != SBE_SEC_OPERATION_SUCCESSFUL) )
             {
                 iv_chipOpffdc.setRc(iv_oStream.getFifoRc());
                 // Update FFDC lenth + PrimarySecondary(32 bits) RC lenth
@@ -1627,6 +1623,12 @@ uint32_t sbeCollectDump::writeDumpPacketRowToFifo()
                 iv_oStream.setPriSecRc(SBE_PRI_OPERATION_SUCCESSFUL);
                 iv_chipOpffdc.setRc(FAPI2_RC_SUCCESS);
                 rc = SBE_SEC_OPERATION_SUCCESSFUL;
+            }
+            else
+            {
+                uint32_t ffdcDataLength = 0x00;
+                // write FFDC data as a zero for success using FIFO
+                iv_oStream.put(ffdcDataLength);
             }
             // FIFO the cpuCycles value
             iv_tocRow.cpuCycles = pk_timebase_get() - iv_tocRow.cpuCycles; // Delay time
