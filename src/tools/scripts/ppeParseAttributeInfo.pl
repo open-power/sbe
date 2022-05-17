@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -43,6 +43,14 @@ sub help {
 my $DEBUG = 0;
 my $VERBOSE = 0;
 my $help = 0;
+
+# allow these attributes to feed into SBE process with a processor chip
+# scope only, given SBE attribute support
+my %PROC_ONLY_ATTRS = (
+  ATTR_SPI_BUS_DIV_REF => 1,
+  ATTR_IO_TANK_PLL_BYPASS => 1,
+  ATTR_CLOCKSTOP_ON_XSTOP => 1
+);
 
 #------------------------------------------------------------------------------
 # Print Command Line Help
@@ -501,6 +509,12 @@ foreach my $entr (@{$entries->{entry}}) {
                     "TARGET_TYPE_PAUC", "TARGET_TYPE_IOHS", "TARGET_TYPE_OCMB_CHIP",
                     "TARGET_TYPE_PMIC", "TARGET_TYPE_GENERICI2CSLAVE"])
                 {
+                    if ((defined($PROC_ONLY_ATTRS{$attr->{id}})) &&
+                        ($targType ne "TARGET_TYPE_PROC_CHIP"))
+                    {
+                        next;
+                    }
+
                     if($targetTypeCount != 0)
                     {
                         print AIFILE " | ";
