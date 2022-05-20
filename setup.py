@@ -23,6 +23,8 @@
 #
 # IBM_PROLOG_END_TAG
 import os.path
+import os
+
 """
  Setuptools is an open source package.
  Documentation on setuptools can be found on the web.
@@ -40,7 +42,7 @@ package_directories = {
 
 setup(
     name          = "SBE",
-    version       = "0.1",
+    version       = os.getenv('PELTOOL_VERSION', '0.1'),
     packages      = package_directories.keys(),
     package_dir   = package_directories,
 )
