@@ -117,7 +117,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if (l_rc)
         {
             FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_CL2_PFETSTAT);
-            goto scom_check;
+            continue;
         }
 
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
@@ -134,7 +134,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if (l_rc)
         {
             FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_L3_PFETSTAT);
-            goto scom_check;
+            continue;
         }
 
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
@@ -151,7 +151,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if (l_rc)
         {
             FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_MMA_PFETSTAT);
-            goto scom_check;
+            continue;
         }
 
         l_scomData.extractToRight(l_pfet_senses, 0, 32);
@@ -169,7 +169,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
         if (l_rc)
         {
             FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, CPMS_CGCSR);
-            goto scom_check;
+            continue;
         }
 
         if (!l_scomData.getBit<CPMS_CGCSR_CL2_CLKGLM_SEL>())
@@ -179,7 +179,6 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
     }
 
 
-scom_check:
     //Save the data, here so that any scom fails above will not skip saving the
     //data that was captured for the previous cores
     o_scanStateData.scanState = l_scanStateData;
