@@ -1071,8 +1071,6 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
                        (uint32_t)iv_tocRow.tocHeader.chipUnitNum);
             break;
         }
-        iv_tocRow.tocHeader.dataLength = 0x2000; // Length in bits (1024 bytes)
-        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         uint32_t addr = iv_hdctRow->cmdGetSram.addr;
         uint32_t mode = iv_hdctRow->cmdGetSram.extGenericHdr.mode;
@@ -1082,6 +1080,9 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
         uint32_t msbValue, lsbValue;
         stream.get(msbValue), stream.get(lsbValue);
         uint64_t value = (((uint64_t)msbValue << 32 ) | ((uint64_t)lsbValue));
+
+        iv_tocRow.tocHeader.dataLength = (uint32_t)(value * 8); // Length in bits)
+        iv_oStream.put(len, (uint32_t*)&iv_tocRow.tocHeader);
 
         // Create the req struct for the SRAM Chip-op
         sbeSramAccessReqMsgHdr_t dumpSramReq = {0};
