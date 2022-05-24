@@ -1743,6 +1743,7 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     uint32_t attr_freq_pau_mhz;
+    uint32_t test_start_pau_freq_mhz = 2350;
     bool lockStatus = false;
     bool pri_boot_seeprom_failed = false;
     bool sec_boot_seeprom_failed = false;
@@ -1767,9 +1768,9 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     // Lock all the SPIs at this point
     sbeLockAllSpis();
 
-    for(uint8_t freqOffset = 1; freqOffset <= 15; freqOffset++)
+    for(uint8_t freqOffset = 0; freqOffset <= 15; freqOffset++)
     {
-        NEW_PAU_FREQ = attr_freq_pau_mhz + (freqOffset * 50); // In MHz
+        NEW_PAU_FREQ = test_start_pau_freq_mhz + (freqOffset * 10); // In MHz
         SBE_INFO(SBE_FUNC " Starting PAU Freq Experimentation at [0x%08X][%d] ", NEW_PAU_FREQ, NEW_PAU_FREQ);
         lockStatus = false;
         fapiRc = pauDpllLockNewFreq(NEW_PAU_FREQ, lockStatus);
