@@ -44,7 +44,77 @@ enum P10_SBE_CHIPLET_RESET_Private_Constants
     PGOOD_REGIONS_STARTBIT = 4,
     PGOOD_REGIONS_LENGTH = 15,
     PGOOD_REGIONS_OFFSET = 12,
+    PCI_TOUCHES = 25,
 };
+
+/// Conditionally return PCI refclock error, if either PCI chiplet is configured
+/// and steered to directly use PCI-specific input refclock, and incoming
+/// error is associated with a SCOM failure
+///
+/// @param[in]     i_target_chip               Reference to TARGET_TYPE_PROC_CHIP target
+/// @param[in]     i_clock_mux_pci_pll_input   Value of ATTR_CLOCK_MUX_PCI_PLL_INPUT
+/// @param[out]    i_rc                        Original failing return code
+/// @return  fapi2::ReturnCode
+fapi2::ReturnCode screen_pci_clock_callout(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
+    const fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type& i_clock_mux_pci_lcpll_input,
+    fapi2::ReturnCode& i_rc)
+{
+    FAPI_DBG("Start");
+
+    auto l_perv_pci = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI));
+
+    uint8_t l_chiplet_number_ffdc = 0;
+    uint8_t l_clock_mux_ffdc = 0;
+    bool l_direct_refclock = false;
+    bool l_rc_is_scom_fail =
+        ((i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_OFFLINE_ERROR) ||
+         (i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_PARTIAL_ERROR) ||
+         (i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_ADDRESS_ERROR) ||
+         (i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_CLOCK_ERROR) ||
+         (i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_PARITY_ERROR) ||
+         (i_rc == (fapi2::ReturnCode) fapi2::RC_SBE_PIB_TIMEOUT_ERROR));
+
+    if (l_rc_is_scom_fail)
+    {
+        for (auto& l_targ : l_perv_pci)
+        {
+            if (((l_targ.getChipletNumber() == 0x8)
+                 && (i_clock_mux_pci_lcpll_input[0] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23))
+                ||
+                ((l_targ.getChipletNumber() == 0x9)
+                 && (i_clock_mux_pci_lcpll_input[1] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23)))
+            {
+                l_chiplet_number_ffdc = l_targ.getChipletNumber();
+                l_clock_mux_ffdc = i_clock_mux_pci_lcpll_input[l_chiplet_number_ffdc - 8];
+                l_direct_refclock = true;
+                break;
+            }
+        }
+    }
+
+    if (l_rc_is_scom_fail && l_direct_refclock)
+    {
+        // return more specific RC including PCI clock callout
+        FAPI_ASSERT(false,
+                    fapi2::P10_PCI_REFCLOCK_ERR()
+                    .set_TARGET(i_target_chip)
+                    .set_CHIPLET_NUM(l_chiplet_number_ffdc)
+                    .set_CLOCK_MUX(l_clock_mux_ffdc),
+                    "SCOM attempt failed, returning callout for chip/ref clock!");
+    }
+    else
+    {
+        fapi2::current_err = i_rc;
+        goto fapi_try_exit;
+    }
+
+fapi_try_exit:
+    FAPI_DBG("End");
+    return fapi2::current_err;
+}
+
 
 fapi2::ReturnCode p10_sbe_chiplet_reset(const
                                         fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
@@ -56,6 +126,7 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     uint8_t l_attr_pau_dpll_bypass;
     fapi2::buffer<uint32_t> l_read_attr_pg;
     fapi2::buffer<uint64_t> l_data64_nc0, l_data64;
+    fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_clock_mux_pci_lcpll_input;
 
     FAPI_INF("p10_sbe_chiplet_reset: Entering ...");
 
@@ -68,6 +139,8 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
                                      fapi2::TARGET_FILTER_ALL_MC  |  fapi2::TARGET_FILTER_ALL_NEST |
                                      fapi2::TARGET_FILTER_ALL_PAU |  fapi2::TARGET_FILTER_ALL_PCI  |
                                      fapi2::TARGET_FILTER_ALL_IOHS), fapi2::TARGET_STATE_FUNCTIONAL);
+    auto l_perv_pci = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(
+                          static_cast<fapi2::TargetFilter>(fapi2::TARGET_FILTER_ALL_PCI));
 
     auto l_mc_all = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_NO_TP);
     auto l_mc_pau = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PAU);
@@ -75,6 +148,7 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_NEST_DPLL_BYPASS, i_target_chip, l_attr_nest_dpll_bypass));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PAU_DPLL_BYPASS, i_target_chip, l_attr_pau_dpll_bypass));
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_clock_mux_pci_lcpll_input));
 
     FAPI_DBG("Enable chiplet");
     l_data64_nc0.flush<0>().setBit<NET_CTRL0_CHIPLET_ENABLE>();
@@ -92,6 +166,16 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     // cplt_ctrl5(power_gate) registers with ATTR_PG values
     FAPI_DBG("Transfer PGOOD attribute into region good,region enable and power gate register : ALL but TP and EQ");
 
+    // SW550598
+    for (auto& targ : l_perv_pci)
+    {
+        for (auto iter = 0; iter < PCI_TOUCHES; iter++)
+        {
+            FAPI_TRY(fapi2::getScom(targ, CPLT_CTRL2_RW, l_data64));
+            FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64));
+        }
+    }
+
     for (auto& targ : l_perv_all_but_tp)
     {
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, targ, l_read_attr_pg));
@@ -100,36 +184,7 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
         l_read_attr_pg.invert();
         l_data64.insert< PGOOD_REGIONS_STARTBIT, PGOOD_REGIONS_LENGTH, PGOOD_REGIONS_OFFSET >(l_read_attr_pg);
 
-        // SW547918
-        {
-            fapi2::ReturnCode l_rc;
-            fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_clock_mux_pci_lcpll_input;
-            FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT, i_target_chip, l_clock_mux_pci_lcpll_input));
-            l_rc = fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64);
-
-            if (l_rc != fapi2::FAPI2_RC_SUCCESS)
-            {
-                uint8_t l_chiplet_number = targ.getChipletNumber();
-
-                if (((l_chiplet_number == 0x8) && (l_clock_mux_pci_lcpll_input[0] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23))
-                    ||
-                    ((l_chiplet_number == 0x9) && (l_clock_mux_pci_lcpll_input[1] != fapi2::ENUM_ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_MUX23)))
-                {
-                    FAPI_ASSERT(false,
-                                fapi2::P10_PCI_REFCLOCK_ERR()
-                                .set_TARGET(i_target_chip)
-                                .set_CHIPLET_NUM(l_chiplet_number)
-                                .set_CLOCK_MUX((l_chiplet_number == 0x8) ? (l_clock_mux_pci_lcpll_input[0]) : (l_clock_mux_pci_lcpll_input[1])),
-                                "First SCOM attempted into PCI chiplet failed, returning callout for chip/ref clock!")
-                }
-                else
-                {
-                    fapi2::current_err = l_rc;
-                    goto fapi_try_exit;
-                }
-            }
-        }
-
+        FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL2_RW, l_data64));
         FAPI_TRY(fapi2::putScom(targ, CPLT_CTRL3_RW, l_data64));
     }
 
@@ -185,6 +240,11 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     FAPI_INF("p10_sbe_chiplet_reset: Exiting ...");
 
 fapi_try_exit:
-    return fapi2::current_err;
 
+    if (fapi2::current_err != fapi2::FAPI2_RC_SUCCESS)
+    {
+        return(screen_pci_clock_callout(i_target_chip, l_clock_mux_pci_lcpll_input, fapi2::current_err));
+    }
+
+    return fapi2::current_err;
 }
