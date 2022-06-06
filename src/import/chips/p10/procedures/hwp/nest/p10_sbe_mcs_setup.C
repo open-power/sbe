@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -115,7 +115,8 @@ fapi2::ReturnCode set_hb_dcbz_config(
 
     SET_SCOMFIR_MCMODE1_DISABLE_ALL_SPEC_OPS(l_mcmode1);
     SET_SCOMFIR_MCMODE1_DISABLE_FP_COMMAND_BYPASS(l_mcmode1);
-    SET_SCOMFIR_MCMODE1_DISABLE_COMMAND_BYPASS(0x0, l_mcmode1);
+    l_mcmode1.setBit<SCOMFIR_MCMODE1_DISABLE_COMMAND_BYPASS,
+                     SCOMFIR_MCMODE1_DISABLE_COMMAND_BYPASS_LEN>();
 
     FAPI_TRY(PUT_SCOMFIR_MCMODE1(i_target_mc, l_mcmode1));
 
