@@ -60,6 +60,9 @@ enum
 };
 void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
                        uint32_t i_fenceState, uint32_t i_corePowerState);
+
+void verifyCoreState(const fapi2::Target < fapi2::TARGET_TYPE_EQ >& i_target,
+                     fapi2::buffer<uint32_t>& io_scanStateData);
 //------------------------------------------------------------------------------
 // Constant Definitions
 //------------------------------------------------------------------------------
@@ -213,6 +216,7 @@ fapi2::ReturnCode p10_query_corecachemma_access_state(
     if (!i_scanClockState)
     {
         update_scanState(l_scanStateData, o_scomStateData.scomState, l_clockState, l_fenceState, l_corePowerState);
+        verifyCoreState(i_target, l_scanStateData);
 
         o_scanStateData.scanState = l_scanStateData;
         FAPI_INF("QUAD Status : scan access state(0x%08X)",
@@ -234,6 +238,61 @@ fapi_try_exit:
     fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
     return fapi2::current_err;
 }
+
+void verifyCoreState(const fapi2::Target < fapi2::TARGET_TYPE_EQ >& i_target,
+                     fapi2::buffer<uint32_t>& io_scanStateData)
+{
+    fapi2::buffer<uint64_t> l_data64;
+    uint32_t l_stop_gated           = 0;
+    uint32_t l_stop_actual_level    = 0;
+    uint8_t l_attr_chip_unit_pos = 0;
+    uint8_t l_core_num = 0;
+    fapi2::ReturnCode l_rc = fapi2::FAPI2_RC_SUCCESS;
+    //Get all the child cores of input EQ target
+    const auto& v_Cores = i_target.getChildren<fapi2::TARGET_TYPE_CORE>(fapi2::TARGET_STATE_FUNCTIONAL);
+
+    for (auto const& l_core : v_Cores)
+    {
+        FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
+                      l_core,
+                      l_attr_chip_unit_pos);
+        l_core_num = (uint8_t)(l_attr_chip_unit_pos % 4);
+
+        //Read the power state of core/L2, L3 and MMA. If an unit is powered
+        //off then it cannot be scaned or scomed. However, we would read the
+        //clock state register available on quad region immaterial of whether
+        //unit is having power or not, quad is always on.
+
+        l_rc = fapi2::getScom(l_core, QME_SSH_OTR, l_data64);
+
+        if (l_rc)
+        {
+            FAPI_ERR("getScom error: Core %d, addr 0x%.16llX, skip this core.", l_core_num, QME_SSH_OTR);
+            continue;
+        }
+
+        l_data64.extractToRight<QME_SSH_OTR_ACT_STOP_LEVEL,
+                                QME_SSH_OTR_ACT_STOP_LEVEL_LEN>(l_stop_actual_level);
+
+        l_data64.extractToRight<QME_SSH_OTR_STOP_GATED, 1>(l_stop_gated);
+
+        if (l_stop_gated && (l_stop_actual_level == 0x3 ||
+                             l_stop_actual_level == 0x6))
+        {
+            io_scanStateData.clearBit(CORE_START_POSITION + l_core_num);
+            io_scanStateData.clearBit(MMA_START_POSITION + l_core_num);
+        }
+
+        if (l_stop_gated && (l_stop_actual_level == 0xB ||
+                             l_stop_actual_level == 0xF))
+        {
+            io_scanStateData.clearBit(CORE_START_POSITION + l_core_num);
+            io_scanStateData.clearBit(MMA_START_POSITION + l_core_num);
+            io_scanStateData.clearBit(CACHE_START_POSITION + l_core_num);
+        }
+    }
+}
+
 
 void update_scanState (fapi2::buffer<uint32_t>& o_scanState, uint32_t i_scomGrpState, uint32_t i_clockState,
                        uint32_t i_fenceState, uint32_t i_corePowerState)
