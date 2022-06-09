@@ -44,11 +44,9 @@
 #include "sbehandleresponse.H"
 #include "p10_stopclocks.H"
 #include "p10_hcd_core_stopclocks.H"
-#include "p10_hcd_core_stopgrid.H"
 #include <p10_hcd_mma_stopclocks.H>
 #include "p10_hcd_eq_stopclocks.H"
 #include "p10_hcd_cache_stopclocks.H"
-#include "p10_hcd_cache_stopgrid.H"
 #include "sbearchregdump.H"
 #include "fapi2.H"
 #include "core/ipl.H"
@@ -72,10 +70,8 @@ using namespace fapi2;
 #ifdef SEEPROM_IMAGE
 // Using function pointer to force long call.
 p10_hcd_cache_stopclocks_FP_t p10_hcd_cache_stopclocks_hwp = &p10_hcd_cache_stopclocks;
-p10_hcd_cache_stopgrid_FP_t p10_hcd_cache_stopgrid_hwp = &p10_hcd_cache_stopgrid;
 p10_hcd_eq_stopclocks_FP_t p10_hcd_eq_stopclocks_hwp = &p10_hcd_eq_stopclocks;
 p10_hcd_core_stopclocks_FP_t p10_hcd_core_stopclocks_hwp = &p10_hcd_core_stopclocks;
-p10_hcd_core_stopgrid_FP_t p10_hcd_core_stopgrid_hwp = &p10_hcd_core_stopgrid;
 p10_hcd_core_stopclocks_FP_t p10_hcd_mma_stopclocks_hwp = &p10_hcd_mma_stopclocks;
 p10_stopclocks_FP_t p10_stopclocks_hwp = &p10_stopclocks;
 p10_adu_utils_reset_adu_FP_t p10_adu_utils_reset_adu_hwp = &p10_adu_utils_reset_adu;
@@ -784,15 +780,6 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
                           fapiRc,tgtHndl);
                 break;
             }
-            //Execute the Core Stop Grid HWP
-            SBE_EXEC_HWP(fapiRc, p10_hcd_core_stopgrid_hwp, tgtHndl);
-            if(fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR("Failed in p10_hcd_core_stopgrid(), fapiRc=0x%.8x, Target=0x%.8x",
-                          fapiRc,tgtHndl);
-                break;
-            }
-
             //Execute the MMA Stop Clock HWP
             SBE_EXEC_HWP(fapiRc, p10_hcd_mma_stopclocks_hwp, tgtHndl);
             if(fapiRc != FAPI2_RC_SUCCESS)
@@ -851,14 +838,6 @@ uint32_t sbeStopClocks_Wrap(fapi2::sbefifo_hwp_data_istream& i_getStream,
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR("Failed in p10_hcd_cache_stopclocks(), fapiRc=0x%.8x, Target=0x%.8x",
-                          fapiRc,tgtHndl);
-                break;
-            }
-            //Execute the Cache Stop Grid HWP
-            SBE_EXEC_HWP(fapiRc, p10_hcd_cache_stopgrid_hwp, tgtHndl);
-            if(fapiRc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR("Failed in p10_hcd_cache_stopgrid(), fapiRc=0x%.8x, Target=0x%.8x",
                           fapiRc,tgtHndl);
                 break;
             }
