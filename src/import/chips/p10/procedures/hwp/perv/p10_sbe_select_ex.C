@@ -178,6 +178,8 @@ fapi2::ReturnCode p10_sbe_select_ex(
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     auto l_core_functional_vector = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
                                     (fapi2::TARGET_STATE_FUNCTIONAL);
+    auto l_core_present_vector    = i_target.getChildren<fapi2::TARGET_TYPE_CORE>
+                                    (fapi2::TARGET_STATE_PRESENT );
 
     fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
@@ -237,6 +239,21 @@ fapi2::ReturnCode p10_sbe_select_ex(
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL, FAPI_SYSTEM, l_attr_is_mpipl),
              "Error from FAPI_ATTR_GET (ATTR_IS_MPIPL)");
+
+    for( auto const& core : l_core_present_vector )
+    {
+        //First make each present core non-available. In subsequent loop,
+        //master and backing cores will be identified and re-marked as
+        //functional.
+
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_attr_present_core_pos = 0;
+        FAPI_TRY(FAPI_ATTR_GET( fapi2::ATTR_CHIP_UNIT_POS,
+                                core,
+                                l_attr_present_core_pos ));
+        l_eq_target = core.getParent<fapi2::TARGET_TYPE_EQ>();
+
+        FAPI_TRY( select_ex_config( l_eq_target, l_attr_present_core_pos, false ) );
+    }
 
     for (auto const& core : l_core_functional_vector)
     {
