@@ -291,6 +291,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     #define SBE_FUNC " sbeEnterMpipl "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t secRc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
 
     uint32_t len = 0;
@@ -312,35 +313,39 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
 
             // Stop all the instructions before going into Mpipl reset path.
             // Phyp might be performing some operation on TPM Sequencer.
-            rc = stopAllCoreInstructions();
-            if(rc)
+            fapiRc = stopAllCoreInstructions();
+            if(fapiRc)
             {
                 SBE_ERROR(SBE_FUNC "Stop all core instructions failed before"
-                    " Mpipl Reset, RC=[0x%08X]", rc);
+                    " Mpipl Reset, RC=[0x%08X]", fapiRc);
+                secRc = SBE_SEC_ENTER_MPIPL_FAILED;
                 break;
             }
             ignoreAddrError = false;
             status = 0;
             // Perform Sync up with other SBEs in the system
-            rc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
-            if(!status || rc)
+            fapiRc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
+            if(!status || fapiRc)
             {
                 SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
                     "failed, Either System Quiesce Achieved not true or procedure failed "
-                    "before Mpipl Reset, RC=[0x%08X] Status[0x%02X]", rc, status);
+                    "before Mpipl Reset, RC=[0x%08X] Status[0x%02X]", fapiRc, status);
 
                 SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
                     "failure before Mpipl Reset !!");
 
+                secRc= SBE_SEC_ENTER_MPIPL_FAILED;
+
                 //Force System Checkstop
                 fapi2::buffer<uint64_t> data(0);
                 data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
-                rc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
-                if(rc != FAPI2_RC_SUCCESS)
+                ReturnCode scomrc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+                if(scomrc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR("Failed to force system checkstop to indicate failure in"
                               "p10_sbe_sync_quiesce_states HWP before Mpipl Reset");
                 }
+                fapiRc = fapiRc ? fapiRc:scomrc;
                 break;
             }
 
@@ -368,25 +373,28 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         ignoreAddrError = true;
         status = 0;
         SBE_INFO(SBE_FUNC " LQA SBE System Quiesce After Mpipl Reset before Procedures - Starting");
-        rc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
-        if(!status || rc)
+        fapiRc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
+        if(!status || fapiRc)
         {
             SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
                     "failed, Either System Quiesce Achieved not true or procedure failed "
-                    "After Mpipl Reset before Procedures, RC=[0x%08X] Status[0x%02X]", rc, status);
+                    "After Mpipl Reset before Procedures, RC=[0x%08X] Status[0x%02X]", fapiRc, status);
 
             SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
                     "failure after Mpipl Reset !!");
 
+            secRc= SBE_SEC_ENTER_MPIPL_FAILED;
+
             //Force System Checkstop
             fapi2::buffer<uint64_t> data(0);
             data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
-            rc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
-            if(rc != FAPI2_RC_SUCCESS)
+            ReturnCode scomrc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+            if(scomrc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR("Failed to force system checkstop to indicate failure in"
                         "p10_sbe_sync_quiesce_states HWP After Mpipl Reset before Procedures");
             }
+            fapiRc = fapiRc ? fapiRc:scomrc;
             break;
         }
 
@@ -399,19 +407,11 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
                                " System Checkstop=%d",checkstop);
             if(checkstop)
             {
-                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                   SBE_SEC_SYSTEM_CHECKSTOP);
-                //If we have Valid FAPI RC
-                if(fapiRc!=FAPI2_RC_SUCCESS)
-                {
-                    ffdc.setRc(fapiRc);
-                }
+                secRc = SBE_SEC_SYSTEM_CHECKSTOP;
             }
             else
             {
-                respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
-                                   SBE_SEC_ENTER_MPIPL_FAILED);
-                ffdc.setRc(fapiRc);
+                secRc = SBE_SEC_ENTER_MPIPL_FAILED;
             }
             // reset attribute. We do not want to reset register, so do not
             // use setMpIplMode
@@ -426,6 +426,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         if(fapiRc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR("Failed in collectMPIPLHWDumpEntries(),cannot continue MPIPL!");
+            secRc = SBE_SEC_ENTER_MPIPL_FAILED;
             break;
         }
 
@@ -435,6 +436,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
         if(fapiRc)
         {
             SBE_ERROR("Failed in applying TOD workaround in MPIPL Path");
+            secRc = SBE_SEC_ENTER_MPIPL_FAILED;
             break;
         }
         SBE_INFO("Workaround applied : TOD Status Forced to be OFF");
@@ -444,6 +446,15 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     // Create the Response to caller
     do
     {
+        if(fapiRc)
+        {
+            ffdc.setRc(fapiRc);
+        }
+        if(secRc)
+        {
+            respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                               secRc);
+        }
         // Clear MPIPL Reset. System is ready for sbeEnterMpipl Chip-Op call
         SBE::clearMpiplReset();
 
@@ -1055,7 +1066,7 @@ fapi2::ReturnCode sbeSyncWithAllSbeUsingLQA(bool i_ignoreAduAddrError, uint8_t& 
 {
     #define SBE_FUNC " SBE_SYNC_WITH_ALL_SBE_USING_LQA "
     SBE_ENTER(SBE_FUNC);
-    uint32_t rc = FAPI2_RC_SUCCESS;
+    ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
     size_t timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
     o_quiesced_status = 0;
@@ -1075,10 +1086,10 @@ fapi2::ReturnCode sbeSyncWithAllSbeUsingLQA(bool i_ignoreAduAddrError, uint8_t& 
         timeOut = SBE_SYSTEM_QUIESCE_TIMEOUT_LOOP;
         while(timeOut)
         {
-            rc = p10_sbe_sync_quiesce_states(procTgt, o_quiesced_status);
+            SBE_EXEC_HWP(rc, p10_sbe_sync_quiesce_states, procTgt, o_quiesced_status);
             if(rc != FAPI2_RC_SUCCESS)
             {
-                if((rc == RC_P10_ADU_STATUS_REG_ADDRESS_ERR) && (i_ignoreAduAddrError == true))
+                if(((uint32_t)rc == RC_P10_ADU_STATUS_REG_ADDRESS_ERR) && (i_ignoreAduAddrError == true))
                 {
                     SBE_INFO(SBE_FUNC " Adu Address Error, Retry with Adu Reset and Cleanup, FapiRC[0x%08X]", rc);
                     rc= FAPI2_RC_SUCCESS;
@@ -1092,7 +1103,7 @@ fapi2::ReturnCode sbeSyncWithAllSbeUsingLQA(bool i_ignoreAduAddrError, uint8_t& 
                     SBE_EXEC_HWP(rc, p10_adu_utils_cleanup_adu_hwp, procTgt);
                     if(rc != FAPI2_RC_SUCCESS)
                     {
-                        SBE_ERROR(SBE_FUNC " Adu reset Error, rc[0x%08X]", rc);
+                        SBE_ERROR(SBE_FUNC " Adu cleanup Error, rc[0x%08X]", rc);
                         break;
                     }
                 }
