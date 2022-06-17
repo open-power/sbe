@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -54,7 +54,8 @@ void updatePsuCapabilities(uint32_t * capability)
 {
     capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX] =
                                       PSU_CONTROL_DEADMAN_LOOP |
-                                      PSU_EXIT_CACHE_CONTAINED_MODE;
+                                      PSU_EXIT_CACHE_CONTAINED_MODE|
+                                      PSU_UPDATE_CORE_FUNC_STATE_SUPPORTED;
     capability[PSU_CORE_CONTROL_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_1;
 

@@ -358,7 +358,7 @@ static istepMap_t g_istep4PtrTbl[] =
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_cache_ras_runtime_scom),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_poweron),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_reset),
-             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_gptr_time_initf), //p10_hcd_core_gptr_time_initf 
+             ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_gptr_time_initf), //p10_hcd_core_gptr_time_initf
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_repair_initf ),
              ISTEP_MAP( istepWithGoodEqMCCore, p10_hcd_core_arrayinit),
              ISTEP_MAP( istepWithGoodEqMCORCore, p10_hcd_core_initf),
@@ -854,7 +854,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
         FAPI_ATTR_GET(fapi2::ATTR_IS_MPIPL,FAPI_SYSTEM,l_is_mpipl);
         //In the MPIPL path Memory is alive and backing cache is not mandatory.
-        //In MPIPL boot loader image is loaded(DMAed) directly into the memory 
+        //In MPIPL boot loader image is loaded(DMAed) directly into the memory
         if( (l_ATTR_BACKING_CACHES_NUM < 2) && (!l_is_mpipl) )
         {
            SBE_ERROR(" Num of backing cache is less than 2. Cannot proceed with IPL");
@@ -1323,14 +1323,55 @@ ReturnCode istepWithProcQuiesceLQASet( voidfuncptr_t i_hwp )
     #undef SBE_FUNC
 }
 //----------------------------------------------------------------------------
-void setFunctionalStateByCoreNum(uint32_t coreNum)
-{
-   SBE_INFO("Making %d'th core non-functional", coreNum);
-   fapi2::Target<fapi2::TARGET_TYPE_CORE> target = G_vec_targets.at(coreNum + CORE_TARGET_OFFSET);
-   static_cast<plat_target_handle_t&>(target.operator ()()).setFunctional(false);
-   G_vec_targets.at(coreNum + CORE_TARGET_OFFSET) = target.get();
-   SBE_DEBUG("Core target is 0x%08X", G_vec_targets.at(coreNum + CORE_TARGET_OFFSET));
+
+void setFunctionalStateByCoreNum(uint32_t coreNum , bool state){
+     SBE_INFO("Changing %d'th core", coreNum);
+     fapi2::Target<fapi2::TARGET_TYPE_CORE> target = G_vec_targets.at(coreNum + CORE_TARGET_OFFSET);
+     static_cast<plat_target_handle_t&>(target.operator ()()).setFunctional(state);
+     G_vec_targets.at(coreNum + CORE_TARGET_OFFSET) = target.get();
+     SBE_DEBUG("Core target is 0x%08X",
+                G_vec_targets.at(coreNum + CORE_TARGET_OFFSET));
 }
+
+void updateCoreFunctionStates( fapi2::buffer<uint64_t> coreFuncState ){
+
+            fapi2::buffer<uint32_t> ecMask = 0;
+            coreFuncState.extract<0, 32>(ecMask);
+            SBE_INFO(SBE_FUNC "Core Functional State is 0x%08X", ecMask);
+            fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core;
+            FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
+                             fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
+                             l_fused_core);
+            SBE_INFO(SBE_FUNC "Fused core mode is 0x%02X", l_fused_core);
+            uint32_t shiftCnt = (CORE_TARGET_COUNT - 1);
+            for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; idx++)
+            {
+                FAPI_IMP("Core target count is %d", idx);
+                if(l_fused_core)
+                {
+                   bool state = true;
+                   if(
+                       ((ecMask >> (shiftCnt - idx) ) & 0x1  )||
+                       ((ecMask >> (shiftCnt - idx - 1))  & 0x1)
+                     )
+                   {
+                       state = false;
+                   }
+                   for(uint32_t coreCount = 0; coreCount < 2; coreCount++)
+                   {
+                       setFunctionalStateByCoreNum(idx + coreCount, state);
+                   }
+                   ++idx;
+                }
+                else
+                {
+                    bool state = true;
+                    if((ecMask >> (shiftCnt - idx) ) & 0x1 )
+                        state = false;
+                    setFunctionalStateByCoreNum(idx, state);
+                }
+            }
+    }
 
 //----------------------------------------------------------------------------
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
@@ -1344,19 +1385,18 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
         // In MPIPL path, stopCntlisntruction mask the spl mask attn register.
         // In continue mpipl path, unmask the bits in set in mpipl up path explicitly because
         // istep 3 won't be executed so EQ scan inits won't be run again.
-	for(auto eqTgt: proc.getChildren<fapi2::TARGET_TYPE_EQ>())
-	{
+        for(auto eqTgt: proc.getChildren<fapi2::TARGET_TYPE_EQ>())
+        {
             rc = maskUnmaskSpecialAttn(eqTgt, false);
             if(rc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "Failure in unmasking SpecialAttn register with rc 0x%08X", rc);
                 break;  // This should not break the continue mpipl.
-	    }
-	}
-	// Read the EC gard attributes from the chip target
-	fapi2::buffer<uint64_t> scratchReg1 = 0;
+            }
+        }
+        // Read the EC gard attributes from the chip target
+        fapi2::buffer<uint64_t> scratchReg1 = 0;
         fapi2::buffer<uint64_t> scratchReg8 = 0;
-        fapi2::buffer<uint32_t> ecMask = 0;
         plat_target_handle_t hndl;
 
         // Set MPIPL mode bit in Scratch Reg 3
@@ -1369,11 +1409,11 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
             SBE_ERROR(SBE_FUNC" Failed to read Scratch RegR8, rc=0x%.8x",rc);
             break;
         }
- 
+
         //Read Scratch register and Update the core fuctional states
         if(scratchReg8.getBit<SCRATCH1_REG_VALID_BIT>())
         {
-            //Read 0x50038 
+            //Read 0x50038
             rc = getscom_abs_wrap (&hndl,
                                    scomt::perv::FSXCOMP_FSXLOG_SCRATCH_REGISTER_1_RW,
                                    &scratchReg1());
@@ -1382,46 +1422,7 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                 SBE_ERROR(SBE_FUNC" Failed to read Scratch Reg1");
                 break;
             }
-            //0..31 bits indicate CORE GARD state for all cores with
-            //respect to the PROC chip.
-            scratchReg1.extract<0, 32>(ecMask);
-            SBE_INFO(SBE_FUNC "Scratch reg 1 is 0x%08X", ecMask);
-            fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core;
-            FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
-                             fapi2::Target<fapi2::TARGET_TYPE_SYSTEM>(),
-                             l_fused_core);
-            SBE_INFO(SBE_FUNC "Fused core mode is 0x%02X", l_fused_core);
-            uint32_t shiftCnt = (CORE_TARGET_COUNT - 1);
-            for(uint32_t idx = 0; idx < CORE_TARGET_COUNT; idx++)
-            {
-                FAPI_IMP("Core target count is %d", idx);
-                //Pick Core specific bit , If set , then mark the core
-                //NON-Functional
-                if(l_fused_core)
-                {
-                   if( ((ecMask >> (shiftCnt-idx) ) & 0x1  ) || ((ecMask >> (shiftCnt-idx - 1))  & 0x1))
-                   {
-                       // EC chiplet idx is to be marked non-functional
-                       for(uint32_t coreCount = 0; coreCount < 2; coreCount++)
-                       {
-                           setFunctionalStateByCoreNum(idx + coreCount);
-                       }
-                   }
-                   ++idx;
-                }
-                else
-                {
-                    if((ecMask >> (shiftCnt-idx) ) & 0x1 )
-                    {
-                        //Pick Core specific bit , If set , then mark the core
-                        //NON-Functional
-                        if( (ecMask >> (shiftCnt-idx) ) & 0x1  )
-                        {
-                            setFunctionalStateByCoreNum(idx);
-                        }
-                    }
-                }
-            }
+            updateCoreFunctionStates( scratchReg1 );
             //If SBE is master call the procedure p10_sbe_select_ex
             if (g_sbeRole == SBE_ROLE_MASTER)
             {
@@ -1520,7 +1521,7 @@ ReturnCode pauDpllLockNewFreq(uint32_t freq_pau_mhz, bool & o_lockStatus)
     // Pre-delay of 5msec added before polling for getscom after a frequency change
     fapi2::delay(PLL_LOCK_DELAY_NS * PLL_LOCK_DELAY_LOOPS, PLL_LOCK_DELAY_CYCLES);
 
-    //poll DPLL_STAT bit 61 (FREQ_CHANGE) until it is zero 
+    //poll DPLL_STAT bit 61 (FREQ_CHANGE) until it is zero
     while (timeout)
     {
         read_reg.flush<0>();
@@ -1904,7 +1905,7 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     data64.clearBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
     FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
 
-fapi_try_exit: 
+fapi_try_exit:
     if(lockStatus == false || fapiRc)
     {
         // Shift back to Original PAU DPLL

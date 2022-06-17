@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -64,6 +64,7 @@ enum sbePsuCoreStateControlCommands
 {
     SBE_PSU_CMD_CONTROL_DEADMAN       = 0x01,
     SBE_PSU_EXIT_CACHE_CONTAINED_MODE = 0x02,
+    SBE_PSU_UPDATE_CORE_FUNC_STATE    = 0x03,
     SBE_PSU_CMD_UNKNOWN               = 0xFF,
 };
 
@@ -108,12 +109,12 @@ enum sbePsuUpdateMemoryRegionMessages
  */
 enum sbePsuGenericMessages
 {
-    SBE_PSU_GENERIC_MSG_GET_CAPABILITIES   = 0x02,
-    SBE_PSU_GENERIC_MSG_READ_SBE_MEM       = 0x03,
-    SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR      = 0x04,
-    SBE_PSU_GENERIC_MSG_QUIESCE            = 0x05,
-    SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP  = 0x06,
-    SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG = 0x07,
+    SBE_PSU_GENERIC_MSG_GET_CAPABILITIES        = 0x02,
+    SBE_PSU_GENERIC_MSG_READ_SBE_MEM            = 0x03,
+    SBE_PSU_GENERIC_MSG_SET_FFDC_ADDR           = 0x04,
+    SBE_PSU_GENERIC_MSG_QUIESCE                 = 0x05,
+    SBE_PSU_GENERIC_MSG_SYSTEM_FABRIC_MAP       = 0x06,
+    SBE_PSU_GENERIC_MSG_STASH_MPIPL_CONFIG      = 0x07,
     SBE_PSU_GENERIC_MSG_SECURITY_LIST_BIN_DUMP  = 0x08,
     SBE_PSU_GENERIC_MSG_UPDATE_OCMB_TARGET      = 0x09,
     SBE_PSU_GENERIC_MSG_SYNC_FAB_TOPO_ID_TAB    = 0x0A,
@@ -180,6 +181,7 @@ enum PSU_CAPABILITIES
     // Capabilities 2, 3
     PSU_CONTROL_DEADMAN_LOOP                     = 0xD1000001,
     PSU_EXIT_CACHE_CONTAINED_MODE                = 0xD1000002,
+    PSU_UPDATE_CORE_FUNC_STATE_SUPPORTED         = 0xD1000004,
     PSU_RESERVED_1                               = 0xD1800000,
 
     // Capabilities 4, 5
