@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,6 +51,7 @@
 #include "sbehostfifomsg.H"
 #include "sbecmdpmictelemetry.H"
 #include "sbecmdmemconfig.H"
+#include "sbecmdupdatecorefuncstates.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -321,7 +322,14 @@ CMD_ARR(
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_QUIESCE|
      SBE_FENCE_AT_MPIPL|SBE_FENCE_AT_ISTEP|
      SBE_FENCE_AT_DUMPING,
-    }
+    },
+    {
+     sbeSyncCoreTargetPSU,
+     SBE_PSU_UPDATE_CORE_FUNC_STATE,
+     SBE_FENCE_AT_DUMPING|SBE_FENCE_AT_MPIPL|
+     SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_ISTEP|
+     SBE_FENCE_AT_QUIESCE|SBE_FENCE_AT_DMT,
+    },
 
 )
 

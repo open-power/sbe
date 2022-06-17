@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2021
+# Contributors Listed Below - COPYRIGHT 2017,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -47,7 +47,7 @@ Capabilities structure
 '''
 capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xC8000000) +
-          getsingleword(0xD1000003) +
+          getsingleword(0xD1000007) +
           getsingleword(0xD1800000) +
           getsingleword(0xD2000000) +
           getsingleword(0xD2800000) +
