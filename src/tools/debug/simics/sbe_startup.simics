@@ -6,7 +6,7 @@ if defined sbe_scripts_path {
 # Load SBE debug tools.
 try {
 
-    if($machine_name == "p10_standalone") {
+    if($machine_name == "p10_standalone" or $machine_name == "bonito") {
         run-python-file (lookup-file "%script%/simics-debug-framework.py")
     } else {
         run-python-file (lookup-file "%script%/simics-debug-framework_rainier.py")
