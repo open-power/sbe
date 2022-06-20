@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021
+# Contributors Listed Below - COPYRIGHT 2021,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -41,7 +41,7 @@ package_directories = {
 }
 
 setup(
-    name          = "SBE",
+    name          = "sbe-pel-parser",
     version       = os.getenv('PELTOOL_VERSION', '0.1'),
     packages      = package_directories.keys(),
     package_dir   = package_directories,
