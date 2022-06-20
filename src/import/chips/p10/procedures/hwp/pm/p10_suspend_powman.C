@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -116,6 +116,14 @@ fapi2::ReturnCode suspend_pm_halt(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CH
             const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
             FAPI_TRY( FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_SUSPEND_OCC_MODE,
                       FAPI_SYSTEM,l_occ_mode));
+
+            //Clear STOP_RECOVERY_TRIGGER_ENABLE bit to avoid malf alert in
+            //MPIPL path
+            l_occs3_data.flush<0>().setBit<p10hcd::STOP_RECOVERY_TRIGGER_ENABLE>();
+            FAPI_TRY(fapi2::putScom(i_target,
+                                    TP_TPCHIP_OCC_OCI_OCB_OCCFLG3_WO_CLEAR,
+                                    l_occs3_data));
+
             FAPI_TRY(GET_TP_TPCHIP_OCC_OCI_GPE2_OCB_GPEXIXSR(i_target,l_xsr));
 
             if(!(l_xsr >> 63))
