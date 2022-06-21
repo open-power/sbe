@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2022
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -485,7 +485,7 @@ report: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 
 # Create build Info file
 buildInfo:
-	python buildInfo.py $(GENFILES_DIR)
+	python2 buildInfo.py $(GENFILES_DIR)
 
 buildtag:
 	./updateBuildTag.py $(IPL_IMAGE_TOOL) $(IMG_DIR) $(IMAGE_NAME)
@@ -594,7 +594,7 @@ xml: $(FAPI_RC)
 
 $(FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 	$(IMPORT_TOOLS_DIR)/parseErrorInfo.pl --local-ffdc --output-dir=$(GENFILES_DIR) $(ERROR_XML_FILES)
-	python $(SBE_SRC_DIR)/tools/scripts/xmlErrorInfo.py --output_dir $(GENFILES_DIR) --list_xmls $(ERROR_XML_FILES)
+	python2 $(SBE_SRC_DIR)/tools/scripts/xmlErrorInfo.py --output_dir $(GENFILES_DIR) --list_xmls $(ERROR_XML_FILES)
 
 $(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
