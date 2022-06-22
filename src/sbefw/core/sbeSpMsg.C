@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -115,7 +115,7 @@ void sbeCntlInstMsgHdr_t::processInputDataToIterate(uint8_t & o_core,
             FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,procTgt,masterCore);
             FAPI_ATTR_GET(ATTR_FUSED_CORE_MODE,Target<TARGET_TYPE_SYSTEM>(),fusedMode);
             o_core = masterCore;
-            o_coreCntMax = fusedMode ? (masterCore+1) : masterCore;
+            o_coreCntMax = fusedMode ? (masterCore+2) : masterCore;
         }
         //Otherwise Consider all cores in the system. Functional filter will be applied
         //by the caller.These are already initialized by default
