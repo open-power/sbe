@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,6 +76,12 @@ p10_hcd_cache_stopgrid(
     fapi2::buffer<buffer_t> l_mmioData = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     uint32_t                l_timeout  = 0;
+
+#ifndef __PPE_QME
+    fapi2::ATTR_ZERO_CORE_CHIP_Type l_zero_core_chip = 0;
+    auto l_chip_target = i_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+#endif
+
 #ifdef USE_RUNN
     fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
@@ -83,6 +89,17 @@ p10_hcd_cache_stopgrid(
 #endif
 
     FAPI_INF(">>p10_hcd_cache_stopgrid");
+
+#ifndef __PPE_QME
+    // skip on IOSCM
+    FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_ZERO_CORE_CHIP, l_chip_target, l_zero_core_chip ) );
+
+    if (l_zero_core_chip)
+    {
+        goto fapi_try_exit;
+    }
+
+#endif
 
     FAPI_DBG("Disable L3 Skewadjust via CPMS_CGCSR_[0:L3_CLK_SYNC_ENABLE]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(0) ) );
