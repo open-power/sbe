@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -152,6 +152,17 @@ fapi2::ReturnCode cleanup_cl2_l3_states(
         }
         else
         {
+            //Clear spwu done bit in SCSR register
+            //before powering off.This will ensure all cores are in right state
+            //before QME takes over.
+
+            FAPI_TRY(fapi2::putScom(i_core_target, QME_SCSR_WO_OR,
+                                    BIT64(QME_SCSR_AUTO_SPECIAL_WAKEUP_DISABLE)));
+
+            FAPI_TRY(fapi2::putScom(i_core_target, QME_SCSR_WO_CLEAR,
+                                    BIT64(QME_SCSR_ASSERT_SPECIAL_WKUP_DONE)));
+
+
             //Verify core is powered on
             //If core is powered on
             //  then if core(ECl2) clocks are on
