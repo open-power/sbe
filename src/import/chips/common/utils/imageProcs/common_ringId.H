@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -200,6 +200,7 @@ static const uint32_t SIZE_OF_MVPD_FILE = 64 * 1024;
 enum ChipId
 {
     CID_EXPLORER = 0x8,
+    CID_ODYSSEY = 0xC,
     CID_P10 = 0xA,
 };
 
