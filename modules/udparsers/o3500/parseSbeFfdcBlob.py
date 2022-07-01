@@ -100,7 +100,6 @@ def parseSbeUserDataBlob(data):
     attrBinSize = file.read(2)
     #TODO:Check for right endians
     attrBinSize = int.from_bytes(attrBinSize,"big")
-    print(attrBinSize)
 
     #Third blob of data in FFDC packet is hw_data.bin
 
@@ -111,26 +110,26 @@ def parseSbeUserDataBlob(data):
     hwDataBinSize = file.read(2)
     #TODO:Check for right endians
     hwDataBinSize = int.from_bytes(hwDataBinSize,"big")
-    print(hwDataBinSize)
 
     #Extract out the pk trace buffer
     ppeTraceName = "/tmp/ppeTrace.bin"
-    cmd = "dd skip=" + str(buffStartOffset) + " count=" + str(traceBufferSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + ppeTraceName + " bs=1"
-    print(cmd)
-    os.system(cmd)
-
+    cmd = "dd skip=" + str(buffStartOffset) + " count=" + str(traceBufferSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + ppeTraceName + " bs=1 >/dev/null 2>&1"
+    rc = os.system(cmd)
+    if ( rc ):
+        print("ERROR running %s: %d "%( cmd, rc ), sys.stderr)
     #Extract out the attr bin
     attrName = "/tmp/attr.bin"
-    cmd = "dd skip=" + str(attrBinStartOffset) + " count=" + str(attrBinSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + attrName + " bs=1"
-    print(cmd)
-    os.system(cmd)
+    cmd = "dd skip=" + str(attrBinStartOffset) + " count=" + str(attrBinSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + attrName + " bs=1 >/dev/null 2>&1"
+    rc = os.system(cmd)
+    if ( rc ):
+        print("ERROR running %s: %d "%( cmd, rc ), sys.stderr)
 
     #Extract out the hw data bin
     hwDataName = "/tmp/hwData.bin"
-    cmd = "dd skip=" + str(hwDataBinStartOffset) + " count=" + str(hwDataBinSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + hwDataName + " bs=1"
-    print(cmd)
-    os.system(cmd)
-
+    cmd = "dd skip=" + str(hwDataBinStartOffset) + " count=" + str(hwDataBinSize) + " if=" + "/tmp/sbeffdcBin"  + " of=" + hwDataName + " bs=1 >/dev/null 2>&1"
+    rc = os.system(cmd)
+    if ( rc ):
+        print("ERROR running %s: %d "%( cmd, rc ), sys.stderr)
     file.close()
 
 

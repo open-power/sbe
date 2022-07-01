@@ -73,6 +73,8 @@ def parseUDToJson(subType, ver, data):
         os.remove("/tmp/attr.bin")
     if os.path.exists("/tmp/sbetrace.bin"):
         os.remove("/tmp/sbetrace.bin")
+    if os.path.exists("/tmp/sbeHwRegTraceFile"):
+        os.remove("/tmp/sbeHwRegTraceFile")
 
     jsonStr = json.dumps(d)
     return jsonStr
