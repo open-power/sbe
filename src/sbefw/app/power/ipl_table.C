@@ -36,6 +36,7 @@
 #include "sbeglobals.H"
 #include "sbearchregdump.H"
 #include "sbecmdmpipl.H"
+#include "base_toc.H"
 // TODO Workaround
 #include "plat_target_parms.H"
 
@@ -808,7 +809,6 @@ constexpr uint32_t HB_MEM_WINDOW_SIZE = 64*1024*1024; //64 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-
     // Get master Core
     uint8_t coreId = 0;
     uint8_t l_is_mpipl = 0;
@@ -817,21 +817,11 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
     FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
     fapi2::Target<fapi2::TARGET_TYPE_CORE >
         coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
-    // Get hbbl section
-    P9XipHeader *bSeepromHdr = getXipHdr();
-    P9XipHeader *mSeepromHdr = getMSeepromXipHdr();
-    P9XipSection *sbSettingMSection = &(mSeepromHdr->iv_section[P9_XIP_SECTION_SBE_SB_SETTINGS]);
-    P9XipSection *hbblSection =  &(bSeepromHdr->iv_section[P9_XIP_SECTION_SBE_HBBL]);
-    P9XipSection *sbSettingBSection =  &(bSeepromHdr->iv_section[P9_XIP_SECTION_SBE_SB_SETTINGS]);
-    uint8_t *bSeepromSbSettingPtr = (uint8_t*)(sbSettingBSection->iv_offset + g_headerAddr);
-    uint32_t *mSeepromSbSettingPtr = (uint32_t*)(sbSettingMSection->iv_offset + g_mseeprom_headerAddr);
 
     uint64_t drawer_base_address_nm0, drawer_base_address_nm1;
     uint64_t drawer_base_address_m;
     uint64_t drawer_base_address_mmio;
     uint64_t l_hostboot_hrmor_offset;
-    uint32_t mSeepromVersion = *mSeepromSbSettingPtr;
-    uint8_t  minimumSecureVersion = *(uint8_t*)(bSeepromSbSettingPtr + 64*sizeof(uint8_t));
     do
     {
         // Update the ATTR_SBE_ADDR_KEY_STASH_ADDR before calling the bootloader,
@@ -863,18 +853,30 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         ATTR_NUM_KEY_ADDR_PAIR_Type keyAddrPair = MAX_ROW_COUNT;
         PLAT_ATTR_INIT(fapi2::ATTR_NUM_KEY_ADDR_PAIR, sysTgt, keyAddrPair);
 
+        // Get Meas Seeprom SBE Settings
+        uint32_t mSbSettings = ((base_toc_t*)(SBE_BASE_ORIGIN))->mSbSettings_start;
+        uint32_t mSeepromVersion = *(uint32_t *)mSbSettings;
+
         SBE_INFO(SBE_FUNC "seepromVersion = 0x%08X", mSeepromVersion);
         fapi2::ATTR_SBE_MEASUREMENT_SEEPROM_VERSION_Type seepromVersion = mSeepromVersion;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_MEASUREMENT_SEEPROM_VERSION, sysTgt, seepromVersion);
+
+        // Get Boot Seeprom SBE Settings
+        uint32_t bSbSettingsOffset = ((base_toc_t*)(SBE_BASE_ORIGIN))->bSbSettings_start;
+        uint8_t  minimumSecureVersion = *(uint8_t *)(bSbSettingsOffset + 64*sizeof(uint8_t));
 
         SBE_INFO(SBE_FUNC "minimum secure version = 0x%02X", minimumSecureVersion);
         fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION_Type secureVersion = minimumSecureVersion;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION, sysTgt, secureVersion);
 
-        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = reinterpret_cast<uint64_t>(getSectionAddr(sbSettingBSection));
+        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = (uint64_t)bSbSettingsOffset;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR, sysTgt, hashKeyAddr);
 
-        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSection->iv_size, getSectionAddr(hbblSection))
+        // Get hbbl section
+        uint32_t hbblStartAddress = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
+        uint32_t hbblSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size;
+
+        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSize, (uint8_t *)hbblStartAddress)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" p10_sbe_load_bootloader failed");
@@ -908,9 +910,11 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
+            // TODO: Ignore the scom failure only incase of MPIPL path.
+            rc = FAPI2_RC_SUCCESS;
+            fapi2::current_err = FAPI2_RC_SUCCESS;
             break;
         }
-
     } while(0);
 
     return rc;
@@ -956,6 +960,9 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
             if(rc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
+                // TODO: Ignore the scom failure only incase of MPIPL path.
+                rc = FAPI2_RC_SUCCESS;
+                fapi2::current_err = FAPI2_RC_SUCCESS;
                 break;
             }
         }
@@ -1440,6 +1447,9 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                 if(rc != FAPI2_RC_SUCCESS)
                 {
                     SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
+                    // TODO: Ignore the scom failure only incase of MPIPL path.
+                    rc = FAPI2_RC_SUCCESS;
+                    fapi2::current_err = FAPI2_RC_SUCCESS;
                     break;
                 }
             }

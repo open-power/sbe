@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,31 +48,22 @@ typedef struct secureHdrResponse
 }secureHdrResponse_t;
 
 /**
- * @brief Verify Secure container.
+ * @brief Verify Secure Header.
  *
- * @param ROM_container_raw* Pointer to secure container start address
- *
- * @param ROM_hw_params* Pointer to HW Keys Hash
- *
- * @param hw_sig_to_verify The hardware signature that has to be verified(Among the 3 HW signaturs that are present)
- *
- * @param *SHA512Result The calculated payload hash (SBE_FW or HBBL Payload hash)
- *
- * @param flag Prefix Hdr flag
+ * @param[in] secureHdrXipSection  index of the xip section, for which secure header verification needed
+ * @param[in] hw_sig_to_verify     either VERIFY_HW_SIG_A_HBBL or VERIFY_HW_SIG_C_SBE_FW
+ * @param[in] *payload_hash        calculated payload hash to verify with signature (SBE_FW or HBBL Payload hash)
+ * @param[in] payload_size         SBE_FW or HBBL Payload size
+ * @param[out] *secureHdrResponse  After completing function, this structure will contain
+ *                                    verification response
  *
  * @return Secure container verification response.
  */
-ROM_response ROM_verify( ROM_container_raw* container,
-                         ROM_hw_params* params,
-                         int hw_sig_to_verify,
-                         SHA512_t *SHA512Result,
-                         uint32_t *flag);
-
-/**
- * @brief Verify Secure Header.
- *
- * @return Secure container verification response/result/status_code
- */
-ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_sig_to_verify, secureHdrResponse_t *secureHdrResponse);
+ROM_response verifySecureHdr(
+        p9_xip_section_sbe_t secureHdrXipSection,
+        int hw_sig_to_verify,
+        SHA512_t* payload_hash,
+        uint64_t payload_size,
+        secureHdrResponse_t *secureHdrResponse);
 
 #endif /* __SBEFW_SBESECUREBOOT_H */

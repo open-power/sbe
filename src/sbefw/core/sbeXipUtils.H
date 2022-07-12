@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -103,6 +103,15 @@ uint32_t getXipOffsetAbs(p9_xip_section_sbe_t xipSection);
  *  @return Xip Size
  */
 uint32_t getXipSize(p9_xip_section_sbe_t xipSection);
+
+/*
+ *  @brief Get the Xip Size for the Measurement SEEPROM.
+ *
+ *  @param[in] xipSection XIP section
+ *
+ *  @return Xip Size
+ */
+uint32_t getXipSizeMeasurement(p9_xip_section_sbe_t xipSection);
 
 //TODO:Use common function for measurement and boots .
 /*

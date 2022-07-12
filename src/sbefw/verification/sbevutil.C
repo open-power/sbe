@@ -29,6 +29,9 @@
 #include "sbeXipUtils.H"
 #include "sbevtrace.H"
 
+#define SBE_LCL_IVPR                    0xc0000160
+#define SBE_SYST_RESET_VECTOR_OFFSET    0x40
+
 extern "C"
 {
 
@@ -37,22 +40,14 @@ extern "C"
  *   */
 void jump2boot()
 {
+    uint64_t data = (uint64_t)SBE_BASE_IMAGE_START << 32;
+    PPE_STVD(SBE_LCL_IVPR, data);
+    uint32_t bootAddr = SBE_BASE_IMAGE_START + SBE_SYST_RESET_VECTOR_OFFSET;
+    asm volatile ( "mr %0, %1" : : "i" (6), "r" (bootAddr) : "memory" );
     asm(
-            "lis %r4, 0xFF80\n"
-            "lvd %d0, 0(%r4)\n"
-            "lis %r2 , 0x5849\n"
-            "ori %r2 , %r2 , 0x5020\n"
-            "lis %r3 , 0x5345\n"
-            "ori %r3 , %r3, 0x504d\n"
-            "cmplwbc 0, 2, %r0, %r2, magic_failed\n"
-            "cmplwbc 0, 2, %r1, %r3, magic_failed\n"
-            "ori %r4, %r4, 8\n"
-            "lvd %d0 , 0(%r4)\n"
-            "mtctr %r1\n"
+            "mtctr %r6\n"
             "bctr\n"
-"magic_failed:\n"
-            "trap\n"
-       );
+        );
 }
 
 } // end extern "C"
@@ -87,7 +82,8 @@ fapi2::ReturnCode loadSeepromtoPibmem(
                     uint32_t& io_endAddr,
                     uint32_t  i_availSize,
                     uint32_t& io_size,
-                    SHA512_CTX* io_context)
+                    SHA512_CTX* io_context,
+                    bool measSection)
 {
     #define SBEV_FUNC " loadSeepromtoPibmem "
     SBEV_ENTER(SBEV_FUNC);
@@ -122,16 +118,29 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         }
 
         // Source address and Size in Seeprom.
-        uint32_t xipSectionOffset = getXipOffset(i_section);
+        uint32_t xipSectionOffset = 0;
+        if(measSection)
+        {
+            xipSectionOffset = getXipOffsetAbsMeasurement(i_section) - SBE_MEASUREMENT_BASE_ORIGIN;
+        }
+        else
+        {
+            xipSectionOffset = getXipOffset(i_section);
+        }
         if(xipSectionOffset == 0)
         {
             SBE_ERROR(SBEV_FUNC " xipSectionOffset is 0. Section passed is %u", i_section);
-            fapiRc = RC_INVALID_ARGUMENT;
-            break;
         }
         if(io_size == 0)
         {
-            io_size = getXipSize(i_section);
+            if(measSection)
+            {
+                io_size = getXipSizeMeasurement(i_section);
+            }
+            else
+            {
+                io_size = getXipSize(i_section);
+            }
         }
 
         if(io_size == 0)
@@ -144,8 +153,12 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         }
         uint32_t xipSectionSize = io_size;
         SBEV_INFO(SBEV_FUNC "XIP section size is 0x%08X", xipSectionSize);
-        uint64_t padSize = 8 - (xipSectionSize % 8);
-        xipSectionSize = xipSectionSize + padSize;
+        uint64_t padSize = 0;
+        if(xipSectionSize % 8)
+        {
+            padSize = 8 - (xipSectionSize % 8);
+            xipSectionSize = xipSectionSize + padSize;
+        }
 
         if(io_endAddr == 0)
         {
@@ -157,7 +170,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
             io_startAddr = io_endAddr - xipSectionSize;
         }
 
-        if((io_endAddr - io_startAddr) > i_availSize)
+        if(io_size > i_availSize)
         {
             SBE_ERROR(SBEV_FUNC " There is shortage of space in pibmem. End Address: 0x%08X"
                                 " Start Address: 0x%08X Available Size 0x%08X",
@@ -180,10 +193,21 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         uint32_t lfrAddress = SBE_LFR_REG_ADDR;
         PPE_LVD(lfrAddress, lfrReg);
         SBEV_INFO(SBEV_FUNC "isSecondaryBootsSeeprom [0x%02x]", (uint8_t)lfrReg.sec_boot_seeprom);
+        SBE_INFO(SBE_FUNC "isSecondaryMeasSeeprom [0x%02x]", (uint8_t)lfrReg.sec_meas_seeprom);
 
-        SpiControlHandle handle = SpiControlHandle(i_target_chip,
-                                  (lfrReg.sec_boot_seeprom ? SPI_ENGINE_BACKUP_BOOT_SEEPROM :
-                                                         SPI_ENGINE_PRIMARY_BOOT_SEEPROM));
+        size_t engine;
+        if(measSection)
+        {
+            engine = lfrReg.sec_meas_seeprom ? SPI_ENGINE_BACKUP_MVPD_SEEPROM :
+                                                             SPI_ENGINE_PRIMARY_MVPD_SEEPROM;
+        }
+        else
+        {
+            engine = lfrReg.sec_boot_seeprom ? SPI_ENGINE_BACKUP_BOOT_SEEPROM :
+                                                             SPI_ENGINE_PRIMARY_BOOT_SEEPROM;
+        }
+
+        SpiControlHandle handle = SpiControlHandle(i_target_chip, engine);
 
         uint32_t *pibmemAddr =(uint32_t *)(io_startAddr);
         while(xipSectionSize > 0)
@@ -205,7 +229,8 @@ fapi2::ReturnCode loadSeepromtoPibmem(
             fapiRc = spi_read(handle, xipSectionOffset, readSize, DISCARD_ECC_ACCESS, buf);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
-                SBEV_ERROR(SBEV_FUNC " Failed to read the Seeprom at address 0x%08X rc=0x%08X", xipSectionOffset, (uint32_t)fapiRc);
+                SBEV_ERROR(SBEV_FUNC " Failed to read the Seeprom at address 0x%08X rc=0x%08X",
+                                       xipSectionOffset, (uint32_t)fapiRc);
                 break;
             }
             if(actReadSize)

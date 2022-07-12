@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -271,6 +271,14 @@ def collectTrace ( procNr, nodeNr=0 ):
     syms = measureSyms
     stringFile = "sbeMeasurementStringFile"
   elif ( opMode == 0x0A ):
+    fileName = "sbe_verification_seeprom" + repr(procNr) + "_tracMERG"
+    syms = verifySyms
+    stringFile = "sbeVerificationStringFile"
+  elif ( opMode == 0x0B ):
+    fileName = "sbe_verification_seeprom" + repr(procNr) + "_tracMERG"
+    syms = verifySyms
+    stringFile = "sbeVerificationStringFile"
+  elif ( opMode == 0x0C ):
     fileName = "sbe_verification_seeprom" + repr(procNr) + "_tracMERG"
     syms = verifySyms
     stringFile = "sbeVerificationStringFile"

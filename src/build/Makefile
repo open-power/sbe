@@ -164,7 +164,6 @@ ifeq ($(img), seeprom)
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe*seeprom*.dis
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe*seeprom*.bin
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_otprom_*.bin
-SIMICS_PPE_TAR_FILES += $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeMeasurementStringFile
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbeVerificationStringFile
 SIMICS_PPE_TAR_FILES += $(IMG_DIR)/sbe_verification.dis
@@ -224,7 +223,7 @@ build_sbe_image: $(SUBDIRS) $(SEEPROM_SUBDIRS)
 output_sbe_image:
 	$(C2) "Generating $(IMG_DIR)/$(IMAGE_NAME).out"
 	$(C1)$(LD) -e __system_reset -n -T$(OUT_LINK_SCRIPT) -Map $(IMG_DIR)/$(IMAGE_NAME).map \
-		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(addprefix $(BOOT_OBJDIR)/, $(L1_BOOT_OBJECTS)) $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
+		-Bstatic -o $(IMG_DIR)/$(IMAGE_NAME).out $(BUILDDATA_OBJDIR)/$(IMAGE_BASE_PPE_HEADER).o $(OBJS) $(LIB_DIRS) \
 		--start-group $(LLIBS) --end-group --gc-sections
 ifeq ($(project), $(filter $(project), power_dft))
 	$(C1)./parsAndCutElfDFT.py $(IMG_DIR) $(IMAGE_NAME)
@@ -386,15 +385,18 @@ boot_branch:
 	$(MAKE) build_sbe_image
 	$(MAKE) output_sbe_image
 	$(MAKE) normalize
-	$(MAKE) appendloader
 	$(MAKE) compress
 	$(MAKE) defaultset
 	$(MAKE) add_BootLoaderAddr
 	$(MAKE) symbols tracehash buildtag
 
 add_BootLoaderAddr:
-	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __l1Loader | cut -f 1 -d " "`
-	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep __l2_loader_setup | cut -f 1 -d " "`
+# workaround to jump to pk_boot when an Hreset is triggered.
+# OTPROM will jump to this address when Hreset is triggered.
+# TODO: Remove this workaround Once the Hreset code is merged.
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L1_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
+# reuse L2_LoaderAddr to put the size of bss area in base image. After this space only, we have to load HBBL
+	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set L2_LoaderAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep _sbe_base_bss_size | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set kernelAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep __pk_boot | cut -f 1 -d " "`
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin set dataAddr 0x`nm $(IMG_DIR)/$(IMAGE_NAME).out | grep _data_origin | cut -f 1 -d " "`
 
@@ -473,7 +475,6 @@ endif
 ifeq ($(img), $(filter $(img), seeprom boot))
 symbols:
 	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_NAME).out > $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
-	$(C1)$(NM) $(IMG_DIR)/$(IMAGE_LOADER_NAME).out >> $(IMG_DIR)/$(SBE_SYMBOLS_NAME)
 endif
 ifeq ($(img), pibmem)
 symbols:
@@ -598,9 +599,6 @@ $(FAPI_RC): $(IMPORT_TOOLS_DIR)/parseErrorInfo.pl $(ERROR_XML_FILES)
 
 $(IMG_DIR)/fixed.bin: $(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin extract .fixed $(IMG_DIR)/fixed.bin
-
-appendloader:
-	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .baseloader $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin
 
 appendverification:
 	$(IPL_IMAGE_TOOL) $(IMG_DIR)/$(IMAGE_NAME).bin append .sb_verification $(IMG_DIR)/$(IMAGE_VERIFICATION_NAME).bin

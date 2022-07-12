@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -33,7 +33,7 @@ OUTPUT_FORMAT(elf32-powerpc);
 
 MEMORY
 {
-    pibmem : ORIGIN = SBE_BASE_ORIGIN, LENGTH = SBE_BASE_LENGTH
+    pibmem : ORIGIN = SBE_BASE_IMAGE_START, LENGTH = SBE_BASE_IMAGE_LENGTH
     #ifndef PIBMEM_ONLY_IMAGE
     seeprom : ORIGIN = SBE_SEEPROM_BASE_ORIGIN, LENGTH = 0x80000
     #endif
@@ -45,7 +45,7 @@ MEMORY
 #ifdef PIBMEM_ONLY_IMAGE
 //Everything should get in to pibmem
 #define MEMORY_REGION pibmem
-BASE_ORIGIN = SBE_BASE_ORIGIN;
+BASE_ORIGIN = SBE_BASE_IMAGE_START;
 
 #else
 #define MEMORY_REGION seeprom
@@ -67,7 +67,7 @@ SECTIONS
      // Get the image offset after elf header
      _sbe_image_start_offset = _sbe_image_start_addr - .;
      _origin = . - 0;
-     _pibmem_origin = SBE_BASE_ORIGIN;
+     _pibmem_origin = SBE_BASE_IMAGE_START;
 
     ////////////////////////////////
     // Header
@@ -259,4 +259,7 @@ SECTIONS
     _pibmem_size = . - _pibmem_origin;
     _sbe_image_size = _seeprom_size  + ( . - _pibmem_origin );
 #endif
+    . = ALIGN(8);
+    // After this we can load other components like HBBL, HDCT etc.
+    _sbe_base_bss_size = . - _sbss_start;
 }

@@ -41,6 +41,9 @@ extern void jump2boot();
 }
 #endif
 
+#define ALIGN_8_BYTE_FLOOR(x)   ((x) & 0xFFFFFFF8)
+#define ALIGN_8_BYTE_CIELING(x) ((x + 7) & 0xFFFFFFF8)
+
 ///
 /// @brief Copy a memory block from source to destination.
 ///
@@ -55,12 +58,13 @@ void memcpy_byte(void* i_dest, const void* i_src, size_t i_len);
 ///
 /// @brief  Load the SEEPROM content to PIBMEM.
 ///
-/// @param[in]          i_section    Xip section of Seeprom to be loaded into PIBMEM.
-/// @param[in, out]     io_startAddr Start address in PIBMEM.
-/// @param[in, out]     io_endAddr   End address in PIBMEM.
-/// @param[in, out]     i_availSize  Available Size in PIBMEM.
-/// @param[in, out]     io_size      Size of section in PIBMEM.
-/// @param[in, out]     io_context   SHA512 contest struct pointer used during SHA512 Init
+/// @param[in]          i_section     Xip section of Seeprom to be loaded into PIBMEM.
+/// @param[in, out]     io_startAddr  Start address in PIBMEM.
+/// @param[in, out]     io_endAddr    End address in PIBMEM.
+/// @param[in, out]     i_availSize   Available Size in PIBMEM.
+/// @param[in, out]     io_size       Size of section in PIBMEM.
+/// @param[in, out]     io_context    SHA512 context struct pointer used during SHA512 Init
+/// @param[in]          i_measSection measurement Section to be loaded. By Default false.
 ///
 /// @return FAPI_RC_SUCCESS if the spi master read completes successfully,
 ///         else error code.
@@ -71,6 +75,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
                     uint32_t& io_endAddr,
                     uint32_t  i_availSize,
                     uint32_t& io_size,
-                    SHA512_CTX* io_context);
+                    SHA512_CTX* io_context,
+                    bool i_measSection = false);
 
 #endif //SBEV_UTIL_H

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,7 +41,7 @@ extern "C" {
 #define INITIAL_PK_TIMEBASE   0
 #define VERIFICATION_NONCRITICAL_STACK_SIZE 512
 //Keep stack size greater than SPI_READ_SIZE_BYTES.
-#define VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE 12288
+#define VERIFICATION_THREAD_SECURE_BOOT_STACK_SIZE 16384
 
 // SBE Frequency to be used to initialise PK
 uint32_t g_sbevfreqency = SBE_REF_BASE_FREQ_HZ;

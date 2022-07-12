@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -163,6 +163,13 @@ typedef struct
 extern void ROM_sreset (void);
 extern "C" ROM_response ROM_verify (ROM_container_raw* container,
                                     ROM_hw_params* params);
+
+// we can assume ECID_COUNT = 0, and consider the total SECURE_HDR_SIZE is fixed.
+#define SECURE_HDR_SIZE (sizeof(ROM_container_raw) - 8 +              /* to remove the 'prefix placeholder'*/\
+                          sizeof(ROM_prefix_header_raw) - ECID_SIZE + /* Assuming ECID count is zero always*/\
+                          sizeof(ROM_prefix_data_raw) +                                                      \
+                          sizeof(ROM_sw_header_raw) - ECID_SIZE +     /* Assuming ECID count is zero always*/\
+                          sizeof(ROM_sw_sig_raw))
 
 /************************* END OF ORIGINAL ROM CODE ***************************/
 

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -65,6 +65,14 @@ uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
     P9XipHeader* imgHdr = (P9XipHeader*)(base);
     p9_xip_section_sbe_t sectionName = xipSection;
     P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+    return (pSection->iv_size);
+}
+
+uint32_t getXipSizeMeasurement(p9_xip_section_sbe_t xipSection)
+{
+    uint8_t *base = (uint8_t*)(SBE_MEASUREMENT_BASE_ORIGIN);
+    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    P9XipSection* pSection = &imgHdr->iv_section[xipSection];
     return (pSection->iv_size);
 }
 

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -77,15 +77,15 @@
 #define OTP_ECID_INVPOPSUM_CHECK 0x0059
 #define OTP_KEY_INVPOPSUM_CHECK  0x005A
 
-#define HW_KEY_HASH_TEST       0x0060
-#define HW_SIGNATURE_TEST      0x0061
-#define PREFIX_ECID_TEST       0x0062
-#define PREFIX_HASH_TEST       0x0063
-#define SW_KEY_PROTECTION_TEST 0x0064
-#define SW_KEY_INVALID_COUNT   0x0065
-#define PREFIX_HEADER_SZ_TEST  0x0066
-#define PREFIX_PAYLD_SZ_TEST   0x0067
-#define SW_PAYLD_SZ_TEST       0x0068
+#define HW_KEY_HASH_TEST            0x0060
+#define HW_SIGNATURE_TEST           0x0061
+#define PREFIX_ECID_TEST            0x0062
+#define PREFIX_HASH_TEST            0x0063
+#define SW_KEY_PROTECTION_TEST      0x0064
+#define SW_KEY_INVALID_COUNT        0x0065
+#define PREFIX_HEADER_SZ_TEST       0x0066
+#define PREFIX_PAYLD_SZ_TEST        0x0067
+#define SW_PAYLD_SZ_TEST            0x0068
 
 #define SW_SIGNATURE_TEST      0x0070
 #define HEADER_ECID_TEST       0x0071
@@ -96,6 +96,20 @@
 #define ENTRY_VALID_TEST       0x0080
 
 #define SECURE_VERSION_TEST    0x0090
+
+#define BASE_CODE_DECOMPRESSION_FAILED 0x00A0
+#define BASE_DATA_DECOMPRESSION_FAILED 0x00A1
+#define BASE_HEADER_INVALID_DATA_ADDR  0x00A2
+#define BASE_HEADER_BSS_OVERFLOW       0x00A3
+#define HBBL_LOADING_FAILED            0x00A4
+#define HDCT_LOADING_FAILED            0x00A5
+#define RING_LOADING_FAILED            0x00A6
+#define OVERRIDES_LOADING_FAILED       0x00A7
+#define FA_EC_CL2_LOADING_FAILED       0x00A8
+#define FA_EC_MMA_LOADING_FAILED       0x00A9
+#define FA_RING_OVRD_LOADING_FAILED    0x00AA
+#define B_SB_SETTINGS_LOADING_FAILED   0x00AB
+#define M_SB_SETTINGS_LOADING_FAILED   0x00AC
 
 #define PARTIAL                0x0002
 #define COMPLETED              0x0003

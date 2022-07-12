@@ -299,89 +299,37 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
     sbeRespGenHdr_t respHdr;
     respHdr.init();
     Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
-    size_t timeOut = SBE_DELAY_2SEC_TIMEOUT_LOOP;
     bool ignoreAddrError = false;
     uint8_t status = 0;
 
     do
     {
-        if (!SBE::isMpiplReset())
+        // Dequeue the EOT entry as no more data is expected.
+        rc = sbeUpFifoDeq_mult (len, NULL);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+
+        // Stop all the instructions before going into Mpipl reset path.
+        // Phyp might be performing some operation on TPM Sequencer.
+        fapiRc = stopAllCoreInstructions();
+        if(fapiRc)
         {
-            // Dequeue the EOT entry as no more data is expected.
-            rc = sbeUpFifoDeq_mult (len, NULL);
-            CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
-
-            // Stop all the instructions before going into Mpipl reset path.
-            // Phyp might be performing some operation on TPM Sequencer.
-            fapiRc = stopAllCoreInstructions();
-            if(fapiRc)
-            {
-                SBE_ERROR(SBE_FUNC "Stop all core instructions failed before"
-                    " Mpipl Reset, RC=[0x%08X]", fapiRc);
-                secRc = SBE_SEC_ENTER_MPIPL_FAILED;
-                break;
-            }
-            ignoreAddrError = false;
-            status = 0;
-            // Perform Sync up with other SBEs in the system
-            fapiRc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
-            if(!status || fapiRc)
-            {
-                SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
-                    "failed, Either System Quiesce Achieved not true or procedure failed "
-                    "before Mpipl Reset, RC=[0x%08X] Status[0x%02X]", fapiRc, status);
-
-                SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
-                    "failure before Mpipl Reset !!");
-
-                secRc= SBE_SEC_ENTER_MPIPL_FAILED;
-
-                //Force System Checkstop
-                fapi2::buffer<uint64_t> data(0);
-                data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN57>();
-                ReturnCode scomrc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
-                if(scomrc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR("Failed to force system checkstop to indicate failure in"
-                              "p10_sbe_sync_quiesce_states HWP before Mpipl Reset");
-                }
-                fapiRc = fapiRc ? fapiRc:scomrc;
-                break;
-            }
-
-            // Hard-Reset SPI TPM engine.
-            SBE::hardResetTPMSpiEngine();
-
-            // Create MPIPL Reset request for the Otprom to execute
-            // Set bit 14 in 0xc0002040 and jump to otprom addr 0x18040
-            SBE::setMpiplReset();
-
-            // one or more SBEs may run faster and can go to the xscom disable in
-            // measurement path which will block the above sync path on other SBEs.
-            // This timeout will give enough time to other SBEs to finish the sync.
-            timeOut = SBE_DELAY_2SEC_TIMEOUT_LOOP;
-            while(timeOut)
-            {
-                fapi2::delay(SBE_DELAY_HW_1MSEC, SBE_DELAY_SIM_CYCLES);
-                timeOut--;
-            }
-            SBE::runSystemReset();
-            // There is no execution after this.. SBE is taking a reset.
+            SBE_ERROR(SBE_FUNC "Stop all core instructions failed before"
+                " Mpipl Reset, RC=[0x%08X]", fapiRc);
+            secRc = SBE_SEC_ENTER_MPIPL_FAILED;
+            break;
         }
-
-        // Call the Sync again here before you execute mpipl procedure.
-        ignoreAddrError = true;
+        ignoreAddrError = false;
         status = 0;
-        SBE_INFO(SBE_FUNC " LQA SBE System Quiesce After Mpipl Reset before Procedures - Starting");
+        // Perform Sync up with other SBEs in the system
         fapiRc = sbeSyncWithAllSbeUsingLQA(ignoreAddrError, status);
         if(!status || fapiRc)
         {
             SBE_ERROR(SBE_FUNC "p10_sbe_sync_quiesce_states LQA SBE System Quiesce "
-                    "failed, Either System Quiesce Achieved not true or procedure failed "
-                    "After Mpipl Reset before Procedures, RC=[0x%08X] Status[0x%02X]", fapiRc, status);
+                "failed, Either System Quiesce Achieved not true or procedure failed "
+                "RC=[0x%08X] Status[0x%02X]", fapiRc, status);
 
             SBE_ERROR(SBE_FUNC "Forced the System Checkstop to indicate sync_quiesce "
-                    "failure after Mpipl Reset !!");
+                "failure!!");
 
             secRc= SBE_SEC_ENTER_MPIPL_FAILED;
 
@@ -392,7 +340,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             if(scomrc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR("Failed to force system checkstop to indicate failure in"
-                        "p10_sbe_sync_quiesce_states HWP After Mpipl Reset before Procedures");
+                          "p10_sbe_sync_quiesce_states HWP");
             }
             fapiRc = fapiRc ? fapiRc:scomrc;
             break;
@@ -455,8 +403,6 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             respHdr.setStatus( SBE_PRI_GENERIC_EXECUTION_FAILURE,
                                secRc);
         }
-        // Clear MPIPL Reset. System is ready for sbeEnterMpipl Chip-Op call
-        SBE::clearMpiplReset();
 
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread

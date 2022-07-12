@@ -175,43 +175,6 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
     #undef SBEV_FUNC
 }
 
-static void SHA512_FW_Payload_Hash(SHA512_t *result, uint64_t* sectionSize)
-{
-    #define SBEV_FUNC " SHA512_FW_Payload_Hash "
-    SBEV_ENTER(SBEV_FUNC);
-
-    SHA512_CTX context;
-    *sectionSize = 0;
-
-    SHA512_Init(&context);
-
-    SHA512UpdateXipSection(P9_XIP_SECTION_SBE_LOADERTEXT, &context, sectionSize);
-    SHA512UpdateXipSection(P9_XIP_SECTION_SBE_TEXT, &context, sectionSize);
-    SHA512UpdateXipSection(P9_XIP_SECTION_SBE_BASELOADER, &context, sectionSize);
-    SHA512UpdateXipSection(P9_XIP_SECTION_SBE_BASE, &context, sectionSize);
-
-    SHA512_Final(&context, result);
-
-    SBEV_EXIT(SBEV_FUNC);
-    #undef SBEV_FUNC
-}
-
-static void SHA512_HBBL_Payload_Hash(SHA512_t *result, uint64_t* sectionSize)
-{
-    #define SBEV_FUNC " SHA512_HBBL_Payload_Hash "
-    SBEV_ENTER(SBEV_FUNC);
-
-    SHA512_CTX context;
-    *sectionSize = 0;
-
-    SHA512_Init(&context);
-    SHA512UpdateXipSection(P9_XIP_SECTION_SBE_HBBL, &context, sectionSize);
-    SHA512_Final(&context, result);
-
-    SBEV_EXIT(SBEV_FUNC);
-    #undef SBEV_FUNC
-}
-
 static void populateHWParams(ROM_hw_params* params)
 {
     #define SBEV_FUNC " populateHWParams "
@@ -221,24 +184,46 @@ static void populateHWParams(ROM_hw_params* params)
 
     //Populate params struct
     //Get HW key hash from .sb_settings
-    memcpy_byte(params->hw_key_hash,(uint8_t *)getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS), SHA512_DIGEST_LENGTH);
+    uint32_t start_address = (uint32_t)params->hw_key_hash;
+    uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
+    uint32_t size = SHA512_DIGEST_LENGTH;
+    uint32_t fapiRc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_SB_SETTINGS, start_address, endAddress, SHA512_DIGEST_LENGTH, size, NULL);
+    if(fapiRc)
+    {
+        SBEV_INFO(SBEV_FUNC "loadSeepromtoPibmem failed with rc 0x%08X for start address:"
+                            "0x%08X end Address: 0x%08X", start_address, endAddress);
+        pk_halt();
+    }
     //Get MSV from .sb_settings
-    params->log = get8((uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + SHA512_DIGEST_LENGTH));
+    params->log = get8((uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + SHA512_DIGEST_LENGTH)); // single sideband access
 
     SBEV_EXIT(SBEV_FUNC);
     #undef SBEV_FUNC
 }
 
-ROM_response ROM_verify( ROM_container_raw* container,
+/**
+ * @brief Verify Secure container.
+ *
+ * @param ROM_container_raw* Pointer to secure container start address
+ * @param ROM_hw_params*     Pointer to HW Keys Hash
+ * @param hw_sig_to_verify   The hardware signature that has to be verified(Among the 3 HW signaturs that are present)
+ * @param *payload_hash      calculated payload hash to verify with signature (SBE_FW or HBBL Payload hash)
+ * @param *payload_size      SBE_FW or HBBL Payload size
+ * @param flag Prefix Hdr    flag
+ *
+ * @return Secure container verification response.
+ */
+static ROM_response ROM_verify( ROM_container_raw* container,
                          ROM_hw_params* params,
                          int hw_sig_to_verify,
-                         SHA512_t *SHA512Result,
+                         SHA512_t* payload_hash,
+                         uint64_t payload_size,
                          uint32_t *flag)
 {
     #define SBEV_FUNC " ROM_verify "
     SBEV_ENTER(SBEV_FUNC);
 
-    ROM_prefix_header_raw* prefix;
+    ROM_prefix_header_raw *prefix;
     ROM_prefix_data_raw* hw_data;
     ROM_sw_header_raw* header;
     ROM_sw_sig_raw* sw_sig;
@@ -250,6 +235,7 @@ ROM_response ROM_verify( ROM_container_raw* container,
     uint64_t size;
     uint8_t swKeyCount;
     uint64_t sectionSize = 0;
+    SBEV_INFO(SBEV_FUNC "payload_size=%u", payload_size);
 
     // params.log is used to pass in a FW Secure Version to
     // compare against the container's sw header's fw_secure_version field
@@ -320,7 +306,7 @@ ROM_response ROM_verify( ROM_container_raw* container,
 
     // test for machine specific matching ecid
     SBEV_INFO("Prefix Hdr: ECID Count: %d",get8(&prefix->ecid_count));
-    //Need not copy  prefix->ecid to SRAM as it is not de-referenced.
+    //Need not copy  prefix->ecid to SRAM as it is not de-referenced, since ecid_count will be always 0
     if(!valid_ecid(get8(&prefix->ecid_count), prefix->ecid, params->my_ecid))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized prefix ecid");
@@ -383,7 +369,7 @@ ROM_response ROM_verify( ROM_container_raw* container,
 
     // test for machine specific matching ecid
     SBEV_INFO("SW Hdr: ECID Count: %d",get8(&header->ecid_count));
-    //Need not copy  header->ecid to SRAM as it is not de-referenced.
+    //Need not copy  header->ecid to SRAM as it is not de-referenced, since ecid_count will be always 0
     if(!valid_ecid(get8(&header->ecid_count), header->ecid, params->my_ecid))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized SW ecid");
@@ -414,38 +400,27 @@ ROM_response ROM_verify( ROM_container_raw* container,
         VERIFY_FAILED(ENTRY_VALID_TEST);
     }
 
-    // test for valid sw payload hash
+    // test for valid component-id
     SBEV_INFO("SW/FW Hdr: Payload Size: %d", get64(&header->payload_size));
-    if(get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID)
+    if(!(((hw_sig_to_verify == VERIFY_HW_SIG_A_HBBL) &&
+          (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID)) ||
+         ((hw_sig_to_verify == VERIFY_HW_SIG_C_SBE_FW) &&
+          (get64(&header->component_id) == FW_SECURE_HDR_COMPONENT_ID))))
     {
-        SHA512_HBBL_Payload_Hash(&digest, &sectionSize);
-    }
-    else if(get64(&header->component_id) == FW_SECURE_HDR_COMPONENT_ID)
-    {
-        SHA512_FW_Payload_Hash(&digest, &sectionSize);
-    }
-    else
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : invalid component ID . SBE Check");
+        SBEV_ERROR(SBEV_FUNC "FAILED : invalid component ID (%d) for hw_sig_to_verify (%d)",
+                        get64(&header->component_id), hw_sig_to_verify);
         VERIFY_FAILED(COMPONENT_ID_TEST);
     }
 
-    if(get64(&header->payload_size) != sectionSize)
+    if(get64(&header->payload_size) != payload_size)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : Invalid payload section size exp:%d, act:%d",
                    get64(&header->payload_size),sectionSize);
         VERIFY_FAILED(SW_PAYLD_SZ_TEST);
     }
 
-    for (uint8_t i=0; i<sizeof(digest); i=i+4)
-    {
-        SBEV_INFO("SHA512 of payload is %x %x %x %x",
-                digest[i],digest[i+1],digest[i+2],digest[i+3]);
-    }
     memcpy_byte(hashDataBuff, &header->payload_hash, SHA512_DIGEST_LENGTH);
-    //Return the calculated SHA512.
-    memcpy(SHA512Result, digest, sizeof(SHA512_t));
-    if(memcmp(&hashDataBuff, digest, sizeof(SHA512_t)))
+    if(memcmp(&hashDataBuff, payload_hash, sizeof(SHA512_t)))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : invalid sw payload hash");
         VERIFY_FAILED(HEADER_HASH_TEST);
@@ -459,25 +434,39 @@ ROM_response ROM_verify( ROM_container_raw* container,
     #undef SBEV_FUNC
 }
 
-ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_sig_to_verify, secureHdrResponse_t *secureHdrResponse)
+ROM_response verifySecureHdr(
+        p9_xip_section_sbe_t secureHdrXipSection,
+        int hw_sig_to_verify,
+        SHA512_t* payload_hash,
+        uint64_t payload_size,
+        secureHdrResponse_t *secureHdrResponse)
 {
     #define SBEV_FUNC " verifySecureHdr "
     SBEV_ENTER(SBEV_FUNC);
     ROM_response status;
-    SHA512_t digest;
-    uint64_t sectionSize = 0;
+    uint32_t fapirc = 0;
 
     // Declare local input struct
-    ROM_hw_params l_hw_parms;
+    ROM_hw_params l_hw_parms __attribute__ ((aligned(8)));
     // Clear/zero-out the struct since we want 0 ('zero') values for
     // struct elements my_ecid, entry_point and log
     memset(&l_hw_parms,0x00,sizeof(ROM_hw_params));
     populateHWParams(&l_hw_parms);
 
     SBEV_INFO(SBEV_FUNC "Secure Header:Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(secureHdrXipSection), getXipSize(secureHdrXipSection));
-    ROM_container_raw* container = (ROM_container_raw *)getXipOffsetAbs(secureHdrXipSection);
+    uint8_t container[SECURE_HDR_SIZE];
+    uint32_t start_address = (uint32_t)container;
+    uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
+    uint32_t size = sizeof(container);
+    fapirc = loadSeepromtoPibmem(secureHdrXipSection, start_address, endAddress, sizeof(container), size, NULL);
+    if(fapirc)
+    {
+        SBEV_ERROR(SBEV_FUNC " Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
+                fapirc, start_address, endAddress);
+        pk_halt();
+    }
 
-    status = ROM_verify(container, &l_hw_parms, hw_sig_to_verify, &digest, &secureHdrResponse->flag);
+    status = ROM_verify((ROM_container_raw*)container, &l_hw_parms, hw_sig_to_verify, payload_hash, payload_size, &secureHdrResponse->flag);
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
     SBEV_INFO(SBEV_FUNC "Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 
@@ -487,27 +476,8 @@ ROM_response verifySecureHdr(p9_xip_section_sbe_t secureHdrXipSection, int hw_si
         secureHdrResponse->statusCode = 0;
         SBEV_INFO(SBEV_FUNC "Container verification Passed");
     }
-    else if(status == ROM_FAILED)
-    {
-        if(secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE)
-        {
-            SBEV_INFO(SBEV_FUNC "Container verification failed. Calculating SBE_FW Payload SHA512 Hash");
-            SHA512_FW_Payload_Hash(&digest, &sectionSize);
-        }
-        else if(secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_HBBL)
-        {
-            SBEV_INFO(SBEV_FUNC "Container verification failed. Calculating HBBL Payload SHA512 Hash");
-            SHA512_HBBL_Payload_Hash(&digest, &sectionSize);
-        }
 
-        for (uint8_t i=0; i<sizeof(digest); i=i+4)
-        {
-            SBEV_INFO(SBEV_FUNC "SHA512 of payload is %x %x %x %x",
-                    digest[i],digest[i+1],digest[i+2],digest[i+3]);
-        }
-    }
-
-    memcpy(&secureHdrResponse->sha512Truncated, digest, sizeof(SHA512truncated_t));
+    memcpy(&secureHdrResponse->sha512Truncated, payload_hash, sizeof(SHA512truncated_t));
 
     SBEV_EXIT(SBEV_FUNC);
     return status;

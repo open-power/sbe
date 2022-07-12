@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -29,10 +29,6 @@ include bootfiles.mk
 
 INCLUDES += -I$(BUILD_DIR)
 
-#This will generate L1 Boot *.o objects
-#this gets directly appended into Boot Seeprom
-L1_BOOT_OBJS := $(addprefix $(OBJDIR)/, $(L1_BOOT_OBJECTS))
-
 #This will generate L1 Measurement *.o objects
 #this gets directly appended into measurement seeprom
 #when MEASUREMENT_IMAGE_SUPPORTED is set with 1 to enable this.
@@ -45,17 +41,15 @@ LINK_SCRIPT_LOADER = $(addprefix $(OBJDIR)/, linkscriptloader)
 LINK_SCRIPT_OTPROM =  $(addprefix $(OBJDIR)/, linkscriptotprom)
 
 ifneq ($(img), pibmem)
-all: $(L1_BOOT_OBJS) $(L1_MEASUREMENT_OBJS) \
-     $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin
+all: $(L1_MEASUREMENT_OBJS) \
+     $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin
 endif
 
-$(L1_BOOT_OBJS) $(L1_BOOT_OBJS:.o=.d): | $(OBJDIR)
 $(L1_MEASUREMENT_OBJS) $(L1_MEASUREMENT_OBJS:.o=.d): | $(OBJDIR)
 
-# Loader Objects
-LOADER_OBJS := $(addprefix $(OBJDIR)/, $(BASE_LOADER_OBJECTS))
 #Otprom Loader Objects
 OTPROM_LOADER_OBJS := $(addprefix $(OBJDIR)/, $(OTPROM_LOADER_OBJECTS))
+$(OTPROM_LOADER_OBJS) $(OTPROM_LOADER_OBJS:.o=.d): | $(OBJDIR)
 # ---- Otprom Image  ------
 $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin $(IMG_DIR)/$(IMAGE_OTPROM_NAME).dis: $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out
 	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_OTPROM_NAME).bin `/usr/bin/nm $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
@@ -69,15 +63,6 @@ $(IMG_DIR)/$(IMAGE_OTPROM_NAME).out: $(OTPROM_LOADER_OBJS) $(LINK_SCRIPT_OTPROM)
 # and remove comments
 $(LINK_SCRIPT_OTPROM): $(LINKER_DIR)/linkotprom.cmd
 	$(CPP) -I$(INCLUDES) -E -x c++ -P $(DEFS) $(LINKER_DIR)/linkotprom.cmd -o $(LINK_SCRIPT_OTPROM)
-
-# ---- Loader Image for L2 Loader of Boot Seeprom  ------
-$(IMG_DIR)/$(IMAGE_LOADER_NAME).bin $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis: $(IMG_DIR)/$(IMAGE_LOADER_NAME).out
-	$(OBJCOPY) -O binary  $< $(IMG_DIR)/$(IMAGE_LOADER_NAME).bin --pad-to 0x`/usr/bin/nm $(IMG_DIR)/$(IMAGE_LOADER_NAME).out | grep "A _loader_end" | cut -d " " -f 1`
-	$(OBJDUMP) -S $< > $(IMG_DIR)/$(IMAGE_LOADER_NAME).dis
-
-#create a linked ELF executable for L2 Loader of Boot Seeprom
-$(IMG_DIR)/$(IMAGE_LOADER_NAME).out: $(LOADER_OBJS) $(LINK_SCRIPT_LOADER)
-	$(LD) -e l2_loader -T$(LINK_SCRIPT_LOADER) -Map $(IMG_DIR)/$(IMAGE_LOADER_NAME).map -Bstatic -o $(IMG_DIR)/$(IMAGE_LOADER_NAME).out $(LOADER_OBJS)
 
 # pass the link command file through the C preprocessor to evaluate macros
 # and remove comments
@@ -97,6 +82,5 @@ clean:
 	rm -fr $(OBJDIR)
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(L1_BOOT_OBJS:.o=.d)
 include $(L1_MEASUREMENT_OBJS:.o=.d)
 endif

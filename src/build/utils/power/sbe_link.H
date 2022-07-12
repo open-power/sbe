@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -53,10 +53,15 @@
 /// scan ring images.
 #define OTPROM_CODE_SIZE (1 * OTPROM_BLOCK_SIZE)
 
-/// The link address of the P10 SBE Base image
+/// The start of SBE PIBMEM
 #define SBE_BASE_ORIGIN 0xFFF80000
 /// SBE base image length ( 512 KB - 512B for loader - 128B for Pibmem Cntl)
 #define SBE_BASE_LENGTH ((512 * 1024) - 512 - 128)
+
+// We will have base_toc at the start, then at the start of base-image
+//      we will have .vector, which should 0x200 byte aligned.
+#define SBE_BASE_IMAGE_START  (SBE_BASE_ORIGIN + 0x200)
+#define SBE_BASE_IMAGE_LENGTH (SBE_BASE_LENGTH - 0x200)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries
@@ -91,13 +96,11 @@
 #define SBE_SHA_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 264 // This needs to be updated.
 // Base Loader start address
-#define SBE_LOADER_BASE_ORIGIN 0xFFFFD000
-// Base Loader length - Pibmem control area for P10
-#define SBE_LOADER_BASE_LENGTH (0x3000 - 0x80)
-
-// Base Loader start address
-#define SBE_VERIFICATION_PIBMEM_ORIGIN 0xFFFA0000
-#define SBE_VERIFICATION_PIBMEM_LENGTH (SBE_BASE_LENGTH - 0x20000)
+#define SBE_MAX_VERIFICATION_IMAGE_SIZE (54 * 1024)
+#define SBE_VERIFICATION_PIBMEM_ORIGIN_WO_ROUNDING (SBE_BASE_ORIGIN + SBE_BASE_LENGTH - SBE_MAX_VERIFICATION_IMAGE_SIZE)
+// vector table should start on 0x200 boundary, start of vector table will be same as start of image
+#define SBE_VERIFICATION_PIBMEM_ORIGIN (SBE_VERIFICATION_PIBMEM_ORIGIN_WO_ROUNDING & 0xFFFFFE00)
+#define SBE_VERIFICATION_PIBMEM_LENGTH SBE_MAX_VERIFICATION_IMAGE_SIZE
 
 // Base Loader entry function offset in header
 #define SBE_LOADER_ENTRY_HEADER_OFFSET 20

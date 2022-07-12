@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -22,17 +22,9 @@
 # permissions and limitations under the License.
 #
 # IBM_PROLOG_END_TAG
-BOOTTOP-S-SOURCES += loader_l1.S
-
-L1_BOOT_OBJECTS += $(BOOTTOP-C-SOURCES:.c=.o) $(BOOTTOP-S-SOURCES:.S=.o)
 
 MEASUREMENT-S-SOURCES = measurement_l1.S
 L1_MEASUREMENT_OBJECTS = $(MEASUREMENT-S-SOURCES:.S=.o)
-
-BASE-LOADER-C-SOURCES = loader_l2.c
-BASE-LOADER-S-SOURCES = loader_l2_setup.S
-
-BASE_LOADER_OBJECTS = $(BASE-LOADER-C-SOURCES:.c=.o)  $(BASE-LOADER-S-SOURCES:.S=.o)
 
 OTPROM-LOADER-S-SOURCES = otprom_init.S
 OTPROM_LOADER_OBJECTS = $(OTPROM-LOADER-S-SOURCES:.S=.o)
