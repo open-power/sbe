@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 #include "fapi2.H"
 #include "sbeXipUtils.H"
 #include "sbeutil.H"
+#include "sbevutil.H"
 
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }
@@ -46,20 +47,6 @@
 #define VERIFY_SW_SIG_P              0                          //Verify SW Signature P incase of both HBBL and SBE_FW secure Hdr.
 
 using namespace fapi2;
-
-static void memcpy_byte(void* vdest, const void* vsrc, size_t len)
-{
-
-    // Loop, copying 1 byte
-    uint8_t* cdest = (uint8_t *)vdest;
-    const uint8_t* csrc = (const uint8_t *)vsrc;
-    size_t i = 0;
-
-    for (; i < len; ++i)
-    {
-        cdest[i] = csrc[i];
-    }
-}
 
 inline uint64_t get64(void* src)
 {

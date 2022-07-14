@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2021,2022                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -24,6 +25,9 @@
 #ifndef SBEV_UTIL_H
 #define SBEV_UTIL_H
 
+#include "fapi2.H"
+#include "sha512.H"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,5 +40,37 @@ extern void jump2boot();
 #ifdef __cplusplus
 }
 #endif
+
+///
+/// @brief Copy a memory block from source to destination.
+///
+/// @param[in]          i_dest    Pointer to destination block.
+/// @param[in]          i_src     Pointer to source block.
+/// @param[in]          i_len     Size of bytes to be copied.
+///
+/// @return void
+///
+void memcpy_byte(void* i_dest, const void* i_src, size_t i_len);
+
+///
+/// @brief  Load the SEEPROM content to PIBMEM.
+///
+/// @param[in]          i_section    Xip section of Seeprom to be loaded into PIBMEM.
+/// @param[in, out]     io_startAddr Start address in PIBMEM.
+/// @param[in, out]     io_endAddr   End address in PIBMEM.
+/// @param[in, out]     i_availSize  Available Size in PIBMEM.
+/// @param[in, out]     io_size      Size of section in PIBMEM.
+/// @param[in, out]     io_context   SHA512 contest struct pointer used during SHA512 Init
+///
+/// @return FAPI_RC_SUCCESS if the spi master read completes successfully,
+///         else error code.
+///
+fapi2::ReturnCode loadSeepromtoPibmem(
+                    p9_xip_section_sbe_t i_section,
+                    uint32_t& io_startAddr,
+                    uint32_t& io_endAddr,
+                    uint32_t  i_availSize,
+                    uint32_t& io_size,
+                    SHA512_CTX* io_context);
 
 #endif //SBEV_UTIL_H
