@@ -251,6 +251,11 @@ p10_sbe_powerdown_backing_caches(
                                         "Backing cache power down procedure failed");
                         }
 
+                        //Clear STOP 11 entry request enable bits in SCRB
+                        l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
+                        PREP_QME_SCRB_WO_CLEAR(eq);
+                        PUT_QME_SCRB_WO_CLEAR(eq, l_scrb_data);
+
                         // Drop PM Exit to allow the core to wake-up later.  This was set
                         // during istep 4.
                         FAPI_TRY(fapi2::putScom(core, QME_SCSR_WO_CLEAR, BIT64(QME_SCSR_ASSERT_PM_EXIT)));
