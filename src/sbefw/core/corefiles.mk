@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2022
 # [+] International Business Machines Corp.
 #
 #
@@ -46,6 +46,7 @@ COREPIBMEM-CPP-SOURCES += sbeSecurity.C
 COREPIBMEM-CPP-SOURCES += securityAlgo.C
 COREPIBMEM-CPP-SOURCES += chipop_handler.C
 COREPIBMEM-CPP-SOURCES += ipl.C
+COREPIBMEM-CPP-SOURCES += sbes1handler.C
 ifeq ($(SBE_S0_SUPPORT), 1)
 COREPIBMEM-CPP-SOURCES += sbes0handler.C
 endif

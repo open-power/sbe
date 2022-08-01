@@ -5,8 +5,9 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2022                        */
 /* [+] International Business Machines Corp.                              */
+/* [+] Stewart Smith                                                      */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -24,6 +25,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbetrace.H"
 #include "fapi2.H"
+#include "sbes1handler.H"
 
 #include "sbeConsole.H"
 
@@ -221,7 +223,7 @@ void uartLock(void)
         SBE_ERROR(SBE_FUNC"pk_semaphore_pend failed, "
                   "rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d",
                    rcPk, SBE_GLOBAL->sbeUartBinSem.count);
-        pk_halt();
+        __wait_for_s1();
     }
 }
 
@@ -235,7 +237,7 @@ void uartUnLock(void)
         SBE_ERROR(SBE_FUNC"pk_semaphore_post failed, "
                   "rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d",
                    rcPk, SBE_GLOBAL->sbeUartBinSem.count);
-        pk_halt();
+        __wait_for_s1();
     }
 }
 

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 #include "sbeHostUtils.H"
 #include "sbeTimerSvc.H"
 #include "sbeglobals.H"
+#include "sbes1handler.H"
 
 #include "fapi2.H"
 using namespace fapi2;
@@ -59,7 +60,7 @@ void sbeTimerExpiryCallback(void *)
         {
             SBE_ERROR(SBE_FUNC " Failed to Write "
                                 "SBE_SBE2PSU_DOORBELL_SET_BIT14");
-            pk_halt();
+            __wait_for_s1();
         }
     }while(0);
     SBE_EXIT(SBE_FUNC);

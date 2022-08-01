@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -36,6 +36,8 @@
 #include "sbestates.H"
 #include "sbeevents.H"
 #include "fapi2.H"
+
+#define MSG_REG_S1_SUPPORTED_BIT_SET_REG_MASK 0x20000000
 
 /**
  * @brief Utility singleton that SBEFW can use to read write various scratch
@@ -333,7 +335,8 @@ class SbeRegAccess
             {
                 uint64_t iv_sbeBooted : 1;
                 uint64_t iv_asyncFFDC : 1;
-                uint64_t iv_reserved1 : 2;
+                uint64_t iv_s1Supported : 1; // If set implies PPE supports S1 interrupt
+                uint64_t iv_reserved1 : 1;
                 uint64_t iv_prevState : 4;
                 uint64_t iv_currState : 4;
                 uint64_t iv_majorStep : 8; // Max major is 97

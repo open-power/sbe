@@ -139,6 +139,7 @@
 
 #include "sbeConsole.H"
 #include "sbecmdflushnvdimm.H"
+#include "sbes1handler.H"
 
 // Forward declaration
 using namespace fapi2;
@@ -848,7 +849,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         if( (l_ATTR_BACKING_CACHES_NUM < 2) && (!l_is_mpipl) )
         {
            SBE_ERROR(" Num of backing cache is less than 2. Cannot proceed with IPL");
-           pk_halt();
+           __wait_for_s1();
         }
         ATTR_NUM_KEY_ADDR_PAIR_Type keyAddrPair = MAX_ROW_COUNT;
         PLAT_ATTR_INIT(fapi2::ATTR_NUM_KEY_ADDR_PAIR, sysTgt, keyAddrPair);

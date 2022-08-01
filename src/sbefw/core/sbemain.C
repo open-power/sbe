@@ -46,6 +46,7 @@
 #include "sbeglobals.H"
 #include "sbecmdmpipl.H"
 #include "p9_misc_scom_addresses.H"
+#include "sbes1handler.H"
 
 #define SBE_LCL_IVPR                    0xc0000160
 
@@ -298,12 +299,12 @@ void pib_init_sequence(void)
 
     // Compare the values
     //Poll OPCG done bit to check for completeness
-    uint64_t fetchValue = 0; 
+    uint64_t fetchValue = 0;
     loadValue = 0xC0000000000000ULL;
     PPE_LVD(0x1000100, fetchValue);
     if(fetchValue != loadValue)
     {
-        pk_halt();
+        __wait_for_s1();
     }
     //Check for clocks running SL
     loadValue = 0xF9FFFFFFFFFFFFFFULL;
@@ -311,21 +312,21 @@ void pib_init_sequence(void)
     PPE_LVD(0x1030008, fetchValue);
     if(fetchValue != loadValue)
     {
-        pk_halt();
+        __wait_for_s1();
     }
     //Check for clocks running NSL
     fetchValue = 0xF9FFFFFFFFFFFFFFULL;
     PPE_LVD(0x1030009, fetchValue);
     if(fetchValue != loadValue)
     {
-        pk_halt();
+        __wait_for_s1();
     }
     //Check for clocks running ARY
     fetchValue = 0xF9FFFFFFFFFFFFFFULL;
     PPE_LVD(0x103000A, fetchValue);
     if(fetchValue != loadValue)
     {
-        pk_halt();
+        __wait_for_s1();
     }
     //Clear clock region
     loadValue = 0x0ULL;
@@ -348,7 +349,7 @@ uint32_t main(int argc, char **argv)
     sbe_scratch_reg13_reuse scratchReg13;
     sbe_local_LFR lfrReg;
 
-    uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_MAIN_MSG)<<32;
+    uint64_t loadValue = (uint64_t)(SBE_CODE_BOOT_PIBMEM_MAIN_MSG | MSG_REG_S1_SUPPORTED_BIT_SET_REG_MASK)<<32;
     PPE_STVD(0x50009, loadValue);
     PPE_LVD(0xc0002040, lfrReg);
 
@@ -416,7 +417,7 @@ uint32_t main(int argc, char **argv)
             break;
         }
 
-        if ( (!SBE::isMpiplReset()) && (!SBE_GLOBAL->isHreset) ) 
+        if ( (!SBE::isMpiplReset()) && (!SBE_GLOBAL->isHreset) )
         {
             // TODO via RTC 126146.
             //  Check if we should call plat_TargetsInit in some other thread.

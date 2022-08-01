@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,6 +51,7 @@
 #include "sbehandleresponse.H"
 #include "sbeXipUtils.H"
 #include "sbecmdmpipl.H"
+#include "sbes1handler.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -310,7 +311,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
         if( rc != FAPI2_RC_SUCCESS )
         {
             SBE_ERROR(SBE_FUNC "sbeDestRuntimeSetup failed");
-            pk_halt();
+            __wait_for_s1();
         }
     }
     else if(SbeRegAccess::theSbeRegAccess().isIstepMode())
@@ -483,6 +484,7 @@ void sbeAsyncCommandProcessor_routine(void *arg)
 {
     #define SBE_FUNC "sbeAsyncCommandProcessor"
     SBE_INFO(SBE_FUNC " Thread started");
+
     #if PERIODIC_IO_TOGGLE_SUPPORTED
     do
     {

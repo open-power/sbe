@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/pool.C $                                       */
+/* $Source: src/sbefw/core/sbes1handler.H $                               */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2022                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,51 +22,29 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include <stdint.h>
-#include <sbetrace.H>
-#include <stddef.h>
-#include<pool.H>
-#include "assert.h"
-#include "sbes1handler.H"
+#ifndef _SBES1HANDLER_H_
+#define _SBES1HANDLER_H_
 
-namespace SBEVECTORPOOL
+extern "C"
 {
+    /**
+     * @brief Function to make SBE to go into wait/idle state.
+     *        1) Disable External interupts
+     *        2) Mask all interupts except S1
+     *        3) Check for s1 interrupt in EISR until triggered
+     *        4) Jump to __system_reset if s1 triggered set in EISR
+     *
+     */
+    void __wait_for_s1();
 
-vectorMemPool_t g_pool[G_POOLSIZE];
-
-vectorMemPool_t * allocMem()
-{
-    vectorMemPool_t *pool = NULL;
-    size_t idx;
-    for( idx = 0; idx < G_POOLSIZE; idx++ )
-    {
-        if( 0 == g_pool[idx].refCount )
-        {
-            pool = g_pool + idx;
-            g_pool[idx].refCount++;
-            break;
-        }
-    }
-    if(NULL == pool )
-    {
-        SBE_ERROR("NULL pool idx:%u", idx);
-        __wait_for_s1();
-    }
-    return pool;
+    /**
+     * @brief Function to handle s1 interrupt.
+     *        On s1 interrupt:
+     *        1) Clear bit3(PPE wait state) in messaging reg
+     *        2) Jump to system reset
+     *
+     */
+    void __s1_interupt_handler();
 }
 
-void releaseMem( vectorMemPool_t * i_pool )
-{
-    do
-    {
-        if ( NULL == i_pool )   break;
-
-       // Assert here.  This pool was not supposed to be in use.
-        assert( 0 != i_pool->refCount )
-        SBE_DEBUG(" Releasing pool 0x%08X", i_pool);
-        i_pool->refCount--;
-        SBE_DEBUG(" In releaseMem() RefCount:%u", i_pool->refCount);
-    }while(0);
-}
-
-} // namesspace SBEVECTORPOOL
+#endif /* _SBES1HANDLER_H_ */

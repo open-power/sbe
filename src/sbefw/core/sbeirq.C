@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@
 #include "ppe42_scom.h"
 #include "p9_misc_scom_addresses.H"
 #include "sbeirqregistersave.H"
+#include "sbes1handler.H"
 
 ////////////////////////////////////////////////////////////////
 // @brief:     SBE control loop ISR:
@@ -86,7 +87,7 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
             SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
                                             SBE_INTERFACE_SBEHFIFO);
             pk_irq_disable(SBE_IRQ_SBEHFIFO_RESET);
-            break; 
+            break;
 
 #ifdef _S0_
         case SBE_IRQ_INTR0:
@@ -94,6 +95,12 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
                                             SBE_INTERFACE_S0);
             break;
 #endif
+        case SBE_IRQ_INTR1:
+            SBE_GLOBAL->sbeIntrSource.setIntrSource(SBE_INTERRUPT_ROUTINE,
+                                            SBE_INTERFACE_S1);
+            __s1_interupt_handler();
+            break;
+
         default:
             SBE_ERROR(SBE_FUNC"Unknown IRQ, assert");
             assert(0);
@@ -125,6 +132,7 @@ static uint32_t G_supported_irqs[] = {
 #ifdef _S0_
                                         SBE_IRQ_INTR0,
 #endif
+                                        SBE_IRQ_INTR1,
                                      };
 
 // Create the Vector mask for all the interrupts in SBE,
@@ -251,7 +259,7 @@ extern "C" void __sbe_register_saveoff()
     "# Read Spi1 Clock Config Register into r4 and r5\n"
     "lvd %d4, 0x23(%r6)\n"
     "stw %r4, __g_register_ffdc+52@sda21(0)\n"
-    
+
     "# Read Spi2 Status Register into r4 and r5\n"
     "lis %r6, 0xc\n"
     "lvd %d4, 0x68(%r6)\n"
@@ -306,7 +314,7 @@ extern "C" void __sbe_register_saveoff()
     "lwz %r5, 4(%r1)\n"
     "lwz %r4, 0(%r1)\n"
     "addi %r1, %r1, 12\n"
-    "b pk_halt\n"
+    "b __wait_for_s1\n"
     );
 }
 
@@ -406,4 +414,5 @@ extern "C" void __sbe_machine_check_handler()
     "rfi\n"
     );
 }
+
 #endif

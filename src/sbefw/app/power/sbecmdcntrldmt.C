@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,6 +43,8 @@
 #include "p10_block_wakeup_intr.H"
 #include "p10_scom_proc_9.H"
 #include "sbecmdexitcachecontained.H"
+#include "sbes1handler.H"
+
 using namespace fapi2;
 
 static const uint32_t CHECK_MASTER_STOP5_POLL_INTERVAL_NS = 1000000000;    // 1000 ms/1s
@@ -91,7 +93,7 @@ void sbeDmtPkExpiryCallback(void *)
     {
         // Scom failed
         SBE_ERROR (SBE_FUNC "PutScom failed: REG TP_TCN1_N1_LOCAL_FIR");
-        pk_halt();
+        __wait_for_s1();
     }
     #undef SBE_FUNC
 }

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,6 +42,7 @@
 #include "sberegaccess.H"
 #include "sbeglobals.H"
 #include "sbehandleresponse.H"
+#include "sbes1handler.H"
 
 #ifdef _S0_
 #include "sbes0handler.H"
@@ -299,7 +300,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
             {
                 type = SBE_HB_FIFO;
             }
-            
+
             // Perform FIFO Reset
             l_rc = sbeUpFifoPerformReset(type);
             if (l_rc)
@@ -364,7 +365,7 @@ void sbeCommandReceiver_routine(void *i_pArg)
                 SBE_ERROR(SBE_FUNC"Unexpected failure, "
                     "l_rcPk=[%d], SBE_GLOBAL->sbeSemCmdProcess.count=[%d], l_rc=[%d]",
                     l_rcPk, SBE_GLOBAL->sbeSemCmdProcess.count, l_rc);
-                pk_halt();
+                __wait_for_s1();
             }
             if ( SBE_INTERFACE_PSU == curInterface )
             {

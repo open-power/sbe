@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -96,6 +96,7 @@ typedef enum
 #endif
     SBE_INTERFACE_SBEHFIFO_RESET = 0x10,
     SBE_INTERFACE_SBEHFIFO       = 0x20,
+    SBE_INTERFACE_S1             = 0x40,
 } sbeInterfaceSrc_t;
 
 /*
