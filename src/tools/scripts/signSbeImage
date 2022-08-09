@@ -296,27 +296,15 @@ else
 
 fi
 
-#Extract .loader_text section from SBE image
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .loader_text $SCRATCH_DIR/loader_text.bin || exit -1
-
-#Extract .text section from SBE image
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .text $SCRATCH_DIR/text.bin || exit -1
-
 #Extract .base section from SBE image
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .base $SCRATCH_DIR/base.bin || exit -1
 
-#Extract .baseloader section from SBE image
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE extract .baseloader $SCRATCH_DIR/baseloader.bin || exit -1
-
 #Align all files which are related to FW secure HDR to overcome alignment issues
 #during SHA512 calculation in verification process.
-alignFileSize $SCRATCH_DIR/loader_text.bin
-alignFileSize $SCRATCH_DIR/text.bin
 alignFileSize $SCRATCH_DIR/base.bin
-alignFileSize $SCRATCH_DIR/baseloader.bin
 
-#Combine .loader_text,.test,.baseloader,.base
-cat $SCRATCH_DIR/loader_text.bin $SCRATCH_DIR/text.bin $SCRATCH_DIR/baseloader.bin $SCRATCH_DIR/base.bin > $SCRATCH_DIR/sbe_fw.bin
+# Rename base.bin to sbe_fw.bin
+mv $SCRATCH_DIR/base.bin $SCRATCH_DIR/sbe_fw.bin
 
 # Sign the SBE firmware binary image(payload.bin)
 CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $SIGNTOOL_ARGS \
