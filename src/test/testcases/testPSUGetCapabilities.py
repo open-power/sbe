@@ -57,7 +57,7 @@ capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xD4800000) +
           getsingleword(0xD5000004) +
           getsingleword(0xD5800000) +
-          getsingleword(0xD6000001) +
+          getsingleword(0xD6000003) +
           getsingleword(0xD6800000) +
           getsingleword(0xD7000FFE) +
           getsingleword(0xD7800000))

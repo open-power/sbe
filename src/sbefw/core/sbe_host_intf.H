@@ -102,6 +102,7 @@ enum sbePsuRingAccessMessages
 enum sbePsuUpdateMemoryRegionMessages
 {
     SBE_PSU_MSG_UPDATE_MEM_REGION      = 0x01,
+    SBE_PSU_MSG_TPM_EXTEND_MODE        = 0x02,
 };
 
 /**
@@ -138,6 +139,12 @@ enum sbePsuDmtCmdFlags
 {
     SBE_PSU_FLAGS_START_DMT       = 0x0001,
     SBE_PSU_FLAGS_STOP_DMT        = 0x0002,
+};
+
+enum sbePsuTpmExtendModeFlags
+{
+    SBE_PSU_ENTER_TPM_EXTEND_MODE  = 0x0001,
+    SBE_PSU_EXIT_TPM_EXTEND_MODE   = 0x0002,
 };
 
 enum sbePsuCntrlTimerFlags
@@ -204,6 +211,8 @@ enum PSU_CAPABILITIES
 
     // Capabilities 12, 13
     PSU_UNSECURE_MEM_REGION_SUPPORTED            = 0xD6000001,
+    PSU_EXTEND_TPM_MODE_SUPPORTED                = 0xD6000002,
+
     PSU_RESERVED_6                               = 0xD6800000,
 
     // Capabilities 14, 15

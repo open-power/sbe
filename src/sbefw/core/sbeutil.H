@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -317,11 +317,17 @@ namespace SBE
      */
     void updateScratchReg13fromLFRinIplReset(void);
 
-    /* @brief - Enable Xscoms in MPIPL flow
+    /* @brief - Enable Xscoms
      *
      * @return - void
      */
     void enableXscoms(void);
+
+    /* @brief - Disable Xscoms
+     *
+     * @return - void
+     */
+    void disableXscoms(void);
 
     /* @brief - Hard reset the TPM SPI Engine
      *

@@ -52,6 +52,7 @@
 #include "sbecmdpmictelemetry.H"
 #include "sbecmdmemconfig.H"
 #include "sbecmdupdatecorefuncstates.H"
+#include "sbecmdtpmextendmode.H"
 
 static const uint16_t HARDWARE_FENCED_STATE =
      SBE_FENCE_AT_CONTINUOUS_IPL|SBE_FENCE_AT_DMT;
@@ -376,10 +377,16 @@ CMD_ARR(
 //////////////////////////////////////////////////////////////
 CMD_ARR(
     D6,
-   {sbeUpdateMemAccessRegion,
+    {sbeUpdateMemAccessRegion,
      SBE_PSU_MSG_UPDATE_MEM_REGION,
      SBE_FENCE_AT_QUIESCE,
-    }
+    },
+
+    {sbeTpmExtendMode,
+     SBE_PSU_MSG_TPM_EXTEND_MODE,
+     PUT_HARDWARE_FENCED_STATE | SBE_FENCE_AT_QUIESCE |
+     SBE_FENCE_AT_DUMPING | SBE_FENCE_AT_ISTEP,
+    },
 )
 
 //////////////////////////////////////////////////////////////

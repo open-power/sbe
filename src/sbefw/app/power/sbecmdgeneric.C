@@ -80,7 +80,8 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_RESERVED_5;
 
     capability[PSU_SECURITY_CONTROL_CAPABILITY_START_IDX] =
-                                      PSU_UNSECURE_MEM_REGION_SUPPORTED;
+                                      PSU_UNSECURE_MEM_REGION_SUPPORTED |
+                                      PSU_EXTEND_TPM_MODE_SUPPORTED;
     capability[PSU_SECURITY_CONTROL_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_6;
 

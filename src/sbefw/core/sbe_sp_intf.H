@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,8 +41,8 @@ extern "C" {
 /*
  * Constants for SBE FW major and minor number
  */
-static const uint16_t SBE_FW_MAJOR_VERSION = 1;
-static const uint16_t SBE_FW_MINOR_VERSION = 4;
+static const uint16_t SBE_FW_MAJOR_VERSION = 2;
+static const uint16_t SBE_FW_MINOR_VERSION = 1;
 
 /**
  * @brief enums for SBE command classes
