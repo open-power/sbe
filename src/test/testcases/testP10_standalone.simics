@@ -230,6 +230,10 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         run-python-file targets/p10_standalone/sbeTest/testPsuMemConfig.py
 
+        echo "*******************Run testPSUTPMExtendMode.py*******************"
+
+        run-python-file targets/p10_standalone/sbeTest/testPSUTPMExtendMode.py
+
         # note after testQuesce the SBE will be in the quiesce state
 
         echo "*******************Run testQuiesce.py*******************"
