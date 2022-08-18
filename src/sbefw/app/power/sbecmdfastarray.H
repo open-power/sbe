@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,33 +55,6 @@ typedef struct
             return flag;
         }
 
-        //Get the FastArray Xip section offset basis the control_set
-        uint32_t getFastArrayXipOffset()
-        {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-            uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-            uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-            P9XipHeader* imgHdr = (P9XipHeader*)(base);
-            p9_xip_section_sbe_t sectionName = (control_set - 1) ? P9_XIP_SECTION_SBE_FA_EC_MMA_FAR : P9_XIP_SECTION_SBE_FA_EC_CL2_FAR;
-            P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-            return ( (uint32_t)base + pSection->iv_offset);
-        }
-
-        //Get the FastArray Xip section size basis the control_set
-        uint32_t getFastArrayXipSize()
-        {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-            uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-            uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-            P9XipHeader* imgHdr = (P9XipHeader*)(base);
-            p9_xip_section_sbe_t sectionName = (control_set - 1) ? P9_XIP_SECTION_SBE_FA_EC_MMA_FAR : P9_XIP_SECTION_SBE_FA_EC_CL2_FAR;
-            P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-            return (pSection->iv_size);
-        }
     } hdr;
 
     //FIXME:Adding the below pice of code utilises a large amount of stack and

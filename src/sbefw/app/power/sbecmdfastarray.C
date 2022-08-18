@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -35,6 +35,7 @@
 #include <hwp_data_stream.H>
 #include <plat_hwp_data_stream.H>
 #include "p10_sbe_fastarray.H"
+#include "base_toc.H"
 
 using namespace fapi2;
 
@@ -131,11 +132,16 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
                 break;
             }
 
-            // TODO: Determine control data location in SEEPROM
-            uint32_t *control_data = (uint32_t*)req.hdr.getFastArrayXipOffset();
-            size_t control_data_size = req.hdr.getFastArrayXipSize();
+            uint32_t *control_data = (req.hdr.control_set - 1) ?
+                                     (uint32_t *)(((base_toc_t*)(SBE_BASE_ORIGIN))->fa_mma_start) :
+                                     (uint32_t *)(((base_toc_t*)(SBE_BASE_ORIGIN))->fa_cl2_start);
+
+            size_t control_data_size = (req.hdr.control_set - 1) ?
+                                       (((base_toc_t*)(SBE_BASE_ORIGIN))->fa_mma_size) :
+                                       (((base_toc_t*)(SBE_BASE_ORIGIN))->fa_cl2_size);
+
             SBE_INFO( SBE_FUNC "Start Offset [0x%08X] Size [0x%08X]",
-                req.hdr.getFastArrayXipOffset(), req.hdr.getFastArrayXipSize());
+                control_data, control_data_size);
 
             seeprom_hwp_data_istream istream(control_data, control_data_size);
             SBE_EXEC_HWP(fapiRc, p10_sbe_fastarray, tgtHndl, istream, i_putStream);
