@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,7 @@
 #include "sbeFifoMsgUtils.H"
 #include "plat_hw_access.H"
 #include "plat_hwp_data_stream.H"
-
+#include "base_toc.H"
 //Dump chip-op Footer - DONE
 static const uint32_t DUMP_CHIP_OP_FOOTER = 0x444F4E45;
 static const uint32_t FIFO_DOUBLEWORD_LEN = 2;
@@ -63,51 +63,20 @@ typedef struct hdctXipSecDetails
      *
      * @return  HDCT Xip offset(Start location)
      */
-    uint32_t getHdctXipOffset()
-    {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-        uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-        uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-        P9XipHeader* imgHdr = (P9XipHeader*)(base);
-        p9_xip_section_sbe_t sectionName = P9_XIP_SECTION_SBE_HDCT;
-        P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-        return ( (uint32_t)base + pSection->iv_offset);
-    }
-
-    /**
-     * @brief Get the HDCT Xip Size.
-     *
-     * @return  HDCT Xip Size
-     */
-    uint32_t getHdctXipSize()
-    {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-        uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-        uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-        P9XipHeader* imgHdr = (P9XipHeader*)(base);
-        p9_xip_section_sbe_t sectionName = P9_XIP_SECTION_SBE_HDCT;
-        P9XipSection* pSection = &imgHdr->iv_section[sectionName];
-        return (pSection->iv_size);
-    }
 
     /**
      * @brief Init all members(Constructor)
      */
     hdctXipSecDetails()
     {
-        startAddr = getHdctXipOffset();
-        size = getHdctXipSize();
-        endAddr = startAddr + size;
-        //Set currAddr to start of HDCT row
-        currAddr = startAddr + sizeof(uint64_t); //Dump start after EKB CommitID
-
-        SBE_INFO("Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X] ",
-                startAddr,size,endAddr );
-    }
+         startAddr = ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_start;
+         size = ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_size;
+         endAddr = startAddr + size;
+         //Set currAddr to start of HDCT row
+         currAddr = startAddr + sizeof(uint64_t); //Dump start after EKB CommitID
+         SBE_INFO("Start Offset: [0x%08X] Size: [0x%08X] End offset: [0x%08X] ",
+                                        startAddr,size,endAddr );
+     }
 
 }hdctXipSecDetails_t;
 
