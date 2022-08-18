@@ -40,7 +40,7 @@
 /*
  * Constants for SBE FW major and minor number
  */
-static const uint16_t SBE_SBEFW_HOST_MAJOR_VERSION = 1;
+static const uint16_t SBE_SBEFW_HOST_MAJOR_VERSION = 5;
 static const uint16_t SBE_SBEFW_HOST_MINOR_VERSION = 0;
 
 /**

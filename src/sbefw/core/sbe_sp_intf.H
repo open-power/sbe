@@ -41,8 +41,8 @@ extern "C" {
 /*
  * Constants for SBE FW major and minor number
  */
-static const uint16_t SBE_FW_MAJOR_VERSION = 2;
-static const uint16_t SBE_FW_MINOR_VERSION = 1;
+static const uint16_t SBE_FW_MAJOR_VERSION = 5;
+static const uint16_t SBE_FW_MINOR_VERSION = 2;
 
 /**
  * @brief enums for SBE command classes
@@ -326,6 +326,7 @@ enum sbeSecondaryResponse
     SBE_SEC_INVALID_I2C_TARGET_SUPPORT        = 0x4A,
     SBE_SEC_LPC_ERROR                         = 0x4B,
     SBE_SEC_NOT_ALLOWED_VIA_FIFO_1            = 0x4C,
+    SBE_SEC_HOST_ALIVE_TIMER_TIMEOUT          = 0x4D,
 };
 
 /**

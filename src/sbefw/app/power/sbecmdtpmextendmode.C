@@ -34,6 +34,9 @@
 #include "sbeutil.H"
 #include "p10_sbe_instruct_start.H"
 #include "p10_sbe_exit_cache_contained.H"
+#include "p10_scom_proc_9.H"
+#include "sbeFFDC.H"
+#include "sbeTimerSvc.H"
 
 /**
  * @brief Enum for operation's supported by ctrlHost()
@@ -46,6 +49,24 @@ enum hostCtrlFlags: uint8_t
     STOP_HOST  = 0x1,
     START_HOST = 0x2,
 };
+
+/**
+ * @brief Information received from Host as part of PSU chip-op in
+ *        the mailbox registers.
+ * Mbox Reg1 - timeValue in millisec to wait for HB to send
+ *             TPM Exit mode chip-op after it is started by SBE
+ * Mbox Reg2 - None
+ * Mbox Reg3 - None
+ */
+typedef struct
+{
+    uint64_t timeValueMsec;
+    uint64_t unused;
+    uint64_t unused1;
+} psu2SbeTpmExtendModeReg_t;
+
+//Static initialization of the Host Alive Pk timer
+static timerService g_sbe_pk_Host_Alive_timer;
 
 /**
  * @brief Function to Start/Stop Host
@@ -156,6 +177,120 @@ static uint32_t ctrlHost(hostCtrlFlags i_flag)
     #undef SBE_FUNC
 }
 
+/**
+ * @brief Callback function in case Host Alive timer Expires
+ *
+ */
+static void hostAliveTimerPkExpiryCallback(void *)
+{
+    #define SBE_FUNC "hostAliveTimerPkExpiryCallback"
+    SBE_ENTER(SBE_FUNC)
+
+    SBE_INFO (SBE_FUNC "Host Alive Callback Timer has expired.."
+                       "No-Checkstop on the system for now"
+                       "and FFDC will not be collected.");
+    // SBE async ffdc
+    captureAsyncFFDC(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                     SBE_SEC_HOST_ALIVE_TIMER_TIMEOUT);
+    ReturnCode fapiRc = FAPI2_RC_SUCCESS;
+    fapi2::buffer<uint64_t> data(0);
+
+    // check stop the system
+    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+    data.setBit<scomt::proc::TP_TCN1_N1_LOCAL_FIR_IN58>();
+    //Set bit 58 of TP_TCN1_N1_LOCAL_FIR_WO_OR
+    fapiRc = putscom_abs_wrap(&procTgt, scomt::proc::TP_TCN1_N1_LOCAL_FIR_WO_OR, data());
+
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        // Scom failed
+        SBE_ERROR (SBE_FUNC "PutScom failed: REG TP_TCN1_N1_LOCAL_FIR");
+        (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_TPM_EXTEND_MODE_HALT);
+        SBE_INFO("Halting PPE...");
+        pk_halt();
+    }
+
+    SBE_EXIT(SBE_FUNC)
+    #undef SBE_FUNC
+}
+
+/**
+ * @brief Function to start Host Alive timer
+ *
+ * @return uint32_t RC if any
+ */
+static uint32_t startHostAliveTimer()
+{
+    #define SBE_FUNC " startHostAliveTimer "
+    SBE_ENTER(SBE_FUNC)
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do
+    {
+        // Fetch the Timer Value and then Start a Pk Timer
+        psu2SbeTpmExtendModeReg_t req = {};
+        rc = sbeReadPsu2SbeMbxReg(SBE_HOST_PSU_MBOX_REG1,
+                           (sizeof(psu2SbeTpmExtendModeReg_t)/sizeof(uint64_t)),
+                           (uint64_t *)&req, true );
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_ERROR(SBE_FUNC" Failed to extract SBE_HOST_PSU_MBOX_REG1/2/3");
+            break;
+        }
+
+        // Pass in the time in micro-second to the start timer interface
+        // TODO - We need some kind of check here that it doesn't overflow
+        // uint32 size
+        rc = g_sbe_pk_Host_Alive_timer.startTimer( (uint32_t )req.timeValueMsec * 1000,
+                                     (PkTimerCallback)&hostAliveTimerPkExpiryCallback );
+
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, rc);
+            SBE_ERROR(SBE_FUNC" g_sbe_pk_Host_Alive_timer.startTimer failed, TimerVal "
+                "[0x%08X]", (uint32_t )req.timeValueMsec);
+            break;
+        }
+    }while(0);
+
+    SBE_EXIT(SBE_FUNC)
+    return rc;
+    #undef SBE_FUNC
+}
+
+/**
+ * @brief Funtion to stop Host Alive timer
+ *
+ * @return uint32_t RC if any
+ */
+static uint32_t stopHostAliveTimer()
+{
+    #define SBE_FUNC "stopHostAliveTimer "
+    SBE_ENTER(SBE_FUNC)
+
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+
+    do
+    {
+        SBE_INFO(SBE_FUNC "Stop Timer.");
+        rc = g_sbe_pk_Host_Alive_timer.stopTimer( );
+        if(SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        {
+            SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INTERNAL_ERROR, rc);
+            SBE_ERROR(SBE_FUNC"g_sbe_pk_Host_Alive_timer.stopTimer failed");
+            rc = SBE_SEC_OPERATION_SUCCESSFUL;
+            break;
+        }
+
+    }while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeTpmExtendMode "
@@ -198,12 +333,27 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
             SBE::enableXscoms();
 
             // Start HB Alive timer
+            rc = startHostAliveTimer();
+            if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                SBE_ERROR(SBE_FUNC "Failed to start host alive timer");
+                break;
+            }
 
             // Start HB
             fapiRc = ctrlHost(START_HOST);
             if(fapiRc != FAPI2_RC_SUCCESS)
             {
                 SBE_ERROR(SBE_FUNC "Failed in p10_sbe_instruct_start() ");
+
+                // If we fail to start HB lets stop the Host Alive timer
+                SBE_INFO(SBE_FUNC "Stoping Host Alive timer");
+                rc = stopHostAliveTimer();
+                if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+                {
+                    SBE_ERROR(SBE_FUNC "Failed to stop host alive timer");
+                    break;
+                }
                 break;
             }
 
@@ -212,6 +362,13 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 
         if(SBE_GLOBAL->sbePsu2SbeCmdReqHdr.flags & SBE_PSU_EXIT_TPM_EXTEND_MODE)
         {
+            rc = stopHostAliveTimer();
+            if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+            {
+                SBE_ERROR(SBE_FUNC "Failed to stop host alive timer");
+                break;
+            }
+
             break;
         }
 

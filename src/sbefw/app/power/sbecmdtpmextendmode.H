@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2022                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -27,6 +28,22 @@
 
 #include <stdint.h>
 
+/**
+ * @brief Enter and Exit TPM Extend mode chip-op
+ *        Sequence of operations done if Enter TPM Extend mode:
+ *        1) Stop Host
+ *        2) Disable XSCOM's
+ *        3) Run part of build SMP HWP (Switch AB)
+ *        4) Retrive secondary chip measurements and extend into TPM
+ *        5) Start Host Alive timer
+ *        6) Start Host
+ *
+ *        Sequence of operations done if Exit TPM Extend mode:
+ *        1) Stop Host Alive timer
+ *
+ * @param i_pArg args if any
+ * @return uint32_t RC
+ */
 uint32_t sbeTpmExtendMode(uint8_t *i_pArg);
 
 #endif /* _SBECMDTPMEXTENDMODE_H_ */
