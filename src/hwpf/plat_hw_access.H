@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -160,8 +160,19 @@ namespace fapi2
                                          uint32_t i_addr,
                                          uint64_t i_data,
                                          uint64_t i_mask);
+
+    ///
+    /// @brief Plat implementation of lookforRingSection
+    ///
+    /// @param [in] i_target   Pointer to fapi2::Target as a void*
+    /// @param [in] i_ringId   Ring ID.
+    /// @param [in] i_ringMode Ring Mode.
+    ///
+    /// @return fapi2::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
+
+    fapi2::ReturnCode lookforRingSection( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+                                          const RingId_t i_ringId,
+                                          const fapi2::RingMode i_ringMode);
 }
-
-
 #endif // PLATHWACCESS_H_
 

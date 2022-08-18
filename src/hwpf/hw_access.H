@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -41,7 +41,7 @@
 #include <utils.H>
 #include <common_ringId.H>
 #include <plat_hw_access.H>
-#include "p10_plat_ring_traverse.H" 
+#include "p10_plat_ring_traverse.H"
 
 namespace fapi2
 {
@@ -294,15 +294,8 @@ __fapi2exit__:
             {
                 return l_rc;
             }
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-            // For DFT only, XIP header is in PIBMEM rather than SEEPROM
-            uint8_t *l_baseAddr =(uint8_t*) SBE_BASE_ORIGIN;
-#else	//DFT
-            uint8_t *l_baseAddr =(uint8_t*) SBE_SEEPROM_BASE_ORIGIN;
-#endif	//DFT
             // Find the RS4 string in the SEEPROM
-            l_rc = lookUpRingSection (l_baseAddr,
-                    i_target,
+            l_rc = lookforRingSection (i_target,
                     i_ringID,
                     i_ringMode);
             return l_rc;

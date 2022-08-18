@@ -30,6 +30,7 @@
 #if !defined(__SBEMFW_MEASUREMENT__) && !defined(__SBEVFW_VERIFICATION__)
 #include <p10_putRingUtils.H>
 #include <p10_plat_ring_traverse.H>
+#include "base_toc.H"
 #endif
 
 uint32_t getRemainder(uint32_t num, uint32_t divisor)
@@ -441,6 +442,84 @@ fapi2::ReturnCode putscom_under_mask(const void *i_target,
 
     return l_rc;
 }
-#endif
 
+fapi2::ReturnCode lookforRingSection( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& i_target,
+                                      const RingId_t i_ringId,
+                                      const fapi2::RingMode i_ringMode)
+{
+    SBE_INFO( ">> lookforRingSection" );
+
+    // For non-DFT, find offset to TOR in the XIP header
+    p9_xip_section_sbe_t l_sectionName;
+    uint32_t l_sectionOffset = 0;
+    uint32_t l_sectionSize = 0;
+    if(i_ringMode & fapi2::RING_MODE_FASTARRAY)
+    {
+        l_sectionName = P9_XIP_SECTION_SBE_FA_RING_OVRD;
+        l_sectionOffset = ((base_toc_t*)(SBE_BASE_ORIGIN))->fa_overrides_start;
+        l_sectionSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->fa_overrides_size;
+    }
+    else
+    {
+        l_sectionName = P9_XIP_SECTION_SBE_RINGS;
+        l_sectionOffset = ((base_toc_t*)(SBE_BASE_ORIGIN))->rings_start;
+        l_sectionSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->rings_size;
+
+    }
+
+    TorHeader_t* l_torHeader    =   NULL;
+
+    SBE_INFO("lookUpRingSection : l_sectionOffset 0x%08X and l_sectionSize 0x%08X",
+                                          l_sectionOffset,
+                                          l_sectionSize);
+
+    // If size is zero for any section then its offset will also be 0.
+    PLAT_FAPI_ASSERT( ( (l_sectionOffset) > 0 ),
+                 fapi2::INVALID_RING_SECTION()
+                 .set_RING_MODE(i_ringMode)
+                 .set_SECTION_NAME(l_sectionName)
+                 .set_IMG_POINTER(SBE_BASE_ORIGIN)
+                 .set_RING_OFFSET( l_sectionOffset ),
+                 "Invalid Offset To Ring In SBE Image 0x%08x", l_sectionOffset);
+
+    l_torHeader     =   (TorHeader_t*)l_sectionOffset;
+
+    PLAT_FAPI_ASSERT( TOR_MAGIC == (l_torHeader->magic >> 8),
+                 fapi2::INVALID_RING_CHIPLET_SECTION()
+                 .set_RING_MODE(i_ringMode)
+                 .set_SECTION_NAME(l_sectionName)
+                 .set_IMG_POINTER(SBE_BASE_ORIGIN)
+                 .set_RING_OFFSET(l_sectionOffset)
+                 .set_TOR_MAGIC_WORD( l_torHeader->magic ),
+                 "Invalid Offset To Chiplet Section 0x%08x Magic Word 0x%08x",
+                 l_sectionOffset, l_torHeader->magic );
+
+    FAPI_TRY( getRS4ImageFromTor( i_target,
+                                  (uint8_t *)l_sectionOffset,
+                                  i_ringId,
+                                  false,
+                                  i_ringMode) );
+
+    //Scan Override rings if Present
+    l_sectionSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->overrides_size;
+    l_sectionOffset = ((base_toc_t*)(SBE_BASE_ORIGIN))->overrides_start;
+    SBE_INFO("lookUpRingSection : l_sectionOffset 0x%08X and l_sectionSize 0x%08X",
+                                          l_sectionOffset,
+                                          l_sectionSize);
+    if( !(l_sectionOffset) )
+    {
+        goto fapi_try_exit;
+    }
+
+    FAPI_TRY( getRS4ImageFromTor( i_target,
+                                  (uint8_t *)l_sectionOffset,
+                                  i_ringId,
+                                  false,
+                                  i_ringMode) );
+    FAPI_INF( "<< lookUpRingSection" );
+fapi_try_exit:
+    return fapi2::current_err;
+}
+
+#endif
 };
