@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -50,6 +50,8 @@ enum sbeEvent
     SBE_FAILURE_EVENT          = 0x8, // From Any State
     SBE_QUIESCE_EVENT          = 0x9, // From Any State
     SBE_HALT_VIA_HOST_EVENT    = 0xA, // From Runtime State
+    SBE_TPM_EXTEND_MODE_HALT_EVENT   = 0xB, // From Runtime State
+    SBE_WAIT_FOR_S1_EVENT      = 0xC, // From Any State
 };
 
 // Maximum number of Events per State
@@ -59,15 +61,20 @@ enum maxEventPerState
     SBE_STATE_IPLING_MAX_EVENT  = 4,
     SBE_STATE_ISTEP_MAX_EVENT   = 3,
     SBE_STATE_MPIPL_MAX_EVENT   = 3,
-    SBE_STATE_RUNTIME_MAX_EVENT = 6,
+    SBE_STATE_RUNTIME_MAX_EVENT = 7,
     SBE_STATE_DMT_MAX_EVENT     = 3,
     SBE_STATE_DUMP_MAX_EVENT    = 0,
     SBE_STATE_FAILURE_MAX_EVENT = 0,
     SBE_STATE_QUIESCE_MAX_EVENT = 0,
     SBE_STATE_HALT_MAX_EVENT    = 0,
+    SBE_STATE_TPM_EXTEND_MODE_HALT_MAX_EVENT = 0,
+    SBE_STATE_WAIT_FOR_S1_MAX_EVENT = 0, // Although this event can be triggered from any state, we
+                                         // will not have any state handling for it in C.
+                                         // All state handling is in assembly in __wait_for_s1 .
+                                         // The only way to come out of this state is a HRESET of PPE via S1 Interrupt
 
     // Total number of State Transition Events, Addition of all the above
-    SBE_MAX_TRANSITIONS = 23,
+    SBE_MAX_TRANSITIONS = 24,
 };
 
 
@@ -87,6 +94,8 @@ enum entryToStateMap
     SBE_STATE_FAILURE_ENTRY_TO_MAP = SBE_STATE_DUMP_ENTRY_TO_MAP + SBE_STATE_DUMP_MAX_EVENT, //23
     SBE_STATE_QUIESCE_ENTRY_TO_MAP = SBE_STATE_FAILURE_ENTRY_TO_MAP + SBE_STATE_FAILURE_MAX_EVENT, //23
     SBE_STATE_HALT_ENTRY_TO_MAP    = SBE_STATE_QUIESCE_ENTRY_TO_MAP + SBE_STATE_QUIESCE_MAX_EVENT, //23
+    SBE_STATE_TPM_EXTEND_MODE_HALT_ENTRY_TO_MAP = SBE_STATE_HALT_ENTRY_TO_MAP +
+                                                        SBE_STATE_TPM_EXTEND_MODE_HALT_MAX_EVENT, //23
 };
 
 #endif //__SBEFW_SBEEVENTS_H

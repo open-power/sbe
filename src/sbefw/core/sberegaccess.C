@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -72,6 +72,7 @@ static const stateEventRangeStr_t eventRangePerState[SBE_MAX_STATE] =
     {SBE_STATE_FAILURE_ENTRY_TO_MAP, SBE_STATE_FAILURE_MAX_EVENT},
     {SBE_STATE_QUIESCE_ENTRY_TO_MAP, SBE_STATE_QUIESCE_MAX_EVENT},
     {SBE_STATE_HALT_ENTRY_TO_MAP, SBE_STATE_HALT_MAX_EVENT},
+    {SBE_STATE_TPM_EXTEND_MODE_HALT_ENTRY_TO_MAP, SBE_STATE_TPM_EXTEND_MODE_HALT_MAX_EVENT},
 };
 
 // Map to connect the current State with an event along with the final state
@@ -98,6 +99,7 @@ static const stateTransitionStr_t stateTransMap[SBE_MAX_TRANSITIONS] = {
     {SBE_STATE_RUNTIME, SBE_FAILURE_EVENT, SBE_STATE_FAILURE},
     {SBE_STATE_RUNTIME, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
     {SBE_STATE_RUNTIME, SBE_HALT_VIA_HOST_EVENT, SBE_STATE_HALT},
+    {SBE_STATE_RUNTIME, SBE_TPM_EXTEND_MODE_HALT_EVENT, SBE_STATE_TPM_EXTEND_MODE_HALT},
     {SBE_STATE_DMT, SBE_DMT_COMP_EVENT, SBE_STATE_RUNTIME},
     {SBE_STATE_DMT, SBE_QUIESCE_EVENT, SBE_STATE_QUIESCE},
     {SBE_STATE_DMT, SBE_DUMP_FAILURE_EVENT, SBE_STATE_DUMP},
