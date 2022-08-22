@@ -37,6 +37,8 @@
 #include "p10_scom_proc_9.H"
 #include "sbeFFDC.H"
 #include "sbeTimerSvc.H"
+#include "p10_putmemproc.H"
+#include "fapi2_mem_access.H"
 
 /**
  * @brief Enum for operation's supported by ctrlHost()
@@ -291,6 +293,42 @@ static uint32_t stopHostAliveTimer()
     #undef SBE_FUNC
 }
 
+/**
+ * @brief Function to Activate SMP Switch
+ *        SBE will only perform funtions of SMP_ACTIVATE_SWITCH
+ *        as in p10_build_smp() HWP for primary proc only.
+ *        HB would have already performed other parts og the HWP
+ *        Reference: ekb-p10/chips/p10/procedures/hwp/nest/p10_build_smp.C
+ *
+ * @return uint32_t FAPI RC if any
+ */
+static uint32_t buildSmpSwitchAB(void)
+{
+    #define SBE_FUNC " buildSmpSwitchAB "
+    SBE_ENTER(SBE_FUNC)
+
+    uint32_t fapiRc = FAPI2_RC_SUCCESS;
+
+    uint32_t l_flags = fapi2::SBE_MEM_ACCESS_FLAGS_TARGET_PROC |
+                       fapi2::SBE_MEM_ACCESS_FLAGS_SWITCH_MODE;
+    uint32_t l_bytes = 1;
+    uint64_t l_addr = 0x0ULL;
+    uint8_t l_data_unused[1];
+    Target<fapi2::TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+
+    SBE_EXEC_HWP(fapiRc,
+                 p10_putmemproc,
+                 procTgt,
+                 l_addr,
+                 l_bytes,
+                 l_data_unused,
+                 l_flags);
+
+    SBE_EXIT(SBE_FUNC)
+    return fapiRc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeTpmExtendMode "
@@ -325,7 +363,13 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
             // Disable Xscoms
             SBE::disableXscoms();
 
-            // Run SMP HWP
+            // Run SMP HWP only Switch AB for master proc
+            fapiRc = buildSmpSwitchAB();
+            if(fapiRc != FAPI2_RC_SUCCESS)
+            {
+                SBE_ERROR(SBE_FUNC "Failed in buildSmpSwitchAB() ");
+                break;
+            }
 
             // Collect secondary TPM measurements
 
