@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2021
+# Contributors Listed Below - COPYRIGHT 2017,2022
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -114,6 +114,10 @@ PROJ_LLIBS += -listepcommon
 PROJ_SUBDIRS += $(ARRAYACCESS_INFRA_DIR)
 PROJ_LIB_DIRS += -L$(OBJDIR-ARRAYACCESS)
 PROJ_LLIBS += -larrayaccess
+
+PROJ_SUBDIRS += $(SECUREBOOT_COMMON_SRCDIR)
+PROJ_LIB_DIRS += -L$(OBJDIR-SECUREBOOTCOMMON)
+PROJ_LLIBS += -lsecurebootcommon
 
 MEASUREMENT_PROJ_SUBDIRS := $(SBEM_HWP_SRCDIR)
 MEASUREMENT_PROJ_LIB_DIRS += -L$(OBJDIR-SBEM-HWP)
