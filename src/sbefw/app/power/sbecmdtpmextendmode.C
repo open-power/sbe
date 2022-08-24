@@ -40,6 +40,16 @@
 #include "p10_putmemproc.H"
 #include "fapi2_mem_access.H"
 #include "sbeRoleIdentifier.H"
+#include "sbeOtpromMeasurementReg.H"
+#include "p10_adu_access.H"
+#include "sbesecuritycommon.H"
+#include "tpmStatusCodes.H"
+#include "p10_sbe_sync_quiesce_states.H"
+#include "p10_scom_pibms.H"
+#include "sbeTPMCommand.H"
+
+// Forward declarations
+static uint32_t sbeExtendSecondaryMeasurementRegVal(void);
 
 /**
  * @brief Enum for operation's supported by ctrlHost()
@@ -70,6 +80,25 @@ typedef struct
 
 //Static initialization of the Host Alive Pk timer
 static timerService g_sbe_pk_Host_Alive_timer;
+
+#define NUMBER_IMG_TYPE 2
+#define NUMBER_MEAS_REGISTERS 4
+
+const uint32_t measRegs[NUMBER_IMG_TYPE][NUMBER_MEAS_REGISTERS] = 
+{ 
+    {
+        OTPROM_MEASUREMENT_REG4,
+        OTPROM_MEASUREMENT_REG5,
+        OTPROM_MEASUREMENT_REG6,
+        OTPROM_MEASUREMENT_REG7,
+    },
+    {
+        OTPROM_MEASUREMENT_REG8,
+        OTPROM_MEASUREMENT_REG9,
+        OTPROM_MEASUREMENT_REG10,
+        OTPROM_MEASUREMENT_REG11
+    }
+};
 
 /**
  * @brief Function to Start/Stop Host
@@ -330,6 +359,44 @@ static uint32_t buildSmpSwitchAB(void)
     #undef SBE_FUNC
 }
 
+/**
+ * @brief Function to deconfigure TPM
+ *        This is a modified version of sbeTPMCommand.C:setTPMDeconfigBit().
+ *        In this version, before halting, the SBE state is set to
+ *        SBE_STATE_TPM_EXTEND_MODE_HALT.
+ *
+ * @return uint32_t FAPI RC if any
+ */
+static uint32_t _setTPMDeconfigBit()
+{
+    #define SBE_FUNC " _setTPMDeconfigBit "
+    SBE_ENTER(SBE_FUNC);
+    uint32_t rc = FAPI2_RC_SUCCESS;
+    do
+    {
+        // putscom 0x10005 0x00080000_00000000
+        Target<TARGET_TYPE_PROC_CHIP> target =  plat_getChipTarget();
+        constexpr uint64_t tpmDeconfigMask = 0x0008000000000000ULL;
+        rc = putscom_abs_wrap (&target, OTP_SECURITY_SWITCH, tpmDeconfigMask);
+        if(rc)
+        {
+            SBE_ERROR(SBE_FUNC " putscom failed on OTP_SECURITY_SWITCH with rc 0x%08X",
+                        rc);
+            // If we are unsuccessful in setting the deconfig bit we are in an
+            // untrusted unsecure state, we must halt
+            (void)SbeRegAccess::theSbeRegAccess().
+              updateSbeState(SBE_STATE_TPM_EXTEND_MODE_HALT);
+            SBE_INFO("Halting PPE...");
+            pk_halt();
+            break;
+        }
+    }while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return rc;
+    #undef SBE_FUNC
+}
+
 uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 {
     #define SBE_FUNC " sbeTpmExtendMode "
@@ -384,8 +451,16 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
                 break;
             }
 
-            // Collect secondary TPM measurements
-
+            if (!SBE::isSimicsRunning())
+            {
+                // Collect secondary TPM measurements
+                (void)sbeExtendSecondaryMeasurementRegVal();
+            }
+            else
+            {
+                SBE_INFO(SBE_FUNC
+                "Running on SIMICS - Skipping sbeExtendSecondaryMeasurementRegVal");
+            }
             // Enable Xscoms
             SBE::enableXscoms();
 
@@ -452,5 +527,240 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 
     SBE_EXIT(SBE_FUNC)
     return rc;
+    #undef SBE_FUNC
+}
+
+/**
+ * @brief Function to retrieve secondary chip measurement and
+ *        extend it to TPM. In case of error, TPM will be
+ *        de-configured.
+ *
+ * @return uint32_t will always return FAPI2_RC_SUCCESS
+ */
+static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
+{
+    #define SBE_FUNC " sbeExtendSecondaryMeasurementRegVal "
+    SBE_ENTER(SBE_FUNC)
+
+    uint32_t rc = FAPI2_RC_SUCCESS;
+    uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
+
+    // Flags for ADU operation
+    bool l_rnw = true;
+    bool firstGranule = true;
+    bool lastGranule  = true;
+    uint8_t l_adu_lock_attempts = 5;
+    uint8_t l_maxchips = 16;
+    uint8_t topologyMode = 0;
+
+    uint64_t address;
+    uint32_t granulesBeforeSetup = 0;
+    uint32_t group_id = 0;
+    uint32_t chip_id = 0;
+    uint8_t data[8] = {0};
+    fapi2::buffer<uint64_t> sysConfig = 0x0;
+    const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
+    Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+    fapi2::buffer<uint64_t> securityReg;
+    adu_operationFlag l_myAduFlag;
+    SHA512truncated_t sha512Truncated[NUMBER_IMG_TYPE];
+
+    do
+    {
+        //Skip if deconfig bit set in TPM
+        getscom_abs(0x10005, &securityReg());
+        if (securityReg.getBit<TPM_DECONFIG_BIT>())
+        {
+            SBE_ERROR(SBE_FUNC "TPM is deconfigured. Exiting...");
+            break;
+        }
+
+        fapi2::ATTR_PROC_FABRIC_TOPOLOGY_ID_Type l_fabric_eff_topology_id = 0;
+        FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_EFF_TOPOLOGY_ID, procTgt,
+                    l_fabric_eff_topology_id);
+        SBE_INFO("fabric_eff_topology_id=0x%.8x",l_fabric_eff_topology_id);
+
+        //Gather system information
+        FAPI_ATTR_GET(fapi2::ATTR_SBE_SYS_CONFIG, FAPI_SYSTEM, sysConfig());
+        SBE_INFO("Current System configuration : %.8x%.8x",
+             (((uint64_t)sysConfig & 0xFFFFFFFF00000000ull) >> 32),
+             ((uint64_t)sysConfig & 0xFFFFFFFF));
+
+        //Setup ADU flags
+        l_myAduFlag.setOperationType(adu_operationFlag::CACHE_INHIBIT);
+        l_myAduFlag.setTransactionSize(adu_operationFlag::TSIZE_8);
+        l_myAduFlag.setAutoIncrement(false);
+        l_myAduFlag.setLockControl(true);
+        l_myAduFlag.setOperFailCleanup(false);
+        l_myAduFlag.setFastMode(false);
+        l_myAduFlag.setItagMode(false);
+        l_myAduFlag.setEccMode(false);
+        l_myAduFlag.setEccItagOverrideMode(false);
+        l_myAduFlag.setNumLockAttempts(l_adu_lock_attempts);
+
+        //Walk through sysConfig, if the bit is set(valid chip in system),
+        //read OTPROM_MEASUREMENT_REG4 to OTPROM_MEASUREMENT_REG11
+        FAPI_ATTR_GET(fapi2::ATTR_PROC_FABRIC_TOPOLOGY_MODE, FAPI_SYSTEM, topologyMode);
+        SBE_INFO("topologyMode=0x%.8x",topologyMode);
+        for(uint8_t TopologyId = 0; TopologyId < l_maxchips; ++TopologyId)
+        {
+            if(sysConfig.getBit(static_cast<uint32_t>(TopologyId)))
+            {
+                // Determine Group(Node) ID and the ChipId
+                //If Mode = 0 , Topology ID: GGG_C
+                //If Mode = 1 , Topology ID: GG_CC
+
+                //5-bit mode 0/1 topology index value
+                topologyIndexBits_t topoIndexBits;
+                topoIndexBits.topoIndex = 0;
+
+                if(topologyMode == fapi2::ENUM_ATTR_PROC_FABRIC_TOPOLOGY_MODE_MODE0) //GGG_C
+                {
+                    chip_id = TopologyId & 0x1;
+                    group_id = (TopologyId & 0xE) >> 1;
+                    topoIndexBits.mode0.group = group_id;
+                    topoIndexBits.mode0.chip = chip_id;
+                }
+                else //GG_CC
+                {
+                    chip_id = TopologyId & 0x3;
+                    group_id = (TopologyId & 0xC) >> 2;
+                    topoIndexBits.mode1.group = group_id;
+                    topoIndexBits.mode1.chip = chip_id;
+                }
+            SBE_INFO(
+        "TopologyId=0x%.8x,group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
+                        TopologyId, group_id, chip_id, topoIndexBits.topoIndex);
+
+                if (l_fabric_eff_topology_id == topoIndexBits.topoIndex)
+                {
+                    SBE_INFO("topoIndex matches with fabric_eff_topology_id.Skipping...");
+                    continue;
+                }
+                //Read verification image measurement registers
+                //followed by firmware image measurement registers
+                for (uint8_t imgType=0; imgType<NUMBER_IMG_TYPE; imgType++)
+                {
+                    for (uint8_t i=0; i<NUMBER_MEAS_REGISTERS; i++)
+                    {
+                        //XSCOM_BASE_ADDR as per ADU document
+                        //PIB Address(0x000100XX) in address location 30:60
+                        //Topology Index (5bit) MODE0:GGG0C / MODE1:0GGCC
+                        address =  (ADU_XSCOM_BASE_ADDR +
+                            (MMIO_OFFSET_PER_TOPO_INDEX * topoIndexBits.topoIndex)) |
+                            (measRegs[imgType][i] << 3);
+
+                        // To read from each chip
+                        // Set up ADU
+                        SBE_EXEC_HWP(rc,
+                                     p10_adu_setup,
+                                     procTgt,
+                                     address,
+                                     l_rnw,
+                                     l_myAduFlag.setFlag(),
+                                     granulesBeforeSetup);
+                        if (rc)
+                        {
+                            SBE_ERROR(SBE_FUNC "p10_adu_setup failed, RC=[0x%08X]."
+                            "group_id=0x%.8x, chip_id=0x%.8x "
+                            "topoIndexBits.topoIndex=0x%x",
+                            group_id, chip_id, topoIndexBits.topoIndex);
+                            tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
+                            break;
+                        }
+
+                        // Access ADU
+                        SBE_EXEC_HWP(rc,
+                                     p10_adu_access,
+                                     procTgt,
+                                     address,
+                                     l_rnw,
+                                     l_myAduFlag.setFlag(),
+                                     firstGranule,
+                                     lastGranule,
+                                     data);
+                        if (rc)
+                        {
+                            SBE_ERROR(SBE_FUNC "p10_adu_access failed, RC=[0x%08X]."
+                            "group_id=0x%.8x, chip_id=0x%.8x "
+                            "topoIndexBits.topoIndex=0x%x",
+                            group_id, chip_id, topoIndexBits.topoIndex);
+                            tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
+                            break;
+                        }
+
+                        memcpy(&sha512Truncated[imgType][i*sizeof(uint64_t)],data,
+                                sizeof(uint64_t));
+                        SBE_INFO("Hash[%d][%d] : %.8x%.8x",
+                        imgType, i,
+                        ((*((uint64_t*)data) & 0xFFFFFFFF00000000ull) >> 32),
+                        (*((uint64_t*)data) & 0xFFFFFFFF));
+                    }
+
+                    if (rc)
+                    {
+                        // Go out of the for loop that iterates through
+                        // the image type
+                        break;
+                    }
+                }
+
+                if (rc)
+                {
+                    // Go out of the for loop that iterates through
+                    // the topology
+                    break;
+                }
+                rc = tpmExtendPCR(TPM_PCR0, sha512Truncated[0],
+                            sizeof(SHA512truncated_t));
+                if (rc)
+                {
+                    SBE_ERROR(SBE_FUNC "tpmExtendPCR failed while extending "
+                        "verification image hash to PCR0");
+                    SBE_ERROR(SBE_FUNC
+                        "group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
+                        group_id, chip_id, topoIndexBits.topoIndex);
+                    tpmRespCode = SBER_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR0_FAILURE;
+                    break;
+                }
+
+                rc = tpmExtendPCR(TPM_PCR0, sha512Truncated[1],
+                            sizeof(SHA512truncated_t));
+                if (rc)
+                {
+                    SBE_ERROR(SBE_FUNC "tpmExtendPCR failed while extending "
+                        "firmware image hash to PCR0");
+                    SBE_ERROR(SBE_FUNC
+                        "group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
+                        group_id, chip_id, topoIndexBits.topoIndex);
+                    tpmRespCode=SBER_TPM_EXTEND_SBE_FW_IMAGE_HASH_PCR0_FAILURE;
+                    break;
+                }
+            }
+        }
+    } while(0);
+
+    if( (tpmRespCode != SBEM_TPM_OPERATION_SUCCESSFUL) &&
+        (!(securityReg.getBit<TPM_DECONFIG_BIT>())) )
+    {
+        SBE_INFO(SBE_FUNC "Setting the TPM deconfig bit");
+        rc = _setTPMDeconfigBit();
+
+        secureBootStatus_t secureBootStatus;
+
+        SBE_INFO(SBE_FUNC "Setting the TPM response code into Scratch Reg 11");
+        getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);
+        secureBootStatus.status.tpmStatus = (uint8_t)tpmRespCode;
+        putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg);
+        SBE_INFO("Updated value of Mailbox scratch 11 [0x%08x 0x%08x]",
+                SBE::higher32BWord(secureBootStatus.statusReg),
+                SBE::lower32BWord(secureBootStatus.statusReg));
+    }
+
+
+    SBE_EXIT(SBE_FUNC);
+
+    //This function should always return SUCCESS
+    return FAPI2_RC_SUCCESS;
     #undef SBE_FUNC
 }

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,7 +52,9 @@ enum sbemTPMRespCode
     SBEV_TPM_EXTEND_SEPERATOR_PCR5_FAILURE                   = 0x15,
     SBEV_TPM_EXTEND_SEPERATOR_PCR6_FAILURE                   = 0x16,
     SBEV_TPM_EXTEND_SEPERATOR_PCR7_FAILURE                   = 0x17,
-
+    SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT         = 0x18,
+    SBER_TPM_EXTEND_VERIFICATION_IMAGE_HASH_PCR0_FAILURE     = 0x19,
+    SBER_TPM_EXTEND_SBE_FW_IMAGE_HASH_PCR0_FAILURE           = 0x1A
 };
 
 #endif

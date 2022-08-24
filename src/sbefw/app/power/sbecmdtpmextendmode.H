@@ -47,4 +47,5 @@
  */
 uint32_t sbeTpmExtendMode(uint8_t *i_pArg);
 
+
 #endif /* _SBECMDTPMEXTENDMODE_H_ */
