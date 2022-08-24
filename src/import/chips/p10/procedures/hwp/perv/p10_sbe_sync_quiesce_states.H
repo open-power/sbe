@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020                             */
+/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,6 +44,38 @@
 
 #include <fapi2.H>
 
+///----------------------------------------------------------------------------
+/// Constant definitions
+///----------------------------------------------------------------------------
+const uint64_t SECURITY_SWITCH_REG_ADDR  = 0x00010005;   // Security Switch Register Address
+const uint64_t ADU_XSCOM_BASE_ADDR       = 0x000E03FC00000000;
+//Each 5-bit topology index addresses a 16 terabyte space
+const uint64_t  MMIO_OFFSET_PER_TOPO_INDEX =  0x0000100000000000;
+
+//------------------------------------------------------------------------------
+// Structure definitions
+//------------------------------------------------------------------------------
+
+/**
+ * @brief bit definitions for 5-bit mode 0/1 topology inde
+ */
+typedef union
+{
+    struct // GGG0C
+    {
+        uint8_t rsvd1: 3; // 0:2
+        uint8_t group: 3; // 3:5
+        uint8_t rsvd2: 1; // 6
+        uint8_t chip : 1; // 7
+    } mode0;
+    struct // 0GGCC
+    {
+        uint8_t rsvd1: 4; // 0:3
+        uint8_t group: 2; // 4:5
+        uint8_t chip : 2; // 6:7
+    } mode1;
+    uint8_t topoIndex;
+} topologyIndexBits_t;
 
 typedef fapi2::ReturnCode (*p10_sbe_sync_quiesce_states_FP_t)(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>&,
         uint8_t&);
