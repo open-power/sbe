@@ -327,6 +327,7 @@ enum sbeSecondaryResponse
     SBE_SEC_LPC_ERROR                         = 0x4B,
     SBE_SEC_NOT_ALLOWED_VIA_FIFO_1            = 0x4C,
     SBE_SEC_HOST_ALIVE_TIMER_TIMEOUT          = 0x4D,
+    SBE_SEC_COMMAND_NOT_SUPPORTED_ON_SECONDARY_CHIP = 0x4E,
 };
 
 /**

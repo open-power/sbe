@@ -39,6 +39,7 @@
 #include "sbeTimerSvc.H"
 #include "p10_putmemproc.H"
 #include "fapi2_mem_access.H"
+#include "sbeRoleIdentifier.H"
 
 /**
  * @brief Enum for operation's supported by ctrlHost()
@@ -336,6 +337,7 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
 
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
+    uint32_t sbeRole;
 
     do
     {
@@ -347,6 +349,17 @@ uint32_t sbeTpmExtendMode(uint8_t *i_pArg)
         {
             SBE_ERROR(SBE_FUNC " Failed to Sent Ack to Host over "
                     "SBE_SBE2PSU_DOORBELL_SET_BIT1");
+            break;
+        }
+
+        // This chip-op is expected only on primary proc, if not primary
+        // return RC.
+        sbeRole = checkSbeRole();
+        SBE_INFO(SBE_FUNC "SBE Role is %x", sbeRole);
+        if(sbeRole != SBE_ROLE_MASTER)
+        {
+            SBE_ERROR(SBE_FUNC " PSU Chip-op allowed only on primary SBE");
+            rc = SBE_SEC_COMMAND_NOT_SUPPORTED_ON_SECONDARY_CHIP;
             break;
         }
 

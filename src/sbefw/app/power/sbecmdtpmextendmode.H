@@ -35,8 +35,9 @@
  *        2) Disable XSCOM's
  *        3) Run part of build SMP HWP (Switch AB)
  *        4) Retrive secondary chip measurements and extend into TPM
- *        5) Start Host Alive timer
- *        6) Start Host
+ *        5) Enable XSCOM's
+ *        6) Start Host Alive timer
+ *        7) Start Host
  *
  *        Sequence of operations done if Exit TPM Extend mode:
  *        1) Stop Host Alive timer
