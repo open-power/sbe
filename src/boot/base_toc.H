@@ -28,6 +28,9 @@
 
 typedef struct
 {
+    // The order of these field should not be changed (ie, only add new fields at the end)
+    //      since this order is assumed in "src/sbefw/verification/sbevthreadroutine.C"
+
     // HBBL Offset
     uint32_t hbbl_start;
     uint32_t hbbl_size;
@@ -60,13 +63,13 @@ typedef struct
     uint32_t bSbSettings_start;
     uint32_t bSbSettings_size;
 
-    // MEAS SB SETTINGS Offset
-    uint32_t mSbSettings_start;
-    uint32_t mSbSettings_size;
-
     // Attribute Offset
     uint32_t attribute_start;
     uint32_t attribute_size;
+
+    // MEAS SB SETTINGS Offset
+    uint32_t mSbSettings_start;
+    uint32_t mSbSettings_size;
 
     // BuildTag Offset
     uint32_t buildTag_start;

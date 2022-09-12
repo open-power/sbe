@@ -35,6 +35,8 @@
 #endif
 
 #include <error_info.H>
+#include "base_toc.H"
+#include "ppe42_string.h"
 
 #define PERV_SB_CS_SELECT_SECONDARY_SEEPROM 17
 #define N1_PG_NMMU1_BIT                     17
@@ -873,6 +875,28 @@ fapi_try_exit:
 
 #if defined __SBEFW_SEEPROM__
 
+    // Details of attribute section for loop which will copy attribute from
+    // pibmem section storage area, into pibmem attribute variables
+    struct AttributeSectionDetails
+    {
+        void* pibmem_variable_ptr;
+        void* seeprom_variable_ptr;
+        uint32_t  size_of_section;
+        bool      is_last;
+    };
+
+    const AttributeSectionDetails ATTR_SECTIONS[]  __attribute__((aligned(8))) =
+    {
+        {&G_sbe_attrs.G_system_attrs, &G_system_attributes, sizeof(G_sbe_attrs.G_system_attrs), false},
+        {&G_sbe_attrs.G_proc_chip_attrs, &G_proc_chip_attributes, sizeof(G_sbe_attrs.G_proc_chip_attrs), false},
+        {&G_sbe_attrs.G_perv_attrs, &G_perv_attributes, sizeof(G_sbe_attrs.G_perv_attrs), false},
+        {&G_sbe_attrs.G_core_attrs, &G_core_attributes, sizeof(G_sbe_attrs.G_core_attrs), false},
+        {&G_sbe_attrs.G_eq_attrs, &G_eq_attributes, sizeof(G_sbe_attrs.G_eq_attrs), false},
+        {&G_sbe_attrs.G_ocmb_chip_attrs, &G_ocmb_chip_attributes, sizeof(G_sbe_attrs.G_ocmb_chip_attrs), false},
+        {&G_sbe_attrs.G_pmic_attrs, &G_pmic_attributes, sizeof(G_sbe_attrs.G_pmic_attrs), false},
+        {&G_sbe_attrs.G_gi2c_attrs, &G_gi2c_attributes, sizeof(G_sbe_attrs.G_gi2c_attrs), true},
+    };
+
     /// @brief Function to initialize the G_targets vector based on partial good
     ///      attributes ///  this will move to plat_target.H formally
     fapi2::ReturnCode plat_TargetsInit()
@@ -883,15 +907,46 @@ fapi_try_exit:
         // Initialize multicast group mappings to "undefined"
         clear_mc_map();
 
-        // Copy fixed section from SEEPROM to PIBMEM
-        G_sbe_attrs.G_system_attrs = G_system_attributes;
-        G_sbe_attrs.G_proc_chip_attrs = G_proc_chip_attributes;
-        G_sbe_attrs.G_ocmb_chip_attrs = G_ocmb_chip_attributes;
-        G_sbe_attrs.G_perv_attrs = G_perv_attributes;
-        G_sbe_attrs.G_core_attrs = G_core_attributes;
-        G_sbe_attrs.G_eq_attrs = G_eq_attributes;
-        G_sbe_attrs.G_pmic_attrs = G_pmic_attributes;
-        G_sbe_attrs.G_gi2c_attrs = G_gi2c_attributes;
+        /*
+         * We can't copy the entire attribute from SEEPROM to PIBMEM, since the
+         * alignment has mismatch if any of the attribute structure has 0 size in
+         * seeprom (in this case PIBMEM structure still will have size of 8 bytes)
+         */
+        // offset to each attribute section from attribute start
+        uint32_t attr_offset;
+        uint32_t actual_section_size = 0;
+        for(uint8_t i = 0; i < sizeof(ATTR_SECTIONS)/sizeof(ATTR_SECTIONS[0]); i++)
+        {
+            attr_offset = (uint32_t)(ATTR_SECTIONS[i].seeprom_variable_ptr) -
+                                    (uint32_t)(&G_system_attributes);
+            if(ATTR_SECTIONS[i].is_last)
+            {
+                // find the actual section size by "<endof attribute section> - <cur section ptr>"
+                actual_section_size = (uint32_t)(&G_system_attributes) +
+                                        BASE_IMG_TOC->attribute_size -
+                                        (uint32_t)(ATTR_SECTIONS[i].seeprom_variable_ptr);
+            }
+            else
+            {
+                actual_section_size = (uint32_t)(ATTR_SECTIONS[i + 1].seeprom_variable_ptr) -
+                                        (uint32_t)(ATTR_SECTIONS[i].seeprom_variable_ptr);
+            }
+
+            if(actual_section_size)
+            {
+                FAPI_IMP("assert for : ATTR_SECTION[%d].size_of_section(=0x%X)"
+                        " == actual_section_size(=0x%X)).",
+                        i, ATTR_SECTIONS[i].size_of_section, actual_section_size);
+                assert(ATTR_SECTIONS[i].size_of_section == actual_section_size);
+                memcpy(ATTR_SECTIONS[i].pibmem_variable_ptr,
+                        (void*)(BASE_IMG_TOC->attribute_start + attr_offset),
+                        ATTR_SECTIONS[i].size_of_section);
+            }
+            else
+            {
+                FAPI_IMP("Skipping copying of ATTR_SECTIONS[%d]", i);
+            }
+        }
 
         // Initialise global attribute pointers
         G_system_attributes_ptr = &(G_sbe_attrs.G_system_attrs);

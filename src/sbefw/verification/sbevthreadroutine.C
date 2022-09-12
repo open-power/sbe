@@ -60,6 +60,19 @@ extern uint32_t g_sbevRole;
 extern SHA512truncated_t SHA256separator;
 extern uint32_t _base_origin __attribute__ ((section (".bss")));
 
+// Array of XIP sections for copying these section to pibmem
+// The order should be matched with base_toc_t structure.
+const uint32_t section_array[] __attribute__((aligned(8))) = {
+                                P9_XIP_SECTION_SBE_HDCT,
+                                P9_XIP_SECTION_SBE_RINGS,
+                                P9_XIP_SECTION_SBE_OVERRIDES,
+                                P9_XIP_SECTION_SBE_FA_EC_CL2_FAR,
+                                P9_XIP_SECTION_SBE_FA_EC_MMA_FAR,
+                                P9_XIP_SECTION_SBE_FA_RING_OVRD,
+                                P9_XIP_SECTION_SBE_SB_SETTINGS,       // Boot Seeprom
+                                P9_XIP_SECTION_FIXED,
+                            };
+
 static void writeTruncatedSbeFwPayloadHash(SHA512truncated_t i_sha512Truncated)
 {
     uint64_t hashData = 0x00;
@@ -298,18 +311,6 @@ void sbevthreadroutine(void *i_pArg)
         // Load HDCT, RINGS, FASTARRAY from SEEPROM to PIBMEM.
         uint32_t section_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_start;
 
-        // Array of XIP sections.
-        // The order should be matched with base_toc_t structure.
-        uint32_t section_array[] = {
-                                       P9_XIP_SECTION_SBE_HDCT,
-                                       P9_XIP_SECTION_SBE_RINGS,
-                                       P9_XIP_SECTION_SBE_OVERRIDES,
-                                       P9_XIP_SECTION_SBE_FA_EC_CL2_FAR,
-                                       P9_XIP_SECTION_SBE_FA_EC_MMA_FAR,
-                                       P9_XIP_SECTION_SBE_FA_RING_OVRD,
-                                       P9_XIP_SECTION_SBE_SB_SETTINGS       // Boot Seeprom
-                                   };
-
         // Pointer to PIBMEM TOC.
         uint32_t * pibmemPtr = (uint32_t *)SBE_BASE_ORIGIN;
         // Increment the pointer to point to HDCT start.
@@ -322,9 +323,9 @@ void sbevthreadroutine(void *i_pArg)
             section_end_address = 0;
             uint32_t section_size = 0;
             bool measSeeprom = false;
-            SBEV_INFO(SBEV_FUNC "Passed section_start_address 0x%08X section_end_address=0x%08X"
+            SBEV_INFO(SBEV_FUNC "section(%d), Passed section_start_address 0x%08X section_end_address=0x%08X"
                                 " section_size=0x%08X",
-                                 section_array[count], section_end_address, section_size);
+                                 section_array[count], section_start_address, section_end_address, section_size);
 
             fapirc = loadSeepromtoPibmem((p9_xip_section_sbe_t)section_array[count],
                                          section_start_address,

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -114,6 +114,73 @@ typedef struct ProcChipAttributes_t {
 } // C
 #endif
 
+
+///
+/// Pervasive Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_perv
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_perv_attributes
+G_perv_attributes:
+#else
+namespace fapi2attr {
+typedef struct PervAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_perv.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} PervAttributes;
+} // fapi2
+#endif
+
+///
+/// Core (EC) Target Attributes
+#ifdef __ASSEMBLER__
+        .macro     .proc_sbe_fixed_core
+        .section   .fixed, "a", @progbits
+	    .balign    8
+        .global     G_core_attributes
+G_core_attributes:
+#else
+namespace fapi2attr {
+typedef struct CoreAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_core.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} CoreAttributes;
+} // fapi2
+#endif
+
+///
+/// EQ Target Attributes
+#ifdef __ASSEMBLER__
+         .macro	    .proc_sbe_fixed_eq
+	     .section   .fixed, "a", @progbits
+	     .balign    8
+         .global    G_eq_attributes
+G_eq_attributes:
+#else
+namespace fapi2attr {
+typedef struct EQAttributes_t {
+#endif
+
+#include "proc_sbe_fixed_eq.H"
+
+#ifdef __ASSEMBLER__
+	.endm
+#else
+} EQAttributes;
+} // fapi2
+#endif
+
 ///
 /// OCMB Chip Target Attributes
 #ifdef __ASSEMBLER__
@@ -187,73 +254,6 @@ typedef struct GI2CAttributes_t {
 } GI2CAttributes;
 } // fapi2
 } // C
-#endif
-
-
-///
-/// Pervasive Target Attributes
-#ifdef __ASSEMBLER__
-         .macro	    .proc_sbe_fixed_perv
-	     .section   .fixed, "a", @progbits
-	     .balign    8
-         .global    G_perv_attributes
-G_perv_attributes:
-#else
-namespace fapi2attr {
-typedef struct PervAttributes_t {
-#endif
-
-#include "proc_sbe_fixed_perv.H"
-
-#ifdef __ASSEMBLER__
-	.endm
-#else
-} PervAttributes;
-} // fapi2
-#endif
-
-///
-/// Core (EC) Target Attributes
-#ifdef __ASSEMBLER__
-        .macro     .proc_sbe_fixed_core
-        .section   .fixed, "a", @progbits
-	    .balign    8
-        .global     G_core_attributes
-G_core_attributes:
-#else
-namespace fapi2attr {
-typedef struct CoreAttributes_t {
-#endif
-
-#include "proc_sbe_fixed_core.H"
-
-#ifdef __ASSEMBLER__
-	.endm
-#else
-} CoreAttributes;
-} // fapi2
-#endif
-
-///
-/// EQ Target Attributes
-#ifdef __ASSEMBLER__
-         .macro	    .proc_sbe_fixed_eq
-	     .section   .fixed, "a", @progbits
-	     .balign    8
-         .global    G_eq_attributes
-G_eq_attributes:
-#else
-namespace fapi2attr {
-typedef struct EQAttributes_t {
-#endif
-
-#include "proc_sbe_fixed_eq.H"
-
-#ifdef __ASSEMBLER__
-	.endm
-#else
-} EQAttributes;
-} // fapi2
 #endif
 
 
