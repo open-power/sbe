@@ -39,6 +39,7 @@
 
 #include <plat_hw_access.H>
 #include <fapi2_hw_access.H>
+#include <iostream>
 
 namespace fapi2
 {
@@ -273,6 +274,34 @@ ReturnCode putRing(const Target<K, M, V>& i_target,
               << "target: {" << i_target.getType() << ","
               << uint64_t(i_target) << "}; "
               << "Ring ID: " << i_ringID << "; "
+              << "ring mode: " << i_ringMode
+              << std::endl;
+
+    return FAPI2_RC_SUCCESS;
+}
+
+/// @brief Backend platform implementation of putRing
+/// This applies a single scan image to a given target.
+/// Hardware procedures will not usually call this function; it is
+/// supposed to be called by putRingBackend() only.
+/// @param[in] i_target    Target to scan into. May be multicast!
+/// @param[in] i_scanImage Scan image to apply
+/// @param[in] i_modifiedRingAddress
+///                        Ring address modified to indicate the actual
+///                        scan regions targeted by this call
+/// @param[in] i_ringMode  Ring operation mode.
+/// @return FAPI2_RC_SUCCESS on success, else error code.
+template< TargetType K, MulticastType M, typename V >
+ReturnCode plat_putRingImpl(const Target<K, M, V>& i_target,
+                            const void* i_scanImage,
+                            const uint32_t i_modifiedRingAddress,
+                            const RingMode i_ringMode)
+{
+    std::cout << std::hex << "   putRing "
+              << "target: {" << i_target.getType() << ","
+              << uint64_t(i_target) << "}; "
+              << "Scan image: " << i_scanImage << "; "
+              << "modified ring address: " << i_modifiedRingAddress << "; "
               << "ring mode: " << i_ringMode
               << std::endl;
 
