@@ -664,7 +664,7 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
                             SBE_ERROR(SBE_FUNC "p10_adu_setup failed, RC=[0x%08X]."
                             "group_id=0x%.8x, chip_id=0x%.8x "
                             "topoIndexBits.topoIndex=0x%x",
-                            group_id, chip_id, topoIndexBits.topoIndex);
+                            rc, group_id, chip_id, topoIndexBits.topoIndex);
                             tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
                             break;
                         }
@@ -684,7 +684,7 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
                             SBE_ERROR(SBE_FUNC "p10_adu_access failed, RC=[0x%08X]."
                             "group_id=0x%.8x, chip_id=0x%.8x "
                             "topoIndexBits.topoIndex=0x%x",
-                            group_id, chip_id, topoIndexBits.topoIndex);
+                            rc, group_id, chip_id, topoIndexBits.topoIndex);
                             tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
                             break;
                         }
