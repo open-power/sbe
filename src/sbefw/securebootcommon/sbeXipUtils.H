@@ -1,12 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeXipUtils.H $                                */
+/* $Source: src/sbefw/securebootcommon/sbeXipUtils.H $                    */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2022                        */
-/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -51,12 +50,14 @@ const uint32_t g_mseeprom_headerAddr = SBE_MEASUREMENT_BASE_ORIGIN;
 // IVPR register address
 const uint32_t g_ivprLoc = 0xC0000160;
 
-// Get Measurement Seeprom XIP image header
-inline P9XipHeader * getMSeepromXipHdr()
-{
-    P9XipHeader *hdr = (P9XipHeader *)( g_mseeprom_headerAddr );
-    return hdr;
-}
+/*
+ *  @brief Get Measurement Seeprom XIP image header
+ *
+ *  @param[in] Pointer to P9XipHeader.
+ *
+ *  @return void
+ */
+void getMSeepromXipHdr(uint8_t * io_xipHeader);
 
 // Get Measurement Seeprom Section start addess
 inline uint8_t * getMSeepromSectionAddr( P9XipSection * i_section )
@@ -64,12 +65,14 @@ inline uint8_t * getMSeepromSectionAddr( P9XipSection * i_section )
     return ( (uint8_t *)( g_mseeprom_headerAddr + i_section->iv_offset));
 }
 
-// Get XIP image header
-inline P9XipHeader * getXipHdr()
-{
-    P9XipHeader *hdr = (P9XipHeader *)( g_headerAddr );
-    return hdr;
-}
+/*
+ *  @brief Get XIP image header
+ *
+ *  @param[in] Pointer to P9XipHeader.
+ *
+ *  @return void
+ */
+void getXipHdr(uint8_t * io_xipHeader);
 
 // Get Section start addess
 inline uint8_t * getSectionAddr( P9XipSection * i_section )

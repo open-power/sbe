@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -46,6 +46,7 @@
 #include "sbeSecurity.H"
 #include "chipop_handler.H"
 #include "p10_lpc_test.H"
+#include "base_toc.H"
 
 #include "fapi2.H"
 //#include "p9_xip_image.h"
@@ -74,11 +75,12 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
     verMajor= SBE_FW_MAJOR_VERSION;
     verMinor = SBE_FW_MINOR_VERSION;
     fwCommitId = SBE_COMMIT_ID;
-    // Get xip header
-    P9XipHeader *hdr = getXipHdr();
-    for(uint32_t idx=0; idx<sizeof(hdr->iv_buildTag); idx++)
+
+    uint8_t *buildPtr = (uint8_t *)BASE_IMG_TOC->buildTag_start;
+
+    for(uint32_t idx=0; idx < BASE_IMG_TOC->buildTag_size; idx++)
     {
-        buildTag[idx] = hdr->iv_buildTag[idx];
+        buildTag[idx] = *(buildPtr + idx);
     }
 
     capability[GENERIC_CAPABILTITY_START_IDX] =

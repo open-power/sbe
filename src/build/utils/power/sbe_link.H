@@ -96,7 +96,7 @@
 #define SBE_SHA_LOADER_BASE_SECTION  SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET \
                                   + 264 // This needs to be updated.
 // Base Loader start address
-#define SBE_MAX_VERIFICATION_IMAGE_SIZE (54 * 1024)
+#define SBE_MAX_VERIFICATION_IMAGE_SIZE (56 * 1024)
 #define SBE_VERIFICATION_PIBMEM_ORIGIN_WO_ROUNDING (SBE_BASE_ORIGIN + SBE_BASE_LENGTH - SBE_MAX_VERIFICATION_IMAGE_SIZE)
 // vector table should start on 0x200 boundary, start of vector table will be same as start of image
 #define SBE_VERIFICATION_PIBMEM_ORIGIN (SBE_VERIFICATION_PIBMEM_ORIGIN_WO_ROUNDING & 0xFFFFFE00)

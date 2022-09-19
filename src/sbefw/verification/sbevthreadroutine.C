@@ -54,6 +54,8 @@
             UPDATE_ERROR_REG_HBBL(err_code);     \
             pk_halt()
 
+#define BUILD_TAG_LENGTH 20
+
 extern uint32_t g_sbevRole;
 extern SHA512truncated_t SHA256separator;
 extern uint32_t _base_origin __attribute__ ((section (".bss")));
@@ -198,7 +200,10 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
         }
         // check the end address doesnot cross the 'hdr->iv_dataAddr'
-        uint32_t data_address = getXipHdr()->iv_dataAddr; // single sideband access
+        uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
+        getXipHdr(buf);
+        P9XipHeader *bSeepromHdr = (P9XipHeader *)buf;
+        uint32_t data_address = bSeepromHdr->iv_dataAddr;
         SBEV_INFO(SBEV_FUNC "data_address=0x%08X, endOffset=0x%08X",
                             data_address, endOffset);
         if(endOffset > data_address)
@@ -224,7 +229,7 @@ void sbevthreadroutine(void *i_pArg)
 
         // reserve the space for bss area.
         //      we are re-using iv_L2LoaderAddr for storing the bss space required
-        uint32_t bssSpaceReqd = getXipHdr()->iv_L2LoaderAddr; // single sideband access
+        uint32_t bssSpaceReqd = bSeepromHdr->iv_L2LoaderAddr;
         SBEV_INFO(SBEV_FUNC "bssSpaceReqd=0x%08X", bssSpaceReqd);
         if(endOffset + bssSpaceReqd > (uint32_t)(&_base_origin))
         {
@@ -386,6 +391,17 @@ void sbevthreadroutine(void *i_pArg)
 
         // Update the base TOC.
         ((base_toc_t*)(SBE_BASE_ORIGIN))->mSbSettings_size = section_size;
+        BASE_IMG_TOC->buildTag_start = section_end_address;
+
+        // Copy the buildTag from Seeprom to Pibmem.
+        uint8_t *buildPtr = (uint8_t *)(BASE_IMG_TOC->buildTag_start);
+        for(uint32_t i = 0; i < BUILD_TAG_LENGTH; i++)
+        {
+            *(buildPtr + i) = bSeepromHdr->iv_buildTag[i];
+        }
+
+        // Update the size;
+        BASE_IMG_TOC->buildTag_size = BUILD_TAG_LENGTH;
 
         //Update SBE-FW and HBBL secure header status into Mailbox scratch 11.
         getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);

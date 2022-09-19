@@ -1,7 +1,7 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeXipUtils.C $                                */
+/* $Source: src/sbefw/securebootcommon/sbeXipUtils.C $                    */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
@@ -30,15 +30,66 @@
  */
 
 #include "sbeXipUtils.H"
+#include "p10_sbe_spi_cmd.H"
+#include "sbeglobals.H"
+
+#define SBE_LFR_REG_ADDR    0xc0002040
+
+void getMSeepromXipHdr(uint8_t * io_xipHeader)
+{
+    fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
+    uint32_t xipOffset = 0;
+
+    // Load the LFR.
+    sbe_local_LFR lfrReg;
+    uint32_t lfrAddress = SBE_LFR_REG_ADDR;
+    PPE_LVD(lfrAddress, lfrReg);
+
+    // Create Spi handle.
+    Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
+    size_t engine = lfrReg.sec_meas_seeprom ? SPI_ENGINE_BACKUP_MVPD_SEEPROM :
+                                       SPI_ENGINE_PRIMARY_MVPD_SEEPROM;
+
+    SpiControlHandle handle = SpiControlHandle(i_target_chip, engine);
+
+    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, io_xipHeader);
+    if(fapiRc)
+    {
+        SBE_INFO("spi_read failed with fapiRC 0x%08X for Offset 0x%08X", fapiRc, xipOffset);
+        pk_halt();
+    }
+}
+
+void getXipHdr(uint8_t * io_xipHeader)
+{
+    fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
+    uint32_t xipOffset = 0;
+
+    // Load the LFR.
+    sbe_local_LFR lfrReg;
+    uint32_t lfrAddress = SBE_LFR_REG_ADDR;
+    PPE_LVD(lfrAddress, lfrReg);
+
+    // Create Spi handle.
+    Target<TARGET_TYPE_PROC_CHIP> i_target_chip =  plat_getChipTarget();
+    size_t engine = lfrReg.sec_boot_seeprom ? SPI_ENGINE_BACKUP_BOOT_SEEPROM :
+                                       SPI_ENGINE_PRIMARY_BOOT_SEEPROM;
+
+    SpiControlHandle handle = SpiControlHandle(i_target_chip, engine);
+
+    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, io_xipHeader);
+    if(fapiRc)
+    {
+        SBE_INFO("spi_read failed with fapiRC 0x%08X for offset 0x%08X", fapiRc, xipOffset);
+        pk_halt();
+    }
+}
 
 uint32_t getXipOffset(p9_xip_section_sbe_t xipSection)
 {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-    uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
+    getXipHdr(buf);
+    P9XipHeader *imgHdr = (P9XipHeader *)buf;
     p9_xip_section_sbe_t sectionName = xipSection;
     P9XipSection* pSection = &imgHdr->iv_section[sectionName];
     return pSection->iv_offset;
@@ -46,23 +97,15 @@ uint32_t getXipOffset(p9_xip_section_sbe_t xipSection)
 
 uint32_t getXipOffsetAbs(p9_xip_section_sbe_t xipSection)
 {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
     uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-
     return ( (uint32_t)base + getXipOffset(xipSection));
 }
 
 uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
 {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
-    uint8_t *base = (uint8_t*)(SBE_SEEPROM_BASE_ORIGIN);
-#endif
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
+    getXipHdr(buf);
+    P9XipHeader *imgHdr = (P9XipHeader *)buf;
     p9_xip_section_sbe_t sectionName = xipSection;
     P9XipSection* pSection = &imgHdr->iv_section[sectionName];
     return (pSection->iv_size);
@@ -70,23 +113,20 @@ uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
 
 uint32_t getXipSizeMeasurement(p9_xip_section_sbe_t xipSection)
 {
-    uint8_t *base = (uint8_t*)(SBE_MEASUREMENT_BASE_ORIGIN);
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
+    getMSeepromXipHdr(buf);
+    P9XipHeader* imgHdr = (P9XipHeader*)buf;
     P9XipSection* pSection = &imgHdr->iv_section[xipSection];
     return (pSection->iv_size);
 }
 
 uint32_t getXipOffsetAbsMeasurement(p9_xip_section_sbe_t xipSection)
 {
-#if defined DFT || defined PIBMEM_ONLY_IMAGE
-    uint8_t *base = (uint8_t*)(SBE_BASE_ORIGIN);
-#else
     uint8_t *base = (uint8_t*)(SBE_MEASUREMENT_BASE_ORIGIN);
-#endif
-
-    P9XipHeader* imgHdr = (P9XipHeader*)(base);
+    uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
+    getMSeepromXipHdr(buf);
+    P9XipHeader *imgHdr = (P9XipHeader *)buf;
     p9_xip_section_sbe_t sectionName = xipSection;
     P9XipSection* pSection = &imgHdr->iv_section[sectionName];
     return ( (uint32_t)base + pSection->iv_offset);
 }
-

@@ -68,6 +68,12 @@ typedef struct
     uint32_t attribute_start;
     uint32_t attribute_size;
 
+    // BuildTag Offset
+    uint32_t buildTag_start;
+    uint32_t buildTag_size;
+
 }base_toc_t;
+
+#define BASE_IMG_TOC ((base_toc_t*)(SBE_BASE_ORIGIN))
 
 #endif
