@@ -1103,9 +1103,20 @@ uint32_t sbeCollectDump::writeGetSramPacketToFifo()
         dumpSramReq.length = (uint32_t) value;
         sbefifo_hwp_data_istream istream( iv_fifoType, len,
                                           (uint32_t*)&dumpSramReq, false );
-
+        uint32_t startCount = iv_oStream.words_written();
         rc = sbeSramAccess_Wrap( istream, iv_oStream, true );
-
+        uint32_t endCount = iv_oStream.words_written();
+        uint32_t totalCount = (uint32_t) value / (sizeof(uint32_t));
+        uint32_t dummyData = 0x00;
+        if(endCount == startCount || ((endCount - startCount) != totalCount))
+        {
+            totalCount = totalCount - (endCount - startCount);
+            while(totalCount !=0)
+            {
+                iv_oStream.put(dummyData);
+                totalCount = totalCount - 1;
+            }
+        }
         SBE_INFO("getSram value:[0x%08X%08X]",
                   SBE::higher32BWord(value), SBE::lower32BWord(value));
         SBE_INFO("getSram address:[0x%08X] mode:[0x%08X]", addr, mode);
