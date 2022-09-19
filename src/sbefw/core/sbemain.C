@@ -80,8 +80,6 @@ void __eabi()
         SBE_GLOBAL->isHreset = SBE::isHreset();
         if (SBE_GLOBAL->isHreset || SBE::isMpiplReset())
         {
-            uint64_t data = (uint64_t)SBE_BASE_IMAGE_START << 32;
-            PPE_STVD(SBE_LCL_IVPR, data);
             // skip constructors
             break;
         }

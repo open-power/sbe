@@ -63,6 +63,10 @@ void __wait_for_s1()
         " rlwinm %r1, %r8, 0x0, 2, 2\n "
         // Set bit 2 to indicate PPE supports s1 interrupt. This is cleared above
         " or     %r2, %r2, %r1\n "
+        // Create a mask to set bit 0
+        " rlwinm %r1, %r8, 0x0, 0, 0\n "
+        // Set bit 0 to indicate PPE is booted up. This is cleared above
+        " or     %r2, %r2, %r1\n "
         // Store data back into 0x50009
         " stvd   %d2, 0x9(%r5)\n "
 
@@ -98,6 +102,26 @@ void __s1_interupt_handler()
         " rlwinm %r2, %r2, 0x0, 16, 14\n "
         // Store data back into 0x50008
         " stvd   %d2, 0x8(%r5)\n "
+
+        // loads data from 0x50009 to d2
+        " lvd    %d2, 0x9(%r5)\n "
+        // clear bit 0 of 0x50009 (SBE Booted flag)
+        " clrlwi %r2, %r2, 1\n "
+        // store data back into 0x50009
+        " stvd   %d2, 0x9(%r5)\n "
+
+        // Set bit 16 in LFR, to indicate S1 reset(HRESET) triggered in FW
+        " li    %r8, 0x0\n "
+        " ori   %r8, %r8, 0x8000\n "
+        " li    %r9, 0x0\n "           // d8 is 0000_8000_0000_0000
+        " stvd  %d8, 0x2050(%r4)\n "   // Write the mask to set the 16th bit with W_OR
+
+        // Unset Bit15 (IPL Reset) Bit14 (MPIPL) Bit17 (HReset Done) Bit18 (MPIPL Done)
+        // to clear off previous triggers, in order to keep only the current trigger
+        " lis   %r8, 0x3\n "            // Set the mask to reset the bit 14/15
+        " ori   %r8, %r8, 0x6000\n "    // Set the mask to reset the bit 17/18
+        " li    %r9, 0x0\n "            // d8 is 0x0003_6000_0000_0000
+        " stvd  %d8, 0x2058(%r4)\n "    // write to WO_CLR Register
 
         // Jump to __system_reset
         " b __system_reset\n "
