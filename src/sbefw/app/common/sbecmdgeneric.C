@@ -47,9 +47,10 @@
 #include "chipop_handler.H"
 #include "p10_lpc_test.H"
 #include "base_toc.H"
-
 #include "fapi2.H"
-//#include "p9_xip_image.h"
+#include "p10_sbe_spi_cmd.H"
+
+#define SBE_LFR 0x000C0002040
 
 using namespace fapi2;
 
@@ -712,6 +713,16 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     sbeReadMemReq_t req = {};
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_target_chip = plat_getChipTarget();
+
+    // Load the LFR.
+    sbe_local_LFR lfrReg;
+    uint32_t lfrAddress = SBE_LFR;
+    PPE_LVD(lfrAddress, lfrReg);
+    size_t engine = lfrReg.sec_boot_seeprom ?
+                    SPI_ENGINE_BACKUP_BOOT_SEEPROM : SPI_ENGINE_PRIMARY_BOOT_SEEPROM;
+
+    SpiControlHandle handle(l_target_chip, engine);
 
     do
     {
@@ -741,7 +752,7 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
         l_myPbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
 
         uint8_t l_coreId = 0;
-        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,plat_getChipTarget(),l_coreId);
+        FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,l_target_chip,l_coreId);
         fapi2::Target<fapi2::TARGET_TYPE_CORE> l_core =
               plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(l_coreId);
         sbeMemAccessInterface pbaInterface(
@@ -752,33 +763,36 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
                                      sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
                                      l_core);
         uint32_t len = req.size;
-        uint64_t *seepromAddr = req.getEffectiveAddr();
+        uint32_t offset = req.offset;
         while( len > 0)
         {
-            uint64_t *dataBuffer = static_cast<uint64_t*>
+            uint8_t *dataBuffer = static_cast<uint8_t*>
                                             (pbaInterface.getBuffer());
-            for(size_t idx=0;
-                idx < (sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES/
-                                                    sizeof(uint64_t));
-                idx++)
+            fapiRc = spi_read(handle, offset, sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES, 
+                                DISCARD_ECC_ACCESS, dataBuffer);
+            if (fapiRc)
             {
-                *dataBuffer = *seepromAddr;
-                dataBuffer++;
-                seepromAddr++;
+                SBE_ERROR("spi_read failed with fapiRC:0x%08X for offset:0x%08X ",
+                            "len : 0x%08X", fapiRc, offset, 
+                            sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
+                break;
             }
 
             fapi2::ReturnCode fapiRc = pbaInterface.accessGranule(
                            len == sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
             if( fapiRc != fapi2::FAPI2_RC_SUCCESS)
             {
+                SBE_ERROR("pbaInterface.accessGranule failed with fapiRC:0x%08X",fapiRc);
                 break;
             }
             len = len - sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES;
+            offset = offset + sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES;
         }
     } while(false);
 
     // Send the response
     sbePSUSendResponse(SBE_GLOBAL->sbeSbe2PsuRespHdr, fapiRc, rc);
+
 #else  //HOST_INTERFACE_AVAILABLE
     uint32_t rc = SBE_SEC_COMMAND_NOT_SUPPORTED;
 #endif

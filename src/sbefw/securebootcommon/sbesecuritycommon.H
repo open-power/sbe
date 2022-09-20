@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -53,13 +53,32 @@ typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
 #define TPM_PCR6 0x06
 #define TPM_PCR7 0x07
 
+#define UPDATE_ERROR_REG_SBEFW(err_code)                                     \
+            getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);\
+            secureBootStatus.status.sbeFWSecureHdrStatus = err_code;         \
+            putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
+
+#define UPDATE_ERROR_REG_HBBL(err_code)                                      \
+            getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);\
+            secureBootStatus.status.hbblSecureHdrStatus = err_code;          \
+            putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
+
+#define UPDATE_ERROR_REG_VERIFICATION_STATUS(err_code)                                      \
+            getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);\
+            secureBootStatus.status.loadVStatus = err_code;          \
+            putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
+
+#define UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(err_code) \
+            UPDATE_ERROR_REG_HBBL(err_code);     \
+            pk_halt()
+
 //Secure boot status Mailbox scratch 11 (SCOM x50182)
 typedef union secureBootStatus
 {
     uint64_t statusReg;
     struct
     {
-        uint8_t reserved;
+        uint8_t loadVStatus;
         uint8_t tpmStatus;
         uint8_t hbblSecureHdrStatus;
         uint8_t sbeFWSecureHdrStatus;

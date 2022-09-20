@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbevtrace.H"
 #include "sbevutil.H"
+#include "sbeutil.H"
 #include "sbesecureboot.H"
 #include "sbeTPMCommand.H"
 #include "sbestates.H"
@@ -35,24 +36,6 @@
 #include "sbevsecuritysetting.H"
 #include "sbeDecompression.h"
 #include "base_toc.H"
-
-#define UPDATE_ERROR_REG_SBEFW(err_code)                                     \
-            getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);\
-            secureBootStatus.status.sbeFWSecureHdrStatus = err_code;         \
-            putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
-
-#define UPDATE_ERROR_REG_SBEFW_AND_HALT(err_code) \
-            UPDATE_ERROR_REG_SBEFW(err_code);     \
-            pk_halt()
-
-#define UPDATE_ERROR_REG_HBBL(err_code)                                      \
-            getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);\
-            secureBootStatus.status.hbblSecureHdrStatus = err_code;          \
-            putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
-
-#define UPDATE_ERROR_REG_HBBL_AND_HALT(err_code) \
-            UPDATE_ERROR_REG_HBBL(err_code);     \
-            pk_halt()
 
 #define BUILD_TAG_LENGTH 20
 
@@ -143,7 +126,7 @@ void sbevthreadroutine(void *i_pArg)
         {
             SBEV_ERROR(SBEV_FUNC "Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]"
                 fapirc, data_start_address, data_end_address);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_DATA_DECOMPRESSION_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_DATA_DECOMPRESSION_FAILED);
         }
 
         // Now Copy the base.compressed to just above the data.compressed
@@ -163,7 +146,7 @@ void sbevthreadroutine(void *i_pArg)
         {
             SBEV_ERROR(SBEV_FUNC "Loading base to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]"
                 fapirc, base_start_address, data_start_address);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
         }
 
         SHA512_Final(&context, &result);
@@ -210,7 +193,7 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_ERROR(SBEV_FUNC "SBE_FW decompression of base section is failed. "
                 "rc:[0x%02X] base_start_address:[0x%08X] endOffset[0x%08X]",
                 rc, base_start_address, endOffset);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
         }
         // check the end address doesnot cross the 'hdr->iv_dataAddr'
         uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
@@ -224,7 +207,7 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_ERROR(SBEV_FUNC "SBE_FW decompression of base section is failed. "
                 "base_start_address:[0x%08X] endOffset[0x%08X] iv_dataAddr[0x%08X]",
                 base_start_address, endOffset, data_address);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_HEADER_INVALID_DATA_ADDR);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_HEADER_INVALID_DATA_ADDR);
         }
         // decompress data section
         decompBuffer = (uint8_t*)data_address;
@@ -237,7 +220,7 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_ERROR(SBEV_FUNC "SBE_FW decompression of data section is failed. "
                 "rc:[0x%02X] data_start_address:[0x%08X] data_address:[0x] endOffset[0x%08X]",
                 rc, data_start_address, data_address, endOffset);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_DATA_DECOMPRESSION_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_DATA_DECOMPRESSION_FAILED);
         }
 
         // reserve the space for bss area.
@@ -249,7 +232,7 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_ERROR(SBEV_FUNC "SBE_FW not enough space for bss area of base image "
                 "bssSpaceReqd:[0x%08X] endOffset[0x%08X] _base_origin[0x%08X]",
                 bssSpaceReqd, endOffset, (uint32_t)(&_base_origin));
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(BASE_HEADER_BSS_OVERFLOW);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_HEADER_BSS_OVERFLOW);
         }
 
         ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start = ALIGN_8_BYTE_CIELING(endOffset + bssSpaceReqd);
@@ -274,7 +257,7 @@ void sbevthreadroutine(void *i_pArg)
         {
             SBEV_ERROR(SBEV_FUNC "Loading hbbl to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
                 fapirc, hbbl_start_address, hbbl_end_address);
-            UPDATE_ERROR_REG_HBBL_AND_HALT(HBBL_LOADING_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(HBBL_LOADING_FAILED);
         }
         SBEV_INFO(SBEV_FUNC "hbbl_end_address=0x%08X, hbbl_size=0x%08X",
                             hbbl_end_address, hbbl_size);
@@ -296,6 +279,7 @@ void sbevthreadroutine(void *i_pArg)
         {
             SBEV_ERROR(SBEV_FUNC "HBBL Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
                 sbeHbblSecureHdrRsp, hbblSecureHdrResponse.statusCode);
+            UPDATE_ERROR_REG_HBBL(hbblSecureHdrResponse.statusCode);
         }
         else
         {
@@ -322,24 +306,22 @@ void sbevthreadroutine(void *i_pArg)
         {
             section_end_address = 0;
             uint32_t section_size = 0;
-            bool measSeeprom = false;
-            SBEV_INFO(SBEV_FUNC "section(%d), Passed section_start_address 0x%08X section_end_address=0x%08X"
+            SBEV_INFO(SBEV_FUNC "Passed section_start_address 0x%08X section_end_address=0x%08X"
                                 " section_size=0x%08X",
-                                 section_array[count], section_start_address, section_end_address, section_size);
+                                 section_start_address, section_end_address, section_size);
 
             fapirc = loadSeepromtoPibmem((p9_xip_section_sbe_t)section_array[count],
                                          section_start_address,
                                          section_end_address,
                                          (uint32_t)(&_base_origin) - section_start_address,
                                          section_size,
-                                         NULL,
-                                         measSeeprom);
+                                         NULL);
             if(fapirc)
             {
                 SBEV_ERROR(SBEV_FUNC "Loading section from SEEPROM to pibmem is failed for section"
                                      " %d with rc [0x%08X], start [0x%08X] end [0x%08X]",
                                      section_array[count], fapirc, section_start_address, section_end_address);
-                UPDATE_ERROR_REG_SBEFW_AND_HALT(HDCT_LOADING_FAILED + count);
+                UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(HDCT_LOADING_FAILED + count);
             }
             SBEV_INFO(SBEV_FUNC "section %d section_start_address 0x%08X section_end_address=0x%08X"
                                 " section_size=0x%08X",
@@ -384,7 +366,7 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_ERROR(SBEV_FUNC "Loading section from SEEPROM to pibmem is failed for section"
                                  " %d with rc [0x%08X], start [0x%08X] end [0x%08X]",
                                  fapirc, section_start_address, section_end_address);
-            UPDATE_ERROR_REG_SBEFW_AND_HALT(M_SB_SETTINGS_LOADING_FAILED);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(M_SB_SETTINGS_LOADING_FAILED);
         }
         SBEV_INFO(SBEV_FUNC "section %d section_start_address 0x%08X section_end_address=0x%08X"
                             " section_size=0x%08X",
@@ -403,14 +385,6 @@ void sbevthreadroutine(void *i_pArg)
 
         // Update the size;
         BASE_IMG_TOC->buildTag_size = BUILD_TAG_LENGTH;
-
-        //Update SBE-FW and HBBL secure header status into Mailbox scratch 11.
-        getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);
-        secureBootStatus.status.sbeFWSecureHdrStatus = sbeFwSecureHdrResponse.statusCode;
-        secureBootStatus.status.hbblSecureHdrStatus = hbblSecureHdrResponse.statusCode;
-        putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg);
-        SBEV_INFO("Updated SBE-FW and HBBL secure header status into Mailbox scratch 11 [0x%08x 0x%08x]",
-                SBE::higher32BWord(secureBootStatus.statusReg), SBE::lower32BWord(secureBootStatus.statusReg));
 
         //Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
         SBEV_INFO("Writing truncated SBE_FW payload hash into otprom register 8-11 (x10018-x1001B)");
@@ -560,8 +534,14 @@ void sbevthreadroutine(void *i_pArg)
                 SBE::higher32BWord(secureBootStatus.statusReg), SBE::lower32BWord(secureBootStatus.statusReg));
     }
 
-    // Copy remaining sections like hdct and attributes etc.
-    // we can re-use same loadSeepromtoPibmem(void* src, void* dest, uint32_t size);
+
+    SBEV_INFO("Calling SBE::unlockAllSEEPROMs");
+    fapi2::ReturnCode rc = SBE::unlockAllSEEPROMs();
+    if(rc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR("Failed to unlock all the SEEPROMs with rc 0x%08X", rc);
+        UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(UNLOCK_ALL_SEEPROM_FAILED);
+    }
 
     SBEV_INFO("Jump to Boot from Verification.");
     jump2boot();

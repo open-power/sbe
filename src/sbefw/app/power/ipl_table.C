@@ -140,6 +140,7 @@
 #include "sbeConsole.H"
 #include "sbecmdflushnvdimm.H"
 #include "sbes1handler.H"
+#include "sbeutil.H"  // For unlockAllSEEPROMs
 
 // Forward declaration
 using namespace fapi2;
@@ -235,9 +236,6 @@ ReturnCode istepWithProcSyncQuiesceState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp );
 ReturnCode istepMpiplQuadPoweroff( voidfuncptr_t i_hwp );
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp );
-
-//Function to unlock M SPI.
-ReturnCode unlockMSPI();
 
 #ifndef __SBEFW_SEEPROM__
 /*
@@ -391,55 +389,6 @@ istepTableEntry_t istepTableEntries[] = {
 };
 
 REGISTER_ISTEP_TABLE(istepTableEntries)
-
-//----------------------------------------------------------------------------
-ReturnCode unlockMSPI()
-{
-    ReturnCode rc = FAPI2_RC_SUCCESS;
-    #define SBE_FUNC "unlockMSPI "
-    do
-    {
-        // Unlock the Measurement SPI with which SBE has booted.
-        // Get the Side of the M Seeprom with which SBE has booted.
-        Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-        uint64_t data = 0;
-        rc = getscom_abs_wrap (&proc, MAILBOX_CBS_SELFBOOT_CTRL_STATUS, &data);
-        if(rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC " GetScom failed for  MAILBOX_CBS_SELFBOOT_CTRL_STATUS(0x50008) with rc 0x%08X", rc);
-            break;
-        }
-        SBE_DEBUG(SBE_FUNC " MAILBOX_CBS_SELFBOOT_CTRL_STATUS is 0x%08X %08X", SBE::higher32BWord(data), SBE::lower32BWord(data));
-        // Get Bit 18 for measurement side.
-        bool measSide = (data & 0x200000000000) >> 45;
-        SBE_INFO(SBE_FUNC " Measurement side is 0x%02X", measSide);
-
-        // Get the SPI config register.
-        data = 0;
-        uint64_t spimReg = measSide?SPIMST2_CONFIG:SPIMST3_CONFIG;
-        SBE_INFO(SBE_FUNC "spimReg is 0x%08X %08X", SBE::higher32BWord(spimReg), SBE::lower32BWord(spimReg));
-        rc = getscom_abs_wrap (&proc, spimReg, &data);
-        if(rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR( SBE_FUNC " Getscom failed for SPIM config reg with rc 0x%08X", rc);
-            break;
-        }
-        SBE_DEBUG(SBE_FUNC " SPIM config reg is 0x%08X with value 0x%08X %08X",
-                  SBE::lower32BWord(spimReg), SBE::higher32BWord(data), SBE::lower32BWord(data));
-        data = data & 0x07FFFFFFFFFFFFFF;
-        SBE_DEBUG(SBE_FUNC " Data to be written is 0x%08X %08X", SBE::higher32BWord(data), SBE::lower32BWord(data));
-
-        // Set the SPI config register.
-        rc = putscom_abs_wrap(&proc, spimReg, data);
-        if(rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR(SBE_FUNC " PutScom failed for SPIM config reg with rc 0x%08X", rc);
-            break;
-        }
-    }while(0);
-    return rc;
-    #undef SBE_FUNC
-}
 
 //----------------------------------------------------------------------------
 
@@ -907,15 +856,6 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         mainStoreSecMemRegionManager.add(drawer_base_address_nm0,
                                     HB_MEM_WINDOW_SIZE,
                                     static_cast<uint8_t>(memRegionMode::READ));
-        rc = unlockMSPI();
-        if(rc != FAPI2_RC_SUCCESS)
-        {
-            SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
-            // TODO: Ignore the scom failure only incase of MPIPL path.
-            rc = FAPI2_RC_SUCCESS;
-            fapi2::current_err = FAPI2_RC_SUCCESS;
-            break;
-        }
     } while(0);
 
     return rc;
@@ -957,15 +897,6 @@ ReturnCode istepCheckSbeMaster( voidfuncptr_t i_hwp)
         {
             (void)SbeRegAccess::theSbeRegAccess().stateTransition(
                                             SBE_RUNTIME_EVENT);
-            rc = unlockMSPI();
-            if(rc != FAPI2_RC_SUCCESS)
-            {
-                SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
-                // TODO: Ignore the scom failure only incase of MPIPL path.
-                rc = FAPI2_RC_SUCCESS;
-                fapi2::current_err = FAPI2_RC_SUCCESS;
-                break;
-            }
         }
     }while(0);
     return rc;
@@ -1441,19 +1372,6 @@ ReturnCode istepMpiplSetFunctionalState( voidfuncptr_t i_hwp )
                     break;
                 }
             }
-            else
-            {
-                // Unlock meas SPI in MPIPL path for secondary SBEs.
-                rc = unlockMSPI();
-                if(rc != FAPI2_RC_SUCCESS)
-                {
-                    SBE_ERROR("Failed to unlock the SPI with rc 0x%08X", rc);
-                    // TODO: Ignore the scom failure only incase of MPIPL path.
-                    rc = FAPI2_RC_SUCCESS;
-                    fapi2::current_err = FAPI2_RC_SUCCESS;
-                    break;
-                }
-            }
         }
         else
         {
@@ -1650,26 +1568,19 @@ uint32_t revertLFRSpimmSelectConfig()
         FAPI_TRY(fapi2::putScom(procTgt, 0xc0003, data64));
     }
     data64.flush<0>();
+
     // Measurement Seeprom needs to be unlocked basis the LFR
     if(lfrReg.sec_meas_seeprom)
     {
         FAPI_TRY(fapi2::getScom(procTgt, 0xc0043, data64));
         data64.setBit<31>();
         FAPI_TRY(fapi2::putScom(procTgt, 0xc0043, data64));
-        data64.flush<0>();
-        FAPI_TRY(fapi2::getScom(procTgt, 0xc0062, data64));
-        data64.clearBit<0>();
-        FAPI_TRY(fapi2::putScom(procTgt, 0xc0062, data64));
     }
     else
     {
         FAPI_TRY(fapi2::getScom(procTgt, 0xc0063, data64));
         data64.setBit<31>();
         FAPI_TRY(fapi2::putScom(procTgt, 0xc0063, data64));
-        data64.flush<0>();
-        FAPI_TRY(fapi2::getScom(procTgt, 0xc0042, data64));
-        data64.clearBit<0>();
-        FAPI_TRY(fapi2::putScom(procTgt, 0xc0042, data64));
     }
 fapi_try_exit:
     SBE_EXIT(SBE_FUNC);
@@ -1916,6 +1827,13 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     data64.clearBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
     FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
 
+    fapiRc = SBE::unlockAllSEEPROMs();
+    if (fapiRc)
+    {
+        SBE_ERROR(SBE_FUNC " SBE::unlockAllSEEPROMs failed with fapiRc[0x%8X]", fapiRc);
+        goto fapi_try_exit;
+    }
+
 fapi_try_exit:
     if(lockStatus == false || fapiRc)
     {
@@ -1926,6 +1844,7 @@ fapi_try_exit:
     return fapiRc;
     #undef SBE_FUNC
 }
+
 //----------------------------------------------------------------------------
 ReturnCode istepStopClockMpipl( voidfuncptr_t i_hwp )
 {

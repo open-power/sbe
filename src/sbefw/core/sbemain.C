@@ -48,8 +48,6 @@
 #include "p9_misc_scom_addresses.H"
 #include "sbes1handler.H"
 
-#define SBE_LCL_IVPR                    0xc0000160
-
 // Max defines for Semaphores
 static uint32_t MAX_SEMAPHORE_COUNT = 3;
 

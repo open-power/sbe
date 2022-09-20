@@ -23,8 +23,9 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 
-#define MAX_BIT_COUNT (356*1024 / 128) // Assuming 356 kb maximum 
-                                       // base image size
+// This is with an assumption that data max size is
+// less than base image max size.
+#define MAX_BIT_COUNT (SBE_BASE_IMAGE_MAX_SIZE / 128)
 
 enum
 {

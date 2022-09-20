@@ -61,7 +61,28 @@
 // We will have base_toc at the start, then at the start of base-image
 //      we will have .vector, which should 0x200 byte aligned.
 #define SBE_BASE_IMAGE_START  (SBE_BASE_ORIGIN + 0x200)
-#define SBE_BASE_IMAGE_LENGTH (SBE_BASE_LENGTH - 0x200)
+
+/***********************************************************************
+ *  SBE_BASE_IMAGE_MAX_SIZE is constrained by the following:
+ *
+ *  - verification image stack needed to accomodate an array of size
+ *    (SBE_BASE_IMAGE_MAX_SIZE / 32) (during decompression)
+ *
+ *  - when the verification image decompresses the base image, the compressed
+ *    image, the decompressed image, and the verification image co-exists in
+ *    the pibmem, with some level of overlapping
+ *
+ *  - at the end of verification step, the pibmem will contain the base image,
+ *    the base data, the base bss, the HBBL, the HDCT, the hardware data (rings
+ *    and fastarray), the attributes etc... (all sections in the toc) and the 
+ *    verification image
+ *
+ ***********************************************************************/
+#define SBE_BASE_IMAGE_MAX_SIZE (356 * 1024)
+#define SBE_BASE_DATA_MAX_SIZE  (18 * 1024)
+#define SBE_BASE_BSS_MAX_SIZE   (36 * 1024)
+
+#define SBE_BASE_IMAGE_LENGTH (SBE_BASE_IMAGE_MAX_SIZE + SBE_BASE_DATA_MAX_SIZE + SBE_BASE_BSS_MAX_SIZE)
 
 ///This Index depends upon XIP HEADER File
 // Start offset of sectionTable in XIP header. There are 8 entries

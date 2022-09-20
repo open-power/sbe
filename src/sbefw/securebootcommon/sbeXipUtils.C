@@ -22,20 +22,17 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-/*
- * @file: ppe/sbe/sbefw/core/sbeXipUtils.C
- *
- * @brief This file contains the SBE Secure Boot Verification Code
- *
- */
 
 #include "sbeXipUtils.H"
 #include "p10_sbe_spi_cmd.H"
 #include "sbeglobals.H"
+#include "sbesecuritycommon.H"
+#include "p10_scom_pibms.H"
+#include "status_codes.H"
 
 #define SBE_LFR_REG_ADDR    0xc0002040
 
-void getMSeepromXipHdr(uint8_t * io_xipHeader)
+void getMSeepromXipHdr(uint8_t * o_xipHeader)
 {
     fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
     uint32_t xipOffset = 0;
@@ -52,15 +49,16 @@ void getMSeepromXipHdr(uint8_t * io_xipHeader)
 
     SpiControlHandle handle = SpiControlHandle(i_target_chip, engine);
 
-    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, io_xipHeader);
+    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, o_xipHeader);
     if(fapiRc)
     {
-        SBE_INFO("spi_read failed with fapiRC 0x%08X for Offset 0x%08X", fapiRc, xipOffset);
-        pk_halt();
+        SBE_ERROR("spi_read failed with fapiRC 0x%08X for Offset 0x%08X", fapiRc, xipOffset);
+        secureBootStatus_t secureBootStatus;
+        UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(MSEEPROM_READ_FAILED_TO_FETCH_XIP_HDR);
     }
 }
 
-void getXipHdr(uint8_t * io_xipHeader)
+void getXipHdr(uint8_t * o_xipHeader)
 {
     fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
     uint32_t xipOffset = 0;
@@ -77,11 +75,12 @@ void getXipHdr(uint8_t * io_xipHeader)
 
     SpiControlHandle handle = SpiControlHandle(i_target_chip, engine);
 
-    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, io_xipHeader);
+    fapiRc = spi_read(handle, xipOffset, sizeof(P9XipHeader), DISCARD_ECC_ACCESS, o_xipHeader);
     if(fapiRc)
     {
-        SBE_INFO("spi_read failed with fapiRC 0x%08X for offset 0x%08X", fapiRc, xipOffset);
-        pk_halt();
+        SBE_ERROR("spi_read failed with fapiRC 0x%08X for offset 0x%08X", fapiRc, xipOffset);
+        secureBootStatus_t secureBootStatus;
+        UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(XIP_HEADER_READ_FAILED);
     }
 }
 
@@ -90,8 +89,7 @@ uint32_t getXipOffset(p9_xip_section_sbe_t xipSection)
     uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
     getXipHdr(buf);
     P9XipHeader *imgHdr = (P9XipHeader *)buf;
-    p9_xip_section_sbe_t sectionName = xipSection;
-    P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+    P9XipSection* pSection = &imgHdr->iv_section[xipSection];
     return pSection->iv_offset;
 }
 
@@ -106,8 +104,7 @@ uint32_t getXipSize(p9_xip_section_sbe_t xipSection)
     uint8_t buf[sizeof(P9XipHeader)] __attribute__ ((aligned(8))) = {0};
     getXipHdr(buf);
     P9XipHeader *imgHdr = (P9XipHeader *)buf;
-    p9_xip_section_sbe_t sectionName = xipSection;
-    P9XipSection* pSection = &imgHdr->iv_section[sectionName];
+    P9XipSection* pSection = &imgHdr->iv_section[xipSection];
     return (pSection->iv_size);
 }
 

@@ -286,5 +286,37 @@ namespace SBE
         SBE_INFO( SBE_FUNC " Hard-resetting the TPM SPI engine before Mpipl Reset");
         #undef SBE_FUNC
     }
+
+    fapi2::ReturnCode unlockAllSEEPROMs()
+    {
+        #define SBE_FUNC "unlockAllSEEPROMs"
+        SBE_ENTER(SBE_FUNC);
+
+        fapi2::buffer<uint64_t> data64;
+        fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> procTgt = fapi2::plat_getChipTarget();
+
+        // Disable all Primary/Secondary Boot/Measurement Seeproms
+        for (uint32_t spiAddr = 0x000C0003; spiAddr <= 0x000C0063; spiAddr += 0x20)
+        {
+            data64.flush<0>();
+            FAPI_TRY(fapi2::getScom(procTgt, spiAddr, data64));
+            data64.clearBit<31>();
+            FAPI_TRY(fapi2::putScom(procTgt, spiAddr, data64));
+        }
+
+        // Unlock all Primary/Secondary Boot/Measurement Seeproms
+        for (uint32_t spiAddr = 0x000C0002; spiAddr <= 0x000C0062; spiAddr += 0x20)
+        {
+            data64.flush<0>();
+            FAPI_TRY(fapi2::getScom(procTgt, spiAddr, data64));
+            data64.clearBit<0>();
+            FAPI_TRY(fapi2::putScom(procTgt, spiAddr, data64));
+        }
+
+        fapi_try_exit:
+            SBE_EXIT(SBE_FUNC);
+            return fapi2::current_err;
+            #undef SBE_FUNC
+    }
 }
 
