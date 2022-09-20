@@ -183,7 +183,8 @@ typedef struct sbe_local_LFR {
     uint32_t spi_clock_divider: 12;       //Bit0-11 clock divider bits
     uint32_t sec_boot_seeprom : 1;        //Bit 12 Set if sec boot sprm is in use
     uint32_t sec_meas_seeprom : 1;        //Bit 13 Set if sec measure sprm is in use
-    uint32_t mpipl : 1;                   //Bit 14 Set if mpipl is triggered
+    uint32_t mpipl : 1;                   //Bit 14 Not supported from 1030
+                                          //       onwards
     uint32_t ipl_reset : 1;               //Bit 15 Set if SBE is reset via 50008:bit12
     uint32_t runtime_reset : 1;           //Bit 16 Set if SBE is reset via 50008:bit13
     uint32_t hreset_done : 1;             //Bit 17 Set if HReset flow is done in FW

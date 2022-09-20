@@ -132,13 +132,18 @@ uint32_t sbeControlFastArrayWrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
                 break;
             }
 
-            uint32_t *control_data = (req.hdr.control_set - 1) ?
-                                     (uint32_t *)(((base_toc_t*)(SBE_BASE_ORIGIN))->fa_mma_start) :
-                                     (uint32_t *)(((base_toc_t*)(SBE_BASE_ORIGIN))->fa_cl2_start);
-
-            size_t control_data_size = (req.hdr.control_set - 1) ?
-                                       (((base_toc_t*)(SBE_BASE_ORIGIN))->fa_mma_size) :
-                                       (((base_toc_t*)(SBE_BASE_ORIGIN))->fa_cl2_size);
+            uint32_t *control_data = NULL;
+            size_t control_data_size = 0;
+            if (req.hdr.control_set > 1)
+            { 
+                control_data = (uint32_t *)(BASE_IMG_TOC->fa_mma_start);
+                control_data_size = BASE_IMG_TOC->fa_mma_size;
+            }
+            else
+            {
+                control_data = (uint32_t *)(BASE_IMG_TOC->fa_cl2_start);
+                control_data_size = BASE_IMG_TOC->fa_cl2_size;
+            }
 
             SBE_INFO( SBE_FUNC "Start Offset [0x%08X] Size [0x%08X]",
                 control_data, control_data_size);

@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -53,11 +54,11 @@ const uint32_t g_ivprLoc = 0xC0000160;
 /*
  *  @brief Get Measurement Seeprom XIP image header
  *
- *  @param[in] Pointer to P9XipHeader.
+ *  @param[out] Pointer to P9XipHeader.
  *
  *  @return void
  */
-void getMSeepromXipHdr(uint8_t * io_xipHeader);
+void getMSeepromXipHdr(uint8_t * o_xipHeader);
 
 // Get Measurement Seeprom Section start addess
 inline uint8_t * getMSeepromSectionAddr( P9XipSection * i_section )
@@ -68,11 +69,11 @@ inline uint8_t * getMSeepromSectionAddr( P9XipSection * i_section )
 /*
  *  @brief Get XIP image header
  *
- *  @param[in] Pointer to P9XipHeader.
+ *  @param[out] Pointer to P9XipHeader.
  *
  *  @return void
  */
-void getXipHdr(uint8_t * io_xipHeader);
+void getXipHdr(uint8_t * o_xipHeader);
 
 // Get Section start addess
 inline uint8_t * getSectionAddr( P9XipSection * i_section )

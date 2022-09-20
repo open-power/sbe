@@ -35,6 +35,8 @@ extern "C" {
 }
 #endif
 
+#include "return_code.H"
+
 #define MASK_ZERO_L32B_UINT64(x)    ((x) & 0xFFFFFFFF00000000ull)
 #define MASK_ZERO_H32B_UINT64(x)    ((x) & 0x00000000FFFFFFFFull)
 #define SHIFT_RIGHT(x, bits)        ((x) >> bits)
@@ -334,6 +336,15 @@ namespace SBE
      * @return - void
      */
     void hardResetTPMSpiEngine(void);
+
+    /// @brief  Unlock boot SEEPROMs and measurement SEEPROMs
+    ///
+    /// @return FAPI_RC_SUCCESS if all the SEEPROMs have been successfully unlocked
+    ///         else error code.
+    ///
+    //fapi2::ReturnCode unlockAllSEEPROMs();
+    //
+    fapi2::ReturnCode unlockAllSEEPROMs();
 
 } // namespace SBE
 #endif //SBE_UTIL_H

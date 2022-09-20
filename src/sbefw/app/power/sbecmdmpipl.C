@@ -318,6 +318,7 @@ uint32_t sbeEnterMpipl(uint8_t *i_pArg)
             secRc = SBE_SEC_ENTER_MPIPL_FAILED;
             break;
         }
+        SBE_INFO(SBE_FUNC "stopAllCoreInstructions() successfully completed.");
         ignoreAddrError = false;
         status = 0;
         // Perform Sync up with other SBEs in the system

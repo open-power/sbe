@@ -38,6 +38,7 @@
 #include "sbeXipUtils.H"
 #include "sbeutil.H"
 #include "sbevutil.H"
+#include "p10_scom_pibms.H"
 
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }
@@ -463,7 +464,15 @@ ROM_response verifySecureHdr(
     {
         SBEV_ERROR(SBEV_FUNC " Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
                 fapirc, start_address, endAddress);
-        pk_halt();
+        secureBootStatus_t secureBootStatus;
+        if ( secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE ) 
+        {
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SBH_FIRMWARE_LOAD_FAILED);
+        } 
+        else
+        {
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SBH_HBBL_LOAD_FAILED);
+        }
     }
 
     status = ROM_verify((ROM_container_raw*)container, &l_hw_parms, hw_sig_to_verify, payload_hash, payload_size, &secureHdrResponse->flag);

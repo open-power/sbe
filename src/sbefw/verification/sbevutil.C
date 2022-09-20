@@ -28,6 +28,8 @@
 #include "sbeglobals.H"
 #include "sbeXipUtils.H"
 #include "sbevtrace.H"
+#include "p10_scom_pibms.H"
+#include "status_codes.H"
 
 #define SBE_LCL_IVPR                    0xc0000160
 #define SBE_SYST_RESET_VECTOR_OFFSET    0x40
@@ -272,3 +274,4 @@ fapi2::ReturnCode loadSeepromtoPibmem(
     #undef SBEV_FUNC
     return fapiRc;
 }
+
