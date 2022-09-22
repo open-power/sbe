@@ -83,16 +83,19 @@ static timerService g_sbe_pk_Host_Alive_timer;
 
 #define NUMBER_IMG_TYPE 2
 #define NUMBER_MEAS_REGISTERS 4
+#define NUMBER_PCR1_MEASUREMENTS 3
 
-const uint32_t measRegs[NUMBER_IMG_TYPE][NUMBER_MEAS_REGISTERS] = 
-{ 
+const uint32_t measRegs[NUMBER_IMG_TYPE][NUMBER_MEAS_REGISTERS] =
+{
     {
+        /* Verification image */
         OTPROM_MEASUREMENT_REG4,
         OTPROM_MEASUREMENT_REG5,
         OTPROM_MEASUREMENT_REG6,
         OTPROM_MEASUREMENT_REG7,
     },
     {
+        /* SBE image */
         OTPROM_MEASUREMENT_REG8,
         OTPROM_MEASUREMENT_REG9,
         OTPROM_MEASUREMENT_REG10,
@@ -564,6 +567,14 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
     fapi2::buffer<uint64_t> securityReg;
     adu_operationFlag l_myAduFlag;
     SHA512truncated_t sha512Truncated[NUMBER_IMG_TYPE];
+    SHA512truncated_t dataPCR1;
+
+    uint32_t PCR1_MEASUREMENTS[NUMBER_PCR1_MEASUREMENTS] =
+    {
+        OTPROM_MEASUREMENT_REG1,    /* HW keys hash */
+        OTPROM_MEASUREMENT_REG2,    /* SBE security state */
+        OTPROM_MEASUREMENT_REG3     /* Security switches */
+    };
 
     do
     {
@@ -583,8 +594,7 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
         //Gather system information
         FAPI_ATTR_GET(fapi2::ATTR_SBE_SYS_CONFIG, FAPI_SYSTEM, sysConfig());
         SBE_INFO("Current System configuration : %.8x%.8x",
-             (((uint64_t)sysConfig & 0xFFFFFFFF00000000ull) >> 32),
-             ((uint64_t)sysConfig & 0xFFFFFFFF));
+             SBE::higher32BWord(sysConfig), SBE::lower32BWord(sysConfig));
 
         //Setup ADU flags
         l_myAduFlag.setOperationType(adu_operationFlag::CACHE_INHIBIT);
@@ -628,13 +638,13 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
                     topoIndexBits.mode1.group = group_id;
                     topoIndexBits.mode1.chip = chip_id;
                 }
-            SBE_INFO(
-        "TopologyId=0x%.8x,group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
-                        TopologyId, group_id, chip_id, topoIndexBits.topoIndex);
-
-                if (l_fabric_eff_topology_id == topoIndexBits.topoIndex)
+                SBE_INFO("TopologyId=0x%.8x,group_id=0x%.8x,"
+                         "chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
+                         TopologyId, group_id, chip_id, topoIndexBits.topoIndex);
+                if (l_fabric_eff_topology_id == TopologyId)
                 {
-                    SBE_INFO("topoIndex matches with fabric_eff_topology_id.Skipping...");
+                    SBE_INFO("TopologyId matches with fabric_eff_topology_id."
+                             "Skipping...");
                     continue;
                 }
                 //Read verification image measurement registers
@@ -734,6 +744,80 @@ static uint32_t sbeExtendSecondaryMeasurementRegVal(void)
                         "group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
                         group_id, chip_id, topoIndexBits.topoIndex);
                     tpmRespCode=SBER_TPM_EXTEND_SBE_FW_IMAGE_HASH_PCR0_FAILURE;
+                    break;
+                }
+
+                for (uint8_t i=0; i<NUMBER_PCR1_MEASUREMENTS; i++)
+                {
+                    //XSCOM_BASE_ADDR as per ADU document
+                    //PIB Address(0x000100XX) in address location 30:60
+                    //Topology Index (5bit) MODE0:GGG0C / MODE1:0GGCC
+                    address =  (ADU_XSCOM_BASE_ADDR +
+                        (MMIO_OFFSET_PER_TOPO_INDEX * topoIndexBits.topoIndex)) |
+                        (PCR1_MEASUREMENTS[i] << 3);
+
+                    // To read from each chip
+                    // Set up ADU
+                    SBE_EXEC_HWP(rc,
+                                 p10_adu_setup,
+                                 procTgt,
+                                 address,
+                                 l_rnw,
+                                 l_myAduFlag.setFlag(),
+                                 granulesBeforeSetup);
+                    if (rc)
+                    {
+                        SBE_ERROR(SBE_FUNC "p10_adu_setup failed, RC=[0x%08X]."
+                        "group_id=0x%.8x, chip_id=0x%.8x "
+                        "topoIndexBits.topoIndex=0x%x",
+                        rc, group_id, chip_id, topoIndexBits.topoIndex);
+                        tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
+                        break;
+                    }
+
+                    // Access ADU
+                    SBE_EXEC_HWP(rc,
+                                 p10_adu_access,
+                                 procTgt,
+                                 address,
+                                 l_rnw,
+                                 l_myAduFlag.setFlag(),
+                                 firstGranule,
+                                 lastGranule,
+                                 data);
+                    if (rc)
+                    {
+                        SBE_ERROR(SBE_FUNC "p10_adu_access failed, RC=[0x%08X]."
+                        "group_id=0x%.8x, chip_id=0x%.8x "
+                        "topoIndexBits.topoIndex=0x%x",
+                        rc, group_id, chip_id, topoIndexBits.topoIndex);
+                        tpmRespCode=SBER_FAILED_READING_SECONDARY_OTPROM_MEASUREMENT;
+                        break;
+                    }
+
+                    SBE_INFO("PCR1 measurement [%d] : %.8x%.8x", i,
+                    SBE::higher32BWord(*((uint64_t*)data)),
+                    SBE::lower32BWord(*((uint64_t*)data)));
+
+                    memset(dataPCR1, 0x00, sizeof(SHA512truncated_t));
+                    memcpy(dataPCR1, data, sizeof(data));
+                    rc = tpmExtendPCR(TPM_PCR1, dataPCR1,
+                                    sizeof(SHA512truncated_t));
+                    if (rc)
+                    {
+                        SBE_ERROR(SBE_FUNC "tpmExtendPCR failed while extending "
+                            "to PCR1");
+                        SBE_ERROR(SBE_FUNC
+                    "group_id=0x%.8x, chip_id=0x%.8x topoIndexBits.topoIndex=0x%x",
+                     group_id, chip_id, topoIndexBits.topoIndex);
+                     tpmRespCode = SBER_TPM_EXTEND_PCR1_FAILURE;
+                        break;
+                    }
+                }
+                if (rc)
+                {
+                    // Go out of the for loop that iterates through
+                    // the topology
                     break;
                 }
             }
