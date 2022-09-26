@@ -43,6 +43,7 @@
 #include "sbecmdcntlinst.H"
 #include "plat_target_parms.H"
 #include "sbecmdregaccess.H"
+#include "p10_scom_c_0.H"
 
 // FastArray Data Size for DD1
 #define FAST_ARRAY_CTRL_SET1_DD1_SIZE 0x48E18
@@ -415,6 +416,12 @@ bool sbeCollectDump::checkScomAndScanStateForCore()
         if( iv_tocRow.tocHeader.cmdType == CMD_GETRING )
         {
             uint32_t addr = iv_hdctRow->cmdGetRing.ringAddr;
+            // Check if core is in STOP3 state or not.
+            if(iv_QMECoreScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum])
+            {
+                scomAndScanState = false;
+                break;;
+            }
             // Check if the scom address is of L2 region.
             if( 0x20032000 == ( addr &(0xFFFFFF00) ))
             {
@@ -435,6 +442,12 @@ bool sbeCollectDump::checkScomAndScanStateForCore()
         }
         if( iv_tocRow.tocHeader.cmdType == CMD_GETFASTARRAY )
         {
+            // Check if core is in STOP3 state or not.
+            if(iv_QMECoreScanState[(uint32_t)iv_tocRow.tocHeader.chipUnitNum])
+            {
+                scomAndScanState = false;
+                break;
+            }
             // Check for the control set.
             // 0x01: ec_cl2_far
             // 0x02: ec_mma_far
@@ -454,6 +467,60 @@ bool sbeCollectDump::checkScomAndScanStateForCore()
     return scomAndScanState;
     #undef SBE_FUNC
 }
+
+void sbeCollectDump::populateAllCoresStop3State()
+{
+    #define SBE_FUNC "populateAllCoresStop3State"
+    SBE_ENTER(SBE_FUNC);
+    do
+    {
+        //Fetch all EQ Targets
+        Target<TARGET_TYPE_PROC_CHIP > procTgt = plat_getChipTarget();
+        for(auto eqTgt: procTgt.getChildren<fapi2::TARGET_TYPE_EQ>())
+        {
+            for (auto coreTgt : eqTgt.getChildren<fapi2::TARGET_TYPE_CORE>())
+            {
+                uint32_t coreNum = coreTgt.get().getTargetInstance();
+                bool coreStop3State = false;
+                fapi2::buffer<uint64_t> qme_ssh_otr_data64;
+                uint32_t stop_level = 0;
+                uint32_t stop_transition = 0;
+                ReturnCode fapiRc = getscom_abs_wrap ( &coreTgt,
+                                                       scomt::c::QME_SSH_OTR,
+                                                       &qme_ssh_otr_data64() );
+                if( fapiRc != FAPI2_RC_SUCCESS )
+                {
+                    SBE_ERROR("DUMP CORE STOP3: getscom error for Core Stop3 ",
+                              "Status.Target UnitNum[0x%08X], fapiRc[0x%08X]",
+                               coreTgt.get().getTargetInstance(), fapiRc);
+                    coreStop3State = true;
+                }
+                else
+                {
+                    qme_ssh_otr_data64.extractToRight<scomt::c::QME_SSH_OTR_STOP_TRANSITION,
+                                 scomt::c::QME_SSH_OTR_STOP_TRANSITION_LEN>(stop_transition);
+                    qme_ssh_otr_data64.extractToRight<scomt::c::QME_SSH_OTR_ACT_STOP_LEVEL,
+                                 scomt::c::QME_SSH_OTR_ACT_STOP_LEVEL_LEN>(stop_level);
+                    if ((qme_ssh_otr_data64.getBit(scomt::c::QME_SSH_OTR_STOP_GATED) &&
+                       (stop_level == 3)) || (stop_transition != 0) )
+                    {
+                        coreStop3State = true;
+                    }
+                }
+                // Update Core Stop Status DUMP header
+                SBE_INFO(SBE_FUNC "Core Stop3 Status Enabled Target UnitNum[0x%08X]",
+                                   coreTgt.get().getTargetInstance());
+                // Populate QME state for all cores.
+                iv_QMECoreScanState[coreNum] = coreStop3State;
+            }
+        }
+    }while(0);
+
+    SBE_EXIT(SBE_FUNC);
+    return;
+    #undef SBE_FUNC
+}
+
 
 uint32_t sbeCollectDump::writeGetFastArrayPacketToFifo()
 {
@@ -1667,10 +1734,14 @@ uint32_t sbeCollectDump::collectAllHDCTEntries()
         // Gather scom and scan state for all the cores.
         populateAllCoresScomScanState();
 
+        // Populate QME state for all cores.
+        populateAllCoresStop3State();
+
         for(uint32_t coreNum = 0; coreNum < CORE_TARGET_COUNT; coreNum++)
         {
              SBE_DEBUG(SBE_FUNC "Core num:0x%02X L2 scom state:0x%02X L3 scom state:0x%02X", coreNum, iv_L2ScomState[coreNum], iv_L3ScomState[coreNum]);
              SBE_DEBUG(SBE_FUNC "L2 scan state:0x%02X L3 scan state:0x%02X MMA scan state:0x%02X", iv_L2ScanState[coreNum], iv_L3ScanState[coreNum], iv_MMAScanState[coreNum]);
+             SBE_DEBUG(SBE_FUNC "QME state :0x%02X ", iv_QMECoreScanState[coreNum] );
         }
 
         // Write the dump header to FIFO
