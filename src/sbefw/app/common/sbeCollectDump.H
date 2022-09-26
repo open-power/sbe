@@ -155,6 +155,7 @@ class sbeCollectDump
         bool  iv_L3ScanState[CORE_TARGET_COUNT];
         bool  iv_L2ScanState[CORE_TARGET_COUNT];
         bool  iv_MMAScanState[CORE_TARGET_COUNT];
+        bool  iv_QMECoreScanState[CORE_TARGET_COUNT];
         uint32_t iv_OCMBInstance; // OCMB instance number
 
         genericHdctRow_t *iv_hdctRow;
@@ -209,6 +210,7 @@ class sbeCollectDump
                  iv_L3ScanState[coreNum] = true;
                  iv_L2ScanState[coreNum] = true;
                  iv_MMAScanState[coreNum] = true;
+                 iv_QMECoreScanState[coreNum] = true;
              }
          }
          ~sbeCollectDump()
@@ -263,6 +265,13 @@ class sbeCollectDump
          * @return void
          */
         void populateAllCoresScomScanState();
+
+        /*
+         * @brief Check core state is STOP3 or not.
+         *
+         * @return bool true if the core is state is STOP3.
+         */
+        void populateAllCoresStop3State();
 
         /*
          * @brief Check scom and scan state for the core target.
