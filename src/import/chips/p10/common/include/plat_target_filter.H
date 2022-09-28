@@ -71,7 +71,7 @@ constexpr uint64_t PLAT_TARGET_FILTER_EQ4         = 0x0000004000000000;  // Perv
 constexpr uint64_t PLAT_TARGET_FILTER_EQ5         = 0x0000002000000000;  // Pervasive 37
 constexpr uint64_t PLAT_TARGET_FILTER_EQ6         = 0x0000001000000000;  // Pervasive 38
 constexpr uint64_t PLAT_TARGET_FILTER_EQ7         = 0x0000000800000000;  // Pervasive 39
-constexpr uint64_t PLAT_TARGET_FILTER_MC          = 0x0200000000000000;
+constexpr uint64_t PLAT_TARGET_FILTER_MC          = 0x0100000000000000;
 
 } // namespace PlatTargetFilter
 
