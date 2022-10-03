@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -42,10 +42,9 @@
 #include "p10_scom_proc_2.H"
 #include "p10_scom_proc_d.H"
 #include "p10_scom_proc_e.H"
+#include "p10_sbe_spi_cmd.H"
 #include <p10_perv_sbe_cmn.H>
 #include <target_filters.H>
-
-#define SEEPROM_START 0xFF800000
 
 enum P10_SBE_NPLL_SETUP_Private_Constants
 {
@@ -57,6 +56,8 @@ enum P10_SBE_NPLL_SETUP_Private_Constants
     PAU_DPLL_INITIALIZE_MODE1 = 0xA000000000000000,
     NEST_DPLL_INITIALIZE_MODE1 = 0xA001010000000000,
     NEST_DPLL_INITIALIZE_MODE2 = 0x8001010000000000,
+    SBE_LFR = 0x000C0002040,
+    SECONDARY_BOOT_SEEPROM_BIT = 12,
 };
 
 fapi2::ReturnCode p10_sbe_check_magicnumber(
@@ -345,17 +346,30 @@ fapi_try_exit:
 fapi2::ReturnCode p10_sbe_check_magicnumber(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
-    fapi2::buffer<uint64_t> l_read_reg;
+    fapi2::buffer<uint64_t> l_data64;
+    uint64_t l_data_reg = 0;
+    size_t engine = SPI_ENGINE_PRIMARY_BOOT_SEEPROM;
 
     FAPI_INF("p10_sbe_check_magicnumber: Entering ...");
 
-    // Read SEEPROM start address FF800000 for magic number
-    l_read_reg = *reinterpret_cast<volatile uint64_t*>(SEEPROM_START);
+    FAPI_TRY(fapi2::getScom(i_target_chip, SBE_LFR, l_data64));
 
-    FAPI_ASSERT(l_read_reg == MAGIC_NUMBER,
+    if ( l_data64.getBit<SECONDARY_BOOT_SEEPROM_BIT>() )
+    {
+        engine = SPI_ENGINE_BACKUP_BOOT_SEEPROM;
+    }
+
+    {
+        uint32_t l_offset = 0;
+        SpiControlHandle handle(i_target_chip, engine);
+        FAPI_TRY(spi_read(handle, l_offset, sizeof(uint64_t), DISCARD_ECC_ACCESS,
+                          reinterpret_cast<uint8_t*>(&l_data_reg)));
+    }
+
+    FAPI_ASSERT(l_data_reg == MAGIC_NUMBER,
                 fapi2::MAGIC_NUMBER_NOT_VALID()
                 .set_CHIP_TARGET(i_target_chip)
-                .set_SEEPROM_START_ADDR(l_read_reg)
+                .set_SEEPROM_START_ADDR(l_data_reg)
                 .set_MAGIC_NUMBER_VALUE(MAGIC_NUMBER),
                 "ERROR: Magic number not matching");
 
