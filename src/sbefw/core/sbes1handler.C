@@ -82,8 +82,6 @@ void __wait_for_s1()
 void __s1_interupt_handler()
 {
 
-    SBE_INFO("S1 interrupt triggered. HRESET PPE...");
-
     asm(
         // load r4 with 0xC0000000
         " lis    %r4, 0xC000\n "
