@@ -186,26 +186,7 @@ def collectStackUsage ( procNr, nodeNr=0 ):
         print(str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16)))))))
 
 def updateAttrPG( eccFile, coreNr, procNr=0, nodeNr=0 ):
-  eccBinName = eccFile.split('/')[-1]
-  cmd1 = "shell \"mkdir -p " + os.getcwd() + "/sbe_updated_seeprom_image \""
-  quiet_run_command( cmd1, output_modes.regular )
-
-  cmd2 = "shell \"cp " + eccFile + " " + os.getcwd() + "/sbe_updated_seeprom_image/ \""
-  quiet_run_command( cmd2, output_modes.regular )
-
-  filename = os.getcwd() + "/sbe_updated_seeprom_image/" + eccBinName
-  sbeUpdateAttrPG.updateAttrPg(filename, coreNr)
-
-  sfilename = "\"" + filename + "\""
-  cmd3 = simicsObjForPrimarySeeprom + "->files = [[" + sfilename + ", \"ro\", 0, 0 ]]"
-  ( rc, out ) = quiet_run_command( cmd3, output_modes.regular )
-  if ( rc ):
-    print("simics ERROR running %s: %d "%( cmd3, rc ))
-
-  cmd4 = simicsObjForBackupSeeprom + "->files = [[" + sfilename + ", \"ro\", 0, 0 ]]"
-  ( rc, out ) = quiet_run_command( cmd4, output_modes.regular )
-  if ( rc ):
-    print("simics ERROR running %s: %d "%( cmd4, rc ))
+  sbeUpdateAttrPG.updateAttrPg(eccFile, coreNr)
 
 def collectAttr( procNr, nodeNr=0 ):
   cmd= "pipe \"" + simicsPrcObj[procNr] + ".sbe_mibo.x " + '0xFFFE8000' + " "+hex(96*1024)+"\" \"sed 's/^p:0x........ //g' | sed 's/ ................$//g' | sed 's/ //g' | xxd -r -p> DumpFullPIBMEM\""
