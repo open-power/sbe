@@ -48,6 +48,8 @@
 #include "p9_misc_scom_addresses.H"
 #include "sbes1handler.H"
 
+#define SBE_LCL_IVPR                    0xc0000160
+
 // Max defines for Semaphores
 static uint32_t MAX_SEMAPHORE_COUNT = 3;
 
@@ -78,6 +80,8 @@ void __eabi()
         SBE_GLOBAL->isHreset = SBE::isHreset();
         if (SBE_GLOBAL->isHreset || SBE::isMpiplReset())
         {
+            uint64_t data = (uint64_t)SBE_BASE_IMAGE_START << 32;
+            PPE_STVD(SBE_LCL_IVPR, data);
             // skip constructors
             break;
         }
