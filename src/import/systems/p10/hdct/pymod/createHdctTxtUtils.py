@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2022
+# Contributors Listed Below - COPYRIGHT 2022,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -41,10 +41,7 @@ import binascii
 # Add the common modules to the path
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__))))
 # Our supporting modules
-from dumpConstants import out
-# Since this script can be called stand alone, define out if not already defined
-if (out == None):
-    out = output.out()
+from output import out
 import dumpConstants
 
 ############################################################
@@ -125,72 +122,72 @@ def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
 
         if((genericVal != b'')):
 
-             entry = HDCTBinEntry(parserUsage)
+            entry = HDCTBinEntry(parserUsage)
 
-             #decodeGenericVal
-             data = int.from_bytes(genericVal, "big")
-             out.debug("genericVal: %s" % hex(data))
+            #decodeGenericVal
+            data = int.from_bytes(genericVal, "big")
+            out.debug("genericVal: %s" % hex(data))
 
-                #decodeContent in genericVal
-             content = data & 0x000003FF
-             out.debug("content: %s" % content)
+            #decodeContent in genericVal
+            content = data & 0x000003FF
+            out.debug("content: %s" % content)
 
-             dumpType = []
-             for i in range(10):
-                 if(((content & (1 << i)) >> i) == 0x01):
-                     try:
+            dumpType = []
+            for i in range(10):
+                if(((content & (1 << i)) >> i) == 0x01):
+                    try:
                         dumpType.append(dumpConstants.dumpTypeIDToString["ebmc"][struct.pack("B",i)])
-                     except:
+                    except:
                         out.critical("Unknown Dump Type Found %s" % i)
                         sys.exit(-1)
-             #Rearrange the dump types as per HDCT.txt order
-             entry.dumpTypes = sorted(dumpType, key=lambda x: hdctDumpTypes[x])
+            #Rearrange the dump types as per HDCT.txt order
+            entry.dumpTypes = sorted(dumpType, key=lambda x: hdctDumpTypes[x])
 
-                #decodeCmd in genericVal
-             cmd = (data & 0x00003C00) >> 10
-             out.debug("cmd: %s" % cmd)
+            #decodeCmd in genericVal
+            cmd = (data & 0x00003C00) >> 10
+            out.debug("cmd: %s" % cmd)
 
-             try:
-                cmdTxt = dumpConstants.commandIdToString[struct.pack("B", cmd)];
-             except:
+            try:
+                cmdTxt = dumpConstants.commandIdToString[struct.pack("B", cmd)]
+            except:
                 out.critical("Unknown Command Type Found %s" % cmd)
                 sys.exit(-1)
 
-             entry.command = cmdTxt
+            entry.command = cmdTxt
 
-                #decodeChipInfo in genericVal
-             chipInfo = (data & 0xFFFFC000) >> 14
-             out.debug("Chip Info: %s" % chipInfo)
+            #decodeChipInfo in genericVal
+            chipInfo = (data & 0xFFFFC000) >> 14
+            out.debug("Chip Info: %s" % chipInfo)
 
-             chipUnitType = (chipInfo & 0x3F000) >> 12
-             try:
-                chipUnitTypeTxt = dumpConstants.chipUnitTypeIdToString[struct.pack("B",chipUnitType)];
-             except:
+            chipUnitType = (chipInfo & 0x3F000) >> 12
+            try:
+                chipUnitTypeTxt = dumpConstants.chipUnitTypeIdToString[struct.pack("B",chipUnitType)]
+            except:
                 out.critical("Unknown Chip Unit Type Found %s" % chipUnitType)
                 sys.exit(-1)
-             if chipUnitType != 0x00:
+            if chipUnitType != 0x00:
                 entry.chipUnitType = chipUnitTypeTxt
 
-             if ( (entry.command != "getmempba") and (entry.chipUnitType != "ocmb") ):
+            if ( (entry.command != "getmempba") and (entry.chipUnitType != "ocmb") ):
                 entry.chipType = "pu"
 
-                #decodeStartEnd in genericVal
-             data = int.from_bytes(genericVal, "big")
-             chipInfo = (data & 0xFFFFC000) >> 14
+            #decodeStartEnd in genericVal
+            data = int.from_bytes(genericVal, "big")
+            chipInfo = (data & 0xFFFFC000) >> 14
 
-             entry.chipletStart = start = (chipInfo & 0x00FC0) >> 6
-             out.debug("fst chiplet: %s" % start)
+            entry.chipletStart = start = (chipInfo & 0x00FC0) >> 6
+            out.debug("fst chiplet: %s" % start)
 
-             entry.chipletEnd = end = (chipInfo & 0x0003F)
-             out.debug("lst chiplet: %s" % end)
+            entry.chipletEnd = end = (chipInfo & 0x0003F)
+            out.debug("lst chiplet: %s" % end)
 
-             if((start != 0x00) and (end != 0x00)):
-                 entry.chipUnitNum = str(start) + ".." + str(end)
-             elif((start != 0x00) and (end == 0x00)):
-                 entry.chipUnitNum = str(start)
+            if((start != 0x00) and (end != 0x00)):
+                entry.chipUnitNum = str(start) + ".." + str(end)
+            elif((start != 0x00) and (end == 0x00)):
+                entry.chipUnitNum = str(start)
 
-             # decodeAddrID
-             if(cmdTxt == 'gettracearray') or (cmdTxt == 'getring') or (cmdTxt == 'stopclocks') or (cmdTxt == 'getfastarray'):
+            # decodeAddrID
+            if(cmdTxt == 'gettracearray') or (cmdTxt == 'getring') or (cmdTxt == 'stopclocks') or (cmdTxt == 'getfastarray'):
                 addrID = file.read(4)
                 val = int.from_bytes(addrID, "big")
                 #String values are not required in ppe/sbe test cse
@@ -199,57 +196,57 @@ def createHDCTTxt(HDCTBinFileName, parserUsage = "ppe", stringHashDict = None):
                     entry.address = commandArg
                 else:
                     entry.address = str(format(val,'08X'))
-             else:
+            else:
                 addrID = file.read(4)
                 commandArg = int.from_bytes(addrID, "big")
                 entry.address = str(format(commandArg,'08X'))
 
-             #decode control_set in case of fast array and write into dictionary
-             #Will not be validated as it is not a part of HDCT.txt
-             if(entry.command == "getfastarray"):
+            #decode control_set in case of fast array and write into dictionary
+            #Will not be validated as it is not a part of HDCT.txt
+            if(entry.command == "getfastarray"):
                 entry.addDetails.update({entry.address:int.from_bytes(file.read(4), "big")})
 
-             #Decode ring address and length in case of getring and write into dictionary.
-             #Will not be validated as it is not part of HDCT.txt
-             if(entry.command == "getring"):
+            #Decode ring address and length in case of getring and write into dictionary.
+            #Will not be validated as it is not part of HDCT.txt
+            if(entry.command == "getring"):
                 entry.addDetails.update({entry.address:{"ringAddr":int.from_bytes(file.read(4),"big"), "ringLen":int.from_bytes(file.read(4), "big")}})
 
-             #Decode trace array ID and write into dict
-             #Will not be validated as it is not part of HDCT.txt
-             if(entry.command == "gettracearray"):
+            #Decode trace array ID and write into dict
+            #Will not be validated as it is not part of HDCT.txt
+            if(entry.command == "gettracearray"):
                 entry.addDetails.update({entry.address:int.from_bytes(file.read(4),"big")})
 
-             #Decode target type in case of stop clocks and write into dict
-             #Will not be validated as it is not part of HDCT.txt
-             if(entry.command == "stopclocks"):
+            #Decode target type in case of stop clocks and write into dict
+            #Will not be validated as it is not part of HDCT.txt
+            if(entry.command == "stopclocks"):
                 entry.addDetails.update({entry.address:int.from_bytes(file.read(4),"big")})
 
-             #decodeFunArg
-             args = {}
+            #decodeFunArg
+            args = {}
 
-             if cmdTxt == "putscom":
+            if cmdTxt == "putscom":
                 funArg = file.read(8)
                 functArg = int.from_bytes(funArg , "big")
                 args["i_data"] = str(format(functArg,'016X'))
-             elif(cmdTxt == 'getsram') or (cmdTxt == 'getmempba'):
+            elif(cmdTxt == 'getsram') or (cmdTxt == 'getmempba'):
                 funArg = file.read(8)
                 functArg = int.from_bytes(funArg , "big")
                 args["i_bytes"] = str(format(functArg,'016'))
-             entry.funcargs = args
+            entry.funcargs = args
 
-             #Decode -bor/-band if present for putscom
-             if(entry.command == "putscom"):
-                 bit_modifier = int.from_bytes(file.read(4),"big")
-                 if bit_modifier == 0x01:
-                     entry.funcargs["i_band"] = True
-                 elif bit_modifier == 0x02:
-                     entry.funcargs["i_bor"] = True
+            #Decode -bor/-band if present for putscom
+            if(entry.command == "putscom"):
+                bit_modifier = int.from_bytes(file.read(4),"big")
+                if bit_modifier == 0x01:
+                    entry.funcargs["i_band"] = True
+                elif bit_modifier == 0x02:
+                    entry.funcargs["i_bor"] = True
 
-             #Decode mode/channel if present for getsram
-             if (entry.command == "getsram"):
-                 entry.funcargs["i_channel"] = str(int.from_bytes(file.read(4),"big"))
+            #Decode mode/channel if present for getsram
+            if (entry.command == "getsram"):
+                entry.funcargs["i_channel"] = str(int.from_bytes(file.read(4),"big"))
 
-             hdctTxtEntries.append(entry)
+            hdctTxtEntries.append(entry)
         else:
             break
     file.close()
