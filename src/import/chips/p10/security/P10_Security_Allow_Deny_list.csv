@@ -681,3 +681,4 @@ Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Desc
 ,MMx,2010C2E,0x02-0x03,,HWSV,topology id translation table entries 16:23,,write_allowlist
 ,MMx,2010C2F,0x02-0x03,,HWSV,topology id translation table entries 24:31,,write_allowlist
 ,IOHS PHY,10012C3F,0x10-0x13,,HWSV,IOHS PHY Indirect Registers,,write_allowlist
+,IOHS PHY,10012C21,0x10-0x13,,HWSV,PPE Work Register 1,,write_allowlist
