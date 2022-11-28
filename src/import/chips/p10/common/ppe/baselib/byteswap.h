@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/import/chips/p10/common/ppe/baselib/endian.h $            */
+/* $Source: src/import/chips/p10/common/ppe/baselib/byteswap.h $          */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2022                             */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -22,28 +22,31 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#ifndef __ENDIAN_H__
-#define __ENDIAN_H__
+// EKB-Mirror-To: hw/ppe
+#ifndef __BYTESWAP_H__
+#define __BYTESWAP_H__
 
 #ifndef __PPE42__
-    #include_next <endian.h>
+#include_next <byteswap.h>
 #else
-    #include <byteswap.h>
+#include <stdint.h>
 
-    #define htobe16(x)   (x)
-    #define htole16(x) bswap_16(x)
-    #define be16toh(x)   (x)
-    #define le16toh(x) bswap_16(x)
+static inline uint16_t bswap_16( uint16_t __u16)
+{
+    return (uint16_t)((__u16 >> 8) | (__u16) << 8);
+}
 
-    #define htobe32(x)   (x)
-    #define htole32(x) bswap_32(x)
-    #define be32toh(x)   (x)
-    #define le32toh(x) bswap_32(x)
+static inline uint32_t bswap_32(uint32_t __u32)
+{
+    uint32_t val = ((__u32 << 8) & 0xff00ff00) | ((__u32 >> 8) & 0x00ff00ff);
+    return (val << 16) | (val >> 16);
+}
 
-    #define htobe64(x)   (x)
-    #define htole64(x) bswap_64(x)
-    #define be64toh(x)   (x)
-    #define le64toh(x) bswap_64(x)
+static inline uint64_t bswap_64(uint64_t __u64)
+{
+    return bswap_32(__u64 >> 32) | (uint64_t(bswap_32(__u64 & 0xFFFFFFFF)) << 32);
+}
+
 #endif
 
 #endif
