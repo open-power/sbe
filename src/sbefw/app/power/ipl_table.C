@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1665,180 +1665,188 @@ ReturnCode istepSpiScreen( voidfuncptr_t i_hwp )
     #define SBE_FUNC "istepSpiScreen"
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
-    uint32_t attr_freq_pau_mhz;
-    uint32_t test_start_pau_freq_mhz = 2350;
-    bool lockStatus = false;
-    bool pri_boot_seeprom_failed = false;
-    bool sec_boot_seeprom_failed = false;
-    bool pri_meas_seeprom_failed = false;
-    bool sec_meas_seeprom_failed = false;
-    fapi2::buffer<uint64_t> data64;
-    mailbox2_cmdhdr_spics_screen_reg0 boot_seeprom_screen_reg;
-    mailbox2_cmdhdr_spics_screen_reg1 meas_seeprom_screen_reg;
-    uint32_t NEW_PAU_FREQ = 0;
-    Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
-    fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, attr_freq_pau_mhz));
 
-    SBE_INFO(SBE_FUNC " System Default PAU DPLL is [0x%08X][%d]", attr_freq_pau_mhz, attr_freq_pau_mhz);
-
-    // Mask the PAU DPLL Error bit18 in register 0x10F001E
-    data64.flush<0>();
-    FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
-    data64.setBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
-    FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
-
-    // Lock all the SPIs at this point
-    sbeLockAllSpis();
-
-    for(uint8_t freqOffset = 0; freqOffset <= 15; freqOffset++)
+    if(! SBE::isSimicsRunning())
     {
-        NEW_PAU_FREQ = test_start_pau_freq_mhz + (freqOffset * 10); // In MHz
-        SBE_INFO(SBE_FUNC " Starting PAU Freq Experimentation at [0x%08X][%d] ", NEW_PAU_FREQ, NEW_PAU_FREQ);
-        lockStatus = false;
-        fapiRc = pauDpllLockNewFreq(NEW_PAU_FREQ, lockStatus);
-        if( ! ((fapiRc == FAPI2_RC_SUCCESS) && (lockStatus == true)) )
-        {
-            SBE_ERROR(SBE_FUNC " PAU DPLL Lock Failed with New Freq[0x%08X][%d] LockStatus[0x%02X] FapiRc[0x%08X]",
-                NEW_PAU_FREQ, NEW_PAU_FREQ,lockStatus, fapiRc);
-            break;
-        }
+        bool lockStatus = false;
+        uint32_t attr_freq_pau_mhz;
+        uint32_t test_start_pau_freq_mhz = 2350;
+        bool pri_boot_seeprom_failed = false;
+        bool sec_boot_seeprom_failed = false;
+        bool pri_meas_seeprom_failed = false;
+        bool sec_meas_seeprom_failed = false;
+        fapi2::buffer<uint64_t> data64;
+        mailbox2_cmdhdr_spics_screen_reg0 boot_seeprom_screen_reg;
+        mailbox2_cmdhdr_spics_screen_reg1 meas_seeprom_screen_reg;
+        uint32_t NEW_PAU_FREQ = 0;
+        Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
+        fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
-        // Update SPI Registers to match up to the new PAU DPLL
-        // Update clock divider and receive delay
-        fapiRc = updateSpiClockRegWithNewPAU(NEW_PAU_FREQ);
-        if(fapiRc == FAPI2_RC_SUCCESS)
+
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FREQ_PAU_MHZ, FAPI_SYSTEM, attr_freq_pau_mhz));
+
+        SBE_INFO(SBE_FUNC " System Default PAU DPLL is [0x%08X][%d]", attr_freq_pau_mhz, attr_freq_pau_mhz);
+
+        // Mask the PAU DPLL Error bit18 in register 0x10F001E
+        data64.flush<0>();
+        FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
+        data64.setBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
+        FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
+
+        // Lock all the SPIs at this point
+        sbeLockAllSpis();
+
+        for(uint8_t freqOffset = 0; freqOffset <= 15; freqOffset++)
         {
-            // Have to test all Seeproms one after the other
-            // ---------------------------------------------------------------//
-            // Let's start with Boot Seeprom Primary
-            setMmapSpiforSeeprom(BOOT_SELECT, PRIMARY_ROLE);
-            // Call Seeprom Spi test function on Primary Boot Seeprom
-            if(false == pri_boot_seeprom_failed)
+            NEW_PAU_FREQ = test_start_pau_freq_mhz + (freqOffset * 10); // In MHz
+            SBE_INFO(SBE_FUNC " Starting PAU Freq Experimentation at [0x%08X][%d] ", NEW_PAU_FREQ, NEW_PAU_FREQ);
+            lockStatus = false;
+            fapiRc = pauDpllLockNewFreq(NEW_PAU_FREQ, lockStatus);
+            if( ! ((fapiRc == FAPI2_RC_SUCCESS) && (lockStatus == true)) )
             {
-                if(true == spiBootSideBandReadTest())
-                {
-                    SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Primary Boot at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
-                    PPE_LVD(0x50029, boot_seeprom_screen_reg);
-                    boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ;
-                    PPE_STVD(0x50029, boot_seeprom_screen_reg);
-                    pri_boot_seeprom_failed = true;
-                }
-            }
-            // Switch mmSpi to Secondary Boot Seeprom
-            setMmapSpiforSeeprom(BOOT_SELECT, SECONDARY_ROLE);
-            // Call Seeprom Spi test function on Secondary Boot Seeprom
-            if(false == sec_boot_seeprom_failed)
-            {
-                if(true == spiBootSideBandReadTest())
-                {
-                    SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Secondary Boot at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
-                    PPE_LVD(0x50029, boot_seeprom_screen_reg);
-                    boot_seeprom_screen_reg.boot_seeprom_sec_screen_freq = NEW_PAU_FREQ;
-                    PPE_STVD(0x50029, boot_seeprom_screen_reg);
-                    sec_boot_seeprom_failed = true;
-                }
+                SBE_ERROR(SBE_FUNC " PAU DPLL Lock Failed with New Freq[0x%08X][%d] LockStatus[0x%02X] FapiRc[0x%08X]",
+                    NEW_PAU_FREQ, NEW_PAU_FREQ,lockStatus, fapiRc);
+                break;
             }
 
-            // Let's start with Measurment Seeprom Primary
-            // Set memary map bit in clock config register to access Primary
-            setMmapSpiforSeeprom(MEASUREMENT_SELECT, PRIMARY_ROLE);
-            // Call Seeprom Spi test function on Primary Measurement Seeprom
-            if(false == pri_meas_seeprom_failed)
+            // Update SPI Registers to match up to the new PAU DPLL
+            // Update clock divider and receive delay
+            fapiRc = updateSpiClockRegWithNewPAU(NEW_PAU_FREQ);
+            if(fapiRc == FAPI2_RC_SUCCESS)
             {
-                if(true == spiMeasSideBandReadTest())
+                // Have to test all Seeproms one after the other
+                // ---------------------------------------------------------------//
+                // Let's start with Boot Seeprom Primary
+                setMmapSpiforSeeprom(BOOT_SELECT, PRIMARY_ROLE);
+                // Call Seeprom Spi test function on Primary Boot Seeprom
+                if(false == pri_boot_seeprom_failed)
                 {
-                    SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Primary Measurement at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
-                    PPE_LVD(0x5002A, meas_seeprom_screen_reg);
-                    meas_seeprom_screen_reg.meas_seeprom_pri_screen_freq = NEW_PAU_FREQ;
-                    PPE_STVD(0x5002A, meas_seeprom_screen_reg);
-                    pri_meas_seeprom_failed = true;
+                    if(true == spiBootSideBandReadTest())
+                    {
+                        SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Primary Boot at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
+                        PPE_LVD(0x50029, boot_seeprom_screen_reg);
+                        boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ;
+                        PPE_STVD(0x50029, boot_seeprom_screen_reg);
+                        pri_boot_seeprom_failed = true;
+                    }
+                }
+                // Switch mmSpi to Secondary Boot Seeprom
+                setMmapSpiforSeeprom(BOOT_SELECT, SECONDARY_ROLE);
+                // Call Seeprom Spi test function on Secondary Boot Seeprom
+                if(false == sec_boot_seeprom_failed)
+                {
+                    if(true == spiBootSideBandReadTest())
+                    {
+                        SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Secondary Boot at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
+                        PPE_LVD(0x50029, boot_seeprom_screen_reg);
+                        boot_seeprom_screen_reg.boot_seeprom_sec_screen_freq = NEW_PAU_FREQ;
+                        PPE_STVD(0x50029, boot_seeprom_screen_reg);
+                        sec_boot_seeprom_failed = true;
+                    }
+                }
+
+                // Let's start with Measurment Seeprom Primary
+                // Set memary map bit in clock config register to access Primary
+                setMmapSpiforSeeprom(MEASUREMENT_SELECT, PRIMARY_ROLE);
+                // Call Seeprom Spi test function on Primary Measurement Seeprom
+                if(false == pri_meas_seeprom_failed)
+                {
+                    if(true == spiMeasSideBandReadTest())
+                    {
+                        SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Primary Measurement at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
+                        PPE_LVD(0x5002A, meas_seeprom_screen_reg);
+                        meas_seeprom_screen_reg.meas_seeprom_pri_screen_freq = NEW_PAU_FREQ;
+                        PPE_STVD(0x5002A, meas_seeprom_screen_reg);
+                        pri_meas_seeprom_failed = true;
+                    }
+                }
+                // Switch mmSpi to Secondary Measurement Seeprom
+                setMmapSpiforSeeprom(MEASUREMENT_SELECT, SECONDARY_ROLE);
+                // Call Seeprom Spi test function on Secondary Measurement Seeprom
+                if(false == sec_meas_seeprom_failed)
+                {
+                    if(true == spiMeasSideBandReadTest())
+                    {
+                        SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Secondary Measurement at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
+                        PPE_LVD(0x5002A, meas_seeprom_screen_reg);
+                        meas_seeprom_screen_reg.meas_seeprom_sec_screen_freq = NEW_PAU_FREQ;
+                        PPE_STVD(0x5002A, meas_seeprom_screen_reg);
+                        sec_meas_seeprom_failed = true;
+                    }
+                }
+                if( pri_boot_seeprom_failed == true && sec_boot_seeprom_failed == true &&
+                    pri_meas_seeprom_failed == true && sec_meas_seeprom_failed  == true )
+                {
+                    SBE_INFO(" All SEEPROMS failed for SPI_CS issue");
+                    break;
                 }
             }
-            // Switch mmSpi to Secondary Measurement Seeprom
-            setMmapSpiforSeeprom(MEASUREMENT_SELECT, SECONDARY_ROLE);
-            // Call Seeprom Spi test function on Secondary Measurement Seeprom
-            if(false == sec_meas_seeprom_failed)
+            else
             {
-                if(true == spiMeasSideBandReadTest())
-                {
-                    SBE_ERROR(SBE_FUNC " $$$$ SPI_CS issue found in Secondary Measurement at Freq [0x%08X][%d]", NEW_PAU_FREQ, NEW_PAU_FREQ);
-                    PPE_LVD(0x5002A, meas_seeprom_screen_reg);
-                    meas_seeprom_screen_reg.meas_seeprom_sec_screen_freq = NEW_PAU_FREQ;
-                    PPE_STVD(0x5002A, meas_seeprom_screen_reg);
-                    sec_meas_seeprom_failed = true;
-                }
-            }
-            if( pri_boot_seeprom_failed == true && sec_boot_seeprom_failed == true &&
-                pri_meas_seeprom_failed == true && sec_meas_seeprom_failed  == true )
-            {
-                SBE_INFO(" All SEEPROMS failed for SPI_CS issue");
+                SBE_ERROR(SBE_FUNC " updateSpiClockRegWithNewPAU failed with fapiRc[0x%8X]", fapiRc);
                 break;
             }
         }
-        else
+        // Revert back the mmSpi Select bit as per the LFR and unlock Seeproms which is not selected
+        revertLFRSpimmSelectConfig();
+
+        // Make sure we update something into the mailbox header registers
+        if(pri_boot_seeprom_failed == false)
         {
-            SBE_ERROR(SBE_FUNC " updateSpiClockRegWithNewPAU failed with fapiRc[0x%8X]", fapiRc);
-            break;
+            // Update the last PAU, so that user know it is latest screener code.
+            PPE_LVD(0x50029, boot_seeprom_screen_reg);
+            boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ; // It should be 2250 + 15*50 = 3000MHz
+            PPE_STVD(0x50029, boot_seeprom_screen_reg);
         }
-    }
-    // Revert back the mmSpi Select bit as per the LFR and unlock Seeproms which is not selected
-    revertLFRSpimmSelectConfig();
+        if(sec_boot_seeprom_failed == false)
+        {
+            // Update the last PAU, so that user know it is latest screener code
+            PPE_LVD(0x50029, boot_seeprom_screen_reg);
+            boot_seeprom_screen_reg.boot_seeprom_sec_screen_freq = NEW_PAU_FREQ;
+            PPE_STVD(0x50029, boot_seeprom_screen_reg);
+        }
+        if(pri_meas_seeprom_failed == false)
+        {
+            // Update the last PAU, so that user know it is latest screener code
+            PPE_LVD(0x5002A, meas_seeprom_screen_reg);
+            meas_seeprom_screen_reg.meas_seeprom_pri_screen_freq = NEW_PAU_FREQ;
+            PPE_STVD(0x5002A, meas_seeprom_screen_reg);
+        }
+        if(sec_meas_seeprom_failed == false)
+        {
+            // Update the last PAU, so that user know it is latest screener code
+            PPE_LVD(0x5002A, meas_seeprom_screen_reg);
+            meas_seeprom_screen_reg.meas_seeprom_sec_screen_freq = NEW_PAU_FREQ;
+            PPE_STVD(0x5002A, meas_seeprom_screen_reg);
+        }
 
-    // Make sure we update something into the mailbox header registers
-    if(pri_boot_seeprom_failed == false)
-    {
-        // Update the last PAU, so that user know it is latest screener code.
-        PPE_LVD(0x50029, boot_seeprom_screen_reg);
-        boot_seeprom_screen_reg.boot_seeprom_pri_screen_freq = NEW_PAU_FREQ; // It should be 2250 + 15*50 = 3000MHz
-        PPE_STVD(0x50029, boot_seeprom_screen_reg);
-    }
-    if(sec_boot_seeprom_failed == false)
-    {
-        // Update the last PAU, so that user know it is latest screener code
-        PPE_LVD(0x50029, boot_seeprom_screen_reg);
-        boot_seeprom_screen_reg.boot_seeprom_sec_screen_freq = NEW_PAU_FREQ;
-        PPE_STVD(0x50029, boot_seeprom_screen_reg);
-    }
-    if(pri_meas_seeprom_failed == false)
-    {
-        // Update the last PAU, so that user know it is latest screener code
-        PPE_LVD(0x5002A, meas_seeprom_screen_reg);
-        meas_seeprom_screen_reg.meas_seeprom_pri_screen_freq = NEW_PAU_FREQ;
-        PPE_STVD(0x5002A, meas_seeprom_screen_reg);
-    }
-    if(sec_meas_seeprom_failed == false)
-    {
-        // Update the last PAU, so that user know it is latest screener code
-        PPE_LVD(0x5002A, meas_seeprom_screen_reg);
-        meas_seeprom_screen_reg.meas_seeprom_sec_screen_freq = NEW_PAU_FREQ;
-        PPE_STVD(0x5002A, meas_seeprom_screen_reg);
-    }
+        // Get Back Original PAU Freq Lock
+        SBE_INFO(SBE_FUNC " Reverting back to original Pau Freq [0x%08X][%d]", attr_freq_pau_mhz, attr_freq_pau_mhz);
+        lockStatus = false;
+        pauDpllLockNewFreq(attr_freq_pau_mhz, lockStatus);
+        updateSpiClockRegWithNewPAU(attr_freq_pau_mhz);
 
-    // Get Back Original PAU Freq Lock
-    SBE_INFO(SBE_FUNC " Reverting back to original Pau Freq [0x%08X][%d]", attr_freq_pau_mhz, attr_freq_pau_mhz);
-    lockStatus = false;
-    pauDpllLockNewFreq(attr_freq_pau_mhz, lockStatus);
-    updateSpiClockRegWithNewPAU(attr_freq_pau_mhz);
+        // Clear the PAU DPLL Error bit18 Mask in register 0x10F001E
+        data64.flush<0>();
+        FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
+        data64.clearBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
+        FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
 
-    // Clear the PAU DPLL Error bit18 Mask in register 0x10F001E
-    data64.flush<0>();
-    FAPI_TRY(fapi2::getScom(procTgt, 0x10F001E, data64)); // TP.TPCHIP.NET.PCBSLPERV.SLAVE_CONFIG_REG
-    data64.clearBit<18>(); // Bit(12:19) : CFG_MASK_PLL_ERRS(0:7)
-    FAPI_TRY(fapi2::putScom(procTgt, 0x10F001E, data64));
+        fapiRc = SBE::unlockAllSEEPROMs();
+        if (fapiRc)
+        {
+            SBE_ERROR(SBE_FUNC " SBE::unlockAllSEEPROMs failed with fapiRc[0x%8X]", fapiRc);
+            goto fapi_try_exit;
+        }
 
-    fapiRc = SBE::unlockAllSEEPROMs();
-    if (fapiRc)
-    {
-        SBE_ERROR(SBE_FUNC " SBE::unlockAllSEEPROMs failed with fapiRc[0x%8X]", fapiRc);
-        goto fapi_try_exit;
-    }
-
-fapi_try_exit:
-    if(lockStatus == false || fapiRc)
-    {
-        // Shift back to Original PAU DPLL
-        SBE_ERROR(SBE_FUNC " Can't Do much, Something failed, FapiRc[0x%08X] lockStatus[%d]", fapiRc, lockStatus);
+    fapi_try_exit:
+        if(lockStatus == false || fapiRc)
+        {
+            // Shift back to Original PAU DPLL
+            SBE_ERROR(SBE_FUNC " Can't Do much, Something failed,"
+                           " FapiRc[0x%08X] lockStatus[%d]", fapiRc,
+                             lockStatus);
+        }
     }
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
