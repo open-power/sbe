@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2022
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -32,6 +32,7 @@ fifo_type = 0
 version_1 = 1
 version_2 = 2
 version_3 = 3
+version_4 = 4
 
 TESTDATA_INV_TARGET = [0,0,0,3,
             0,0,0xAC,0x01,
@@ -183,6 +184,8 @@ def readAndCompare():
     elif(data[0] == version_2):
         testUtil.readDsFifo(EXPDATA_V2)
     elif(data[0] == version_3):
+        testUtil.readDsFifo(EXPDATA_V2)
+    elif(data[0] == version_4):
         testUtil.readDsFifo(EXPDATA_V2)
     else:
         print("Invalid structure version", data[0])
