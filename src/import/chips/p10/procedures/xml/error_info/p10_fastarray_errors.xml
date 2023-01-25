@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2023                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -77,6 +77,35 @@
     <description>Too much carebits data to fit into temporary buffer</description>
     <ffdc>BUFFER_SIZE_WORDS</ffdc>
     <ffdc>DATA_SIZE_WORDS</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <hwpError>
+    <rc>RC_FASTARRAY_VERSION_MISMATCH</rc>
+    <description>The fastarray control data format does not match the version of the fastarray dump procedure.</description>
+    <ffdc>HEADER_VERSION</ffdc>
+    <ffdc>HWP_VERSION</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <hwpError>
+    <rc>RC_FASTARRAY_INVALID_FARR_FLAG</rc>
+    <description>An unknown flag was requested.</description>
+    <ffdc>FLAG</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+  </hwpError>
+  <hwpError>
+    <rc>RC_FASTARRAY_SCAN_ENTRY_OVERSIZE</rc>
+    <description>Control data contained a ring scan entry larger than the maximum allowed size</description>
+    <ffdc>LENGTH</ffdc>
+    <ffdc>MAX_LENGTH</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
