@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -233,7 +233,7 @@ fapi2::ReturnCode p10_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Targe
     FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_SEEN_ERR()
                 .set_TARGET_CHIP(i_target_chip)
                 .set_EXPECTED_ACK_VALUE(1)
-                .set_CBS_CC_STAT(l_data32_cbs_cc_stat)
+                .set_CBS_STAT_READ_DATA(l_data32_cbs_cc_stat)
                 .set_TIMEOUT(CBS_ACK_POLL)
                 .set_DELAY(P10_WAIT_CBS_ACK_HW_NS_DELAY),
                 "CBS_ACK is not HIGH with in expected time");
@@ -263,7 +263,7 @@ fapi2::ReturnCode p10_common_stopclocks_poll_cbs_cmd_complete(const fapi2::Targe
     FAPI_ASSERT(l_timeout > 0, fapi2::CBS_ACK_NOT_SEEN_ERR()
                 .set_TARGET_CHIP(i_target_chip)
                 .set_EXPECTED_ACK_VALUE(0)
-                .set_CBS_CC_STAT(l_data32_cbs_cc_stat)
+                .set_CBS_STAT_READ_DATA(l_data32_cbs_cc_stat)
                 .set_TIMEOUT(CBS_CMD_COMPLETE_POLL)
                 .set_DELAY(P10_WAIT_CBS_CMD_COMPLETE_HW_NS_DELAY),
                 "CBS_ACK is not LOW with in expected time");

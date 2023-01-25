@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2023                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -34,7 +34,7 @@
     </description>
     <ffdc>TARGET_CHIP</ffdc>
     <ffdc>EXPECTED_ACK_VALUE</ffdc>
-    <ffdc>CBS_CC_STAT</ffdc>
+    <ffdc>CBS_STAT_READ_DATA</ffdc>
     <ffdc>TIMEOUT</ffdc>
     <ffdc>DELAY</ffdc>
     <callout>
@@ -53,6 +53,7 @@
       Perv Vital clocks are off
     </description>
     <ffdc>TARGET_CHIP</ffdc>
+    <ffdc>PERV_CTRL0_READ_DATA</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
@@ -160,13 +161,13 @@
     <description>
       tp_stopclocks returned with error
     </description>
-    <ffdc>PROC_TARGET</ffdc>
+    <ffdc>TARGET_CHIP</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
     </callout>
     <callout>
-      <target>PROC_TARGET</target>
+      <target>TARGET_CHIP</target>
       <priority>MEDIUM</priority>
     </callout>
   </hwpError>
@@ -176,13 +177,29 @@
     <description>
       vital_stopclocks returned with error
     </description>
-    <ffdc>PROC_TARGET</ffdc>
+    <ffdc>TARGET_CHIP</ffdc>
     <callout>
       <procedure>CODE</procedure>
       <priority>HIGH</priority>
     </callout>
     <callout>
-      <target>PROC_TARGET</target>
+      <target>TARGET_CHIP</target>
+      <priority>MEDIUM</priority>
+    </callout>
+  </hwpError>
+  <!-- ******************************************************************** -->
+  <hwpError>
+    <rc>RC_SBE_STOPCLOCKS_ERR</rc>
+    <description>
+      Error occured while stopping clocks for SBE
+    </description>
+    <ffdc>TARGET_CHIP</ffdc>
+    <callout>
+      <procedure>CODE</procedure>
+      <priority>HIGH</priority>
+    </callout>
+    <callout>
+      <target>TARGET_CHIP</target>
       <priority>MEDIUM</priority>
     </callout>
   </hwpError>

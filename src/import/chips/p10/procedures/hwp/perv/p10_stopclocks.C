@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -136,7 +136,8 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         FAPI_ERR("p10_stopclocks : Perv Vital clocks are off, so stopclocks cant go ahead");
         FAPI_ASSERT(false,
                     fapi2::TP_VITL_CLK_OFF_ERR()
-                    .set_TARGET_CHIP(i_target_chip),
+                    .set_TARGET_CHIP(i_target_chip)
+                    .set_PERV_CTRL0_READ_DATA((fapi2::is_platform<fapi2::PLAT_SBE>()) ? (l_data64) : (l_cfam_data)),
                     "Perv Vital clocks are off");
     }
 
@@ -311,7 +312,7 @@ fapi2::ReturnCode p10_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHI
         l_rc_vitl = p10_vital_stopclocks(i_target_chip);
         FAPI_ASSERT_NOEXIT(l_rc_vitl == fapi2::FAPI2_RC_SUCCESS,
                            fapi2::VITL_STOPCLOCKS_ERR()
-                           .set_PROC_TARGET(i_target_chip),
+                           .set_TARGET_CHIP(i_target_chip),
                            "p10_vital_stopclocks returned error");
     }
 

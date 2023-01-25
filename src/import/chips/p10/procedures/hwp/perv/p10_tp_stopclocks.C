@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -74,7 +74,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
     l_rc = p10_common_stopclock_tp_chiplet_accessible(i_target_chip, l_tp_chiplet_accessible);
     FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                        fapi2::TP_STOPCLOCKS_ERR()
-                       .set_PROC_TARGET(i_target_chip),
+                       .set_TARGET_CHIP(i_target_chip),
                        "Checking tp chiplet accessible returned error, can't call stopclocks fpr tp chiplet");
 
     if(l_tp_chiplet_accessible)
@@ -89,7 +89,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
 
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::TP_STOPCLOCKS_ERR()
-                               .set_PROC_TARGET(i_target_chip),
+                               .set_TARGET_CHIP(i_target_chip),
                                "p10_tp_stopclocks returned error when stopping clocks for regions all except SBE [perv, sbe, pib, occ, net, pll regions]");
         }
 
@@ -102,7 +102,7 @@ fapi2::ReturnCode p10_tp_stopclocks(const fapi2::Target<fapi2::TARGET_TYPE_PROC_
             l_rc = p10_sbe_region_stopclocks(i_target_chip);
             FAPI_ASSERT_NOEXIT(l_rc == fapi2::FAPI2_RC_SUCCESS,
                                fapi2::TP_STOPCLOCKS_ERR()
-                               .set_PROC_TARGET(i_target_chip),
+                               .set_TARGET_CHIP(i_target_chip),
                                "p10_tp_stopclocks returned error when stopping clocks for sbe region");
         }
     }
