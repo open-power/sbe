@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,6 +40,10 @@
 
 #ifdef hz
     #undef hz
+#endif
+
+#ifndef PK_OP_TRACE_VERSION
+    #define PK_OP_TRACE_VERSION 3
 #endif
 
 #ifndef PK_TRACE_VERSION

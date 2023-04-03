@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -74,7 +74,7 @@ PkTraceBuffer* g_pk_trace_buf_ptr = &g_pk_trace_buf;
 //Static initialization of the pk op trace buffer
 PkOpTraceBuffer g_pk_op_trace_buf __attribute__ ((section (".sdata"))) =
 {
-    .version            = PK_TRACE_VERSION,
+    .version            = PK_OP_TRACE_VERSION,
     .image_str          = PPE_IMG_STRING,
     .hash_prefix        = PK_TRACE_HASH_PREFIX,
     .partial_trace_hash =
