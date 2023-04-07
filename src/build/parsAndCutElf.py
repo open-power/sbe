@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -36,7 +36,7 @@ def parserElf(argv):
         outdir  = argv[2]
         img     = argv[3]
     except:
-        print "Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem)"
+        print ("Missing argument : arg[0] ddlevel; arg[1] output directory; arg[2] img (seeprom/pibmem)")
         exit(-1)
     SBE_OUT = outdir+"/sbe_"+img+"_"+ddlevel+".out"
     SBE_BIN = outdir+"/sbe_"+img+"_"+ddlevel+".bin"
@@ -53,7 +53,7 @@ def parserElf(argv):
         if( (line.find(firstSection) != -1) ):
             tokens = line.split();
             startSize = int( tokens[5], 16 )
-            print startSize
+            print (startSize)
             break;
 
    # Get the location of sbe end
@@ -64,7 +64,7 @@ def parserElf(argv):
         endSize = int( tokens[0], 16 );
         break;
 
-    print endSize;
+    print (endSize)
     if( (startSize == 0) or (endSize == 0)):
         exit(-1)
 
@@ -72,7 +72,7 @@ def parserElf(argv):
     cmd1 = "dd skip=" + str(startSize) + " count=" + str(endSize) + " if="+SBE_OUT+" of="+SBE_BIN+" bs=1"
     rc = os.system(cmd1)
     if ( rc ):
-       print "ERROR running %s: %d "%( cmd1, rc )
+       print ("ERROR running %s: %d "%( cmd1, rc ))
        exit(-1)
 
 parserElf(sys.argv)

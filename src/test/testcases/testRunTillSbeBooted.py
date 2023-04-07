@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -41,11 +41,11 @@ else:
 while True:
     try:
         if testUtil.read(lbus, 0x2824, 4)[0] & 0x80 :
-            print "SBE is booted, continue"
+            print ("SBE is booted, continue")
             break
         else:
-            print "SBE is still not booted"
+            print ("SBE is still not booted")
 
     except:
-        print "."
+        print (".")
     testUtil.runCycles( 10000000 )

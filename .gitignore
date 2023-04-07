@@ -1,0 +1,17 @@
+
+# Ignore Python cache
+__pycache__
+*.pyc
+
+# Ignore vscode config files
+.vscode/**
+
+# Ignore backup files
+*~
+*.bak
+
+create-sandbox.log
+test_sb/**
+sbesandboxrc
+obj/**
+images/**

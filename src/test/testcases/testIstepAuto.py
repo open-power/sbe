@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -74,12 +74,15 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
     #                                          endMajor = 0; endMinor = 0;
     # (Range of iSteps) inum1=2.3 inum2=3.7 => startMajor = 2; startMinor = 3;
     #                                          endMajor = 3; endMinor = 7;
+
     istr1 = str(inum1)
     istr2 = str(inum2)
     startMajor = 0
     startMinor = 0
     endMajor = 0
     endMinor = 0
+    # FIFO type will be 0 by default.
+    i_fifoType = 0
     startMajor = int(istr1.split('.')[0])
     # Check for single istep condition, where inum1=x.0 and inum2=x.0
     # If not extract the start and end isteps range
@@ -103,7 +106,7 @@ def sbe_istep_func( inum1, inum2, node=0, isfleetwood=0):
         lIstepArray[startMajor][1] = lIstepArray[startMajor][0]
     for major in range(startMajor, endMajor+1):
         for minor in range(lIstepArray[major][0], lIstepArray[major][1] + 1):
-            print "Running:"+str(major)+"."+str(minor)
+            print ("Running:"+str(major)+"."+str(minor))
 
             try:
                 TESTDATA = [0,0,0,3,

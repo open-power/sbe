@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2018
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -60,49 +60,49 @@ def main():
     # Usage tool option
     #------------------------------------------
     def usage():
-        print " \n"
-        print "  :: Command line USAGE options for Copying SBE FW files for compilation :: \n"
-        print "  sbeDistribute.py -s <Sandbox Name> -i <file1,file2...>"
+        print (" \n")
+        print ("  :: Command line USAGE options for Copying SBE FW files for compilation :: \n")
+        print ("  sbeDistribute.py -s <Sandbox Name> -i <file1,file2...>")
 
-        print " \n"
-        print "   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "   |       By default NO argument is needed as an input .                            |"
-        print "   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print " \n  ***** Options Supported  *****"
-        print " \t  -p,--patch     = [ Optional ] Patch Simics related files on Sandbox "
-        print " \t  -s,--sb        = [ Optional ] Sandbox base name"
-        print " \t                                By default it picks up the ppe Repo test_sb sandbox"
-        print " \t                                but if you have created a sandbox of your own manually "
-        print " \t                                and you want to compile, use this option then only"
-        print " \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2"
-        print " \t                                Only the pre-define listed files bellow:"
-        print " \t                                sbe_sp_intf.H,simics.tar,"
-        print " \t                                sbe_seeprom_DD2.bin"
-        print " \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)"
-        print " \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled"
-        print " \t  -h,--help      = Help"
-        print "  ------------------------------------------------------------------------------------"
+        print (" \n")
+        print ("   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print ("   |       By default NO argument is needed as an input .                            |")
+        print ("   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print (" \n  ***** Options Supported  *****")
+        print (" \t  -p,--patch     = [ Optional ] Patch Simics related files on Sandbox ")
+        print (" \t  -s,--sb        = [ Optional ] Sandbox base name")
+        print (" \t                                By default it picks up the ppe Repo test_sb sandbox")
+        print (" \t                                but if you have created a sandbox of your own manually ")
+        print (" \t                                and you want to compile, use this option then only")
+        print (" \t  -i,--files     = [ Optional ] Firmware Files coma ',' separated input file1,file2")
+        print (" \t                                Only the pre-define listed files bellow:")
+        print (" \t                                sbe_sp_intf.H,simics.tar,")
+        print (" \t                                sbe_seeprom_DD2.bin")
+        print (" \t  -r,--rc_file   = [ Optional ] The RC file for the sandbox (with absolute path)")
+        print (" \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled")
+        print (" \t  -h,--help      = Help")
+        print ("  ------------------------------------------------------------------------------------")
 
     #------------------------------------------
     # Exit from this Main
     #------------------------------------------
     def exit_main(rc):
         if rc == errorcode.HELP_EXIT:
-           print "  [ HELP DOCUMENTATION ]\n"
+           print ("  [ HELP DOCUMENTATION ]\n")
            sys.exit(0)
 
         if rc == errorcode.ERROR_BUILD_FAILED:
-            print "  Compilation Failed .. Error "
+            print ("  Compilation Failed .. Error ")
 
         if rc == errorcode.SUCCESS_DEV_EXIT:
-           print "  [ Files Copy done! ]\n"
+           print ("  [ Files Copy done! ]\n")
            sys.exit(0)
 
         if rc:
-           print "\n  [ ERROR - MAIN ] Exiting with error code = ", rc
+           print ("\n  [ ERROR - MAIN ] Exiting with error code = ", rc)
            sys.exit(rc)
         else:
-           print "\n  Fips Sandbox compilation and simics patching completed [ OK ] "
+           print ("\n  Fips Sandbox compilation and simics patching completed [ OK ] ")
            sys.exit(0)
 
     #------------------------------------------
@@ -154,17 +154,17 @@ def main():
     #------------------------------
     # 1) User input params/ Check ENV
     #------------------------------
-    print "\n [ Checking SBE user ENV Pre-req ] "
+    print ("\n [ Checking SBE user ENV Pre-req ] ")
     # Get it from ENV
     if path_name == "None":
         # Get the PPE path
         l_ppe_path = utilcode.utilppeSbENV("SBEROOT")
         if l_ppe_path == "None":
-            print "\n  Couldn't find PPE repo info from ENV currently set... "
-            print "  [ ERROR ] PPE Repo ENV Setting Path  : %s " % l_ppe_path
+            print ("\n  Couldn't find PPE repo info from ENV currently set... ")
+            print ("  [ ERROR ] PPE Repo ENV Setting Path  : %s " % l_ppe_path)
             exit_main(errorcode.ERROR_SETTING)
         else:
-            print "  PPE Repo path Setting\t :  %s "% l_ppe_path
+            print ("  PPE Repo path Setting\t :  %s "% l_ppe_path)
             path_name = l_ppe_path
 
     #-----------------------------------
@@ -177,7 +177,7 @@ def main():
         sandbox_path = utilcode.utilFind_ENV_string("SANDBOXBASE").rstrip('\n')
     else:
         sandbox_path = utilcode.utilFind_sb_base(sandbox_name).rstrip('\n')
-    print "  Fips Sandbox path\t : ",sandbox_path
+    print ("  Fips Sandbox path\t : ",sandbox_path)
 
     #-----------------------------------
     # 3) Get the Sanbox root path
@@ -189,11 +189,11 @@ def main():
         sandbox_root = utilcode.utilFind_sb_rc(sandbox_name).rstrip('\n')
 
     if sandbox_root == "None":
-        print "  ** [ ERROR ] Something Fishy about the ENV set -OR- Option used.. Please check manually ** "
+        print ("  ** [ ERROR ] Something Fishy about the ENV set -OR- Option used.. Please check manually ** ")
         usage()
         exit_main(errorcode.ERROR_SETTING)
     else:
-        print "  Sandbox root path\t : ",sandbox_root
+        print ("  Sandbox root path\t : ",sandbox_root)
 
     #---------------------------------------------
     # sim setup if user initiates
@@ -204,22 +204,22 @@ def main():
         #---------------------------------------------
         rc_sb = utilpatch.utilExecuteShell(path_name,"None","sandbox-create")
         if rc_sb == errorcode.SUCCESS_EXIT:
-            print "  Sandbox Created.. [ OK ] \n"
+            print ("  Sandbox Created.. [ OK ] \n")
         else:
-            print "  Sandbox Create.. [ ERROR ]",rc_sb
+            print ("  Sandbox Create.. [ ERROR ]",rc_sb)
             exit_main(rc_sb)
 
         #----------------------------------------
         # Patch up the simics patches files
         #----------------------------------------
 
-        print "\n  *** Update Simics patches onto Sandbox *** \n "
+        print ("\n  *** Update Simics patches onto Sandbox *** \n ")
         # Pre sim setup
         rc_shell = utilpatch.utilExecuteShell(path_name,sandbox_path,"workarounds.presimsetup")
         if rc_shell == errorcode.SUCCESS_EXIT:
-            print "  presimsetup [ OK ]\n"
+            print ("  presimsetup [ OK ]\n")
         else:
-            print "  presimsetup [ ERROR ] : ",rc_shell
+            print ("  presimsetup [ ERROR ] : ",rc_shell)
             exit_main(rc_shell)
 
         # Patch the simics files
@@ -227,16 +227,16 @@ def main():
         if rc_sim != errorcode.SUCCESS_EXIT:
             exit_main(rc_sim)
         else:
-            print "  Patch the simics files on Sandbox [ OK ] \n"
+            print ("  Patch the simics files on Sandbox [ OK ] \n")
 
         # Post sim setup
         rc_shell = utilpatch.utilExecuteShell(path_name,sandbox_path,"workarounds.postsimsetup")
         if rc_shell == errorcode.SUCCESS_EXIT:
-            print "  postsimsetup [ OK ]\n"
+            print ("  postsimsetup [ OK ]\n")
             # Clean exit Get out from here
             exit_main(errorcode.SUCCESS_EXIT)
         else:
-            print "  postsimsetup [ ERROR ] : ",rc_shell
+            print ("  postsimsetup [ ERROR ] : ",rc_shell)
             exit_main(rc_shell)
 
     # Files to copy for sbe prime
@@ -257,22 +257,22 @@ def main():
         if os.path.isdir(sandbox_path) == True:
            rc_copy = utilcode.utilCopyFileToSandbox(path_name,sandbox_path,file_name)
            if rc_copy == errorcode.SUCCESS_DEV_EXIT:
-               print "  Files Copied to Fips Sandbox : [ OK ]"
+               print ("  Files Copied to Fips Sandbox : [ OK ]")
            else:
                exit_main(rc_copy)
         else:
-            print "  Sandbox : %s [ Either doesn't exist or do workon to fips sb to load the ENV.. ]" % os.path.basename(sandbox_path)
-            print "               - OR - "
-            print "  [ Optional ] You can specify your sandbox name as input as well"
-            print "               -s <fips_sandbox Name >"
+            print ("  Sandbox : %s [ Either doesn't exist or do workon to fips sb to load the ENV.. ]" % os.path.basename(sandbox_path))
+            print ("               - OR - ")
+            print ("  [ Optional ] You can specify your sandbox name as input as well")
+            print ("               -s <fips_sandbox Name >")
             usage()
             exit_main(errorcode.ERROR_SANDBOX_EXIST)
     else:
-        print "  Please Check your fips Sandbox and retry"
+        print ("  Please Check your fips Sandbox and retry")
         exit_main(errorcode.ERROR_SANDBOX_EXIST)
 
     sb_name=os.path.basename(sandbox_path)
-    print "\n  Sandbox :",sb_name
+    print ("\n  Sandbox :",sb_name)
 
     if build == "1":
         #----------------------------------------
@@ -291,12 +291,12 @@ def main():
             if rc_file == "None":
                 compile_cmd="workon -m ppc  " + sb_name + " -c " + hook_file + " -rc " + sandbox_root +"/.sandboxrc"
             else:
-                print " getting rc file from user \n"
+                print (" getting rc file from user \n")
                 compile_cmd="workon -m ppc  " + sb_name + " -c " + hook_file + " -rc " + rc_file
-        print "\n  [ COMPILE ] Executing :%s \n"%compile_cmd
+        print ("\n  [ COMPILE ] Executing :%s \n"%compile_cmd)
         rc = os.system(compile_cmd)
 
-        print "  Compilation returned rc :",rc
+        print ("  Compilation returned rc :",rc)
         if rc != 0:
             exit_main(errorcode.ERROR_BUILD_FAILED)
 

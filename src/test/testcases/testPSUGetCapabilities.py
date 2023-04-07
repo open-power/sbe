@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -114,7 +114,7 @@ def getCapabilities(addr, size, exp_status):
     )
     # HOST->SBE data set execution - Less length setup
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
@@ -127,12 +127,12 @@ def main():
     # Run Simics initially
     testUtil.runCycles( 100000000 )
 
-    print "\n  Execute SBE Test - negative testcase - less size\n"
+    print ("\n  Execute SBE Test - negative testcase - less size\n")
     getCapabilities(0x08000000, 30, 0x00020019)
-    print "\n  Execute SBE Test - negative testcase - not multiple of PBA\n"
+    print ("\n  Execute SBE Test - negative testcase - not multiple of PBA\n")
     getCapabilities(0x08000000, 129, 0x00020019)
 
-    print "\n  Execute SBE Test - positive testcase \n"
+    print ("\n  Execute SBE Test - positive testcase \n")
     getCapabilities(0x08000000, 128, 0)
 
     testUtil.runCycles( 100000000 );

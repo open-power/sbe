@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -63,7 +63,7 @@ def getFilePath(filename):
         retPath = os.path.join(dir, filename)
         if(os.path.exists(retPath)):
             return os.path.abspath(retPath)
-    print "ERROR: file " + filename +" not found"
+    print ("ERROR: file " + filename +" not found")
     return 1
 
 def getTraceFilePath():
@@ -84,7 +84,7 @@ def fillSymTable():
             if( len( words ) == 4 ):
                 syms[words[3]] = [words[0], words[1]]
     except:
-        print "Symbol file not found, limited commands avaliable"
+        print ("Symbol file not found, limited commands avaliable")
 
 def getSymbolInfo( symbol ):
     symAddr = ''
@@ -98,9 +98,9 @@ def getSymbolInfo( symbol ):
         baseAddr = 0xfffc8000
     else:
         baseAddr = 0xfffe8000
-    
-    print "\n symAddress :", symAddr
-    print "\n baseAddress :", baseAddr
+
+    print ("\n symAddress :", symAddr)
+    print ("\n baseAddress :", baseAddr)
     offset = int(symAddr, base = 16) - baseAddr;
     return (hex(offset), length)
 
@@ -133,13 +133,13 @@ def getSymbolVal(symbol, hexdump=False):
         if hexdump:
             invokeOsCmd( "hexdump -C "+ output_path +"DumpPIBMEM" )
     else:
-        print "symbol not found"
+        print ("symbol not found")
 
 def invokeOsCmd(cmd):
-    print "Running command [" + cmd + "]"
+    print ("Running command [" + cmd + "]")
     rc = os.system( cmd )
     if ( rc ):
-       print "ERROR running command: %d " % ( rc )
+       print ("ERROR running command: %d " % ( rc ))
        return 1
 
 '''
@@ -226,8 +226,8 @@ def collectStackUsage():
         # Dump stack memory to binary file
         invokeOsCmd( "cat "+ output_path +"DumpPIBMEM >"+ output_path + thread )
 
-    print "==================================Stack usage==================================="
-    print "Thread".ljust(40)+"Least Available[bytes]".ljust(30)+"Max usage[%]"
+    print ("==================================Stack usage===================================")
+    print ("Thread".ljust(40)+"Least Available[bytes]".ljust(30)+"Max usage[%]")
     for thread in threads:
         with open(output_path+thread, "rb") as f:
             word = struct.unpack('I', f.read(4))[0]
@@ -241,7 +241,7 @@ def collectStackUsage():
                         break
                 else:
                     break
-            print str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16))))))
+            print (str("["+thread+"]").ljust(40) + str(leastAvailable).ljust(30) + str("%.2f" % (100 * (1 - (leastAvailable/float(int("0x"+syms[thread][1], 16)))))))
 
 def getSbeCommit():
     getSymbolVal( 'SBEGlobalsSingleton.*fwCommitId' )
@@ -249,7 +249,7 @@ def getSbeCommit():
     with open(output_path+"DumpPIBMEM", "rb") as f:
         # Big Endian word
         word = struct.unpack('>I', f.read(4))[0]
-        print "SBE commit:", hex(word)
+        print ("SBE commit:", hex(word))
 
 def ppeStateFfdc():
     # Keep this structure in sync with src/sbefw/core/sbeirqregistersave.H
@@ -274,25 +274,25 @@ def ppeStateFfdc():
         data = f.read()
         ctypes.memmove(ctypes.addressof(ppestateffdc), data, ctypes.sizeof(ppestateffdc))
 
-        print '''
+        print ('''
 ---------------------------------------------------------------------------------
 Please verify sbe_DD2.syms is valid for this dump, before depending on the values
----------------------------------------------------------------------------------'''
+---------------------------------------------------------------------------------''')
         if ppestateffdc.validbyte == 0x1 and ppestateffdc.magicbyte == 0xA5:
-            print "ppestateffdc.version                             0x%04X" % ppestateffdc.version
-            print "ppestateffdc.magicbyte                           0x%02X" % ppestateffdc.magicbyte
-            print "ppestateffdc.validbyte                           0x%02X" % ppestateffdc.validbyte
-            print "ppestateffdc.register_SRR0                       0x%08X" % ppestateffdc.register_SRR0
-            print "ppestateffdc.register_SRR1                       0x%08X" % ppestateffdc.register_SRR0
-            print "ppestateffdc.register_ISR                        0x%08X" % ppestateffdc.register_ISR
-            print "ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS
-            print "ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS
-            print "ppestateffdc.register_FI2C_STAT_LOWER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_LOWER_32BITS
-            print "ppestateffdc.register_FI2C_STAT_UPPER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_UPPER_32BITS
-            print "ppestateffdc.register_LR                         0x%08X" % ppestateffdc.register_LR
+            print ("ppestateffdc.version                             0x%04X" % ppestateffdc.version)
+            print ("ppestateffdc.magicbyte                           0x%02X" % ppestateffdc.magicbyte)
+            print ("ppestateffdc.validbyte                           0x%02X" % ppestateffdc.validbyte)
+            print ("ppestateffdc.register_SRR0                       0x%08X" % ppestateffdc.register_SRR0)
+            print ("ppestateffdc.register_SRR1                       0x%08X" % ppestateffdc.register_SRR0)
+            print ("ppestateffdc.register_ISR                        0x%08X" % ppestateffdc.register_ISR)
+            print ("ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_LOWER_32BITS)
+            print ("ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS   0x%08X" % ppestateffdc.register_FI2C_CONFIG_UPPER_32BITS)
+            print ("ppestateffdc.register_FI2C_STAT_LOWER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_LOWER_32BITS)
+            print ("ppestateffdc.register_FI2C_STAT_UPPER_32BITS     0x%08X" % ppestateffdc.register_FI2C_STAT_UPPER_32BITS)
+            print ("ppestateffdc.register_LR                         0x%08X" % ppestateffdc.register_LR)
         else:
-            print "Register ffdc is not valid, probably SBE has not hit any internal halt condition"
-        print '''---------------------------------------------------------------------------------'''
+            print ("Register ffdc is not valid, probably SBE has not hit any internal halt condition")
+        print ('''---------------------------------------------------------------------------------''')
 
 def ppeState():
     if(target == 'FILE'):
@@ -361,12 +361,12 @@ def ppeState():
                          30 : ["R30", False],
                          31 : ["R31", False]
                      }
-        print "File path: ", file_path
+        print ("File path: ", file_path)
         fileHandle = open(file_path)
         l_cnt = 0
-        print '********************************************************************'
-        print 'Reg'.ljust(15),'Reg Value'.ljust(20)
-        print '--------------------------------------------------------------------'
+        print ('********************************************************************')
+        print ('Reg'.ljust(15),'Reg Value'.ljust(20))
+        print ('--------------------------------------------------------------------')
         while(l_cnt < os.path.getsize(file_path)):
             regNum = int(binascii.hexlify(fileHandle.read(2)), 16)
             str1 = ''
@@ -381,10 +381,10 @@ def ppeState():
             except:
                 str1 = hex(regNum)
             str3 = binascii.hexlify(fileHandle.read(4))
-            print str(str1).ljust(15),str(str3).ljust(20)
+            print (str(str1).ljust(15),str(str3).ljust(20))
             l_cnt = l_cnt + 6;
 
-        print '********************************************************************'
+        print ('********************************************************************')
         fileHandle.close()
     else:
         invokeOsCmd(getFilePath("p9_ppe_state_wrap.exe")+" -verbose -sbe -snapshot"+
@@ -392,19 +392,19 @@ def ppeState():
 
 def sbeLocalRegister():
     if(target == 'FILE'):
-        print "File path: ", file_path
+        print ("File path: ", file_path)
         fileHandle = open(file_path)
         l_cnt = 0
-        print '********************************************************************'
-        print 'Reg Number  Reg Value            Reg String'
+        print ('********************************************************************')
+        print ('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = binascii.hexlify(fileHandle.read(2))
             str2 = fileHandle.read(32)
             str3 = binascii.hexlify(fileHandle.read(8))
-            print str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40)
-            l_cnt = l_cnt + 42;
+            print (str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40))
+            l_cnt = l_cnt + 42
 
-        print '********************************************************************'
+        print ('********************************************************************')
         fileHandle.close()
     else:
         invokeOsCmd(getFilePath("p9_sbe_localreg_dump_wrap.exe")+" -verbose -halt"+
@@ -412,19 +412,19 @@ def sbeLocalRegister():
 
 def sbeState():
     if(target == 'FILE'):
-        print "File path: ", file_path
+        print ("File path: ", file_path)
         fileHandle = open(file_path)
         l_cnt = 0
-        print '********************************************************************'
-        print 'Reg Number  Reg Value            Reg String'
+        print ('********************************************************************')
+        print ('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = binascii.hexlify(fileHandle.read(4))
             str2 = fileHandle.read(32)
             str3 = binascii.hexlify(fileHandle.read(8))
-            print str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40)
-            l_cnt = l_cnt + 44;
+            print (str(str1).ljust(11),str(str3).ljust(20),str2.ljust(40))
+            l_cnt = l_cnt + 44
 
-        print '********************************************************************'
+        print ('********************************************************************')
         fileHandle.close()
     else:
         invokeOsCmd(getFilePath("p9_pibms_reg_dump_wrap.exe")+" -verbose" +\
@@ -432,17 +432,17 @@ def sbeState():
 
 def sbeStatus():
     if(target == 'FILE'):
-        print "Error - not supported for FILE Target"
+        print ("Error - not supported for FILE Target")
     else:
         cmd = ("getcfam pu 2809" +\
                 " -n" + str(node) + " -p" + str(proc))
-        print "cmd:", cmd
+        print ("cmd:", cmd)
         output = os.popen(cmd).read()
         output = output.split()
         expected_out = 'k0:n%1d:s0:p%02d'%(node,proc)
         if (expected_out not in output):
-            print "Error while getting the status register"
-            print ' '.join(output)
+            print ("Error while getting the status register")
+            print (' '.join(output))
         else:
             parsevalue(bin(int(output[output.index(expected_out)+1], 16)))
 
@@ -456,30 +456,30 @@ def parsevalue(iValue):
 
     tempVal = iValue[2:3]
     tempVal = 'True' if tempVal == '1' else 'False'
-    print "SBE Booted           : %s" %(tempVal)
+    print ("SBE Booted           : %s" %(tempVal))
 
     tempVal = iValue[3:4]
     tempVal = 'True' if tempVal == '1' else 'False'
-    print "Async FFDC           : %s" %(tempVal)
+    print ("Async FFDC           : %s" %(tempVal))
 
     tempVal = iValue[4:6]
-    print "Reserver Bit [2:3]   : %s" %(tempVal)
+    print ("Reserver Bit [2:3]   : %s" %(tempVal))
 
     tempVal = iValue[6:10]
-    print "SBE Previous State   : %s (%s)" %(sbeStates[tempVal], tempVal)
+    print ("SBE Previous State   : %s (%s)" %(sbeStates[tempVal], tempVal))
 
 
     tempVal = iValue[10:14]
-    print "SBE Current State    : %s (%s)" %(sbeStates[tempVal], tempVal)
+    print ("SBE Current State    : %s (%s)" %(sbeStates[tempVal], tempVal))
 
     tempVal = iValue[14:22]
-    print "Istep Major          : %s" %(int(tempVal, 2))
+    print ("Istep Major          : %s" %(int(tempVal, 2)))
 
     tempVal = iValue[22:28]
-    print "Istep Minor          : %s" %(int(tempVal, 2))
+    print ("Istep Minor          : %s" %(int(tempVal, 2)))
 
     tempVal = iValue[28:34]
-    print "Reserved Bit [26:31] : %s" %(tempVal)
+    print ("Reserved Bit [26:31] : %s" %(tempVal))
 
 
 '''
@@ -516,7 +516,7 @@ def main( argv ):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "l:t:n:p:d:s:f:o:h", ['level=', 'target=', 'node=', 'proc=', 'ddlevel=', 'symbol=', 'file_path=', 'output_path=','help'])
     except getopt.GetoptError as err:
-        print str(err)
+        print (str(err))
         usage()
         exit(1)
 
@@ -534,45 +534,45 @@ def main( argv ):
             if arg in LEVELS_ARRAY:
                 level = arg
             else:
-                print "level should be one of " + str(LEVELS_ARRAY)
+                print ("level should be one of " + str(LEVELS_ARRAY))
                 exit(1)
         elif opt in ('-t', '--target'):
             if arg in ('AWAN', 'HW', 'FILE'):
                 target = arg
             else:
-                print "target should be one of {AWAN,HW,FILE}"
+                print ("target should be one of {AWAN,HW,FILE}")
                 exit(1)
         elif opt in ('-n', '--node'):
             try:
                 node = int(arg)
             except:
-                print "node should be an integer number"
+                print ("node should be an integer number")
                 exit(1)
         elif opt in ('-p', '--proc'):
             try:
                 proc = int(arg)
             except:
-                print "proc should be an integer number"
+                print ("proc should be an integer number")
                 exit(1)
         elif opt in ('-d', '--ddlevel'):
             if arg in ('DD1', 'DD2', 'AXONE'):
                 ddsuffix = arg
             else:
-                print "target should be one of {DD1, DD2, AXONE}"
+                print ("target should be one of {DD1, DD2, AXONE}")
                 exit(1)
         elif opt in ('-f', '--file_path'):
             try:
                 file_path = arg
                 assert os.path.exists(arg), "Did not find the file at,"+str(arg)
             except:
-                print "file_path should a string path"
+                print ("file_path should a string path")
                 exit(1)
         elif opt in ('-o', '--output_path'):
             try:
                 output_path = arg+"/"
                 assert os.path.exists(arg)
             except:
-                print "output_path should a string path"
+                print ("output_path should a string path")
                 exit(1)
         elif opt in ('-s', '--symbol'):
             symbol = arg
@@ -583,7 +583,7 @@ def main( argv ):
         # Example output: 'CNFG FILE GLOBAL_DEBUG: 8.VI.B\n\tk0                 \nUSE_SBE_FIFO = off\n/afs/awd.austin.ibm.com/projects/eng/tools/cronus/p9/exe/dev/p9sim_dev_x86_64.exe getconfig USE_SBE_FIFO \n'
         regEx = re.search('USE_SBE_FIFO.*=(.*)', cmdFifoLastState)
         if (regEx == None):
-           print "ERROR in getting USE_SBE_FIFO config"
+           print ("ERROR in getting USE_SBE_FIFO config")
            return 1
         cmdFifoLastState = regEx.group(1).split()[0]
         # On cronus, disabe FIFO mode
@@ -596,7 +596,7 @@ def main( argv ):
     fillSymTable()
 
     if ( level == 'all' ):
-        print "Parsing everything"
+        print ("Parsing everything")
         collectTrace()
         collectAttr()
         sbeStatus()

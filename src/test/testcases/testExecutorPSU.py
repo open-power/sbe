@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -119,25 +119,25 @@ sample_test_data = (
 def main():
 
     # Intialize the class obj instances
-    print "\n  Initializing Registry instances ...."
+    print ("\n  Initializing Registry instances ....")
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set  [ PSU ] ...\n"
+    print ("\n  Execute SBE Test set  [ PSU ] ...\n")
                                    # Sim obj Target    Test set     Raise Exception
     rc_test = regObj.ExecuteTestOp(testPSUUtil.simSbeObj,sbe_test_data, True)
     if rc_test != testPSUUtil.SUCCESS:
-        print "  SBE Test data set .. [ Failed ] .."
+        print ("  SBE Test data set .. [ Failed ] ..")
     else:
-        print "  SBE Test data set .. [ OK ] "
-        print "\n  Poll on Host side for INTR  ...\n"
+        print ("  SBE Test data set .. [ OK ] ")
+        print ("\n  Poll on Host side for INTR  ...\n")
                                    # Sim obj Target    Test set     Max timedout
         rc_intr = regObj.pollingOn(testPSUUtil.simSbeObj,host_test_data,20)
         if rc_intr == testPSUUtil.SUCCESS:
-            print "  Interrupt Event Recieved .. Success !!"
+            print ("  Interrupt Event Recieved .. Success !!")
         else:
-            print "  Interrupt not Recieved.. Exiting .."
+            print ("  Interrupt not Recieved.. Exiting ..")
 
-    print "\n"
+    print ("\n")
 
 if __name__=="__main__":
     if testUtil.getMachineName() == "axone":

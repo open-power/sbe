@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -64,7 +64,7 @@ if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
 
     # Run start_simics to populate simics directories.
     echo "----Setting up simics."
-    execute_in_sandbox "start_simics -no_start -machine $MACHINE_TYPE -batch_mode" \
+    execute_in_sandbox "start_simics -no_start -machine $MACHINE_TYPE $SIMICSOPTIONS -batch_mode" \
                        "ppc" || exit -1
 
     # Run postsimsetup workarounds.

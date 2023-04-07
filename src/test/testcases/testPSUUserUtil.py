@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -27,7 +27,7 @@
 #############################################################
 #    @file    testClassUtil.py
 #    @author: George Keishing <gkeishin@in.ibm.com>
-#    @brief   Framework utility fucntions for Host SBE 
+#    @brief   Framework utility fucntions for Host SBE
 #             interface on simics
 #
 #    Created on March 29, 2016
@@ -55,5 +55,5 @@ either SUCCESS or FAILURE as an end result for generalization purpose.
 ##########################################################################
 def classUtilFuncSample(i_paramArray):
     for input in i_paramArray:
-        print "  classUtilFuncSample : parm: ",input
-    return testPSUUtil.SUCCESS 
+        print ("  classUtilFuncSample : parm: ",input)
+    return testPSUUtil.SUCCESS

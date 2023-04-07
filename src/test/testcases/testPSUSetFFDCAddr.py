@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -86,7 +86,7 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test - Set FFDC Address\n"
+    print ("\n  Execute SBE Test - Set FFDC Address\n")
 
     '''
     Test Case 1
@@ -94,7 +94,7 @@ def main():
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 

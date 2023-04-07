@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -186,80 +186,80 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data1 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data2 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data3 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data4 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data5 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data6 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data7 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
     testUtil.runCycles( 10000000 );
 
-    print "\n  Execute SBE Test \n"
+    print ("\n  Execute SBE Test \n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data8 )
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
     #SBE->HOST data set execution

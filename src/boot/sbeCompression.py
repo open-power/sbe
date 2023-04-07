@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -40,17 +40,17 @@ def compress(inputFile, compressedFile):
     try:
       f = open(inputFile, "rb")
     except IOError as e :
-      print "I/O error File for File to be compressed."
+      print ("I/O error File for File to be compressed.")
       sys.exit(1)
 
     try:
       fW = open(compressedFile, "wb")
     except IOError as e :
-      print "I/O error File for compressed file."
+      print ("I/O error File for compressed file.")
       sys.exit(1)
 
     if os.stat(inputFile).st_size < 4 :
-      print "File is less than four bytes."
+      print ("File is less than four bytes.")
       sys.exit(1)
 
     instDict = dict()
@@ -129,13 +129,13 @@ def compress(inputFile, compressedFile):
     fW.close()
 
 def usage():
-    print "usage: sbeCompression.py [-h] [-l <path>] [-i <image>]"
-    print "SBE Compression Parser"
-    print "Arguments:"
-    print "-h, --help\t\tshow this help message and exit"
-    print "-l, --imageLoc\t\tSeeprom Binary Location"
-    print "-i, --image\t\tSeeprom Binary"
-    print "-p, --p9_xip_tool\t\tp9_xip_tool path"
+    print ("usage: sbeCompression.py [-h] [-l <path>] [-i <image>]")
+    print ("SBE Compression Parser")
+    print ("Arguments:")
+    print ("-h, --help\t\tshow this help message and exit")
+    print ("-l, --imageLoc\t\tSeeprom Binary Location")
+    print ("-i, --image\t\tSeeprom Binary")
+    print ("-p, --p9_xip_tool\t\tp9_xip_tool path")
     return 1
 
 def main( argv ):
@@ -143,7 +143,7 @@ def main( argv ):
     try:
         opts, args = getopt.getopt(argv[1:], "l:i:p:h", ['imageLoc=', 'image=', 'p9_xip_tool=', 'help'])
     except getopt.GetoptError as err:
-        print str(err)
+        print (str(err))
         usage()
         exit(1)
 
@@ -156,7 +156,7 @@ def main( argv ):
             imagePath = arg
         elif opt in ('-i', '--image'):
             image = arg
-        elif opt in ('-p', '--p9_xip_tool'):    
+        elif opt in ('-p', '--p9_xip_tool'):
             p9_xip_tool = arg
         else:
             usage()
@@ -166,14 +166,14 @@ def main( argv ):
     cmd1 = "cp " + imagePath + "/" + image + " " + imagePath +  "/" + image + ".orig"
     rc = os.system(cmd1)
     if rc:
-      print "Unable to make copy of seeprom binary"
+      print ("Unable to make copy of seeprom binary")
       sys.exit(1)
 
     #Extract base from SEEPROM binary.
     cmd2 = p9_xip_tool + " " + imagePath + "/" + image + " extract .base " + imagePath + "/" + image + ".base"
     rc = os.system(cmd2)
     if rc:
-      print "Unable to extract the base from seeprom binary"
+      print ("Unable to extract the base from seeprom binary")
       sys.exit(1)
 
     #Compress the base section
@@ -183,14 +183,14 @@ def main( argv ):
     cmd3 = p9_xip_tool + " " + imagePath + "/" + image + " delete .base"
     rc = os.system(cmd3)
     if rc:
-      print "Unable to delete base section from seeprom binary"
+      print ("Unable to delete base section from seeprom binary")
       sys.exit(1)
 
     #Append the base section from SEEPEOM binary.
     cmd4 = p9_xip_tool + " " + imagePath +  "/" + image + " append .base " + imagePath + "/" + image + ".base.compressed"
     rc = os.system(cmd4)
     if rc:
-      print "Unable to append the base section"
+      print ("Unable to append the base section")
       sys.exit(1)
 
 if __name__ == "__main__":

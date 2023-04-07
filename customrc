@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2020
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -33,6 +33,7 @@ export SANDBOXNAME=test_sb
 #export WORKSPACE=<set it to your root ppe directory. This is required if you
 #                  to use build script locally>
 export MACHINE=NIMBUS
-export BACKING_BUILD=/esw/fips940/Builds/b1218a_1951.940/
+export BACKING_BUILD=/esw/fips950/Builds/b0403a_2314.950/
 export SIMICSOPTIONS="-nre"
-export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/ff7d55caea7e4825c94044588228cd301b6be64d/
+export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/simics-5/simics-5.0.227/fi230313a900.50/
+# export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/ff7d55caea7e4825c94044588228cd301b6be64d/

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -77,4 +77,4 @@ simics> system_cmp0.phys_mem.map
     target -> proc_p9chip0.xscom_memspc, width 8 bytes
 
 '''
-MEM_ADDR = 0x0000008000000 
+MEM_ADDR = 0x0000008000000

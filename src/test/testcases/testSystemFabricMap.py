@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -77,7 +77,7 @@ def main():
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
     testUtil.runCycles( 1000000 );
-    print "\n  Execute SBE Test [ System Fabric Map ] ...\n"
+    print ("\n  Execute SBE Test [ System Fabric Map ] ...\n")
 
     '''
     Test Case 1
@@ -85,7 +85,7 @@ def main():
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 

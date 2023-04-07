@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -66,7 +66,7 @@ import sbeCmvcConstants as errorcode
 def utilCmvcChangeDir(i_cmvcnum):
     l_home_path= expanduser("~") + "/" + errorcode.CMVC_DIR_CREATE + i_cmvcnum
 
-    print "  Sandbox path\t: ",l_home_path
+    print ("  Sandbox path\t: ",l_home_path)
     cmd='mkdir -p  ' + l_home_path
     os.system(cmd)
     os.chdir(l_home_path)
@@ -87,8 +87,8 @@ def utilCmvcRepoPath(i_pathname, i_cmvcnum, i_filename):
     l_home_path= expanduser("~") + "/" + errorcode.CMVC_DIR_CREATE + i_cmvcnum
     # Strip the last string from the file path input
 
-    print "  Sandbox path\t: ",l_home_path
-    print "  SBE Repo path\t: ",i_pathname
+    print ("  Sandbox path\t: ",l_home_path)
+    print ("  SBE Repo path\t: ",i_pathname)
 
     if i_filename == "None":
         i_filename = errorcode.CMVC_FILE_LIST
@@ -100,10 +100,10 @@ def utilCmvcRepoPath(i_pathname, i_cmvcnum, i_filename):
         l_repo_path = utilFindFile(l_filename,i_pathname)
 
         if l_sb_path is None :
-           print "  ERROR: Checked out sandbox does not contain " + l_filename
+           print ("  ERROR: Checked out sandbox does not contain " + l_filename)
            return errorcode.ERROR_CMVC_FILE_COPY
         if l_repo_path is None :
-           print "  ERROR: File Not Found in SBE repo " + l_filename
+           print ("  ERROR: File Not Found in SBE repo " + l_filename)
            return errorcode.ERROR_CMVC_FILE_COPY
 
         cp_cmd = 'cp ' + l_repo_path + '  ' + l_sb_path
@@ -180,8 +180,8 @@ def utilFindFilePPE(i_filename, i_path, i_sandbox_name):
 #
 ##########################################################################
 def utilCmvcCheckout(i_filename, i_release, i_cmvcnum):
-    print "  File Name\t: ",i_filename
-    print "  Release\t: ",i_release
+    print ("  File Name\t: ",i_filename)
+    print ("  Release\t: ",i_release)
 
     # The file simics.tar,releaseNotes.html is not unique so provide
     # the relative path
@@ -190,7 +190,7 @@ def utilCmvcCheckout(i_filename, i_release, i_cmvcnum):
     elif i_filename == "releaseNotes.html":
        i_filename = 'src/sbei/sbfw/releaseNotes.html'
 
-    print "  CMVC #\t: ",i_cmvcnum[1:]
+    print ("  CMVC #\t: ",i_cmvcnum[1:])
     l_home_path= expanduser("~") + "/" + errorcode.CMVC_DIR_CREATE + i_cmvcnum
 
     cmd='File -checkout ' + i_filename + '  -release '+ i_release + '  -relative ' + l_home_path
@@ -199,12 +199,12 @@ def utilCmvcCheckout(i_filename, i_release, i_cmvcnum):
     else:
         cmd += '  -feature ' + i_cmvcnum[1:]
 
-    print "  Executing\t: ", cmd
+    print ("  Executing\t: ", cmd)
     rc = os.system(cmd)
     if rc:
         # rc 256 File not found in CMVC
         if rc == 256:
-            print "  * File was not found or Error operation in CMVC"
+            print ("  * File was not found or Error operation in CMVC")
         return errorcode.ERROR_CMVC_CHECKOUT
     else:
         return errorcode.SUCCESS_CMVC_CHECKOUT
@@ -223,9 +223,9 @@ def utilCmvcCheckout(i_filename, i_release, i_cmvcnum):
 #
 ##########################################################################
 def utilCmvcCheckin(i_filename, i_release, i_cmvcnum):
-    print "  File Name\t: ",i_filename
-    print "  Release\t: ",i_release
-    print "  CMVC #\t: ",i_cmvcnum[1:]
+    print ("  File Name\t: ",i_filename)
+    print ("  Release\t: ",i_release)
+    print ("  CMVC #\t: ",i_cmvcnum[1:])
 
     l_home_path= expanduser("~") + "/" + errorcode.CMVC_DIR_CREATE + i_cmvcnum
     l_base_path = utilFindFile(i_filename,l_home_path)
@@ -240,7 +240,7 @@ def utilCmvcCheckin(i_filename, i_release, i_cmvcnum):
     else:
         cmd += '  -feature ' + i_cmvcnum[1:]
 
-    print "  Executing\t: ", cmd
+    print ("  Executing\t: ", cmd)
     rc = os.system(cmd)
     if rc:
         return errorcode.ERROR_CMVC_CHECKIN
@@ -259,7 +259,7 @@ def utilCmvcCheckin(i_filename, i_release, i_cmvcnum):
 #
 ##########################################################################
 def utilCmvcFixComplete(i_cmvcnum, i_release):
-    print "  CMVC #\t: ",i_cmvcnum
+    print ("  CMVC #\t: ",i_cmvcnum)
     l_cmvcnum =i_cmvcnum[1:]
 
     if i_cmvcnum[:1] == "D":
@@ -267,7 +267,7 @@ def utilCmvcFixComplete(i_cmvcnum, i_release):
     else:
         cmd='Fix -complete ' + ' -feature ' + l_cmvcnum + '  -r ' + i_release + ' -component esw_sbei'
 
-    print "  Executing\t: ", cmd
+    print ("  Executing\t: ", cmd)
     rc = os.system(cmd)
     if rc:
         return errorcode.ERROR_CMVC_FIX_RECORD
@@ -285,8 +285,8 @@ def utilCmvcFixComplete(i_cmvcnum, i_release):
 #
 ##########################################################################
 def utilCheckTrackState(i_cmvcnum, i_release):
-    print "  CMVC #\t: ",i_cmvcnum
-    print "  Release\t: ",i_release
+    print ("  CMVC #\t: ",i_cmvcnum)
+    print ("  Release\t: ",i_release)
 
     l_cmvcnum =i_cmvcnum[1:]
     cmd = 'Track -view -release ' + i_release
@@ -296,7 +296,7 @@ def utilCheckTrackState(i_cmvcnum, i_release):
         cmd += ' -feature ' + l_cmvcnum
     cmd += ' | grep state '
 
-    print "  Executing\t: ", cmd
+    print ("  Executing\t: ", cmd)
     ex_cmd = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     for line in ex_cmd.stdout :
         if not line: continue
@@ -316,24 +316,24 @@ def utilCheckTrackState(i_cmvcnum, i_release):
 #
 ##########################################################################
 def utilCheckFileHash(i_src, i_dest):
-    print "  Source\t: ",i_src
-    print "  Destination\t: ",i_dest
+    print ("  Source\t: ",i_src)
+    print ("  Destination\t: ",i_dest)
 
     sha_orig = hashlib.sha256()
     sha_orig.update(file(i_src).read())
     orig_hash=sha_orig.hexdigest()
-    print "  * Orig Hash\t [ %s : %s ] "% (os.path.basename(i_src),orig_hash)
+    print ("  * Orig Hash\t [ %s : %s ] "% (os.path.basename(i_src),orig_hash))
 
     sha_copy = hashlib.sha256()
     sha_copy.update(file(i_dest).read())
     copied_hash=sha_copy.hexdigest()
-    print "  * Copied Hash\t [ %s : %s ] "% (os.path.basename(i_dest),copied_hash)
+    print ("  * Copied Hash\t [ %s : %s ] "% (os.path.basename(i_dest),copied_hash))
 
     if orig_hash == copied_hash:
-        print "  -> Hash Match .. Continue\n"
+        print ("  -> Hash Match .. Continue\n")
         return errorcode.SUCCESS_HASH_CHECK
     else:
-        print " Mismatch Hash.. Abort"
+        print (" Mismatch Hash.. Abort")
         return errorcode.ERROR_HASH_CHECK
 
 ##########################################################################
@@ -349,27 +349,27 @@ def utilCheckFileHash(i_src, i_dest):
 #
 ##########################################################################
 def utilRollBack(i_action, i_cmvcnum, i_release):
-    print "\n  * Action request\t: ",i_action
+    print ("\n  * Action request\t: ",i_action)
     if i_action == "checkin":
-        print "  * Undoing All default File list"
+        print ("  * Undoing All default File list")
         if i_cmvcnum[:1] == "D":
             cmd = 'File -undo ' + errorcode.CMVC_FILE_UNDO_LIST + ' -release ' + i_release + '  -defect ' + i_cmvcnum[1:] + ' >/dev/null 2>&1'
         else:
             cmd = 'File -undo ' + errorcode.CMVC_FILE_UNDO_LIST + ' -release ' + i_release + '  -feature ' + i_cmvcnum[1:] + ' >/dev/null 2>&1'
     else:
-        print "  * Unlocking All default Files list"
+        print ("  * Unlocking All default Files list")
         if i_cmvcnum[:1] == "D":
             cmd = 'File -unlock ' + errorcode.CMVC_FILE_UNDO_LIST + ' -release ' + i_release + ' >/dev/null 2>&1'
         else:
             cmd = 'File -unlock ' + errorcode.CMVC_FILE_UNDO_LIST + ' -release ' + i_release + ' >/dev/null 2>&1'
 
-    #print "  Executing : ", cmd
+    #print ("  Executing : ", cmd
     rc = os.system(cmd)
     # CMVC throws this rc even if its successfull
     if rc != 1024 and rc !=0:
-        print "\n  Error [ %s ] in Undoing/Unlocking Files.. Please check manually"%rc
+        print ("\n  Error [ %s ] in Undoing/Unlocking Files.. Please check manually"%rc)
     else:
-        print "\n  Roll Back Successfull.. Please Revisit your inputs [ OK ] "
+        print ("\n  Roll Back Successfull.. Please Revisit your inputs [ OK ] ")
 
 
 ##########################################################################
@@ -385,7 +385,7 @@ def utilRollBack(i_action, i_cmvcnum, i_release):
 #
 ##########################################################################
 def utilTriggerJenkins(i_cmvcnum,i_release,i_bvt):
-    print "  Jenkins job for %s" % i_cmvcnum
+    print ("  Jenkins job for %s" % i_cmvcnum)
     #PATH : /afs/austin.ibm.com/projects/esw/bin/fsp-CI-jenkins
     cmd = "fsp-CI-jenkins -r " + i_release + " -t " + i_cmvcnum[1:] + " --test_on_hardware=y"
     if not i_bvt == "None" :
@@ -411,14 +411,14 @@ def utilTriggerJenkins(i_cmvcnum,i_release,i_bvt):
 ##########################################################################
 def utilCopyFileToSandbox(i_pathname,i_sandboxname,i_filename):
 
-    print "\n  *** For Development *** \n"
-    print "  Sandbox path\t: ",i_sandboxname
-    print "  SBE Repo path\t: ",i_pathname
-    print "\n"
+    print ("\n  *** For Development *** \n")
+    print ("  Sandbox path\t: ",i_sandboxname)
+    print ("  SBE Repo path\t: ",i_pathname)
+    print ("\n")
 
     if i_filename == "None":
         i_filename = errorcode.CMVC_FILE_LIST
-        #print "  No User supplied Files to copy"
+        #print ("  No User supplied Files to copy")
         #return errorcode.ERROR_FILE_INPUT
 
     for l_filename in i_filename.split(","):
@@ -426,7 +426,7 @@ def utilCopyFileToSandbox(i_pathname,i_sandboxname,i_filename):
         l_sandbox_name = os.path.basename(i_sandboxname)
         l_repo_path = utilFindFilePPE(l_filename,i_pathname,l_sandbox_name)
         if l_repo_path is None :
-            print "  File [ %s ] not found in Repo..\t Check your repo and retry "%l_filename
+            print ("  File [ %s ] not found in Repo..\t Check your repo and retry "%l_filename)
             return errorcode.ERROR_CMVC_FILE_COPY
         else:
             for files in errorcode.FILE_LOOKUP_LIST.split(","):
@@ -439,18 +439,18 @@ def utilCopyFileToSandbox(i_pathname,i_sandboxname,i_filename):
             # Check if this path exist in the sandbox , if not create and copy
             if os.path.exists(sb_cp_path) == False:
                 cmd='mkdir -p  ' + os.path.dirname(sb_cp_path)
-                #print "  Creating dir %s "%cmd
+                #print ("  Creating dir %s "%cmd)
                 os.system(cmd)
 
             # Copy the file
             copy_cmd = 'cp -rf ' + l_repo_path + '  ' + sb_cp_path
             rc = os.system(copy_cmd)
             if rc:
-                print "  RC code :",rc
-                print "  ERROR : Copying file : ",copy_cmd
+                print ("  RC code :",rc)
+                print ("  ERROR : Copying file : ",copy_cmd)
                 return errorcode.ERROR_CMVC_FILE_COPY
             else:
-                print "  Copied file : ",copy_cmd
+                print ("  Copied file : ",copy_cmd)
 
     return errorcode.SUCCESS_DEV_EXIT
 
@@ -471,15 +471,15 @@ def utilppeSbENV(i_env_key):
     env_ppe_path="None"
     for key in os.environ.keys():
         if i_env_key in key:
-            #print "\t %s : %s" % (key,os.environ[key])
+            #print ("\t %s : %s" % (key,os.environ[key]))
             env_ppe_path = os.environ[key]
             l_found_ppe_conf = True
 
     if l_found_ppe_conf == False:
-       print "  ---------------------------------------------------------"
-       print "  | [ ERROR SETTING ] : The PPE Repository ENV is not set |"
-       print "  | Please do ./sb workon to set/load the PPE repo ENV    |"
-       print "  ---------------------------------------------------------"
+       print ("  ---------------------------------------------------------")
+       print ("  | [ ERROR SETTING ] : The PPE Repository ENV is not set |")
+       print ("  | Please do ./sb workon to set/load the PPE repo ENV    |")
+       print ("  ---------------------------------------------------------")
 
     return env_ppe_path
 

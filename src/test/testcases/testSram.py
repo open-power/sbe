@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -128,7 +128,7 @@ def main( ):
         testcase = "sec put test 3"
         putsram(0xFFFBE000-128, 0x01, data, 0x0005, 0x0014)
         print("Success: "+testcase)
-    
+
         # comment out -ve tests for security wisnidw as we allow read always
         # secure mem - read on disallowed mem
         # start and end completely outside
@@ -155,7 +155,7 @@ def main( ):
         #testUtil.readDsFifo( GETSRAM_OCC_EXPDATA_1 )
         #testUtil.readEot( )
     except:
-        print "FAILED Test Case:"+str(testcase)
+        print ("FAILED Test Case:"+str(testcase))
         raise Exception('Failure')
 
 #-------------------------------------------------

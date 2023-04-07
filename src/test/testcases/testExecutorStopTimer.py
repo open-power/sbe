@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -98,12 +98,12 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test set1  [ PutCntrlTimer ] ...\n"
+    print ("\n  Execute SBE Test set1  [ PutCntrlTimer ] ...\n")
 
     '''
     Test Case 1
     '''
-    print "\n  Test Start timer\n"
+    print ("\n  Test Start timer\n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_startTimer )
 
@@ -113,7 +113,7 @@ def main():
     #SBE->HOST data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_Timer_Cmd_success )
 
-    print "\n  Test Stop timer\n"
+    print ("\n  Test Stop timer\n")
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_StopTimer )
 
@@ -126,13 +126,13 @@ def main():
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_Timer_Cmd_success )
     try:
         #Poll on HOST DoorBell Register for interrupt
-        print "\n  Poll on Host side for Timer INTR  ...\n"
+        print ("\n  Poll on Host side for Timer INTR  ...\n")
         regObj.pollingOn( testPSUUtil.simSbeObj, timer_polling_data, 20 )
     except:
         isTimerFired = False
 
     if isTimerFired:
-        print "\n  Problem. Timer not cancelled\n"
+        print ("\n  Problem. Timer not cancelled\n")
         raise Exception('Timer Not cancelled ');
 
 if __name__ == "__main__":

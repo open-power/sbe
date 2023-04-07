@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -98,7 +98,7 @@ def main():
     # Intialize the class obj instances
     regObj = testPSUUtil.registry() # Registry obj def for operation
 
-    print "\n  Execute SBE Test - Set Pass through Address\n"
+    print ("\n  Execute SBE Test - Set Pass through Address\n")
 
     '''
     Test Case 1
@@ -106,7 +106,7 @@ def main():
     # HOST->SBE data set execution
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data )
 
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 
@@ -117,11 +117,11 @@ def main():
     # Put mem PBA - Passthrough
     data = os.urandom(128*2)
     data = [ord(c) for c in data]
-    # WO FMODE WO LCO PASSTHROUGH 
+    # WO FMODE WO LCO PASSTHROUGH
     testMemUtil.putmem(0x00000000, data, 0x102)
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_pass_through_polling_data, 5 )
-    
+
     readData = testMemUtil.getmem(0x00000000, 128*2, 0x102)
     if(data == readData):
         print ("Success - Write-Read PBA - With Pass through Mode")

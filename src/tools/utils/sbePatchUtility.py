@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -65,7 +65,7 @@ import sbeCmvcUtility as utilcode
 #
 ##########################################################################
 def utilPatchSimics(i_sandbox_path, i_sandbox_root):
-    print "\n  ... Patching simics files "
+    print ("\n  ... Patching simics files ")
 
     sb_name=os.path.basename(i_sandbox_path)
 
@@ -76,7 +76,7 @@ def utilPatchSimics(i_sandbox_path, i_sandbox_root):
         return errorcode.ERROR_HOOKING_FILE
 
     l_sim_cmd = "workon -m ppc  " + sb_name + " -c " + l_sim_file + " -rc " + i_sandbox_root +"/sbesandboxrc"
-    print " ", l_sim_cmd
+    print (" ", l_sim_cmd)
 
     os.system(l_sim_cmd)
 
@@ -96,7 +96,7 @@ def utilPatchSimics(i_sandbox_path, i_sandbox_root):
 #
 ##########################################################################
 def utilExecuteShell(i_ppe_root, i_sandbox_path, i_shell_file):
-    print "\n   ... Executing shell : ",i_shell_file
+    print ("\n   ... Executing shell : ",i_shell_file)
 
     # Sanbox name
     if i_sandbox_path != "None":
@@ -105,7 +105,7 @@ def utilExecuteShell(i_ppe_root, i_sandbox_path, i_shell_file):
     # Find the file and execute
     l_path_name = i_ppe_root + '/src'
     l_shell_path=utilcode.utilFindFile(i_shell_file, l_path_name)
-    print "  [ %s ]"%l_shell_path
+    print ("  [ %s ]"%l_shell_path)
 
     if i_sandbox_path != "None":
         # Load the shell onto the Sandbox env and execute
@@ -132,7 +132,7 @@ def utilExecuteShell(i_ppe_root, i_sandbox_path, i_shell_file):
 def utilShell_hooks(i_sandbox_path):
     # Find the simics machine from ENV
     l_machine = os.environ['MACHINE'].rstrip('\n')
-    print "  Machine : ",l_machine
+    print ("  Machine : ",l_machine)
     l_cmd_exec = 'start_simics -no_start -machine ' + l_machine + ' -batch_mode '
 
     # Write the compile shell hook on the fips sandbox location

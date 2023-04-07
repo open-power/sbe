@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -46,7 +46,7 @@ def getLbus( node, isfleetwood ):
             lbus=conf.D3Proc0.proc_lbus_map
         if(node == 3):
             lbus=conf.D4Proc0.proc_lbus_map
-   
+
     return lbus
 
 #Default parameters are for single node, node 0
@@ -252,14 +252,14 @@ def runCycles( cycles ):
         syscmd   =   "run-cycles %d"%(cycles)
         ( rc, out )  =   quiet_run_command( syscmd, output_modes.regular )
         if ( rc ):
-            print "simics ERROR running %s: %d "%( syscmd, rc )
+            print ("simics ERROR running %s: %d "%( syscmd, rc ))
 
 def checkEqual( data, expdata ):
     """ Throw exception if data is not equal """
     if( cmp(data, expdata )):
-        print "Eqality check failed"
-        print "Data:", data
-        print "Expected Data", expdata
+        print ("Eqality check failed")
+        print ("Data:", data)
+        print ("Expected Data", expdata)
         raise Exception('data mistmach');
 
 def getMachineName():

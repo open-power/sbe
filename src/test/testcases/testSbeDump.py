@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -93,7 +93,7 @@ def main():
         #read user data id
         data = testUtil.readDsEntryReturnVal()
         id = (data[0] << 8) | data[1]
-        print "User data Id ["+str(hex(id))+"]"
+        print ("User data Id ["+str(hex(id))+"]")
         len = (data[2] << 8) | data[3]
         #if it is trace field SBE_FFDC_TRACE_DUMP
         fileName = ""

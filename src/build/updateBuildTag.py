@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -38,7 +38,7 @@ def updateBuildTag(argv):
         image_dir = argv[2]
         seeprom_name = argv[3]
     except:
-        print "Missing Xip Tool Path/Image Directory/Seeprom Binary Name"
+        print ("Missing Xip Tool Path/Image Directory/Seeprom Binary Name")
         exit(-1)
 
     # Commandline cmds getting formed here
@@ -68,7 +68,7 @@ def updateBuildTag(argv):
     proc = subprocess.Popen(cmd_build_time, shell=True, stdout=subprocess.PIPE)
     cmd_temp = "id -un"
     proc = subprocess.Popen(cmd_temp, shell=True, stdout=subprocess.PIPE)
-    cmd_build_user = cmd_build_user+" "+proc.stdout.read() 
+    cmd_build_user = cmd_build_user+" "+proc.stdout.read()
     proc = subprocess.Popen(cmd_build_user, shell=True, stdout=subprocess.PIPE)
     cmd_build_host = cmd_build_host+" "+socket.gethostname()
     proc = subprocess.Popen(cmd_build_host, shell=True, stdout=subprocess.PIPE)

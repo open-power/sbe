@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -185,7 +185,7 @@ def setUnsecureMemRegion(addr, size, controlFlag, responseWord):
     # Host to SBE req
     regObj = testPSUUtil.registry()
     regObj.ExecuteTestOp(testPSUUtil.simSbeObj, req)
-    print "\n  Poll on Host side for INTR  ...\n"
+    print ("\n  Poll on Host side for INTR  ...\n")
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5)
 

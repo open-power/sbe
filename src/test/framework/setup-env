@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -61,6 +61,15 @@ execute_in_sandbox()
     echo $1 > ${SANDBOXBASE}/src/sandbox_execute_cmd
     chmod 700 ${SANDBOXBASE}/src/sandbox_execute_cmd
 
+    echo "********************************************************************"
+    echo "Debug cmd:"
+    echo "$WORKON_CMD"
+    echo "$(cat ${SANDBOXBASE}/src/sandbox_execute_cmd)"
+    echo "********************************************************************"
+    echo "Final Cmd running: "
+    echo "${WORKON_CMD} -c $(cat ${SANDBOXBASE}/src/sandbox_execute_cmd)"
+    echo "********************************************************************"
+
     TEST="${WORKON_CMD} -c ./sandbox_execute_cmd "
     echo $TEST
     ${WORKON_CMD} -c ./sandbox_execute_cmd
@@ -75,7 +84,7 @@ export -f execute_in_sandbox
 
 # Setup machine type.
 export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
-export MACHINE=$MACHINE:AXONE
+export MACHINE=$MACHINE
 
 export SBETESTDIR=$SANDBOXBASE/simics/targets/p9_nimbus/sbeTest
 export SBETESTDIRAXONE=$SANDBOXBASE/simics/targets/p9_axone/sbeTest/

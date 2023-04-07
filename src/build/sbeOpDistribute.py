@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -27,19 +27,19 @@ import sys
 import getopt
 
 def usage():
-    print "usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>"
+    print ("usage:sbeOpDistribute.py [--sbe_binary_dir] <sbe binary path> [--img_dir] <images path>")
 
 def run_system_cmd(cmd):
-    print 'Cmd:<'+cmd+'>'
+    print ('Cmd:<'+cmd+'>')
     if(os.system(cmd)):
-        print "ERROR running cmd:<"+cmd+">"
+        print ("ERROR running cmd:<"+cmd+">")
         exit(1)
 
 def main(argv):
     try:
         opts, args = getopt.getopt(sys.argv[1:], "", ['sbe_binary_dir=', 'img_dir=', 'buildSbePart=', 'hw_ref_image=', 'sbe_binary_filename=', 'scratch_dir=', 'install', 'help'])
     except getopt.GetoptError as err:
-        print str(err)
+        print (str(err))
         usage()
         exit(1)
 
