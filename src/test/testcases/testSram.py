@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +130,7 @@ def main( ):
         testcase = "sec put test 3"
         putsram(0xFFFBE000-128, 0x01, data, 0x0005, 0x0014)
         print("Success: "+testcase)
-    
+
         # comment out -ve tests for security wisnidw as we allow read always
         # secure mem - read on disallowed mem
         # start and end completely outside

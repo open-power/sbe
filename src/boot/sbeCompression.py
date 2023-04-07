@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +42,7 @@ def compress(inputFile, compressedFile):
     try:
       f = open(inputFile, "rb")
     except IOError as e :
-      print("I/O error File for File to be compressed.")
+      print ("I/O error File for File to be compressed.")
       sys.exit(1)
 
     try:
@@ -160,7 +161,7 @@ def main( argv ):
             imagePath = arg
         elif opt in ('-i', '--image'):
             image = arg
-        elif opt in ('-p', '--p9_xip_tool'):    
+        elif opt in ('-p', '--p9_xip_tool'):
             p9_xip_tool = arg
         else:
             usage()

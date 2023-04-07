@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +72,7 @@ def main():
     regObj = testObj.registry() # Registry obj def for operation
 
     print("\n  Execute SBE Test set  [ Indirect Commands ] ...\n")
-                                   # Sim obj Target    Test set 
+                                   # Sim obj Target    Test set
     rc_test = regObj.ExecuteTestOp(testObj.simMemObj,sbe_test_data)
     if rc_test != testObj.SUCCESS:
         print("  SBE Test data set .. [ FAILED ] ..")

@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +48,7 @@ def getLbus( node, isfleetwood ):
             lbus=conf.D3Proc0.proc_lbus_map
         if(node == 3):
             lbus=conf.D4Proc0.proc_lbus_map
-   
+
     return lbus
 
 #Default parameters are for single node, node 0

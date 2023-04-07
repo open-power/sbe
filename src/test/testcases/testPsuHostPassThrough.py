@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2019
+# Contributors Listed Below - COPYRIGHT 2017,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -117,11 +118,11 @@ def main():
     # Put mem PBA - Passthrough
     data = os.urandom(128*2)
     data = [ord(c) for c in data]
-    # WO FMODE WO LCO PASSTHROUGH 
+    # WO FMODE WO LCO PASSTHROUGH
     testMemUtil.putmem(0x00000000, data, 0x102)
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_pass_through_polling_data, 5 )
-    
+
     readData = testMemUtil.getmem(0x00000000, 128*2, 0x102)
     if(data == readData):
         print ("Success - Write-Read PBA - With Pass through Mode")

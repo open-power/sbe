@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2020
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,7 +100,7 @@ def getSymbolInfo( symbol ):
         baseAddr = 0xfffc8000
     else:
         baseAddr = 0xfffe8000
-    
+
     print("\n symAddress :", symAddr)
     print("\n baseAddress :", baseAddr)
     offset = int(symAddr, base = 16) - baseAddr;

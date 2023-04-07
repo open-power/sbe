@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2019
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
+# [+] Marty E. Plummer
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -169,9 +170,6 @@ def main():
 #
 #    print("\n  Poll on Host side for INTR  ...\n")
 #    #Poll on HOST DoorBell Register for interrupt
-#    regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
-#
-#    #SBE->HOST data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 #
 #    print("\n  Execute SBE Test set3 [ Put Ring ] ...\n")
@@ -188,7 +186,9 @@ def main():
 #    #SBE->HOST data set execution
 #    regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 #
+
     print("\n  Execute SBE Test set4  [ Put Ring ] ...\n")
+
     '''
     Test Case 4
     '''
@@ -196,6 +196,7 @@ def main():
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data4 )
 
     print("\n  Poll on Host side for INTR  ...\n")
+
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 
@@ -203,6 +204,7 @@ def main():
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, host_test_data_success )
 
     print("\n  Execute SBE Test set5  [ Put Ring ] ...\n")
+
     '''
     Test Case 5
     '''
@@ -210,6 +212,7 @@ def main():
     regObj.ExecuteTestOp( testPSUUtil.simSbeObj, sbe_test_data5 )
 
     print("\n  Poll on Host side for INTR  ...\n")
+
     #Poll on HOST DoorBell Register for interrupt
     regObj.pollingOn( testPSUUtil.simSbeObj, host_polling_data, 5 )
 

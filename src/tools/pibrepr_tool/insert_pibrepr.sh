@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2019
+# Contributors Listed Below - COPYRIGHT 2018,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -32,5 +32,5 @@ if [ $# -eq 0 ]; then
 fi
 
 # Generate the Pibrepr data
-python gen_pibrepr_data.py
+python2 gen_pibrepr_data.py
 $1/p9_xip_tool $1/$2 append .pibrepr_data pibrepr.bin

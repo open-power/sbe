@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2017
+# Contributors Listed Below - COPYRIGHT 2016,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -107,8 +107,8 @@ sb_workon()
 sb_cmvc()
 {
     if [ -n "${SBE_INSIDE_WORKON}" ]; then
-        echo "Already in a workon.. Continuing" 
-        # Launch the CMVC utility 
+        echo "Already in a workon.. Continuing"
+        # Launch the CMVC utility
         str="'$*'"
         echo "User input string : $str"
         $PWD/${SBE_TOOLS_PATH}/CommitSbeImageToCMVC.py $*

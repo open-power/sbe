@@ -2,11 +2,17 @@ echo "Attempting to register SBE Tools"
 
 # Load SBE debug tools.
 try {
+    echo "**************** sbe script location ********************"
     $sbe_startup_path = (lookup-file sbfw/simics-debug-framework.py);
+    echo $sbe_startup_path
+    echo "**************** sbe script location ******************** 1 "
     $sbe_script_location = (python "''.join(map('/'.__add__,\""+$sbe_startup_path+"\"[1:].split('/')[0:-1]))")
+    echo "**************** sbe script location ******************** 2 "
     python "os.environ['SBE_TOOLS_PATH'] = \""+$sbe_script_location+"\""
     echo $sbe_script_location;
+    ls $sbe_script_location;
     run-python-file (lookup-file sbfw/simics-debug-framework.py)
+    echo "**************** sbe script location ******************** 3 "
     # Set mailbox scratch registers so that the SBE starts in plck mode
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64

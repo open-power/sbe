@@ -58,7 +58,6 @@ execute_in_sandbox "cd $SBEFW_DIR; mk install_all" \
 
 # Copy test files.
 if [ "$MACHINE_TYPE" = "NIMBUS" ]; then
-
     cp  -r $SBEROOT/src/test/testcases/* $SBETESTDIR/ || exit -1
 
 fi
