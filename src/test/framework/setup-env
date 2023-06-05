@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -75,8 +75,6 @@ export -f execute_in_sandbox
 
 # Setup machine type.
 export MACHINE=${MACHINE:-$DEFAULT_MACHINE}
-export MACHINE=$MACHINE:AXONE
-
 export SBETESTDIR=$SANDBOXBASE/simics/targets/p9_nimbus/sbeTest
 export SBETESTDIRAXONE=$SANDBOXBASE/simics/targets/p9_axone/sbeTest/
 export SBEROMDIRAXONE=$SANDBOXBASE/simics/import/boot_roms/
