@@ -1,4 +1,4 @@
-echo "Attempting to register SBE Tools"
+echo "Attempting to register P10-SBE Tools"
 
 if defined sbe_scripts_path {
     $sbe_scripts_path = (lookup-file $sbe_scripts_path)
@@ -15,6 +15,32 @@ try {
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003A "00000000_00000000" 64
 } except { echo "ERROR: Failed to load SBE debug tools." }
+
+# The dimm_type defined only in certain simics models (p10_standalone and
+# rainier_2s2u) so check whether it is defined before using it.
+if defined dimm_type {
+    if $dimm_type == "ody" {
+        try {
+            run-command-file (lookup-file "pozsbeinitstandalone.simics")
+        } except {
+            echo "ERROR: Failed to call pozsbeinitstandalone simics script for ody setup"
+            local $error_msg = (get-error-message)
+            local $error_file = (get-error-file)
+            local $error_line_no = (dec (get-error-line))
+            local $error_cmd = (get-error-command)
+            echo "> get-error-message"
+            echo $error_msg
+            echo "> get-error-command"
+            echo $error_cmd
+            echo "> get-error-file"
+            echo $error_file
+            echo "> get-error-line"
+            echo $error_line_no
+
+            q 1
+        }
+    }
+}
 
 # Changing the base of HRMOR to 4GB - 512MB for all procs
 echo "Setting l3_base"
