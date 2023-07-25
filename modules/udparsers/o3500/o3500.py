@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021,2022
+# Contributors Listed Below - COPYRIGHT 2021,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -44,7 +44,11 @@ toolVersion = 1.0
 def parseUDToJson(subType, ver, data):
 
     #Parse the FFDC blob and fetch ppeTrace.bin,attr.bin and hwData.bin
-    udparsers.o3500.parseSbeFfdcBlob.parseSbeUserDataBlob(data)
+    # Only if a problem encountered will output be returned
+    output = udparsers.o3500.parseSbeFfdcBlob.parseSbeUserDataBlob(data)
+    if output:
+        # just return output to allow any special handling by caller
+        return output
 
     #Parse ppeTrace.bin file to fetch SBE Traces
     traceDataString = udparsers.o3500.parseSbeFfdcBlob.fetchSbeTraces()
