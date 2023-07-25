@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2022
+# Contributors Listed Below - COPYRIGHT 2020,2023
 # [+] International Business Machines Corp.
 #
 #
@@ -64,7 +64,8 @@ def checkForPpeTraceBuff():
     if bufferNameOffset > -1:  #String found => PPE Trace Buffer found
         return bufferNameOffset
     else:
-        sys.exit("PPE Trace Buffer not found\n")
+        # just return to caller for any special handling
+        return bufferNameOffset
 
 #This function will extract sbe_trace.bin,sbe_attr.bin and sbe_hw_data.bin
 #from the sbeUserDataBlob/sbeFFDC into 3 sepearte bin files for further usage.
@@ -82,34 +83,43 @@ def parseSbeUserDataBlob(data):
 
     #check if PPE trace buffer is present
     componentIdOffset = checkForPpeTraceBuff()
+    if componentIdOffset == -1:
+        # return to caller for any special handling
+        return componentIdOffset
 
-    buffStartOffset = componentIdOffset - 4
-    buffSizeOffset = componentIdOffset - 6
-    file.seek(buffSizeOffset)
-    #Read 2 bytes of buffer size
-    traceBufferSize = file.read(2)
-    #TODO:Check for right endians
-    traceBufferSize = int.from_bytes(traceBufferSize,"big")
+    try:
+        buffStartOffset = componentIdOffset - 4
+        buffSizeOffset = componentIdOffset - 6
+        file.seek(buffSizeOffset)
+        #Read 2 bytes of buffer size
+        traceBufferSize = file.read(2)
+        #TODO:Check for right endians
+        traceBufferSize = int.from_bytes(traceBufferSize,"big")
 
-    #Second blob of data in FFDC packet is attr.bin
+        #Second blob of data in FFDC packet is attr.bin
 
-    attrBinStartOffset = buffStartOffset + traceBufferSize + 4
-    attrBinSizeOffset = buffStartOffset + traceBufferSize + 2
-    file.seek(attrBinSizeOffset)
-    #Read 2 bytes of attr bin size
-    attrBinSize = file.read(2)
-    #TODO:Check for right endians
-    attrBinSize = int.from_bytes(attrBinSize,"big")
+        attrBinStartOffset = buffStartOffset + traceBufferSize + 4
+        attrBinSizeOffset = buffStartOffset + traceBufferSize + 2
+        file.seek(attrBinSizeOffset)
+        #Read 2 bytes of attr bin size
+        attrBinSize = file.read(2)
+        #TODO:Check for right endians
+        attrBinSize = int.from_bytes(attrBinSize,"big")
 
-    #Third blob of data in FFDC packet is hw_data.bin
+        #Third blob of data in FFDC packet is hw_data.bin
 
-    hwDataBinStartOffset = attrBinStartOffset + attrBinSize + 4
-    hwDataBinSizeOffset = attrBinStartOffset + attrBinSize + 2
-    file.seek(hwDataBinSizeOffset)
-    #Read 2 bytes of hw data bin size
-    hwDataBinSize = file.read(2)
-    #TODO:Check for right endians
-    hwDataBinSize = int.from_bytes(hwDataBinSize,"big")
+        hwDataBinStartOffset = attrBinStartOffset + attrBinSize + 4
+        hwDataBinSizeOffset = attrBinStartOffset + attrBinSize + 2
+        file.seek(hwDataBinSizeOffset)
+        #Read 2 bytes of hw data bin size
+        hwDataBinSize = file.read(2)
+        #TODO:Check for right endians
+        hwDataBinSize = int.from_bytes(hwDataBinSize,"big")
+
+    except Exception as e:
+        print("o3500.parseSbeUserDataBlob Exception e={}".format(e))
+        # return to caller for any special handling
+        return -1
 
     #Extract out the pk trace buffer
     ppeTraceName = "/tmp/ppeTrace.bin"
@@ -152,9 +162,8 @@ def fetchSbeTraces():
     stringFile = getLid(SBE_STRING_LID_FILE)
 
     if stringFile == "":
-        d["File not found"]=SBE_STRING_LID_FILE
-        jsonStr = json.dumps(d)
-        return jsonStr
+        # allows the post processing split from object to output prettier formatting
+        return "Unable to locate SBE PPE sbeStringFile={}".format(SBE_STRING_LID_FILE)
 
     startingPosition = 0
     printNumberOfTraces = -1 # -1 means to get all traces
