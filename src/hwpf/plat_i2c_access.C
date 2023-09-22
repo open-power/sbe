@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2023                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -247,8 +247,8 @@ inline uint16_t i2cGetBitRateDivisor(uint64_t i_bus_speed_khz,
  */
 inline uint64_t i2cGetPollingInterval(uint64_t i_bus_speed_khz )
 {
-  // Polling Interval = 8 * (1/bus+speed) * (1/10) -> converted to ns
-  return ( ( 8 * NS_PER_SEC ) / ( 10 * i_bus_speed_khz * 1000 ) );
+  // Polling Interval = 8 * (1/bus+speed) -> converted to ns
+  return ( ( 8 * NS_PER_SEC ) / ( i_bus_speed_khz * 1000 ) );
 };
 /*
  * @brief Perform I2C register operation
@@ -407,6 +407,7 @@ ReturnCode i2cWaitForCmdComp(misc_args_t &args)
             }
             if(--timeoutCount == 0)
             {
+                rc = RC_SBE_I2C_WAIT_FOR_CMD_COMP_TIMEOUT_ERROR;
                 SBE_ERROR(SBE_FUNC "timedout waiting for cmd completion");
                 break;
             }
@@ -810,25 +811,28 @@ namespace fapi2
                            const std::vector<uint8_t>& cfgData,
                            std::vector<uint8_t>& o_data )
     {
+        #define SBE_FUNC "platGetI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
-        FAPI_IMP("platGetI2c: Input target passed is 0x%08X", target.get());
+        FAPI_IMP(SBE_FUNC "Input target passed is 0x%08X", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);
         args.engine = (uint8_t)(target.get().fields.engine);
         args.devAddr = (uint8_t)(target.get().fields.devAddr);
-        FAPI_IMP("platGetI2c Port: %02X Engine: %02X DevAddr: %02x set",
+        FAPI_IMP(SBE_FUNC "Port: %02X Engine: %02X DevAddr: %02x set",
                        args.port, args.engine, args.devAddr);
         do {
             rc = i2cSetBusVariables(400, args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cSetBusVariables with rc 0x%08X", rc);
                 break;
             }
 
             rc = i2cLockEngine(args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cLockEngine with rc 0x%08X", rc);
                 break;
             }
 
@@ -848,6 +852,7 @@ namespace fapi2
                               args);
                 if(rc != FAPI2_RC_SUCCESS)
                 {
+                    FAPI_ERR(SBE_FUNC " failed for i2cWrite with rc 0x%08X", rc);
                     break;
                 }
                 // Now do the READ with a stop
@@ -869,6 +874,7 @@ namespace fapi2
                          args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cRead with rc 0x%08X", rc);
                 break;
             }
 
@@ -884,32 +890,45 @@ namespace fapi2
                 o_data.push_back(data[i]);
             }
         } while(0);
+        ReturnCode l_rc = i2cUnlockEngine(args);
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {   //overwrite rc only if unlocking fails and above logic works
+            FAPI_ERR(SBE_FUNC " failed i2c Unlock engine after platGetI2c with rc 0x%08X", l_rc);
+            if(rc == FAPI2_RC_SUCCESS)
+            {
+                rc = l_rc;
+            }
+        }
         return rc;
+        #undef SBE_FUNC
     }
 
     ReturnCode platPutI2c( const Target<TARGET_TYPE_ALL>& target,
                            const std::vector<uint8_t>& data )
     {
+        #define SBE_FUNC "platPutI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
 
-        FAPI_IMP("platPutI2c Input OCMB target passed is 0x%08X", target.get());
+        FAPI_IMP(SBE_FUNC "Input OCMB target passed is 0x%08X", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);
         args.engine = (uint8_t)(target.get().fields.engine);
         args.devAddr = (uint8_t)(target.get().fields.devAddr);
-        FAPI_IMP("platPutI2c OCMB Port: %02X Engine: %02X DevAddr: %02x set.", 
+        FAPI_IMP(SBE_FUNC " OCMB Port: %02X Engine: %02X DevAddr: %02x set.",
                        args.port, args.engine, args.devAddr);
         do {
             rc = i2cSetBusVariables(400, args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cSetBusVariables with rc 0x%08X", rc);
                 break;
             }
 
             rc = i2cLockEngine(args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cLockEngine with rc 0x%08X", rc);
                 break;
             }
 
@@ -924,6 +943,7 @@ namespace fapi2
                           args);
             if(rc != FAPI2_RC_SUCCESS)
             {
+                FAPI_ERR(SBE_FUNC " failed for i2cWrite with rc 0x%08X", rc);
                 break;
             }
 
@@ -933,7 +953,17 @@ namespace fapi2
                 break;
             }
         } while(0);
+        ReturnCode l_rc = i2cUnlockEngine(args);
+        if(l_rc != FAPI2_RC_SUCCESS)
+        {   //overwrite rc only if unlocking fails and above logic works
+            FAPI_ERR(SBE_FUNC " failed i2c Unlock engine after platPutI2c with rc 0x%08X", l_rc);
+            if(rc == FAPI2_RC_SUCCESS)
+            {
+                rc = l_rc;
+            }
+        }
         return rc;
+        #undef SBE_FUNC
     }
 
     ReturnCode i2cGetScom( const void *target, const uint32_t addr, uint64_t *o_data)
