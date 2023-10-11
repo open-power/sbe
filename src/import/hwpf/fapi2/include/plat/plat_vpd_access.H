@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -37,6 +37,7 @@ namespace fapi2
 // -- platform specific getVPD implementation goes here --
 
 // platform specific for MCS target -- test code only
+#ifndef __PPE__ // MCS target type not needed for PPE , hence commenting to avoid including its dependencies.
 inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
                                     VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
                                     uint8_t* o_blob)
@@ -54,7 +55,7 @@ inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>&
 
     return l_rc;
 }
-
+#endif // __PPE__
 // platform specific for OCMB target -- test code only
 inline fapi2::ReturnCode platGetVPD(const fapi2::Target<fapi2::TARGET_TYPE_OCMB_CHIP>& i_target,
                                     VPDInfo<fapi2::TARGET_TYPE_OCMB_CHIP>& io_vpd_info,

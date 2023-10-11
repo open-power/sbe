@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,13 +40,14 @@ namespace fapi2
 // -- platform specializations for getVPD go here --
 
 // specialization for MCS target
+#ifndef __PPE__ // MCS target type not needed for PPE , hence commenting to avoid including its dependencies.
 template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_MCS>& i_target,
                                     VPDInfo<fapi2::TARGET_TYPE_MCS>& io_vpd_info,
                                     uint8_t* o_blob)
 {
     return platGetVPD( i_target, io_vpd_info, o_blob );
 }
-
+#endif // __PPE__
 // specialization for OCMB target
 template<> fapi2::ReturnCode getVPD(const fapi2::Target<fapi2::TARGET_TYPE_OCMB_CHIP>& i_target,
                                     VPDInfo<fapi2::TARGET_TYPE_OCMB_CHIP>& io_vpd_info,
