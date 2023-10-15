@@ -82,8 +82,12 @@ p10_hcd_cache_poweron(
 
     FAPI_INF(">>p10_hcd_cache_poweron");
 
+#ifndef __PPE_QME
+
     FAPI_DBG("Assert SINGLE_LPAR_MODE via QME_SCSR[31] as IPL/MPIPL default");
     FAPI_TRY( HCD_PUTMMIO_C( i_target, QME_SCSR_WO_OR, MMIO_LOAD32H( BIT32(31) ) ) );
+
+#endif
 
     FAPI_DBG("Assert L3 Glsmux Reset via CPMS_CGCSR[4:L3_CLKGLM_ASYNC_RESET]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_OR, BIT64(4) ) );
