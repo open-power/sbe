@@ -586,6 +586,7 @@ typedef struct
       */
     bool validateInputArgs()
     {
+        #define SBE_FUNC "validateInputArgs"
         bool l_validatePassFlag = true;
         // Validate Thread Command / Thread Num / Error Mode
         if((threadOps > THREAD_SRESET_INS) ||
@@ -596,6 +597,7 @@ typedef struct
             l_validatePassFlag = false;
         }
         return l_validatePassFlag;
+	#undef SBE_FUNC
     }
 
     /**

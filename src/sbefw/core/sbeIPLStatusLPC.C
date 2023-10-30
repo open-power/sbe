@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/core/sbeglobals.C $                                 */
+/* $Source: src/sbefw/core/sbeConsole.C $                                 */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2018-2020                        */
 /* [+] International Business Machines Corp.                              */
 /* [+] Raptor Engineering, LLC                                            */
 /*                                                                        */
@@ -24,41 +24,42 @@
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
 #include "sbetrace.H"
+#include "fapi2.H"
+
+#include "sbeEarlyLPC.H"
+#include "sbeIPLStatusLPC.H"
+
+#include "p9_perv_scom_addresses.H"
+#include "p9_perv_scom_addresses_fld.H"
+#include "p9_misc_scom_addresses.H"
+#include "p9_misc_scom_addresses_fld.H"
+
+#include "sberegaccess.H"
 #include "sbeglobals.H"
-#include "sbe_build_info.H"
-////////////////////////////////////////////////////////////////
-//// @brief Stacks for Non-critical Interrupts and Threads
-//////////////////////////////////////////////////////////////////
-// Moved it out-side the scope of Global Class for symbol generation in syms
-uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
-uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
-uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
-uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
+#include "p9_lpc_utils.H"
 
-SBEGlobalsSingleton* sbeGlobal = &SBEGlobalsSingleton::getInstance();
-SBEGlobalsSingleton& SBEGlobalsSingleton::getInstance()
+using namespace fapi2;
+
+void postPutIStep(char major, char minor)
 {
-    static SBEGlobalsSingleton iv_instance;
-    return iv_instance;
+    #define SBE_FUNC "postPutIStep"
+    uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    do {
+        rc = writeLPCReg(0x81, major);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC " failure to write IPL status 1");
+            break;
+        }
+
+        rc = writeLPCReg(0x82, minor);
+        if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
+        {
+            SBE_ERROR(SBE_FUNC " failure to write IPL status 2");
+            break;
+        }
+
+    } while(0);
+
+    #undef SBE_FUNC
 }
-// SBE commit id
-uint32_t SBEGlobalsSingleton::fwCommitId = SBE_COMMIT_ID;
-
-secureMemRegion_t SBEGlobalsSingleton::mainMemRegions[MAX_MAIN_STORE_REGIONS] = {};
-secureMemRegion_t SBEGlobalsSingleton::occSramRegions[MAX_OCC_SRAM_REGIONS] = {};
-
-uint64_t SBEGlobalsSingleton::i2cModeRegister = 0x004D000000000000ull;
-
-uint16_t SBEGlobalsSingleton::failedPrimStatus = SBE_PRI_OPERATION_SUCCESSFUL;
-uint16_t SBEGlobalsSingleton::failedSecStatus  = SBE_SEC_OPERATION_SUCCESSFUL;
-uint16_t SBEGlobalsSingleton::failedSeqId      = 0;
-uint8_t  SBEGlobalsSingleton::failedCmdClass   = 0;
-uint8_t  SBEGlobalsSingleton::failedCmd        = 0;
-
-bool  SBEGlobalsSingleton::isHreset = false;
-
-bool SBEGlobalsSingleton::sbeLPCActive = false;
-
-#ifdef SBE_CONSOLE_SUPPORT
-bool SBEGlobalsSingleton::sbeUartActive = false;
-#endif

@@ -7,6 +7,7 @@
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2015,2018                        */
 /* [+] International Business Machines Corp.                              */
+/* COPYRIGHT 2020 Raptor Engineering, LLC                                 */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -35,7 +36,6 @@
 // *HWP Consumed by     : SBE
 //------------------------------------------------------------------------------
 
-
 //## auto_generated
 #include "p9_sbe_lpc_init.H"
 
@@ -45,6 +45,9 @@
 #include "p9_misc_scom_addresses_fld.H"
 
 #include "p9_lpc_utils.H"
+
+#include "sbeglobals.H"
+#include "sbeConsole.H"
 
 static fapi2::ReturnCode switch_lpc_clock_mux(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip,
@@ -197,4 +200,39 @@ fapi2::ReturnCode p9_sbe_lpc_init(
 fapi_try_exit:
     return fapi2::current_err;
 
+}
+
+fapi2::ReturnCode p9_sbe_lpc_clear_errors(
+    const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
+{
+    fapi2::buffer<uint32_t> l_data32;
+    FAPI_DBG("p9_sbe_lpc_clear_errors: Entering ...");
+
+    FAPI_TRY(lpc_read(i_target_chip, LPCM_OPB_MASTER_STATUS_REG, l_data32),
+             "Error reading OPB master status register");
+    if (l_data32 & LPCM_OPB_MASTER_STATUS_ERROR_BITS)
+    {
+        SBE_MSG_CONSOLE("Errors detected on LPC bus during SBE execution");
+        SBE_MSG_CONSOLE("Clearing errors to allow HBBL start");
+
+        // Clear any stale LPC bus errors
+        l_data32 = LPCM_OPB_MASTER_STATUS_ERROR_BITS;
+        FAPI_TRY(lpc_write(i_target_chip, LPCM_OPB_MASTER_ACTUAL_STATUS_REG, l_data32), "Error clearing LPC error actual status register");
+        l_data32 = LPCM_OPB_MASTER_STATUS_ERROR_BITS;
+        FAPI_TRY(lpc_write(i_target_chip, LPCM_OPB_MASTER_STATUS_REG, l_data32), "Error clearing LPC error status register");
+        l_data32 = LPC_HC_IRQ_BASE_IRQS;
+        FAPI_TRY(lpc_write(i_target_chip, LPC_REG_OPB_BASE + LPC_HC_IRQSTAT, l_data32), "Error clearing LPC error status IRQ register");
+    }
+
+    // Verify errors are cleared
+    FAPI_TRY(lpc_read(i_target_chip, LPCM_OPB_MASTER_STATUS_REG, l_data32), "Error reading OPB master status register");
+    if (l_data32 & LPCM_OPB_MASTER_STATUS_ERROR_BITS)
+    {
+        SBE_MSG_CONSOLE("LPC error register still reporting failure!  HBBL is likely to abort.");
+    }
+
+    FAPI_DBG("p9_sbe_lpc_clear_errors: Exiting ...");
+
+fapi_try_exit:
+    return fapi2::current_err;
 }

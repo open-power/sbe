@@ -109,6 +109,8 @@
 #include "p9_fbc_utils.H"
 #include "sbeSecureMemRegionManager.H"
 
+#include "sbeEarlyLPC.H"
+#include "sbeIPLStatusLPC.H"
 #include "sbeConsole.H"
 #include "sbecmdflushnvdimm.H"
 
@@ -179,6 +181,7 @@ using  sbeIstepHwpCacheInitf_t = ReturnCode (*)
 // Wrapper function which will call HWP.
 ReturnCode istepWithProc( voidfuncptr_t i_hwp );
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp );
+ReturnCode istepLpcClearErrors( voidfuncptr_t i_hwp );
 ReturnCode istepHwpTpSwitchGears( voidfuncptr_t i_hwp);
 ReturnCode istepAttrSetup( voidfuncptr_t i_hwp );
 ReturnCode istepNoOp( voidfuncptr_t i_hwp );
@@ -359,6 +362,7 @@ static istepMap_t g_istep5PtrTbl[]
          {
 #ifdef SEEPROM_IMAGE
              ISTEP_MAP( istepLoadBootLoader, NULL ),
+             ISTEP_MAP( istepLpcClearErrors, p9_sbe_lpc_clear_errors ),
              ISTEP_MAP( istepStartInstruction,  p9_sbe_instruct_start ),
 #endif
          };
@@ -393,12 +397,27 @@ ReturnCode istepWithProc( voidfuncptr_t i_hwp)
 }
 //----------------------------------------------------------------------------
 
+ReturnCode istepLpcClearErrors( voidfuncptr_t i_hwp)
+{
+    #define SBE_FUNC "istepLpcClearErrors "
+
+    ReturnCode rc = FAPI2_RC_SUCCESS;
+    Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
+    assert( NULL != i_hwp );
+    SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+
+    #undef SBE_FUNC
+
+    return rc;
+}
+
 ReturnCode istepLpcInit( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
     assert( NULL != i_hwp );
     SBE_EXEC_HWP(rc, reinterpret_cast<sbeIstepHwpProc_t>( i_hwp ), proc)
+    SBE_LPC_INIT;
     SBE_UART_INIT;
     SBE_MSG_CONSOLE( SBE_CONSOLE_WELCOME_MSG );
 
@@ -662,6 +681,7 @@ ReturnCode istepStartInstruction( voidfuncptr_t i_hwp)
     ReturnCode rc = FAPI2_RC_SUCCESS;
 
     SBE_MSG_CONSOLE("SBE starting hostboot");
+    SBE_LPC_DISABLE;
     SBE_UART_DISABLE;
     rc = istepWithCore(i_hwp);
     if(rc == FAPI2_RC_SUCCESS)

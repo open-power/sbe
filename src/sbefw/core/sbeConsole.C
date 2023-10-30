@@ -217,6 +217,8 @@ void uartDisable(void)
 
 void uartLock(void)
 {
+    #define SBE_FUNC "uartLock"
+
     int rcPk = PK_OK;
     rcPk = pk_semaphore_pend (&SBE_GLOBAL->sbeUartBinSem, PK_WAIT_FOREVER);
     // PK API failure
@@ -227,10 +229,14 @@ void uartLock(void)
                    rcPk, SBE_GLOBAL->sbeUartBinSem.count);
         pk_halt();
     }
+
+    #undef SBE_FUNC
 }
 
 void uartUnLock(void)
 {
+    #define SBE_FUNC "uartUnLock"
+
     int rcPk = PK_OK;
     rcPk = pk_semaphore_post(&SBE_GLOBAL->sbeUartBinSem);
     // PK API failure
@@ -241,6 +247,8 @@ void uartUnLock(void)
                    rcPk, SBE_GLOBAL->sbeUartBinSem.count);
         pk_halt();
     }
+
+    #undef SBE_FUNC
 }
 
 void sbeMsgConsole(uint32_t num)
@@ -278,4 +286,13 @@ void sbeMsgConsole(char const *msg)
     {
         uartPutChar(msg[c++]);
     }
+}
+
+void _putchar(char c)
+{
+    if (!SBE_GLOBAL->sbeUartActive)
+    {
+        return;
+    }
+    uartPutChar(c);
 }

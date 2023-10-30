@@ -31,6 +31,10 @@ extern "C" {
 #include "pk_api.h"
 #include "trac_interface.h"
 
+#ifdef SBE_CONSOLE_SUPPORT
+#include "printf.H"
+#endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -47,6 +51,15 @@ extern "C" {
 #define SBE_EXIT(args...)
 #define SBE_DEBUG(args...)
 
+#if defined(SBE_CONSOLE_SUPPORT) && defined(ENABLE_CONSOLE_TRACE_IN_FILE)
+#define PK_TRACE_INTERNAL(args...) {	\
+	printf(args);			\
+	printf("\n\r");			\
+}
+#else
+#define PK_TRACE_INTERNAL(args...) PK_TRACE(args)
+#endif
+
 // Levels of logging
 // 0 - No tracing
 // 1 - Error
@@ -55,21 +68,21 @@ extern "C" {
 // 4 - Error, info, entry/exit, debug
 #if (SBE_TRACE_LEVEL >= 1)
 #undef SBE_ERROR
-#define SBE_ERROR(args...) PK_TRACE(SBE_ERR_MRK"" args)
+#define SBE_ERROR(args...) PK_TRACE_INTERNAL(SBE_ERR_MRK"" args)
 #endif
 #if (SBE_TRACE_LEVEL >= 2)
 #undef SBE_INFO
-#define SBE_INFO(args...) PK_TRACE(SBE_INF_MRK"" args)
+#define SBE_INFO(args...) PK_TRACE_INTERNAL(SBE_INF_MRK"" args)
 #endif
 #if (SBE_TRACE_LEVEL >= 3)
 #undef SBE_ENTER
 #undef SBE_EXIT
-#define SBE_ENTER(args...) PK_TRACE(SBE_ENTER_MRK"" args)
-#define SBE_EXIT(args...) PK_TRACE(SBE_EXIT_MRK"" args)
+#define SBE_ENTER(args...) PK_TRACE_INTERNAL(SBE_ENTER_MRK"" args)
+#define SBE_EXIT(args...) PK_TRACE_INTERNAL(SBE_EXIT_MRK"" args)
 #endif
 #if (SBE_TRACE_LEVEL >= 4)
 #undef SBE_DEBUG
-#define SBE_DEBUG(args...) PK_TRACE(SBE_DEBUG_MRK"" args)
+#define SBE_DEBUG(args...) PK_TRACE_INTERNAL(SBE_DEBUG_MRK"" args)
 #endif
-#define SBE_TRACE(args...) PK_TRACE(args)
+#define SBE_TRACE(args...) PK_TRACE_INTERNAL(args)
 #endif // __SBEFW_SBE_TRACE_H
