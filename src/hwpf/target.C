@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2012,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2012,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -261,7 +261,8 @@ plat_target_handle_t createPlatTargetHandle(const uint32_t i_plat_argument)
     {
         l_handle.fields.chiplet_num = i_plat_argument;
         l_handle.fields.type = PPE_TARGET_TYPE_OCMB;
-
+        l_handle.fields.functional = 0;
+        l_handle.fields.present = 0;
         if(SBE::isSimicsRunning())
         {
             l_handle.fields.port = DIMM_I2C_PORT[i_plat_argument];
