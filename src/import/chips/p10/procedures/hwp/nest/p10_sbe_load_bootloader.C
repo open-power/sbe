@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -407,9 +407,15 @@ get_bootloader_config_data(
                                l_bootloader_config_data.sbSettings.msv),
                  "Error from FAPI_ATTR_GET (ATTR_SBE_MINIMUM_SECURE_VERSION)");
 
+        // Read the SB Mode
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_SECURE_BOOT_MODE,
+                               FAPI_SYSTEM,
+                               l_bootloader_config_data.sbSettings.sbMode),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_SECURE_BOOT_MODE)");
+
         PACK_1B(io_data, l_index, l_bootloader_config_data.sbSettings.msv);
-        // 7B Reserved
-        PACK_1B(io_data, l_index, 0x0);
+        PACK_1B(io_data, l_index, l_bootloader_config_data.sbSettings.sbMode);
+        // 6B Reserved
         PACK_2B(io_data, l_index, 0x0);
         PACK_4B(io_data, l_index, 0x0);
     }

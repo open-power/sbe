@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2022                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -685,6 +685,10 @@
   </entry>
   <entry>
     <name>ATTR_SBE_MINIMUM_SECURE_VERSION</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_SECURE_BOOT_MODE</name>
     <value>0x0</value>
   </entry>
   <entry>
