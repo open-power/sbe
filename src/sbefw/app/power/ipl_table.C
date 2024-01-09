@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2023                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -818,6 +818,9 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         SBE_INFO(SBE_FUNC "minimum secure version = 0x%02X", minimumSecureVersion);
         fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION_Type secureVersion = minimumSecureVersion;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_MINIMUM_SECURE_VERSION, sysTgt, secureVersion);
+
+        fapi2::ATTR_SBE_SECURE_BOOT_MODE_Type sbMode = *(uint8_t *)(bSbSettingsOffset + (64*sizeof(uint8_t) + 1));
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_SECURE_BOOT_MODE, sysTgt, sbMode);
 
         fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = (uint64_t)bSbSettingsOffset;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR, sysTgt, hashKeyAddr);
