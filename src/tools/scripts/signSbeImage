@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2022
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -328,13 +328,21 @@ $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/SBE_FW_strippe
 echo "Calculate/Fetch Hash of HW keys"
 print-container -w0 --imagefile ${SCRATCH_DIR}/SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
 
-# Append minumum secure version into .sb_settings xip section after HW key hash
-RESERVED="\x00\x00\x00\x00\x00\x00\x00"
+# Append minimum secure version(MSV), SB Mode and reserved bytes
+# into .sb_settings xip section after HW key hash
+RESERVED="\x00\x00\x00\x00\x00\x00"
+
 SB_SV=`printf %02x $SV`
 SB_SV="\x${SB_SV}"
-echo "Appending SV $SB_SV and reserved bytes $RESERVED to sb_settings"
-echo -n -e $SB_SV$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
+
+# SB_Mode => Secure Boot Mode => 0x0 if v1 secure header 0x1 if v2 secure header
+# For p10 we only support v1 secure header format and hence hardcoding it to 0x0
+SB_MODE="\x00"
+
+echo "Appending SV $SB_SV, SB Mode $SB_MODE and reserved bytes $RESERVED to .sb_settings"
+echo -n -e $SB_SV$SB_MODE$RESERVED >> $SCRATCH_DIR/hw_keys_hash.bin
 echo $SCRATCH_DIR
+
 #Append the HW key hash into .sb_settings xip section
 echo "Appending HW key hash into .sb_settings xip section"
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sb_settings
