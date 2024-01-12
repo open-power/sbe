@@ -761,6 +761,7 @@ enum regs
     NVM_COMMAND          = 0x3C,
     EN_REGISTER          = 0xDE,
     BREADCRUMB           = 0xE0,
+    RECOVERY_COUNT       = 0xE1,
     TRIM_TRY_PASSWORD    = 0xE2,
     OR_FET_CNT_SEL       = 0xE6,
 };
