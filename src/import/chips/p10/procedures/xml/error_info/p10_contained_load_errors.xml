@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -26,6 +26,7 @@
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_NOT_CONTAINED_IPL</rc>
     <description>
       Procedure: p10_contained_load
@@ -40,6 +41,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_BAD_PATH_CHC</rc>
     <description>
       Procedure: p10_contained_load
@@ -53,6 +55,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_CACHE_IMG_TOO_BIG_CHC</rc>
     <description>
       Procedure: p10_contained_load
@@ -67,6 +70,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_CACHE_IMG_TOO_BIG_CAC</rc>
     <description>
       Procedure: p10_contained_load
@@ -80,6 +84,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_NACTIVE_INVALID</rc>
     <description>
       Procedure: p10_contained_load
@@ -93,6 +98,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_LOAD_NBACKING_NOT_POW2</rc>
     <description>
       Procedure: p10_contained_load

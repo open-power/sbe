@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021,2022
+# Contributors Listed Below - COPYRIGHT 2021,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -88,9 +88,8 @@ def parse_xml(xml, tankRegisterHash, rcTankHash):
                     elif(len(ffdc_list)!=0):
                         print("\t\tNO TARGET FOR RC {} in {} target {} ".format(rc, xml, crfTarget))
                     else:
-                        print("NO FFDC FOR rc {} in {} target {}".format(rc, xml, target))
+                        print("NO FFDC FOR rc {} in {} target {}".format(rc, xml, crfTarget))
                     data = CRFData(crfId, crfTargetType, crfTarget, target_index)
-                    #crfids = set(id.text for id in crfd.findall("id"))
                     if(rc in rcTankHash.keys()):
                         rcTankHash[rc].add(data)
                     else:
@@ -218,7 +217,6 @@ def populateFiles(tankRegisterHash, rcTankHash, regNameValueDic):
                     target_index = -1
                     print("crfid {} rc {} has failed, target index not found ".format(crfData.crfid, rc, crfData.target))
                     missingTargetInstanceIndex = True
-                    #exit(1)
                 else:
                     target_index = crfData.target_index
                     filePointer.write("                crfDataVec.push_back(crfData{"+ crfData.crfId+', '+ str(target_index) + "});\n")

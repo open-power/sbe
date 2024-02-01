@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -26,6 +26,7 @@
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_IPL_CLKS_ON_AFTER_CLOCK_STOP</rc>
     <description>
       Procedure: p10_contained_ipl

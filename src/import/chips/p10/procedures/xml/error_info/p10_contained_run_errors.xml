@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -27,6 +27,7 @@
 <hwpErrors>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_RUN_INVALID_CORE_RUNN_OFFSET</rc>
     <description>
       Procedure: p10_contained_run
@@ -40,6 +41,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_RUN_PHASE_COUNTERS_NOT_EQUAL</rc>
     <description>
       Procedure: p10_contained_run
@@ -52,6 +54,7 @@
   </hwpError>
   <!-- ******************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_CONTAINED_RUN_CLKS_OFF_AFTER_RUNN_START</rc>
     <description>
       Procedure: p10_contained_run

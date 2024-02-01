@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2020,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2020,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -28,6 +28,7 @@
 <hwpErrors>
   <!-- *********************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_QUERY_HOST_MEMINFO_STATE_DETERMINATION_ERR</rc>
     <ffdc>MASTER_CORE</ffdc>
     <description>Unable to determine state of master core.</description>
@@ -38,6 +39,7 @@
   </hwpError>
   <!-- *********************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_QUERY_HOST_MEMINFO_CORE_ECO_ERROR</rc>
     <ffdc>MASTER_CORE</ffdc>
     <description>
@@ -50,6 +52,7 @@
   </hwpError>
   <!-- *********************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_QUERY_HOST_MEMINFO_INVALID_SIZE</rc>
     <ffdc>MASTER_CORE</ffdc>
     <description>
@@ -62,6 +65,7 @@
   </hwpError>
   <!-- *********************************************************************** -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_QUERY_HOST_MEMINFO_INVALID_HRMOR</rc>
     <ffdc>MASTER_CORE</ffdc>
     <description>

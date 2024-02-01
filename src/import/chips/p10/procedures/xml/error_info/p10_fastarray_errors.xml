@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2023                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -25,6 +25,7 @@
 <!-- EKB-Mirror-To: hw/ppe                                                  -->
 <hwpErrors>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_HEADER_CHECK_FAILED</rc>
     <description>The header check failed after a scan operation</description>
     <ffdc>TARGET</ffdc>
@@ -43,6 +44,7 @@
     </deconfigure>
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_CLOCK_TIMEOUT</rc>
     <description>An attempt to clock ABIST cycles did not complete within 100ms</description>
     <ffdc>TARGET</ffdc>
@@ -59,6 +61,7 @@
     </deconfigure>
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_CLEANUP_NOT_DONE</rc>
     <description>ABIST_DONE did not assert within 64K cycles during fastarray cleanup</description>
     <ffdc>TARGET</ffdc>
@@ -73,6 +76,7 @@
     <!-- No deconfigure, this is an unexpected error but the part still might be okay -->
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_CARE_BUFFER_OVERFLOW</rc>
     <description>Too much carebits data to fit into temporary buffer</description>
     <ffdc>BUFFER_SIZE_WORDS</ffdc>
@@ -83,6 +87,7 @@
     </callout>
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_VERSION_MISMATCH</rc>
     <description>The fastarray control data format does not match the version of the fastarray dump procedure.</description>
     <ffdc>HEADER_VERSION</ffdc>
@@ -93,6 +98,7 @@
     </callout>
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_INVALID_FARR_FLAG</rc>
     <description>An unknown flag was requested.</description>
     <ffdc>FLAG</ffdc>
@@ -102,6 +108,7 @@
     </callout>
   </hwpError>
   <hwpError>
+    <sbeError/>
     <rc>RC_FASTARRAY_SCAN_ENTRY_OVERSIZE</rc>
     <description>Control data contained a ring scan entry larger than the maximum allowed size</description>
     <ffdc>LENGTH</ffdc>

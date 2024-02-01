@@ -5,7 +5,7 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2019,2021                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2019,2024                        -->
 <!-- [+] International Business Machines Corp.                              -->
 <!--                                                                        -->
 <!--                                                                        -->
@@ -26,6 +26,7 @@
 <hwpErrors>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_PBCQ_CQ_NOT_IDLE</rc>
     <description>
       PBCQ CQ did not go to idle after getting reset.
@@ -54,6 +55,7 @@
   </hwpError>
   <!-- ********************************************************************* -->
   <hwpError>
+    <sbeError/>
     <rc>RC_P10_PHB_NFIR_NOT_CLEARED</rc>
     <description>
       Attempt to clear PCI Nest FIR Register is unsuccessful.
