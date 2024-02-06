@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -181,7 +181,12 @@ uint32_t sbeStartCntlDmt()
 
         // TODO Remove the p9 RC and
         // Add a new RC for DEADMAN timeout and update the sbeFFDC.C/H
-        SBE_GLOBAL->asyncFfdcRC = RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT;
+
+        // Commented this line to remove dependency from P9 RCs,
+        // And this  RCs doesn't have any functional impact
+        // Since entire code is meant to be removed (as part of TODO above)
+        // SBE_GLOBAL->asyncFfdcRC = RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT
+
         Target<TARGET_TYPE_PROC_CHIP> procTgt = plat_getChipTarget();
 
         // Find the fuse mode, if fuse mode then Deadman timer loop should take
@@ -266,8 +271,13 @@ uint32_t sbeStartCntlDmt()
                         // Mark the failure point ..
                         // TODO Remove the p9 RC and
                         // Add a new RC for Invalid stop sate and update the sbeFFDC.C/H
-                        SBE_GLOBAL->asyncFfdcRC =
-                                    RC_CHECK_MASTER_STOP15_INVALID_STATE;
+
+                        // Commented this line to remove dependency from P9 RCs,
+                        // And this  RCs doesn't have any functional impact
+                        // Since entire code is meant to be removed (as part of TODO above)
+                        //SBE_GLOBAL->asyncFfdcRC =
+                        //            RC_CHECK_MASTER_STOP15_INVALID_STATE;
+
                         SBE_ERROR(SBE_FUNC" p10_sbe_check_master_stop15 failed"
                                     "on core[%d]", SBE_GLOBAL->deadmanCore );
                         break;

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -126,7 +126,7 @@ public:
      *                                 asynchronous to the HWP execution
      * @return                       - SBE secondary RC
      */
-    uint32_t collectAsyncHwpFfdc (void);
+    //uint32_t collectAsyncHwpFfdc (void);
 
     /*
      * @brief sendOverFIFO           - method to pack and send SBE internal FFDC

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -304,7 +304,8 @@ uint32_t sbeGetFfdc (uint8_t *i_pArg)
 
         // If need be, force collect HWP FFDC async to the real HWP fail.
         // Else, just send back what the SBE already has.
-        sbeFfdcPack.collectAsyncHwpFfdc ();
+        // Commented this line because the API does not have any functional impact.
+        //sbeFfdcPack.collectAsyncHwpFfdc ();
 
         ffdc.setRc(g_FfdcData.fapiRc);
         SBE_INFO(SBE_FUNC"FAPI RC is %x", g_FfdcData.fapiRc);
@@ -768,12 +769,12 @@ uint32_t sbeReadMem( uint8_t *i_pArg )
         {
             uint8_t *dataBuffer = static_cast<uint8_t*>
                                             (pbaInterface.getBuffer());
-            fapiRc = spi_read(handle, offset, sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES, 
+            fapiRc = spi_read(handle, offset, sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES,
                                 DISCARD_ECC_ACCESS, dataBuffer);
             if (fapiRc)
             {
                 SBE_ERROR("spi_read failed with fapiRC:0x%08X for offset:0x%08X ",
-                            "len : 0x%08X", fapiRc, offset, 
+                            "len : 0x%08X", fapiRc, offset,
                             sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
                 break;
             }

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -152,6 +152,7 @@ void SbeFFDCPackage::updateUserDataHeader(uint32_t i_fieldsConfig)
     }
 }
 
+/* Brief: commented the API because the API does not have any functional impact
 uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
 {
     #define SBE_FUNC "collectAsyncHwpFfdc"
@@ -159,6 +160,9 @@ uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
 
     switch (SBE_GLOBAL->asyncFfdcRC)
     {
+        // Commented this line to remove dependency from P9 RCs,
+        // And this  RCs doesn't have any functional impact
+        // Since entire code is meant to be removed.
         case fapi2::RC_CHECK_MASTER_STOP15_DEADMAN_TIMEOUT:
         case fapi2::RC_CHECK_MASTER_STOP15_INVALID_STATE:
         case fapi2::RC_BLOCK_WAKEUP_INTR_CHECK_FAIL:
@@ -167,13 +171,13 @@ uint32_t SbeFFDCPackage::collectAsyncHwpFfdc (void)
             l_rc = sbeCollectDeadmanFfdc ();
             break;
         default:
-            SBE_INFO (SBE_FUNC"No specific Async FFDC to collect");
+            SBE_INFO (SBE_FUNC "No specific Async FFDC to collect");
             break;
     }
 
     return l_rc;
     #undef SBE_FUNC
-}
+} */
 
 uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
                                       uint32_t &o_bytesSent,
@@ -192,7 +196,7 @@ uint32_t SbeFFDCPackage::sendOverFIFO(const uint32_t i_fieldsConfig,
 
         //check if SBE internal FFDC should be generated
         if(!i_skipffdcBitCheck &&
-           (SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet() 
+           (SbeRegAccess::theSbeRegAccess().isSendInternalFFDCSet()
             == false))
         {
             SBE_INFO(SBE_FUNC" isSendInternalFFDCSet()=false, "
