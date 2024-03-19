@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -120,7 +120,6 @@ enum sbePsuGenericMessages
     SBE_PSU_GENERIC_MSG_UPDATE_OCMB_TARGET      = 0x09,
     SBE_PSU_GENERIC_MSG_SYNC_FAB_TOPO_ID_TAB    = 0x0A,
     SBE_PSU_GENERIC_CMD_MEM_CONFIG              = 0x0B,
-    SBE_PSU_PMIC_HEALTH_CHECK                   = 0x0C,
     SBE_PSU_GENERIC_MSG_UNKNOWN                 = 0xFF,
 };
 
@@ -227,7 +226,6 @@ enum PSU_CAPABILITIES
     PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED = 0xD7000100,
     PSU_SYNC_FAB_TOPOLOGY_ID_SUPPORTED           = 0xD7000200,
     PSU_GENERIC_CMD_MEMORY_CONFIG                = 0xD7000400,
-    PSU_PMIC_HEALTH_CHECK_SUPPORT                = 0xD7000800,
     PSU_RESERVED_7                               = 0xD7800000,
 };
 

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -62,7 +62,6 @@ enum sbeCommandClass
     SBE_CMD_CLASS_MPIPL_COMMANDS         = 0xA9,
     SBE_CMD_CLASS_DUMP_COMMANDS          = 0xAA,
     SBE_CMD_CLASS_HOST_FIFO_COMMANDS     = 0xAB,
-    SBE_CMD_CLASS_PMIC_TELEMETRY         = 0xAC,
 };
 
 static const uint8_t SBE_CMD_UNKNOWN = 0x00;
@@ -197,15 +196,6 @@ enum sbeHostFifoGenericCommands
 };
 
 /**
- * @brief enums for PMIC telemetry Commands
- *
-*/
-enum sbePmicTelemetryCommands
-{
-    SBE_CMD_PMIC_HEALTH_CHECK     = 0x01, /* Analyse and return PMIC health status */
-};
-
-/**
  * @brief enum for sbe supported dump types
  *
 */
@@ -321,7 +311,6 @@ enum sbeSecondaryResponse
     SBE_SEC_OCMB_TARGET_NOT_PRESENT           = 0x45,
     SBE_SEC_OCMB_TARGET_NOT_FUNCTIONAL        = 0x46,
     SBE_SEC_INVALID_FASTARRAY_COLLECTION_INFO = 0x47,
-    SBE_SEC_PMIC_HEALTH_CHECK_FAILED          = 0x48,
     SBE_SEC_INVALID_I2C_CONFIG_VERSION        = 0x49,
     SBE_SEC_INVALID_I2C_TARGET_SUPPORT        = 0x4A,
     SBE_SEC_LPC_ERROR                         = 0x4B,
@@ -440,8 +429,8 @@ enum
     SBE_CMD_HALT_SUPPORTED              = 0xAB000001,
     RESERVED_AB_CAPABILITIES            = 0xAB800000,
 
-    SBE_CMD_PMIC_HEALTH_CHECK_SUPPORTED = 0xAC000001,
-    RESERVED_AC_CAPABILITIES            = 0xAC800000,
+    SBE_CMD_PMIC_HEALTH_CHECK_NOT_SUPPORTED = 0xAC000000,
+    RESERVED_AC_CAPABILITIES                = 0xAC800000,
 };
 
 /**

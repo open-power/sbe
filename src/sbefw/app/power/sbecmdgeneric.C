@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -95,8 +95,7 @@ void updatePsuCapabilities(uint32_t * capability)
                                       PSU_SECURITY_LIST_BIN_DUMP_SUPPORTED |
                                       PSU_GENERIC_MSG_UPDATE_OCMB_TARGET_SUPPORTED|
                                       PSU_SYNC_FAB_TOPOLOGY_ID_SUPPORTED |
-                                      PSU_GENERIC_CMD_MEMORY_CONFIG|
-                                      PSU_PMIC_HEALTH_CHECK_SUPPORT;
+                                      PSU_GENERIC_CMD_MEMORY_CONFIG;
     capability[PSU_GENERIC_CHIPOP_CAPABILITY_START_IDX+1] =
                                       PSU_RESERVED_7;
 
@@ -188,7 +187,7 @@ void updateFifoCapabilities2(uint32_t * capability)
     updateFifoCapabilities(capability);
 
     capability[PMIC_TELEMETRY_CAPABILITY_START_IDX] =
-                SBE_CMD_PMIC_HEALTH_CHECK_SUPPORTED;
+                SBE_CMD_PMIC_HEALTH_CHECK_NOT_SUPPORTED;
     capability[PMIC_TELEMETRY_CAPABILITY_START_IDX + 1] =
                 RESERVED_AC_CAPABILITIES;
 
