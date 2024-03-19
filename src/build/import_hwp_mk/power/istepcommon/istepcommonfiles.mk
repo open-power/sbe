@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2022
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -59,7 +59,6 @@ ISTEPCOMMON-CPP-SOURCES +=p10_putRingUtils.C
 ISTEPCOMMON-CPP-SOURCES +=p10_suspend_io.C
 ISTEPCOMMON-CPP-SOURCES +=exp_i2c.C
 ISTEPCOMMON-CPP-SOURCES +=p10_query_host_meminfo.C
-ISTEPCOMMON-CPP-SOURCES +=pmic_n_mode_detect.C
 ISTEPCOMMON-CPP-SOURCES +=p10_sbe_spi_cmd.C
 #ifdef DFT
 ISTEPCOMMON-CPP-SOURCES +=p10_putmempba.C

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -58,7 +58,7 @@ EXPDATA3 = [0xa8,0x0,0x0,0x1F, #getcapability/getSbeFFDC/quiesce/getcapability2/
            0xab, 0, 0, 0x01, #Host fifo related
            0xab, 0x80, 0, 0]
 
-EXPDATA4 = [0xac, 0, 0, 0x01,       # PMIC telemetry
+EXPDATA4 = [0xac, 0, 0, 0,       # PMIC telemetry (not supported)
             0xac, 0x80, 0, 0,
             0xc0,0xde,0xa8,0x07,
             0x0,0x0,0x0,0x0,

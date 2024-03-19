@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2022
+# Contributors Listed Below - COPYRIGHT 2017,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -31,6 +31,7 @@ import testPSUUtil
 import testRegistry as reg
 import testUtil
 import testMemUtil
+import codecs
 
 def getsingleword(dataInInt):
     hex_string = '0'*(8-len(str(hex(dataInInt))[2:])) + str(hex(dataInInt))[2:]
@@ -59,7 +60,7 @@ capMsg = (getsingleword(0xC000003F) +
           getsingleword(0xD5800000) +
           getsingleword(0xD6000003) +
           getsingleword(0xD6800000) +
-          getsingleword(0xD7000FFE) +
+          getsingleword(0xD70007FE) +
           getsingleword(0xD7800000))
 
 def getCapabilities(addr, size, exp_status):
@@ -153,6 +154,6 @@ if __name__ == "__main__":
     except:
         print("\nTest Suite completed with error(s)")
         testUtil.collectFFDC()
-        raise()
+        raise
 
     print("\nTest Suite completed with no errors")
