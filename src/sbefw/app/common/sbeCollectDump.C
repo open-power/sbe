@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1337,7 +1337,10 @@ void sbeCollectDump::getTargetList(std::vector<plat_target_handle_t> &o_targetLi
                 Target<TARGET_TYPE_OCMB_CHIP> ocmbTgt = plat_getOCMBTargetHandleByInstance
                     <fapi2::TARGET_TYPE_OCMB_CHIP>(iv_OCMBInstance);
                 SBE_DEBUG(SBE_FUNC "OCMB: [0x%08X]", ocmbTgt.get());
-                o_targetList.push_back(ocmbTgt.get());
+                if(ocmbTgt.get().getFunctional())
+                {
+                    o_targetList.push_back(ocmbTgt.get());
+                }
                 break;
             }
         case CHIP_UNIT_TYPE_PERV:
