@@ -561,6 +561,10 @@
     <name>ATTR_CONTAINED_LOAD_PATH</name>
     <value>0x0</value>
   </entry>
+  <entry>
+    <name>ATTR_INCREASED_PAU_FREQ</name>
+    <value>0x1</value>
+  </entry>
   <!-- HWP writeable attributes -->
   <entry>
     <name>ATTR_SCAN_CHIPLET_OVERRIDE</name>
