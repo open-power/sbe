@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -82,7 +82,7 @@ namespace fapi2
          *    FAPI2_RC_FALSE   if the end of the stream has been reached
          *    any other RC     if an error occurred
          */
-        ReturnCodes get(hwp_data_unit& o_data);
+        ReturnCode get(hwp_data_unit& o_data);
 
         /**
          * @brief Reads bytes of buffer data from the caller to the FIFO.
@@ -170,7 +170,7 @@ namespace fapi2
          *    FAPI2_RC_SUCCESS if data is available
          *    any other RC     if an error occurred and the data could not be written.
          */
-        ReturnCodes put(hwp_data_unit i_data);
+        ReturnCode put(hwp_data_unit i_data);
 
         /**
          * @brief Writes bytes of buffer data from the caller to the FIFO.
@@ -324,7 +324,7 @@ namespace fapi2
          *    FAPI2_RC_FALSE   if the end of the stream has been reached
          *    any other RC     if an error occurred
          */
-        ReturnCodes get(hwp_data_unit& o_data);
+        ReturnCode get(hwp_data_unit& o_data);
 
     private:
         const uint64_t *iv_data;

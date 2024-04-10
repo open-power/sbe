@@ -106,4 +106,11 @@
     <rc>RC_POZ_FILE_NOT_FOUND</rc>
     <description>SBE PLAT Error - File not found</description>
 </hwpError>
+<hwpError>
+    <sbeError/>
+    <rc>RC_POZ_SBEFIFO_OPERATION_FAILED</rc>
+    <description>SBE FIFO operation failed</description>
+    <ffdc>SBEFIFO_RC</ffdc>
+    <ffdc>OPERATION_TYPE</ffdc>
+</hwpError>
 </hwpErrors>
