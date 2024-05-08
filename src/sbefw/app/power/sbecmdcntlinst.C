@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -526,7 +526,6 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
 
             do //Iterate over all cores for special wakeup assert
             {
-                //TODO: Skip doing special wakeup on Simics
                 if(SBE::isSimicsRunning())
                 {
                     SBE_INFO("Special Wakeup is NOOP on simics for Stop Instructions");
@@ -544,20 +543,22 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
                 {
                     SBE_ERROR(SBE_FUNC "Assert failed for core[0x%2x]", core);
-                    respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,rc);
-                    // Revert back the local RC to success
-                    rc = SBE_SEC_OPERATION_SUCCESSFUL;
-                    ffdc.setRc(fapiRc);
-                    if(!(IGNORE_HW_ERRORS & req.mode))
+                    if(IGNORE_HW_ERRORS & req.mode)
                     {
+                        fapiRc = FAPI2_RC_SUCCESS;
+                        SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
+                            " As user has passed to ignore errors.");
+                        continue;
+                    }
+                    else
+                    {
+                        SBE_ERROR(SBE_FUNC "Breaking out, since User has "
+                            "selected the mode to exit on first error.");
+                        respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                          rc);
+                        ffdc.setRc(fapiRc);
                         break;
                     }
-                    SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
-                            " As user has passed to ignore errors.");
-                }
-                else
-                {
-                    SBE_INFO(SBE_FUNC "Assert succeeded for core[0x%2x]", core);
                 }
             }while(++core < coreCntMax);
 
@@ -633,15 +634,22 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 if(rc != SBE_SEC_OPERATION_SUCCESSFUL)
                 {
                     SBE_ERROR(SBE_FUNC "De-asssert failed for core[0x%2x]",core);
-                    respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE, rc);
-                    rc = SBE_SEC_OPERATION_SUCCESSFUL;
-                    ffdc.setRc(fapiRc);
-                    if(!(IGNORE_HW_ERRORS & req.mode))
+                    if(IGNORE_HW_ERRORS & req.mode)
                     {
+                        fapiRc = FAPI2_RC_SUCCESS;
+                        SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
+                            " As user has passed to ignore errors.");
+                        continue;
+                    }
+                    else
+                    {
+                        SBE_ERROR(SBE_FUNC "Breaking out, since User has "
+                            "selected the mode to exit on first error.");
+                        respHdr.setStatus(SBE_PRI_GENERIC_EXECUTION_FAILURE,
+                                          rc);
+                        ffdc.setRc(fapiRc);
                         break;
                     }
-                    SBE_INFO(SBE_FUNC "Continuing in case of HW Errors"
-                            " As user has passed to ignore errors.");
                 }
                 else
                 {
