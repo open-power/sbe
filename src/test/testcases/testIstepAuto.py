@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -43,7 +43,7 @@ SBE_TOOLS_PATH = simenv.sbe_scripts_path
 testUtil = imp.load_source("testUtil", SBE_TOOLS_PATH + "/testUtil.py")
 EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
-           0x00,0x0,0x0,0x03];
+           0x00,0x0,0x0,0x03]
 gIstepArray = {
         2:[2, 16],#istep 2.2 to 2.16
         3:[1, 23],#istep 3.1 to 3.23
@@ -115,10 +115,10 @@ def sbe_istep_func( inum1, inum2, proc=0, node=0):
                 # Currently simics commands created using hooks always return
                 # success. Need to check from simics command a way to return
                 # Calling non existant command to return failure
-                run_command("Command Failed");
+                run_command("Command Failed")
                 raise
     print ("\nTest completed with no errors")
-        #sys.exit(0);
+        #sys.exit(0)
 
 
 
