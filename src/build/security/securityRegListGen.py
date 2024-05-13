@@ -49,9 +49,9 @@ TAG_VERSION       = 'Version'
 TAG_TYPE          = 'Type'
 TAG_BIT_MASK      = 'Bit Mask'
 
-TAG_NAME_WHITELIST = 'write_allowlist'
-TAG_NAME_GREYLIST = 'write_greylist'
-TAG_NAME_BLACKLIST = 'read_denylist'
+TAG_NAME_ALLOWLIST = 'write_allowlist'
+TAG_NAME_PARTIALWRITEALLOWLIST = 'write_partialwriteallowlist'
+TAG_NAME_DENYLIST = 'read_denylist'
 
 def usage():
     print(
@@ -60,9 +60,9 @@ arguments:\n\
 -h, --help               show this help message and exit
 -f, --file               path to the security list csv file
 -o, --output             output directory
--w, --whitelist          print whitelist read from csv
--b, --blacklist          print blacklist read from csv
--g, --greylist           print greylist read from csv
+-w, --allowlist          print allowlist read from csv
+-b, --denylist          print denylist read from csv
+-g, --partialwriteallowlist           print partialwriteallowlist read from csv
 -i, --info               get version info of the security list
 -d, --debug              enable debug traces
 -v, --verbose            enable verbose traces''')
@@ -91,7 +91,7 @@ def remove_zeroes(list):
             out_list += [a]
     return out_list
 
-def gen_file(whitelist_tables, blacklist_tables, greyList):
+def gen_file(allowlist_tables, denylist_tables, partialwriteallowList):
     global GEN_FILE
 
     header = ("#ifndef __SBE_SECURITY_GEN_H\n"+
@@ -100,8 +100,8 @@ def gen_file(whitelist_tables, blacklist_tables, greyList):
               "#include \"securityAlgo.H\"\n\n"+
               "using namespace SBE_SECURITY;\n\n")
 
-    tables = (('WHITELIST', 'whitelist', whitelist_tables),
-              ('BLACKLIST', 'blacklist', blacklist_tables))
+    tables = (('ALLOWLIST', 'allowlist', allowlist_tables),
+              ('DENYLIST', 'denylist', denylist_tables))
     body = ''
     # table 1 range and running count type
     table1_range_type = "uint8_t"
@@ -178,10 +178,10 @@ namespace """+namespace+"""
     }
 }""")
 
-    greylist_addr_type = "uint32_t"
-    greylist_mask_type = "uint64_t"
+    partialwriteallowlist_addr_type = "uint32_t"
+    partialwriteallowlist_mask_type = "uint64_t"
     body += ("""
-namespace GREYLIST
+namespace PARTIALWRITEALLOWLIST
 {
     /*
     table 1:
@@ -189,7 +189,7 @@ namespace GREYLIST
        Mask      = 8 byte
     */
     _gl_t1_t _t1[] = {
-"""+s_greylist_table_gen(greyList)+"""
+"""+s_partialwriteallowlist_table_gen(partialwriteallowList)+"""
                                       };
 
     _gl_t1_table_t t1 =
@@ -526,14 +526,14 @@ def s_table3_gen(id, table):
         print(str_table3)
     return str_table3
 
-def s_greylist_table_gen( greyList):
-    # write greylist string
+def s_partialwriteallowlist_table_gen( partialwriteallowList):
+    # write partialwriteallowlist string
     str_table = ""
-    for ele in greyList:
+    for ele in partialwriteallowList:
         str_table += '{0x%08x, 0x%016xull}, ' % (ele[0], ele[1])
     str_table = str_table[:-1]
     if(VERBOSE):
-        print(" greylist table")
+        print(" partialwriteallowlist table")
         print(str_table)
     return str_table
 def main(argv):
@@ -541,7 +541,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(sys.argv[1:],
                 "f:o:wbgidvhW:B:",
-                                   ['file=', 'output=', 'whitelist', 'blacklist', 'greylist', 'info', 'debug', 'verbose', 'help', 'wt=', 'bt='])
+                                   ['file=', 'output=', 'allowlist', 'denylist', 'partialwriteallowlist', 'info', 'debug', 'verbose', 'help', 'wt=', 'bt='])
     except getopt.GetoptError as err:
         exit(INVALID_USAGE, str(err))
 
@@ -561,20 +561,20 @@ def main(argv):
             VERBOSE = True
         elif opt in ('-i', '--info'):
             print_info = "version"
-        elif opt in ('-w', '--whitelist'):
-            print_info = "whitelist"
-        elif opt in ('-b', '--blacklist'):
-            print_info = "blacklist"
-        elif opt in ('-g', '--greylist'):
-            print_info = "greylist"
+        elif opt in ('-w', '--allowlist'):
+            print_info = "allowlist"
+        elif opt in ('-b', '--denylist'):
+            print_info = "denylist"
+        elif opt in ('-g', '--partialwriteallowlist'):
+            print_info = "partialwriteallowlist"
         elif opt in ('-f', '--file'):
             assert os.path.exists(arg), "file doesn't exist at:"+str(arg)
             SECURITY_LIST = str(arg)
         elif opt in ('-W', '--wt'):
             wt = int(arg)
-            print_info = "whitelist_table"
+            print_info = "allowlist_table"
         elif opt in ('-B', '--bt'):
-            print_info = "blacklist_table"
+            print_info = "denylist_table"
             bt = int(arg)
         elif opt in ('-o', '--output'):
             assert os.path.exists(arg), "directory doesn't exist at:"+str(arg)
@@ -586,9 +586,9 @@ def main(argv):
 
     # Read the security list file
     version   = 'unknown'
-    whitelist = []
-    blacklist = []
-    greylist = []
+    allowlist = []
+    denylist = []
+    partialwriteallowlist = []
     with open(SECURITY_LIST, 'rbU') as f:
         reader = csv.DictReader(f)
         for idx, row in enumerate(reader):
@@ -629,67 +629,67 @@ def main(argv):
                 expanded_line = get_effective_address(row[TAG_CHIPLET], expanded_line)
                 if(VERBOSE):
                     print(s_list_hex("range:", expanded_range, 8))
-                if(row[TAG_TYPE].strip().lower() == TAG_NAME_GREYLIST):
+                if(row[TAG_TYPE].strip().lower() == TAG_NAME_PARTIALWRITEALLOWLIST):
                    if(( bit_mask == 0 ) or ( bit_mask == 0xffffffffffffffff)):
-                        exit(PRINT_AND_EXIT, "Wrong mask for Greylist")
-                   greylist_line = expanded_line
+                        exit(PRINT_AND_EXIT, "Wrong mask for Partialwriteallowlist")
+                   partialwriteallowlist_line = expanded_line
                    if(VERBOSE):
-                        print(s_list_hex("greylist_line:", greylist_line, 8))
+                        print(s_list_hex("partialwriteallowlist_line:", partialwriteallowlist_line, 8))
                         print("mask:", bit_mask)
-                   for ele in greylist_line:
-                        greylist.append((ele, bit_mask))
-                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_WHITELIST):
-                    whitelist_line = expanded_line
+                   for ele in partialwriteallowlist_line:
+                        partialwriteallowlist.append((ele, bit_mask))
+                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_ALLOWLIST):
+                    allowlist_line = expanded_line
                     if(VERBOSE):
-                        print(s_list_hex("whitelist_line:", whitelist_line, 8))
-                    whitelist += whitelist_line
-                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_BLACKLIST):
-                    blacklist_line = expanded_line
+                        print(s_list_hex("allowlist_line:", allowlist_line, 8))
+                    allowlist += allowlist_line
+                elif(row[TAG_TYPE].strip().lower() == TAG_NAME_DENYLIST):
+                    denylist_line = expanded_line
                     if(VERBOSE):
-                        print(s_list_hex("blacklist_line:", blacklist_line, 8))
-                    blacklist += blacklist_line
+                        print(s_list_hex("denylist_line:", denylist_line, 8))
+                    denylist += denylist_line
 
             except:
                 print("Error in line ["+str(idx+2)+"]")
                 exit(PRINT_AND_EXIT, sys.exc_info()[0])
 
-    whitelist = remove_duplicates(whitelist)
-    whitelist = remove_zeroes(whitelist)
-    whitelist.sort()
-    blacklist = remove_duplicates(blacklist)
-    blacklist = remove_zeroes(blacklist)
-    blacklist.sort()
-    greylist = remove_duplicates(greylist)
-    greylist.sort()
+    allowlist = remove_duplicates(allowlist)
+    allowlist = remove_zeroes(allowlist)
+    allowlist.sort()
+    denylist = remove_duplicates(denylist)
+    denylist = remove_zeroes(denylist)
+    denylist.sort()
+    partialwriteallowlist = remove_duplicates(partialwriteallowlist)
+    partialwriteallowlist.sort()
 
     if(print_info == 'version'):
         exit(PRINT_AND_EXIT, "security list version ["+version+"]")
-    if(print_info == 'whitelist'):
-        exit(PRINT_AND_EXIT, s_list_hex("whitelist:", whitelist, 8))
-    if(print_info == 'blacklist'):
-        exit(PRINT_AND_EXIT, s_list_hex("blacklist:", blacklist, 8))
-    if(print_info == 'greylist'):
-        exit(PRINT_AND_EXIT, greylist)
+    if(print_info == 'allowlist'):
+        exit(PRINT_AND_EXIT, s_list_hex("allowlist:", allowlist, 8))
+    if(print_info == 'denylist'):
+        exit(PRINT_AND_EXIT, s_list_hex("denylist:", denylist, 8))
+    if(print_info == 'partialwriteallowlist'):
+        exit(PRINT_AND_EXIT, partialwriteallowlist)
 
     if(VERBOSE):
-        print(s_list_hex("whitelist:", whitelist, 8))
-        print(s_list_hex("blacklist:", blacklist, 8))
+        print(s_list_hex("allowlist:", allowlist, 8))
+        print(s_list_hex("denylist:", denylist, 8))
     if(DEBUG):
         print("security list version ["+version+"]")
-        print("Whitelist len ["+s_list_len(whitelist)+"]")
-        print("Blacklist len ["+s_list_len(blacklist)+"]")
-        print("Greylist len ["+s_list_len(greylist)+"]")
+        print("Allowlist len ["+s_list_len(allowlist)+"]")
+        print("Denylist len ["+s_list_len(denylist)+"]")
+        print("Partialwriteallowlist len ["+s_list_len(partialwriteallowlist)+"]")
 
-    whitelist_tables = get_tables("Whitelist", whitelist)
-    blacklist_tables = get_tables("Blacklist", blacklist)
+    allowlist_tables = get_tables("Allowlist", allowlist)
+    denylist_tables = get_tables("Denylist", denylist)
 
-    if(print_info == 'whitelist_table'):
-        exit(PRINT_AND_EXIT, "whitelist_table["+str(wt-1)+"]" + str(whitelist_tables[wt-1]))
-    if(print_info == 'blacklist_table'):
-        exit(PRINT_AND_EXIT, "blacklist_table["+str(bt-1)+"]" + str(blacklist_tables[bt-1]))
+    if(print_info == 'allowlist_table'):
+        exit(PRINT_AND_EXIT, "allowlist_table["+str(wt-1)+"]" + str(allowlist_tables[wt-1]))
+    if(print_info == 'denylist_table'):
+        exit(PRINT_AND_EXIT, "denylist_table["+str(bt-1)+"]" + str(denylist_tables[bt-1]))
 
     # Generate output file
-    gen_file(whitelist_tables, blacklist_tables, greylist)
+    gen_file(allowlist_tables, denylist_tables, partialwriteallowlist)
 
     exit(SUCCESS)
 

@@ -487,7 +487,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
                 && (req.threadOps == THREAD_START_INS))
         {
             SBE_ERROR(SBE_FUNC "threadOps[0x%02X] blocked in secure mode",(uint8_t)req.threadOps);
-            respHdr.setStatus( SBE_PRI_UNSECURE_ACCESS_DENIED, SBE_SEC_BLACKLISTED_CHIPOP_ACCESS);
+            respHdr.setStatus( SBE_PRI_UNSECURE_ACCESS_DENIED, SBE_SEC_DENYLISTED_CHIPOP_ACCESS);
             break;
         }
 

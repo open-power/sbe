@@ -87,7 +87,7 @@ sbeCapabilityRespMsg::sbeCapabilityRespMsg() : capability{}
     capability[GENERIC_CAPABILTITY_START_IDX] =
                         HWP_FFDC_COLLECTION_SUPPPORTED |
                         SBE_FFDC_COLLECTION_SUPPPORTED |
-                        ADDRESS_BLACKLISTING_SUPPPORTED |
+                        ADDRESS_DENYLISTING_SUPPPORTED |
                         FIFO_RESET_SUPPPORTED |
                         HOST_CMD_INTERFACE_SUPPORTED |
                         SP_LESS_MPIPL_SUPPORTED;

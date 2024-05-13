@@ -42,9 +42,9 @@ namespace SBE_SECURITY
      */
     enum secListType
     {
-        SEC_WHITE_LIST = 0x0,
-        SEC_BLACK_LIST = 0x1,
-        SEC_GREY_LIST  = 0x2,
+        SEC_ALLOW_LIST = 0x0,
+        SEC_DENY_LIST = 0x1,
+        SEC_PARTIALWRITEALLOW_LIST  = 0x2,
         // Don't count this in the list type, just to intialize the list type
         SEC_INVALID_LIST = 0xF,
     };

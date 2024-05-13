@@ -200,7 +200,7 @@ void sbeCommandReceiver_routine(void *i_pArg);
  *    The major responsibilities of this thread are :
  *        - Dequeue data payload from upstream FIFO
  *        - Un-marshalling of the command request data
- *        - Blacklist validation
+ *        - Denylist validation
  *        - FFDC collection upon validation failure
  *        - Invoke the corresponding Hardware access utility
  *          or the HWP corresponding to the chipOp request

@@ -67,8 +67,8 @@ map_t binary_search(
 }
 
 //----------------------------------------------------------------------------
-//  @brief Public function used for init all white, black and grey list table
-//  data, WhiteList/ BalckList Tables [T1, T2 and T3] and GreyList [T1]
+//  @brief Public function used for init all allow, deny and partialwriteallow list table
+//  data, AllowList/ BalckList Tables [T1, T2 and T3] and PartialwriteallowList [T1]
 //----------------------------------------------------------------------------
 bool _is_present( const _t1_table_t &table1,
                            const _t2_table_t &table2,
@@ -120,7 +120,7 @@ bool _is_present( const _t1_table_t &table1,
 
 //----------------------------------------------------------------------------
 //  @brief Look up tables to find if the given address with mask is present
-//  on GreyList Table [T1]
+//  on PartialwriteallowList Table [T1]
 //----------------------------------------------------------------------------
 bool _is_present(const _gl_t1_table_t &table1,
                  const uint32_t i_addr,
@@ -177,8 +177,8 @@ bool isAccessAllowed(const uint32_t i_addr, uint64_t i_mask,
 }
 
 //----------------------------------------------------------------------------
-//  @brief Public function used for init all white, black and grey list table
-//  data, WhiteList/ BalckList Tables [T1, T2 and T3] and GreyList [T1]
+//  @brief Public function used for init all allow, deny and partialwriteallow list table
+//  data, AllowList/ BalckList Tables [T1, T2 and T3] and PartialwriteallowList [T1]
 //----------------------------------------------------------------------------
 bool securityAccessTablesInit(const void * i_buf )
 {
@@ -194,53 +194,53 @@ bool securityAccessTablesInit(const void * i_buf )
         // Read header
         sec_header_dump_t* l_table_sizes =
                       reinterpret_cast<sec_header_dump_t*>(l_buf);
-        // Read and Update whitelist tables1
+        // Read and Update allowlist tables1
         size_t l_size = SEC_LIST_TABLE_HDR_SIZE;
         secListTableSupport.wl_t1.size = l_table_sizes->wl_t1_count;
-        secListTableSupport.wl_t1.mask = WHITELIST_TABLE1_MASK;
+        secListTableSupport.wl_t1.mask = ALLOWLIST_TABLE1_MASK;
 
         secListTableSupport.wl_t1.table = (_t1_t*) malloc((sizeof(_t1_t))*(l_table_sizes->wl_t1_count));
         memcpy( secListTableSupport.wl_t1.table, l_buf+SEC_LIST_TABLE_HDR_SIZE, (sizeof(_t1_t))*((l_table_sizes->wl_t1_count)) );
 
-        // Read and Update whitelist tables2
+        // Read and Update allowlist tables2
         l_size += (sizeof (_t1_t))*(l_table_sizes->wl_t1_count) ;
         secListTableSupport.wl_t2.size = l_table_sizes->wl_t2_count;
-        secListTableSupport.wl_t2.mask = WHITELIST_TABLE2_MASK;
+        secListTableSupport.wl_t2.mask = ALLOWLIST_TABLE2_MASK;
         secListTableSupport.wl_t2.table = (_t2_t*)malloc((sizeof(_t2_t))*(l_table_sizes->wl_t2_count));
         memcpy( secListTableSupport.wl_t2.table, l_buf+l_size, (sizeof(_t2_t))*(l_table_sizes->wl_t2_count) );
 
-        // Read and Update whitelist tables3
+        // Read and Update allowlist tables3
         l_size += (sizeof (_t2_t))*(l_table_sizes->wl_t2_count) ;
         secListTableSupport.wl_t3.size = l_table_sizes->wl_t3_count;
-        secListTableSupport.wl_t3.mask = WHITELIST_TABLE3_MASK;
+        secListTableSupport.wl_t3.mask = ALLOWLIST_TABLE3_MASK;
         secListTableSupport.wl_t3.table = (_t3_t*)malloc((sizeof(_t3_t))*(l_table_sizes->wl_t3_count));
         memcpy( secListTableSupport.wl_t3.table, l_buf+l_size, (sizeof(_t3_t))*(l_table_sizes->wl_t3_count) );
 
-        // Read and Update blacklist tables1
+        // Read and Update denylist tables1
         l_size += (sizeof (_t3_t))*(l_table_sizes->wl_t3_count) ;
         secListTableSupport.bl_t1.size = l_table_sizes->bl_t1_count;
-        secListTableSupport.bl_t1.mask = BLACKLIST_TABLE1_MASK;
+        secListTableSupport.bl_t1.mask = DENYLIST_TABLE1_MASK;
         secListTableSupport.bl_t1.table = (_t1_t*)malloc((sizeof(_t1_t))*(l_table_sizes->bl_t1_count));
         memcpy( secListTableSupport.bl_t1.table, l_buf+l_size,(sizeof(_t1_t))*(l_table_sizes->bl_t1_count) );
 
-        // Read and Update blacklist tables2
+        // Read and Update denylist tables2
         l_size += (sizeof (_t1_t))*(l_table_sizes->bl_t1_count) ;
         secListTableSupport.bl_t2.size = l_table_sizes->bl_t2_count;
-        secListTableSupport.bl_t2.mask = BLACKLIST_TABLE2_MASK;
+        secListTableSupport.bl_t2.mask = DENYLIST_TABLE2_MASK;
         secListTableSupport.bl_t2.table = (_t2_t*)malloc((sizeof(_t2_t))*(l_table_sizes->bl_t2_count));
         memcpy( secListTableSupport.bl_t2.table, l_buf+l_size,(sizeof(_t2_t))*(l_table_sizes->bl_t2_count) );
 
-        // Read and Update blacklist tables3
+        // Read and Update denylist tables3
         l_size += (sizeof (_t2_t))*(l_table_sizes->bl_t2_count) ;
         secListTableSupport.bl_t3.size = l_table_sizes->bl_t3_count;
-        secListTableSupport.bl_t3.mask = BLACKLIST_TABLE3_MASK;
+        secListTableSupport.bl_t3.mask = DENYLIST_TABLE3_MASK;
         secListTableSupport.bl_t3.table = (_t3_t*)malloc((sizeof(_t3_t))*(l_table_sizes->bl_t3_count));
         memcpy( secListTableSupport.bl_t3.table, l_buf+l_size,(sizeof(_t3_t))*(l_table_sizes->bl_t3_count) );
 
-        // Read and Update greylist tables1
+        // Read and Update partialwriteallowlist tables1
         l_size += (sizeof (_t3_t))*(l_table_sizes->bl_t3_count) ;
         secListTableSupport.gl_t1.size = l_table_sizes->gl_t1_count;
-        secListTableSupport.gl_t1.mask = GREYLIST_TABLE1_MASK;
+        secListTableSupport.gl_t1.mask = PARTIALWRITEALLOWLIST_TABLE1_MASK;
         secListTableSupport.gl_t1.table = (_gl_t1_t*)malloc((sizeof(_gl_t1_t))*(l_table_sizes->gl_t1_count));
         memcpy( secListTableSupport.gl_t1.table, l_buf+l_size,(sizeof(_gl_t1_t))*(l_table_sizes->gl_t1_count));
 

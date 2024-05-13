@@ -122,14 +122,14 @@ bool isAllowed(const uint32_t i_addr, uint64_t i_mask,  accessType i_type)
     {
         if(i_type == WRITE)
         {
-            ret =  WHITELIST::isPresent(i_addr);
+            ret =  ALLOWLIST::isPresent(i_addr);
             if( (ret == false ) && (i_mask != 0xffffffffffffffffull ))
             {
-                ret = GREYLIST::isPresent(i_addr, i_mask);
+                ret = PARTIALWRITEALLOWLIST::isPresent(i_addr, i_mask);
             }
         }
         else if(i_type == READ)
-            ret =  !BLACKLIST::isPresent(i_addr);
+            ret =  !DENYLIST::isPresent(i_addr);
         SBE_INFO("SBE_SECURITY access[%d] allowed[%d] addr[0x%08x]",
                                         i_type, ret, i_addr);
     }
@@ -159,21 +159,21 @@ uint32_t updateAndSendSecTOCHdr( sbeMemAccessInterface *i_pMemInterface )
 
     sec_header_dump_t l_secListDumpHdr;
     /// Send the list of _T1, _T2 and _T3 header count
-    l_secListDumpHdr.wl_t1_count = WHITELIST::t1.size;
-    l_secListDumpHdr.wl_t2_count = WHITELIST::t2.size;
-    l_secListDumpHdr.wl_t3_count = WHITELIST::t3.size;
+    l_secListDumpHdr.wl_t1_count = ALLOWLIST::t1.size;
+    l_secListDumpHdr.wl_t2_count = ALLOWLIST::t2.size;
+    l_secListDumpHdr.wl_t3_count = ALLOWLIST::t3.size;
 
-    l_secListDumpHdr.bl_t1_count = BLACKLIST::t1.size;
-    l_secListDumpHdr.bl_t2_count = BLACKLIST::t2.size;
-    l_secListDumpHdr.bl_t3_count = BLACKLIST::t3.size;
+    l_secListDumpHdr.bl_t1_count = DENYLIST::t1.size;
+    l_secListDumpHdr.bl_t2_count = DENYLIST::t2.size;
+    l_secListDumpHdr.bl_t3_count = DENYLIST::t3.size;
 
-    l_secListDumpHdr.gl_t1_count = GREYLIST::t1.size;
+    l_secListDumpHdr.gl_t1_count = PARTIALWRITEALLOWLIST::t1.size;
 
-    SBE_INFO("SBE_SECURITY whitelist t1[%d] t2[%d] t3[0x%d] ",
-              WHITELIST::t1.size, WHITELIST::t2.size, WHITELIST::t3.size);
-    SBE_INFO("SBE_SECURITY blacklist t1[%d] t2[%d] t3[0x%d] ",
-              BLACKLIST::t1.size, BLACKLIST::t2.size, BLACKLIST::t3.size);
-    SBE_INFO("SBE_SECURITY greylist t1[%d] ", GREYLIST::t1.size);
+    SBE_INFO("SBE_SECURITY allowlist t1[%d] t2[%d] t3[0x%d] ",
+              ALLOWLIST::t1.size, ALLOWLIST::t2.size, ALLOWLIST::t3.size);
+    SBE_INFO("SBE_SECURITY denylist t1[%d] t2[%d] t3[0x%d] ",
+              DENYLIST::t1.size, DENYLIST::t2.size, DENYLIST::t3.size);
+    SBE_INFO("SBE_SECURITY partialwriteallowlist t1[%d] ", PARTIALWRITEALLOWLIST::t1.size);
 
     fapiRc = i_pMemInterface->accessWithBuffer(&l_secListDumpHdr,
                                                sizeof(l_secListDumpHdr),
@@ -189,10 +189,10 @@ uint32_t updateAndSendSecTOCHdr( sbeMemAccessInterface *i_pMemInterface )
 }
 
 //----------------------------------------------------------------------------
-uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
+uint32_t sbeSecurityAllowDenyListDump( sbeMemAccessInterface *i_pMemInterface,
                                    const secListType &i_listType  )
 {
-    #define SBE_FUNC "sbeSecurityWhiteBlackListDump"
+    #define SBE_FUNC "sbeSecurityAllowDenyListDump"
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
     _t1_t * t1 = NULL;
@@ -201,31 +201,31 @@ uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
     uint32_t t2_size = 0;
     _t3_t * t3 = NULL;
     uint32_t t3_size = 0;
-    if( i_listType == SEC_WHITE_LIST )
+    if( i_listType == SEC_ALLOW_LIST )
     {
-        t1 = WHITELIST::_t1;
-        t1_size = WHITELIST::t1.size;
+        t1 = ALLOWLIST::_t1;
+        t1_size = ALLOWLIST::t1.size;
 
-        t2 = WHITELIST::_t2;
-        t2_size = WHITELIST::t2.size;
+        t2 = ALLOWLIST::_t2;
+        t2_size = ALLOWLIST::t2.size;
 
-        t3 = WHITELIST::_t3;
-        t3_size = WHITELIST::t3.size;
+        t3 = ALLOWLIST::_t3;
+        t3_size = ALLOWLIST::t3.size;
     }
-    else if( i_listType == SEC_BLACK_LIST )
+    else if( i_listType == SEC_DENY_LIST )
     {
-        t1 = BLACKLIST::_t1;
-        t1_size = BLACKLIST::t1.size;
+        t1 = DENYLIST::_t1;
+        t1_size = DENYLIST::t1.size;
 
-        t2 = BLACKLIST::_t2;
-        t2_size = BLACKLIST::t2.size;
+        t2 = DENYLIST::_t2;
+        t2_size = DENYLIST::t2.size;
 
-        t3 = BLACKLIST::_t3;
-        t3_size = BLACKLIST::t3.size;
+        t3 = DENYLIST::_t3;
+        t3_size = DENYLIST::t3.size;
     }
     do
     {
-        // Update and Send the whitelist T1
+        // Update and Send the allowlist T1
         for( uint32_t i = 0; i < t1_size; i++)
         {
             fapiRc = i_pMemInterface->accessWithBuffer(&t1[i].key_start,
@@ -239,7 +239,7 @@ uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
             if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
         }
 
-        // Update and Send the whitelist T2
+        // Update and Send the allowlist T2
         for( uint32_t i = 0; i < t2_size; i++)
         {
             fapiRc = i_pMemInterface->accessWithBuffer(&t2[i].key,
@@ -250,7 +250,7 @@ uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
             if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
         }
 
-        // Update and Send the whitelist T3
+        // Update and Send the allowlist T3
         for( uint32_t i = 0; i < t3_size; i++)
         {
             fapiRc = i_pMemInterface->accessWithBuffer(&t3[i].value,
@@ -261,7 +261,7 @@ uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
     while(0);
     if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR(SBE_FUNC "Failed to send Black/WhiteListDump to hostboot");
+        SBE_ERROR(SBE_FUNC "Failed to send Deny/AllowListDump to hostboot");
     }
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
@@ -269,26 +269,26 @@ uint32_t sbeSecurityWhiteBlackListDump( sbeMemAccessInterface *i_pMemInterface,
 }
 
 //----------------------------------------------------------------------------
-uint32_t sbeSecurityGreyListDump( sbeMemAccessInterface *i_pMemInterface )
+uint32_t sbeSecurityPartialwriteallowListDump( sbeMemAccessInterface *i_pMemInterface )
 {
-    #define SBE_FUNC "sbeSecurityGreyListDump"
+    #define SBE_FUNC "sbeSecurityPartialwriteallowListDump"
     SBE_ENTER(SBE_FUNC);
     uint32_t fapiRc = fapi2::FAPI2_RC_SUCCESS;
 
-    // Update and Send the blacklist T1
-    for(uint32_t i = 0; i < GREYLIST::t1.size; i++)
+    // Update and Send the denylist T1
+    for(uint32_t i = 0; i < PARTIALWRITEALLOWLIST::t1.size; i++)
     {
-        fapiRc = i_pMemInterface->accessWithBuffer(&GREYLIST::_t1[i].key,
+        fapiRc = i_pMemInterface->accessWithBuffer(&PARTIALWRITEALLOWLIST::_t1[i].key,
                                           sizeof(uint32_t), false);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
-        fapiRc = i_pMemInterface->accessWithBuffer(&GREYLIST::_t1[i].value,
+        fapiRc = i_pMemInterface->accessWithBuffer(&PARTIALWRITEALLOWLIST::_t1[i].value,
                                           sizeof(uint64_t), false);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
     }
 
     if(fapiRc != fapi2::FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR(SBE_FUNC "Failed to send GreyListDump to hostboot");
+        SBE_ERROR(SBE_FUNC "Failed to send PartialwriteallowListDump to hostboot");
     }
     SBE_EXIT(SBE_FUNC);
     return fapiRc;
@@ -306,16 +306,16 @@ uint32_t  sendSecurityListDumpToHB(sbeMemAccessInterface *i_pMemInterface)
         fapiRc = updateAndSendSecTOCHdr(i_pMemInterface);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
 
-        // Update and Send the whitelist T1,T2 and T3 data
-        fapiRc = sbeSecurityWhiteBlackListDump(i_pMemInterface, SEC_WHITE_LIST);
+        // Update and Send the allowlist T1,T2 and T3 data
+        fapiRc = sbeSecurityAllowDenyListDump(i_pMemInterface, SEC_ALLOW_LIST);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
 
-        // Update and Send the blacklist T1,T2 and T3 data
-        fapiRc = sbeSecurityWhiteBlackListDump(i_pMemInterface,SEC_BLACK_LIST);
+        // Update and Send the denylist T1,T2 and T3 data
+        fapiRc = sbeSecurityAllowDenyListDump(i_pMemInterface,SEC_DENY_LIST);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
 
-        // Update and Send the greylist T1 data
-        fapiRc = sbeSecurityGreyListDump(i_pMemInterface);
+        // Update and Send the partialwriteallowlist T1 data
+        fapiRc = sbeSecurityPartialwriteallowListDump(i_pMemInterface);
         if( fapiRc != fapi2::FAPI2_RC_SUCCESS) break;
         uint8_t l_endOfdump = 0;
         fapiRc = i_pMemInterface->accessWithBuffer(&l_endOfdump,

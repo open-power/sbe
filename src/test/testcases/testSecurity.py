@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -30,7 +30,7 @@ sys.path.append("targets/p10_standalone/sbeTest" )
 import testUtil
 import testScomUtil
 
-SECURITY_FILE = "targets/p10_standalone/sbeTest/p9_security_white_black_list.csv"
+SECURITY_FILE = "targets/p10_standalone/sbeTest/p11_security_allow_deny_list.csv"
 SECURITY_SCRIPT = "targets/p10_standalone/sbeTest/securityRegListGen.py"
 
 def getlist(cmd):
@@ -59,53 +59,53 @@ DEBUG = False
 # Number of random addresses for negative testcase
 NUM_RANDOM_ADDR = 100000
 
-WHITELISTED_REG_FOR_WRITE_TEST = "0x05013419"
-BLACKLISTED_REG_FOR_READ_TEST  = "0x07012316"
+ALLOWLISTED_REG_FOR_WRITE_TEST = "0x05013419"
+DENYLISTED_REG_FOR_READ_TEST  = "0x07012316"
 
 def main():
-    whitelist = getlist('-w')
-    whitelist_table1 = getmap('-W 1')
-    whitelist_table2 = getmap('-W 2')
-    whitelist_table3 = getlist('-W 3')
-    blacklist = getlist('-b')
-    blacklist_table1 = getmap('-B 1')
-    blacklist_table2 = getmap('-B 2')
-    blacklist_table3 = getlist('-B 3')
+    allowlist = getlist('-w')
+    allowlist_table1 = getmap('-W 1')
+    allowlist_table2 = getmap('-W 2')
+    allowlist_table3 = getlist('-W 3')
+    denylist = getlist('-b')
+    denylist_table1 = getmap('-B 1')
+    denylist_table2 = getmap('-B 2')
+    denylist_table3 = getlist('-B 3')
 
     try:
         if(BRUTE_FORCE_TEST == True):
-            test_brute_force('whitelist',
-                             whitelist,
-                             whitelist_table1,
-                             whitelist_table2,
-                             whitelist_table3)
+            test_brute_force('allowlist',
+                             allowlist,
+                             allowlist_table1,
+                             allowlist_table2,
+                             allowlist_table3)
         else:
-            test_normal('whitelist',
-                        whitelist,
-                        whitelist_table1,
-                        whitelist_table2,
-                        whitelist_table3)
-            print("generated whitelist validation passed")
-            test_normal('blacklist',
-                        blacklist,
-                        blacklist_table1,
-                        blacklist_table2,
-                        blacklist_table3)
-            print("generated blacklist validation passed")
+            test_normal('allowlist',
+                        allowlist,
+                        allowlist_table1,
+                        allowlist_table2,
+                        allowlist_table3)
+            print("generated allowlist validation passed")
+            test_normal('denylist',
+                        denylist,
+                        denylist_table1,
+                        denylist_table2,
+                        denylist_table3)
+            print("generated denylist validation passed")
 
         # getscom success
         testScomUtil.getscom(0x0204001A)
         print("getscom success testcase - passed")
         # getscom failure
-        testScomUtil.getscom(eval(BLACKLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x23])
+        testScomUtil.getscom(eval(DENYLISTED_REG_FOR_READ_TEST), [0x00, 0x05, 0x00, 0x23])
         print("getscom failure testcase - passed")
         # putscom success
-        testScomUtil.putscom(eval(WHITELISTED_REG_FOR_WRITE_TEST), testScomUtil.getscom(eval(WHITELISTED_REG_FOR_WRITE_TEST)))
+        testScomUtil.putscom(eval(ALLOWLISTED_REG_FOR_WRITE_TEST), testScomUtil.getscom(eval(ALLOWLISTED_REG_FOR_WRITE_TEST)))
         print("putscom success testcase - passed")
         # putscom failure
         while(True):
             random_addr = struct.unpack('>L', os.urandom(4))[0]
-            if random_addr not in [eval(a) for a in whitelist]:
+            if random_addr not in [eval(a) for a in allowlist]:
                 if not ((random_addr & 0x80000000) or (random_addr & 0x00F00000)):
                     testScomUtil.putscom(random_addr, 0, [0x00, 0x05, 0x00, 0x23])
                     break
@@ -125,17 +125,17 @@ def main():
             raise Exception('PutScom under mask failed %x != %x' % (dataRead, dataWritten))
         print("putscom under mask success testcase - passed")
 
-        # Greylist test cases
+        # Partialwriteallowlist test cases
         dataWritten = testScomUtil.getscom(0x0901080B)
         # Do putScomUnderMask with wrong mask
         testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xF0FFFFFFFFFFFFFF, [0x00, 0x05, 0x00, 0x23])
-        # Do putScom on grey list register
+        # Do putScom on partialwriteallow list register
         testScomUtil.putscom(0x0901080B, 0, [0x00, 0x05, 0x00, 0x23])
         # Do putScomUnderMask with exact mask
         testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF0FFFFFFF0FFFFF)
         # Do putScomUnderMask with superset mask
         testScomUtil.putScomUnderMask(0x0901080B, dataWritten, 0xFF00FFFFFF0FFFFF)
-        print("Greylist testcases - passed")
+        print("Partialwriteallowlist testcases - passed")
 
         # indirect scom test
         dataWritten = testScomUtil.getscom(0x8000000D06010C3F)

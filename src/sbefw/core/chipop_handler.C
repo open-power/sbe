@@ -211,7 +211,7 @@ sbeChipOpRc_t sbeIsCmdAllowed (const uint8_t i_cmdClass,
                 && (!SBE::isSimicsRunning()))
             {
                 retRc.primStatus = SBE_PRI_UNSECURE_ACCESS_DENIED;
-                retRc.secStatus  = SBE_SEC_BLACKLISTED_CHIPOP_ACCESS;
+                retRc.secStatus  = SBE_SEC_DENYLISTED_CHIPOP_ACCESS;
                 break;
             }
             break;

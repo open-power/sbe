@@ -582,7 +582,7 @@ defaultset:
 ppe_trace_bin:
 	$(MAKE) -I $(INCLUDES) -C $(PPETRACEPP_DIR) -f Makefile #$(PK trace util)
 
-# generate whitelist and blacklist security algorithm
+# generate allowlist and denylist security algorithm
 security: $(OBJDIR)
 	python2 $(SECURITY_SRC_DIR)/securityRegListGen.py -f $(SECURITY_LIST) -o $(GENFILES_DIR)
 

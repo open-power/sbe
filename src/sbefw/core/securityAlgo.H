@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -29,11 +29,10 @@
 #include <stddef.h>
 
 /*
-    Whitelist , Blacklist and Greylist  are part of the Security validation
-    of any register. Each list has been sub divided into 3 tables [t1, t2 and
-    t3] as mentioned bellow. Table data will be used on security algorithm to
-    validates register address is part of Whitelist, Blacklist and Greylist
-    or not. 
+    Allowlist , Denylist and Partialwriteallowlist  are part of the Security validation
+    of any register. Each list has been sub divided into 3 tables [t1, t2 and t3] as 
+    mentioned bellow. Table data will be used on security algorithm to validates 
+    register address is part of Allowlist, Denylist and Partialwriteallowlist or not. 
 
     # -----------------------------------------------------------------#
     # Step 1:             [register list]                              #
@@ -114,13 +113,13 @@
 
  */
 
-#define  WHITELIST_TABLE1_MASK 0xFF000000
-#define  WHITELIST_TABLE2_MASK 0x00FF0000
-#define  WHITELIST_TABLE3_MASK 0x0000FFFF
-#define  BLACKLIST_TABLE1_MASK 0xFF000000
-#define  BLACKLIST_TABLE2_MASK 0x00FF0000
-#define  BLACKLIST_TABLE3_MASK 0x0000FFFF
-#define  GREYLIST_TABLE1_MASK 0xFFFFFFFF
+#define  ALLOWLIST_TABLE1_MASK 0xFF000000
+#define  ALLOWLIST_TABLE2_MASK 0x00FF0000
+#define  ALLOWLIST_TABLE3_MASK 0x0000FFFF
+#define  DENYLIST_TABLE1_MASK 0xFF000000
+#define  DENYLIST_TABLE2_MASK 0x00FF0000
+#define  DENYLIST_TABLE3_MASK 0x0000FFFF
+#define  PARTIALWRITEALLOWLIST_TABLE1_MASK 0xFFFFFFFF
 
 #ifndef __PPE__
     #pragma pack(1)
@@ -161,7 +160,7 @@
     } _t3_t;  // Total 2 bytes
 
 
-    /*@brief Format of Grey list table date */
+    /*@brief Format of Partialwriteallow list table date */
     typedef struct
     {
         uint32_t key;
@@ -170,7 +169,7 @@
 
 
     // table data structure
-    /* @brief Format of White / Black list table-1 */
+    /* @brief Format of Allow / Deny list table-1 */
     typedef struct
     {
         uint32_t size;
@@ -178,7 +177,7 @@
         _t1_t *table;
     } _t1_table_t;
 
-    /* @brief Format of White / Black list table-2 */
+    /* @brief Format of Allow / Deny list table-2 */
     typedef struct
     {
         uint32_t size;
@@ -186,7 +185,7 @@
         _t2_t *table;
     } _t2_table_t;
 
-    /* @brief Format of White / Black list table-3 */
+    /* @brief Format of Allow / Deny list table-3 */
     typedef struct
     {
         uint32_t size;
@@ -194,7 +193,7 @@
         _t3_t *table;
     } _t3_table_t;
 
-    /* @brief Format of Grey list table-1 */
+    /* @brief Format of Partialwriteallow list table-1 */
     typedef struct
     {
         uint32_t size;
@@ -284,7 +283,7 @@
                      const uint64_t i_mask);
 
     /* @brief securityAccessTablesInit - Public function used for
-     *           init all white, black and grey list table data
+     *           init all allow, deny and partialwriteallow list table data
      * @param[in] i_i_buf      - tables data
      *
      * @return                - boolean to denote if the access on the table

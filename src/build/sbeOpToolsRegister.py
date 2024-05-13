@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2021
+# Contributors Listed Below - COPYRIGHT 2020,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -71,5 +71,5 @@ def exportFiles(sbe_simdata_dir, img_dir):
 
     #Copy the security files to sbe_simdata_dir
     os.system('cp '+img_dir+'/../src/build/security/securityRegListGen.py'+' '+sbe_simdata_dir+'/')
-    os.system('cp '+img_dir+'/../src/import/chips/p9/security/p9_security_white_black_list.csv'+' '+sbe_simdata_dir+'/')
+    os.system('cp '+img_dir+'/../src/import/chips/p11/security/p11_security_allow_deny_list.csv'+' '+sbe_simdata_dir+'/')
 

@@ -65,12 +65,12 @@ if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isAllowed(addr,mask,op))) ) \
     { \
         /* security override possible && scom filtering disabled */ \
         resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
-                        SBE_SEC_BLACKLISTED_REG_ACCESS); \
+                        SBE_SEC_DENYLISTED_REG_ACCESS); \
     } \
     else \
     { \
         resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
-                        SBE_SEC_BLACKLISTED_REG_ACCESS_BLOCKED); \
+                        SBE_SEC_DENYLISTED_REG_ACCESS_BLOCKED); \
         break; \
     } \
 }
@@ -83,12 +83,12 @@ if (!((fifotype == SBE_HB_FIFO) || (SBE_SECURITY::isOcmbReadAllowed(addr))) ) \
     { \
         /* security override possible && scom filtering disabled */ \
         resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
-                        SBE_SEC_BLACKLISTED_REG_ACCESS); \
+                        SBE_SEC_DENYLISTED_REG_ACCESS); \
     } \
     else \
     { \
         resp->setStatus(SBE_PRI_UNSECURE_ACCESS_DENIED, \
-                        SBE_SEC_BLACKLISTED_REG_ACCESS_BLOCKED); \
+                        SBE_SEC_DENYLISTED_REG_ACCESS_BLOCKED); \
         break; \
     } \
 }

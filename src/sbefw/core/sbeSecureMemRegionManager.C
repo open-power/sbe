@@ -176,7 +176,7 @@ sbeSecondaryResponse SBESecureMemRegionManager::isAccessAllowed(
                           SBE::higher32BWord(i_region.startAddress),
                           SBE::lower32BWord(i_region.startAddress),
                           i_region.size);
-                rc = SBE_SEC_BLACKLISTED_MEM_ACCESS;
+                rc = SBE_SEC_DENYLISTED_MEM_ACCESS;
                 break;
             }
         }

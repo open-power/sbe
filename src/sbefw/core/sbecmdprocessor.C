@@ -83,7 +83,7 @@ void sbeHandlePsuResponse (const uint32_t i_rc)
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE:
-            case SBE_SEC_BLACKLISTED_CHIPOP_ACCESS:
+            case SBE_SEC_DENYLISTED_CHIPOP_ACCESS:
                 // Caller sent an invalid Command class/opcode
                 // Set the Ack bit in SBE->PSU DB register
                 l_rc = sbeAcknowledgeHost();
@@ -170,7 +170,7 @@ void sbeHandleFifoResponse (const uint32_t i_rc, sbeFifoType i_type)
             case SBE_SEC_COMMAND_CLASS_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_SUPPORTED:
             case SBE_SEC_COMMAND_NOT_ALLOWED_IN_THIS_STATE:
-            case SBE_SEC_BLACKLISTED_CHIPOP_ACCESS:
+            case SBE_SEC_DENYLISTED_CHIPOP_ACCESS:
                 // Caller sent Invalid Command
 
             case SBE_SEC_OS_FAILURE:
