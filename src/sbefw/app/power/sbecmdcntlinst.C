@@ -461,6 +461,7 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
     #define SBE_FUNC " sbeCntlInst "
     SBE_ENTER(SBE_FUNC);
     uint32_t rc = SBE_SEC_OPERATION_SUCCESSFUL;
+    uint32_t fifoRc = SBE_SEC_OPERATION_SUCCESSFUL;
     ReturnCode fapiRc = FAPI2_RC_SUCCESS;
     sbeRespGenHdr_t respHdr;
     respHdr.init();
@@ -473,10 +474,10 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
     {
         // Get the Req Struct Data sbeCntlInstMsgHdr_t from upstream Fifo
         uint32_t len2dequeue  = sizeof(req) / sizeof(uint32_t);
-        rc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&req, true);
+        fifoRc = sbeUpFifoDeq_mult (len2dequeue, (uint32_t *)&req, true);
 
         // If FIFO failure
-        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(rc);
+        CHECK_SBE_RC_AND_BREAK_IF_NOT_SUCCESS(fifoRc);
 
         SBE_INFO(SBE_FUNC "mode[0x%02X] coreId[0x%02X] threadId[0x%02X] "
             "threadOps[0x%04X]",req.mode,req.coreId,req.threadId,req.threadOps);
@@ -671,16 +672,16 @@ uint32_t sbeCntlInst(uint8_t *i_pArg)
     {
         // If there was a FIFO error, will skip sending the response,
         // instead give the control back to the command processor thread
-        if ( SBE_SEC_OPERATION_SUCCESSFUL != rc)
+        if ( SBE_SEC_OPERATION_SUCCESSFUL != fifoRc)
         {
             break;
         }
 
-        rc = sbeDsSendRespHdr(respHdr, &ffdc);
+        fifoRc = sbeDsSendRespHdr(respHdr, &ffdc);
     }while(0);
 
     SBE_EXIT(SBE_FUNC);
-    return rc;
+    return fifoRc;
     #undef SBE_FUNC
 }
 
