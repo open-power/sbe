@@ -252,10 +252,10 @@ uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
         uint32_t clockOnLength = dumpClockOnObj.collectLenInBytesOfWriteData();
         SBE_INFO(SBE_FUNC "ClockOn Total Bytes HW dump written [0x%08X]", clockOnLength);
 
-        o_length = clockOnLength;
+        o_length = ( ((clockOnLength / 0x80) * (0x80)) +
+                     ((clockOnLength % 0x80) ? (0x80): 0) );
         // Aline 128 bytes lenfth and update hbMemAddr
-        hbMemAddr = hbMemAddr + ( ((clockOnLength / 0x80) * (0x80) ) +
-                                  ((clockOnLength % 0x80 )?(0x80):(0)) );
+        hbMemAddr = hbMemAddr + o_length;
 
         // Create the sbeCollectDump object for ClockOff
         sbeCollectDump dumpClockOffObj( SBE_DUMP_TYPE_MPIPL, SBE_DUMP_CLOCK_OFF, collectFastArray,
