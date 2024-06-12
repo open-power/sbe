@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -43,6 +43,7 @@
 #include <p10_pm_hcd_flags.h>
 #include <p10_scom_proc.H>
 #include <p10_scom_eq.H>
+#include <p10_scom_c.H>
 #include <p10_scom_c_0.H>
 #include <p10_scom_c_7.H>
 #include <multicast_group_defs.H>
@@ -103,6 +104,8 @@ p10_sbe_powerdown_backing_caches(
 
         l_tmp_backing_vec = l_attr_backing_vec;
 
+        FAPI_DBG("Obtained backing cache vector");
+
         for( auto eq : eq_list )
         {
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS,
@@ -114,6 +117,7 @@ p10_sbe_powerdown_backing_caches(
             l_relative_core_pos = (IS_BACKING_CACHE_CONFIG(l_attr_backing_vec,
                                    l_eq_pos)) >> SHIFT32(l_eq_pos - 1);
 
+            FAPI_DBG("Attempting to query corecachemma access state");
             FAPI_TRY(p10_query_corecachemma_access_state(eq, l_scomState, l_scanState, true));
             uint32_t l_core_powered = l_scanState.scanState >> 23;
 
@@ -128,6 +132,8 @@ p10_sbe_powerdown_backing_caches(
                 l_tmp_backing_vec = l_tmp_backing_vec & l_core_powered;
             }
         }
+
+        FAPI_DBG("Identified the corresponding EQ(s)");
 
         l_scrb_data = 0;
 
@@ -175,17 +181,22 @@ p10_sbe_powerdown_backing_caches(
                                 .set_REL_CORE_POS(l_relative_core_pos),
                                 "Backing cache unexpectedly in ECO mode!");
 
+                    FAPI_DBG("Confirmed backing caches are not in ECO mode");
+
                     //STOP 11 entry request enable[0:3]
                     l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
                     PREP_QME_SCRB_WO_OR(eq);
                     PUT_QME_SCRB_WO_OR(eq, l_scrb_data);
+                    //FAPI_TRY(fapi2::putScom(eq, QME_SCRB_WO_OR, l_scrb_data));
                 }
             }
         }
 
         //Multicast this QME_FLAGS_STOP11_ENTRY_REQUESTED thru QME_FLAG
+        PREP_QME_FLAGS_WO_OR(l_eq_mc);
         FAPI_TRY(PUT_QME_FLAGS_WO_OR(l_eq_mc, BIT64(QME_FLAGS_STOP11_ENTRY_REQUESTED)));
 
+        //FAPI_TRY(fapi2::putScom(l_eq_mc, QME_FLAGS_WO_OR, BIT64(QME_FLAGS_STOP11_ENTRY_REQUESTED)));
         //Verify backing cache cores are entered stop 11
         for( auto eq : eq_list )
         {
@@ -220,8 +231,11 @@ p10_sbe_powerdown_backing_caches(
 
                         for (uint32_t i = 0; i < TRIES_BEFORE_TIMEOUT; i++)
                         {
+                            PREP_QME_SSH_OTR(core);
                             FAPI_TRY(GET_QME_SSH_OTR(core, l_data64));
+                            //FAPI_TRY(fapi2::getScom(core, QME_SSH_OTR, l_data64));
                             GET_QME_SSH_OTR_ACT_STOP_LEVEL(l_data64, l_ssh_data);
+                            //l_data64.extractToRight<QME_SSH_OTR_ACT_STOP_LEVEL,QME_SSH_OTR_ACT_STOP_LEVEL_LEN>(l_ssh_data);
 
                             if (l_data64.getBit<0>() && (l_ssh_data == 0xB ||
                                                          l_ssh_data == 0xF))
@@ -255,6 +269,7 @@ p10_sbe_powerdown_backing_caches(
                         l_scrb_data = BIT64(l_attr_chip_unit_core_pos) >> 24;
                         PREP_QME_SCRB_WO_CLEAR(eq);
                         PUT_QME_SCRB_WO_CLEAR(eq, l_scrb_data);
+                        //FAPI_TRY(fapi2::putScom(eq, QME_SCRB_WO_CLEAR, l_scrb_data));
 
                         // Drop PM Exit to allow the core to wake-up later.  This was set
                         // during istep 4.
