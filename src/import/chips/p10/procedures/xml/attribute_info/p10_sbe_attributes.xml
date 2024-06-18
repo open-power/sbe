@@ -406,6 +406,10 @@
     <value>0x07B0</value>
   </entry>
   <entry>
+    <name>ATTR_FREQ_PAU_VPD_MHZ</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
     <name>ATTR_MC_PLL_BUCKET</name>
     <value>0x0</value>
     <value>0x0</value>
