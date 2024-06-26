@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -40,21 +40,26 @@ check_path()
     fi
 }
 
-#search paths for sigining script(LFS System)
-PATH=$PATH:/afs/rchland.ibm.com/projects/esw/bin/sb-signing/rh7/sb-signing-utils
-
 SIGINING_SCRIPT=$SBEROOT/images/signSbeImage
 SCRATCH_DIR=$SBEROOT/images/sbeScratchDir
 SBE_IMAGE=$SBEROOT/images/sbe_seeprom_DD1.bin
 IPL_IMAGE_TOOL=$SBEROOT/images/ipl_image_tool
 
+# Creating two different directory for v1 and v2 and copying sbe seeprom binary in those directory
+mkdir -p $SBEROOT/images/v1signed && cp -r $SBEROOT/images/sbe_seeprom_DD1.bin $SBEROOT/images/v1signed/
+mkdir -p $SBEROOT/images/v2signed && cp -r $SBEROOT/images/sbe_seeprom_DD1.bin $SBEROOT/images/v2signed/
+
 # Do some sanity checks on things we expect the script to consume
 check_path $SIGINING_SCRIPT
 check_path $SBE_IMAGE
 check_path $IPL_IMAGE_TOOL
-check_path $HBBL_HEADER
+check_path $SBEROOT/images/v1signed/sbe_seeprom_DD1.bin
+check_path $SBEROOT/images/v2signed/sbe_seeprom_DD1.bin
 
-#Sign SBE Image
-$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBE_IMAGE -t $IPL_IMAGE_TOOL
+# Sign SBE Image for v1
+$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v1signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v v1
+
+# Sign SBE Image for v2
+$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v2signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v v2
 
 exit 0

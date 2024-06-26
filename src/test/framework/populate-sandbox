@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2022
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -30,6 +30,9 @@ then
 fi
 
 SIMICSROOTDIR=$1
+# secure boot mode
+SECUREBOOT_MODE=$3
+
 echo "Simics Path $SIMICSROOTDIR"
 SBETESTDIR=${SIMICSROOTDIR}/targets/p10_standalone/sbeTest/
 SBEROMDIR=${SIMICSROOTDIR}/import/boot_roms/
@@ -50,6 +53,12 @@ if [ $2 -ne 1 ];  then
     echo "Untar $SIMICS_TAR/simics.tar.gz into the sandbox"
     tar -xf $SIMICS_TAR/simics.tar.gz -C $SIMICSROOTDIR || exit -1
 fi
+
+if [ -z $SECUREBOOT_MODE]; then
+    SECUREBOOT_MODE="${SECUREBOOT_MODE:-v1}" #Default Secure Boot Mode (v1 secure header)
+    echo "***INFO: Defaulting v1 secure header"
+fi
+
 
 echo "Add ecc to the binary workspace"
 #Check that the binary exists before adding ecc to it.
@@ -73,7 +82,7 @@ if [ -f $SBEBINIMAGE ]; then
     $SBEROOT/images/ipl_image_tool $SBEBINSIMIMAGE append .hdct $HDCTBINIMAGE || exit -1
 
     #Sign SBE Standalone Simics Image
-    $SBEROOT/src/tools/scripts/signSbeImage -s $SBEROOT/images/sbeScratchDir/ -i $SBEBINSIMIMAGE -t $SBEROOT/images/ipl_image_tool -b STANDALONE
+    $SBEROOT/src/tools/scripts/signSbeImage -s $SBEROOT/images/sbeScratchDir/ -i $SBEBINSIMIMAGE -t $SBEROOT/images/ipl_image_tool -b STANDALONE -v $SECUREBOOT_MODE
 
     #TODO: Add Ring section into the SBE image before adding the ECC
     $ECCTOOLPATH --inject $SBEBINSIMIMAGE --output  $SBEECCIMAGE --p8 || exit -1

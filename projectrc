@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -39,3 +39,13 @@ export MACHINE=NIMBUS
 export SIMICSOPTIONS="-nre"
 export SIMICS_TAR=/gsa/ausgsa/projects/s/simics_published_builds/p10/LATEST/
 export MCP_PATH=/opt/mcp/shared/fr_FLD9-DEV-20190320/
+
+# RH Machine version
+export RH_MACHINE_VERSION=$(cat /etc/redhat-release 2>&1 | grep -Po '(?<=release )(.)')
+if [ "$RH_MACHINE_VERSION" == "7" ]; then
+    export SIGNING_RHEL_PATH=/gsa/rchgsa/home/c/e/cengel/signtool/RHEL7/
+elif [ "$RH_MACHINE_VERSION" == "8" ]; then
+    export SIGNING_RHEL_PATH=/gsa/rchgsa/home/c/e/cengel/signtool/RHEL8/
+else
+    echo "Error: Machine not supported for Signing script"
+fi

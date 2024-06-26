@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -61,7 +61,8 @@ sb_helptext()
         echo "  SBE BAse image will be signed. SBE FW secure headers will be generated"
         echo "  and inserted into respective XIP section of SBE base image."
         echo "  ./sb workon"
-        echo "  ./sb cronus"
+        echo "  Please enter secure header version with -v option as below..."
+        echo "  ./sb cronus -v v1/v2"
         ;;
     simsetup)
         echo "  Topic 'Patch simics action files on fips Sandbox'"
@@ -134,6 +135,7 @@ sb_prime()
         str="'$*'"
         echo "User input string : $str"
         $PWD/${SBE_TOOLS_PATH}/sbePrime.py $*
+
     else
         echo "Please do workon and re launch..."
     fi
@@ -148,6 +150,7 @@ sb_cronus()
 
         #Sign SBE Base Image
         $SBEROOT/images/signSbeImage_cronusWrap
+
     else
         echo "Please do workon and re launch..."
     fi
