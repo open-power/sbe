@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -84,7 +84,7 @@ static int valid_ver_alg(ROM_version_raw* ver_alg, uint8_t sig_alg)
 
     //Validate header version
     SBEV_INFO("Hdr: Version : %d", get16(&ver_alg->version));
-    if(get16(&ver_alg->version) != HEADER_VERSION)
+    if(get16(&ver_alg->version) != SECURE_HDR_V1_HEADER_VERSION)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad header version");
         return 0;
@@ -92,7 +92,7 @@ static int valid_ver_alg(ROM_version_raw* ver_alg, uint8_t sig_alg)
 
     //Validate header hash algo version
     SBEV_INFO("Hdr: hash algo : %d", get8(&ver_alg->hash_alg));
-    if(get8(&ver_alg->hash_alg) != HASH_ALG_SHA512)
+    if(get8(&ver_alg->hash_alg) != HASH_ALG_SHA2_512)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad algorithm version");
         return 0;
@@ -176,6 +176,23 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
     #undef SBEV_FUNC
 }
 
+/**
+ * @brief Function to Populate Hardware parameters from .sb_setting
+ *
+ * +----------------------------------------------------+
+ * |    SBE Settings from .sb_setting format            |
+ * +----------------------------------------------------+
+ * | HW key Hash                            | 64 Bytes  |
+ * |----------------------------------------+-----------|
+ * | Minimum secure version(MSV)            | 1 Bytes   |
+ * |----------------------------------------+-----------|
+ * | SB Mode                                | 1 Bytes   |
+ * |----------------------------------------+-----------|
+ * | Reserved                               | 6 Bytes   |
+ * +----------------------------------------------------+
+ *
+ * @param[out] params Pointer to HW params
+ */
 static void populateHWParams(ROM_hw_params* params)
 {
     #define SBEV_FUNC " populateHWParams "
@@ -198,6 +215,11 @@ static void populateHWParams(ROM_hw_params* params)
     //Get MSV from .sb_settings
     params->log = get8((uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) + SHA512_DIGEST_LENGTH)); // single sideband access
 
+    //Get SB Mode from .sb_setting
+    params->sbMode = get8((uint8_t *)(getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS) +
+                                      SHA512_DIGEST_LENGTH +
+                                      SB_SETTING_MSV_SIZE));
+
     SBEV_EXIT(SBEV_FUNC);
     #undef SBEV_FUNC
 }
@@ -205,7 +227,7 @@ static void populateHWParams(ROM_hw_params* params)
 /**
  * @brief Verify Secure container.
  *
- * @param ROM_container_raw* Pointer to secure container start address
+ * @param ROM_v1_container_raw* Pointer to secure container start address
  * @param ROM_hw_params*     Pointer to HW Keys Hash
  * @param hw_sig_to_verify   The hardware signature that has to be verified(Among the 3 HW signaturs that are present)
  * @param *payload_hash      calculated payload hash to verify with signature (SBE_FW or HBBL Payload hash)
@@ -214,7 +236,7 @@ static void populateHWParams(ROM_hw_params* params)
  *
  * @return Secure container verification response.
  */
-static ROM_response ROM_verify( ROM_container_raw* container,
+static ROM_response ROM_verify( ROM_v1_container_raw* container,
                          ROM_hw_params* params,
                          int hw_sig_to_verify,
                          SHA512_t* payload_hash,
@@ -224,10 +246,10 @@ static ROM_response ROM_verify( ROM_container_raw* container,
     #define SBEV_FUNC " ROM_verify "
     SBEV_ENTER(SBEV_FUNC);
 
-    ROM_prefix_header_raw *prefix;
-    ROM_prefix_data_raw* hw_data;
-    ROM_sw_header_raw* header;
-    ROM_sw_sig_raw* sw_sig;
+    ROM_v1_prefix_header_raw *prefix;
+    ROM_v1_prefix_data_raw* hw_data;
+    ROM_v1_sw_header_raw* header;
+    ROM_v1_sw_sig_raw* sw_sig;
     SHA512_t digest;
     //NOTE: Keep the array size 8 byte aligned to overcome sram allignment issues.
     //396 bytes is MAX hash we calculate and hence buffer size is 400 bytes.
@@ -254,15 +276,15 @@ static ROM_response ROM_verify( ROM_container_raw* container,
 
     //Validate Container Version
     SBEV_INFO("Container Version: 0x%X", get16(&container->version));
-    if(!(get16(&container->version) == CONTAINER_VERSION))
+    if(!(get16(&container->version) == SECURE_HDR_V1_CONTAINER_VERSION))
     {
         SBEV_ERROR (SBEV_FUNC "FAILED : bad container version");
         VERIFY_FAILED(CONTAINER_VERSION_TEST);
     }
 
     //Process HW Keys and verify HW keys Hash
-    memcpy_byte(hashDataBuff, &container->hw_pkey_a, HW_KEY_COUNT*sizeof(ecc_key_t));
-    SHA512_Hash(hashDataBuff, HW_KEY_COUNT*sizeof(ecc_key_t), &digest);
+    memcpy_byte(hashDataBuff, &container->hw_pkey_a, V1_HW_KEY_COUNT*sizeof(ecc_key_t));
+    SHA512_Hash(hashDataBuff, V1_HW_KEY_COUNT*sizeof(ecc_key_t), &digest);
     if(memcmp(params->hw_key_hash, digest, sizeof(SHA512_t)))
     {
         SBEV_ERROR (SBEV_FUNC "FAILED : invalid hw keys");
@@ -270,7 +292,7 @@ static ROM_response ROM_verify( ROM_container_raw* container,
     }
 
     // process prefix header
-    prefix = (ROM_prefix_header_raw*)&container->prefix;
+    prefix = (ROM_v1_prefix_header_raw*)&container->prefix;
     // test for valid header version, hash & signature algorithms (sanity check)
     if(!valid_ver_alg(&prefix->ver_alg, SIG_ALG_ECDSA521))
     {
@@ -279,20 +301,20 @@ static ROM_response ROM_verify( ROM_container_raw* container,
     }
 
     // test for valid prefix header signatures (all)
-    hw_data = (ROM_prefix_data_raw*)(prefix->ecid + get8(&prefix->ecid_count)*ECID_SIZE);
+    hw_data = (ROM_v1_prefix_data_raw*)(prefix->ecid + get8(&prefix->ecid_count)*ECID_SIZE);
 
-    // Validate the PREFIX_HEADER_SIZE fits in our hashDataBuff
-    if (hashDataBuffSize < PREFIX_HEADER_SIZE(prefix))
+    // Validate the V1_PREFIX_HEADER_SIZE fits in our hashDataBuff
+    if (hashDataBuffSize < V1_PREFIX_HEADER_SIZE(prefix))
     {
         VERIFY_FAILED(PREFIX_HEADER_SZ_TEST);
     }
 
     //Calculate Hash of prefix header
-    memcpy_byte(hashDataBuff, prefix, PREFIX_HEADER_SIZE(prefix));
-    SHA512_Hash(hashDataBuff, PREFIX_HEADER_SIZE(prefix), &digest);
+    memcpy_byte(hashDataBuff, prefix, V1_PREFIX_HEADER_SIZE(prefix));
+    SHA512_Hash(hashDataBuff, V1_PREFIX_HEADER_SIZE(prefix), &digest);
 
     //Verify HW signatures a if HBBL secure hdr and HW signature c if SBE-FW secure hdr
-    if(!multi_key_verify(digest, HW_KEY_COUNT, container->hw_pkey_a,
+    if(!multi_key_verify(digest, V1_HW_KEY_COUNT, container->hw_pkey_a,
                                   hw_data->hw_sig_a,hw_sig_to_verify))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : invalid hw signature");
@@ -334,8 +356,8 @@ static ROM_response ROM_verify( ROM_container_raw* container,
 
     // test for valid sw key count
     SBEV_INFO("Prefix Hdr: SW Key Count: %d", get8(&prefix->sw_key_count));
-    if (get8(&prefix->sw_key_count) < SW_KEY_COUNT_MIN ||
-            get8(&prefix->sw_key_count) > SW_KEY_COUNT_MAX)
+    if (get8(&prefix->sw_key_count) < V1_SW_KEY_COUNT_MIN ||
+            get8(&prefix->sw_key_count) > V1_SW_KEY_COUNT_MAX)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : sw key count not between 1-3");
         VERIFY_FAILED(SW_KEY_INVALID_COUNT);
@@ -350,7 +372,7 @@ static ROM_response ROM_verify( ROM_container_raw* container,
     }
 
     // start processing sw header
-    header = (ROM_sw_header_raw*)(hw_data->sw_pkey_p + get8(&prefix->sw_key_count)*sizeof(ecc_key_t));
+    header = (ROM_v1_sw_header_raw*)(hw_data->sw_pkey_p + get8(&prefix->sw_key_count)*sizeof(ecc_key_t));
 
     // test for fw secure version - compare what was passed in via
     // params.log to what the container's sw header has
@@ -377,12 +399,12 @@ static ROM_response ROM_verify( ROM_container_raw* container,
         VERIFY_FAILED(HEADER_ECID_TEST);
     }
 
-    sw_sig = (ROM_sw_sig_raw*) (header->ecid + get8(&header->ecid_count)*ECID_SIZE);
+    sw_sig = (ROM_v1_sw_sig_raw*) (header->ecid + get8(&header->ecid_count)*ECID_SIZE);
 
     swKeyCount = get8(&prefix->sw_key_count);
     //Calculate Hash of SW/FW header
-    memcpy_byte(hashDataBuff, header, SW_HEADER_SIZE(header));
-    SHA512_Hash(hashDataBuff, SW_HEADER_SIZE(header), &digest);
+    memcpy_byte(hashDataBuff, header, V1_SW_HEADER_SIZE(header));
+    SHA512_Hash(hashDataBuff, V1_SW_HEADER_SIZE(header), &digest);
 
     // test for valid sw header signatures (all)
     if(!multi_key_verify(digest, swKeyCount, hw_data->sw_pkey_p,
@@ -455,7 +477,7 @@ ROM_response verifySecureHdr(
     populateHWParams(&l_hw_parms);
 
     SBEV_INFO(SBEV_FUNC "Secure Header:Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(secureHdrXipSection), getXipSize(secureHdrXipSection));
-    uint8_t container[SECURE_HDR_SIZE];
+    uint8_t container[V1_SECURE_HDR_SIZE];
     uint32_t start_address = (uint32_t)container;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
     uint32_t size = sizeof(container);
@@ -465,17 +487,17 @@ ROM_response verifySecureHdr(
         SBEV_ERROR(SBEV_FUNC " Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
                 fapirc, start_address, endAddress);
         secureBootStatus_t secureBootStatus;
-        if ( secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE ) 
+        if ( secureHdrXipSection == P9_XIP_SECTION_SBE_SBH_FIRMWARE )
         {
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SBH_FIRMWARE_LOAD_FAILED);
-        } 
+        }
         else
         {
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SBH_HBBL_LOAD_FAILED);
         }
     }
 
-    status = ROM_verify((ROM_container_raw*)container, &l_hw_parms, hw_sig_to_verify, payload_hash, payload_size, &secureHdrResponse->flag);
+    status = ROM_verify((ROM_v1_container_raw*)container, &l_hw_parms, hw_sig_to_verify, payload_hash, payload_size, &secureHdrResponse->flag);
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
     SBEV_INFO(SBEV_FUNC "Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 

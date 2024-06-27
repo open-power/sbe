@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2023
+# Contributors Listed Below - COPYRIGHT 2015,2024
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -366,6 +366,10 @@ ifndef BASE_FAPI2_DIR
 export BASE_FAPI2_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2
 endif
 
+ifndef CRYPTO_DIR
+export CRYPTO_DIR = $(IMPORT_SRCDIR)/security/algo/crypto/
+endif
+
 ifndef FAPI2_TOOLS_DIR
 export FAPI2_TOOLS_DIR = $(IMPORT_SRCDIR)/hwpf/fapi2/tools/
 endif
@@ -529,6 +533,7 @@ INCLUDES += -I$(SBE_FW_DIR)/core
 INCLUDES += -I$(SBE_FW_DIR)/app
 INCLUDES += -I$(SBE_FW_DIR)/app/common
 INCLUDES += -I$(SBE_FW_DIR)/app/$(project)
+INCLUDES += -I$(CRYPTO_DIR)
 
 INCLUDES += -I$(BOOT_SRCDIR)
 INCLUDES += -I$(BUILDDATA_SRCDIR)

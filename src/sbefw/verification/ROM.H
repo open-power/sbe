@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -32,19 +32,22 @@
 #include <ecverify.H>
 #include <ppe42_string.h>
 #include <vector>
+#include <sha3.H>
 
 #ifndef __PPE__
     #include <array>
 #endif
 
+#define SB_SETTING_MSV_SIZE         (1U) // 1 Byte
+#define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
 
 /**
  *  @brief Indicates container header section versions
  */
-enum CONTAINER_SECTION_VERSION : uint16_t
+enum SECURE_HDR_V1_CONTAINER_SECTION_VERSION : uint16_t
 {
-    CONTAINER_VERSION = 0x0001,
-    HEADER_VERSION    = 0x0001,
+    SECURE_HDR_V1_CONTAINER_VERSION = 0x0001,
+    SECURE_HDR_V1_HEADER_VERSION    = 0x0001,
 };
 
 /**
@@ -60,7 +63,8 @@ enum CONTAINER_FIELD_SIZE : size_t
  */
 enum ROM_HASH_ALGORITHM : uint8_t
 {
-    HASH_ALG_SHA512 = 0x01,
+    HASH_ALG_SHA2_512 = 0x01,
+    HASH_ALG_SHA3_512 = 0x02,
 };
 
 /**
@@ -69,15 +73,19 @@ enum ROM_HASH_ALGORITHM : uint8_t
 enum ROM_SIGNATURE_ALGORITHM : uint8_t
 {
     SIG_ALG_ECDSA521 = 0x01,
+    SIG_ALG_ECDSA521_DILITHIUM = 0x02,
 };
 
 typedef struct
 {
   uint16_t     version;     // (1: see versions above)
-  uint8_t      hash_alg;    // (1: SHA-512)
-  uint8_t      sig_alg;     // (1: SHA-512/ECDSA-521)
+  uint8_t      hash_alg;    // (1: SHA-512, 2: SHA3-512)
+  uint8_t      sig_alg;     // (1: SHA-512/ECDSA-521, 2: SHA3-512,ECDSA 521/Dilithium)
 }__attribute__((packed)) ROM_version_raw;
 
+/**
+ * @brief Secure Header V1 Hardware Header format
+ */
 typedef struct
 {
   uint32_t        magic_number;    // (17082011)
@@ -92,8 +100,30 @@ typedef struct
   uint64_t        prefix; // prefix header place holder
   // followed by sw header (if not special prefix)
   // followed by optional unprotected payload data
-}__attribute__((packed)) ROM_container_raw;
+}__attribute__((packed)) ROM_v1_container_raw;
 
+
+/**
+ * @brief Secure Header V2 Hardware Header format
+ *
+ */
+typedef struct
+{
+  uint32_t        magic_number;    // (17082011)
+  uint16_t        version;         // (1: see versions above)
+  uint64_t        container_size;  // filled by caller
+  uint8_t         reserved[6];
+  ecc_key_t       hw_pkey_a;
+//   dilithium_key_t hw_pkey_d; // TODO uncomment once dilithium algo ported
+  uint64_t        prefix; // prefix header place holder
+  // followed by sw header (if not special prefix)
+  // followed by optional unprotected payload data
+}__attribute__((packed)) ROM_v2_container_raw;
+
+/**
+ * @brief Secure header V1 Prefix Header Format
+ *
+ */
 typedef struct
 {
   ROM_version_raw ver_alg;
@@ -107,11 +137,35 @@ typedef struct
   // optional ecid place holder ecid_count * ecid_size(128 bits)
   uint8_t         ecid[ECID_SIZE];
   // followed by prefix data (sig,keys) key raw
-}__attribute__((packed)) ROM_prefix_header_raw;
+}__attribute__((packed)) ROM_v1_prefix_header_raw;
 
-#define PREFIX_HEADER_SIZE(_p) (sizeof(ROM_prefix_header_raw) \
+#define V1_PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v1_prefix_header_raw) \
                                 +((get8(&_p->ecid_count)-1)*ECID_SIZE))
 
+
+/**
+ * @brief Secure header V2 Prefix Header Format
+ *
+ */
+typedef struct
+{
+  ROM_version_raw ver_alg;
+  uint64_t        reserved;
+  uint32_t        flags;
+  uint8_t         sw_key_count;
+  uint64_t        payload_size;
+  sha3_t          payload_hash;
+  uint8_t         ecid[ECID_SIZE];
+  uint8_t         reserved1[3];
+  // followed by prefix data (sig,keys) key raw
+}__attribute__((packed)) ROM_v2_prefix_header_raw;
+
+#define PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v2_prefix_header_raw))
+
+/**
+ * @brief Secure header V1 Prefix Header HW Signatures and SW/FW PUB Keys
+ *
+ */
 typedef struct
 {
   ecc_signature_t  hw_sig_a;
@@ -120,8 +174,24 @@ typedef struct
   ecc_key_t        sw_pkey_p;
   ecc_key_t        sw_pkey_q;
   ecc_key_t        sw_pkey_r;
-}__attribute__((packed)) ROM_prefix_data_raw;
+}__attribute__((packed)) ROM_v1_prefix_data_raw;
 
+/**
+ * @brief Secure Header V2 Prefix Header HW Signatures and SW/FW PUB Keys
+ *
+ */
+typedef struct
+{
+  ecc_signature_t        hw_sig_a;
+  // dilithium_signature_t  hw_sig_d; // TODO uncomment once dilithium algo ported
+  ecc_key_t              sw_pkey_p;
+  // dilithium_key_t        sw_pkey_s;// TODO uncomment once dilithium algo ported
+}__attribute__((packed)) ROM_v2_prefix_data_raw;
+
+/**
+ * @brief Secure header V1 SW/FW Header format
+ *
+ */
 typedef struct
 {
   ROM_version_raw ver_alg;
@@ -135,11 +205,38 @@ typedef struct
   // optional ecid place holder ecid_count * ecid_size(128 bits)
   uint8_t         ecid[ECID_SIZE];
   // followed by sw sig raw
-}__attribute__((packed)) ROM_sw_header_raw;
+}__attribute__((packed)) ROM_v1_sw_header_raw;
 
-#define SW_HEADER_SIZE(_p) (sizeof(ROM_sw_header_raw) \
+#define V1_SW_HEADER_SIZE(_p) (sizeof(ROM_v1_sw_header_raw) \
                             +((get8(&_p->ecid_count)-1)*ECID_SIZE))
 
+
+/**
+ * @brief  Secure header V2 SW/FW Header format
+ *
+ */
+typedef struct
+{
+  ROM_version_raw ver_alg;
+  uint64_t        reserved;
+  char            component_id[SW_HDR_COMP_ID_SIZE_BYTES];
+  uint32_t        flags;
+  uint8_t         fw_secure_version;
+  uint64_t        payload_size_protected;
+  uint64_t        payload_size_unprotected;
+  sha3_t          payload_hash_protected;
+  uint8_t         ecid[ECID_SIZE];
+  uint8_t         reserved1[7];
+  // followed by sw sig raw
+}__attribute__((packed)) ROM_v2_sw_header_raw;
+
+#define V2_SW_HEADER_SIZE(_p) (sizeof(ROM_v2_sw_header_raw))
+
+
+/**
+ * @brief Secure Header V1 SW/FW Header Signatures
+ *
+ */
 typedef struct
 {
   ecc_signature_t sw_sig_p;
@@ -148,8 +245,25 @@ typedef struct
   // followed by zero's padding to 4K
   // followed by protected sw payload_data
   // followed by unprotected sw payload_text
-}__attribute__((packed)) ROM_sw_sig_raw;
+}__attribute__((packed)) ROM_v1_sw_sig_raw;
 
+/**
+ * @brief Secure Header V2 SW/FW Header Signatures
+ *
+ */
+typedef struct
+{
+  ecc_signature_t       sw_sig_p;
+//   dilithium_signature_t sw_sig_s; // TODO uncomment once dilithium algo ported
+  // followed by zero's padding to 10K
+  // followed by protected sw payload_data
+  // followed by unprotected sw payload_text
+}__attribute__((packed)) ROM_v2_sw_sig_raw;
+
+/**
+ * @brief Secure Header Verification Response
+ *
+ */
 typedef enum { ROM_DONE, ROM_FAILED } ROM_response;
 
 typedef struct
@@ -157,19 +271,20 @@ typedef struct
   SHA512_t        hw_key_hash;
   uint8_t         my_ecid[ECID_SIZE];
   uint64_t        entry_point;
-  uint64_t        log;
+  uint64_t        log;              // MSV (minimum secure version)
+  uint8_t         sbMode;           // Secure Boot Mode
 }__attribute__((packed)) ROM_hw_params;
 
 extern void ROM_sreset (void);
-extern "C" ROM_response ROM_verify (ROM_container_raw* container,
+extern "C" ROM_response ROM_verify (ROM_v1_container_raw* container,
                                     ROM_hw_params* params);
 
-// we can assume ECID_COUNT = 0, and consider the total SECURE_HDR_SIZE is fixed.
-#define SECURE_HDR_SIZE (sizeof(ROM_container_raw) - 8 +              /* to remove the 'prefix placeholder'*/\
-                          sizeof(ROM_prefix_header_raw) - ECID_SIZE + /* Assuming ECID count is zero always*/\
-                          sizeof(ROM_prefix_data_raw) +                                                      \
-                          sizeof(ROM_sw_header_raw) - ECID_SIZE +     /* Assuming ECID count is zero always*/\
-                          sizeof(ROM_sw_sig_raw))
+// we can assume ECID_COUNT = 0, and consider the total V1_SECURE_HDR_SIZE is fixed.
+#define V1_SECURE_HDR_SIZE (sizeof(ROM_v1_container_raw) - 8 +              /* to remove the 'prefix placeholder'*/\
+                          sizeof(ROM_v1_prefix_header_raw) - ECID_SIZE + /* Assuming ECID count is zero always*/\
+                          sizeof(ROM_v1_prefix_data_raw) +                                                      \
+                          sizeof(ROM_v1_sw_header_raw) - ECID_SIZE +     /* Assuming ECID count is zero always*/\
+                          sizeof(ROM_v1_sw_sig_raw))
 
 /************************* END OF ORIGINAL ROM CODE ***************************/
 
@@ -247,7 +362,7 @@ extern "C"
  * @brief Call rom verify code against system hash keys
  *
  * @param[in] void*              Address of function offset into Secure ROM
- * @param[in] ROM_container_raw* Pointer to effective address of container
+ * @param[in] ROM_v1_container_raw* Pointer to effective address of container
  * @param[in/out] ROM_hw_params* HW params to pass in (including HW keys' hash)
  *                               Additionally, the secure version used to check
  *                               against the container's fw secure version is
@@ -257,7 +372,7 @@ extern "C"
  *
  * @return ROM_response ROM_DONE on sucess ROM_FAILURE otherwise
  */
-ROM_response call_rom_verify(void*, const ROM_container_raw*, ROM_hw_params*);
+ROM_response call_rom_verify(void*, const ROM_v1_container_raw*, ROM_hw_params*);
 
 /**
  * @brief Call rom SHA512 code
@@ -275,15 +390,30 @@ void call_rom_SHA512(void*, const sha2_byte *, size_t, SHA512_t*);
 }
 #endif
 
+/**
+ * Secure Header V1 macro
+ *
+ */
 // Consts used for container header validation
 const uint32_t ROM_MAGIC_NUMBER = 0x17082011;
-const uint16_t ROM_VERSION = 1;
-const uint8_t ROM_HASH_ALG = 1;
-const uint8_t ROM_SIG_ALG = 1;
-const uint8_t HW_KEY_COUNT = 3;
-const uint8_t SW_KEY_COUNT_MIN = 1;
-const uint8_t SW_KEY_COUNT_MAX = 3;
-const size_t MAX_SECURE_HEADER_SIZE = 4096;
+const uint16_t ROM_V1_VERSION = 1;
+const uint8_t ROM_V1_HASH_ALG = 1;
+const uint8_t ROM_V1_SIG_ALG = 1;
+const uint8_t V1_HW_KEY_COUNT = 3;
+const uint8_t V1_SW_KEY_COUNT_MIN = 1;
+const uint8_t V1_SW_KEY_COUNT_MAX = 3;
+const size_t MAX_SECURE_HEADER_V1_SIZE = 4096;
+
+/**
+ * Secure Header V2 macro
+ *
+ */
+const uint16_t ROM_V2_VERSION = 2;
+const uint8_t  ROM_V2_HASH_ALG = 2;
+const uint8_t  ROM_V2_SIG_ALG = 2;
+const uint8_t  V2_SW_KEY_COUNT = 2;
+const size_t   SECURE_HEADER_V2_SIZE = 15360;
+
 
 // Security Flags
 
@@ -356,7 +486,7 @@ enum SB_FUNC_VERS : sbFuncVer_t
     SHA512_INIT = 0x0001, // void call_rom_SHA512(void*, const sha2_byte *, size_t, SHA512_t*);
 
     // ECDSA521 function definition(s) per version
-    ECDSA521_INIT = 0x0001, // ROM_response call_rom_verify(void*, const ROM_container_raw*, ROM_hw_params*);
+    ECDSA521_INIT = 0x0001, // ROM_response call_rom_verify(void*, const ROM_v1_container_raw*, ROM_hw_params*);
 };
 
 /**

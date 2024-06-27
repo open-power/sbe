@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019,2021
+# Contributors Listed Below - COPYRIGHT 2019,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -24,7 +24,7 @@
 # IBM_PROLOG_END_TAG
 
 export SUB_OBJDIR = /sbefw/verification
-export VPATH = $(SBE_FW_DIR)/core
+export VPATH = $(SBE_FW_DIR)/core:$(CRYPTO_DIR)
 
 OBJS = $(addprefix $(OBJDIR)/, $(VERIFICATION_OBJECTS))
 LIBNAME = libVerification
