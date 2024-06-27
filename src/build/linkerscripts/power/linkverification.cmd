@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -194,4 +194,9 @@ SECTIONS
    . = . + INITIAL_STACK_SIZE;
    _PK_INITIAL_STACK = . - 1;
     . = ALIGN(8);
+
+   // heap space start at the beginning of pibmem address
+   _heap_space_start_ = SBE_BASE_ORIGIN;
+   _heap_space_end_ = SBE_VERIFICATION_HEAP_START_OFFSET;
+   _heap_space_size_ = _heap_space_end_ - _heap_space_start_;
 }

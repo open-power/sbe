@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2019,2021
+# Contributors Listed Below - COPYRIGHT 2019,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -32,6 +32,7 @@ VERIFICATION-CPP-SOURCES += sbevthreadroutine.C
 VERIFICATION-CPP-SOURCES += sbevPcrStates.C
 VERIFICATION-CPP-SOURCES += sbevsecuritysetting.C
 VERIFICATION-CPP-SOURCES += sbeutil.C
+VERIFICATION-CPP-SOURCES += heap.C
 
 VERIFICATION-C-SOURCES =
 VERIFICATION-S-SOURCES =

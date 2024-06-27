@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -47,6 +47,9 @@ extern uint8_t sbe_Kernel_NCInt_stack[SBE_NONCRITICAL_STACK_SIZE];
 extern uint8_t sbeCommandReceiver_stack[SBE_THREAD_CMD_RECV_STACK_SIZE];
 extern uint8_t sbeSyncCommandProcessor_stack[SBE_THREAD_SYNC_CMD_PROC_STACK_SIZE];
 extern uint8_t sbeAsyncCommandProcessor_stack[SBE_THREAD_ASYNC_CMD_PROC_STACK_SIZE];
+extern uint64_t _heap_space_start_ SECTION(".bss");
+extern uint64_t _heap_space_end_ SECTION(".bss");
+extern uint64_t _heap_space_size_ SECTION(".bss");
 
 class SBEGlobalsSingleton
 {
