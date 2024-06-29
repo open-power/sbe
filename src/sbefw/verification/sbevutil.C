@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,14 +78,16 @@ void memcpy_byte(void* i_dest, const void* i_src, size_t i_len)
     }
 }
 
+
 fapi2::ReturnCode loadSeepromtoPibmem(
                     p9_xip_section_sbe_t i_section,
                     uint32_t& io_startAddr,
                     uint32_t& io_endAddr,
                     uint32_t  i_availSize,
                     uint32_t& io_size,
-                    SHA512_CTX* io_context,
-                    bool measSection)
+                    SHA_DIGEST_t* o_payloadHash,
+                    SB_SETTING_SB_MODES i_sbMode,
+                    bool i_measSection)
 {
     #define SBEV_FUNC " loadSeepromtoPibmem "
     SBEV_ENTER(SBEV_FUNC);
@@ -119,9 +121,30 @@ fapi2::ReturnCode loadSeepromtoPibmem(
             break;
         }
 
+        /* Global SHA context's */
+        /* Union struct used to optimize the stack */
+        typedef union
+        {
+            SHA512_CTX sha512Ctx;
+            sha3_ctx_t sha3Ctx;
+        }sha_t;
+
+        sha_t sha;
+        if (o_payloadHash)
+        {
+            if (i_sbMode == SB_MODE_V1)
+            {
+                SHA512_Init(&sha.sha512Ctx);
+            }
+            else if(i_sbMode == SB_MODE_V2)
+            {
+                sha3_init(&sha.sha3Ctx);
+            }
+        }
+
         // Source address and Size in Seeprom.
         uint32_t xipSectionOffset = 0;
-        if(measSection)
+        if(i_measSection)
         {
             xipSectionOffset = getXipOffsetAbsMeasurement(i_section) - SBE_MEASUREMENT_BASE_ORIGIN;
         }
@@ -135,7 +158,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         }
         if(io_size == 0)
         {
-            if(measSection)
+            if(i_measSection)
             {
                 io_size = getXipSizeMeasurement(i_section);
             }
@@ -198,7 +221,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         SBE_INFO(SBE_FUNC "isSecondaryMeasSeeprom [0x%02x]", (uint8_t)lfrReg.sec_meas_seeprom);
 
         size_t engine;
-        if(measSection)
+        if(i_measSection)
         {
             engine = lfrReg.sec_meas_seeprom ? SPI_ENGINE_BACKUP_MVPD_SEEPROM :
                                                              SPI_ENGINE_PRIMARY_MVPD_SEEPROM;
@@ -235,6 +258,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
                                        xipSectionOffset, (uint32_t)fapiRc);
                 break;
             }
+
             if(actReadSize)
             {
                 //FIXME: This is a hack, to ensure if length is unaligned pad bytes of
@@ -252,10 +276,16 @@ fapi2::ReturnCode loadSeepromtoPibmem(
                 SBEV_DEBUG(SBEV_FUNC " SPI read is 0x%08X", buf[i]);
             }
 
-            // Calculate SHA512 hash
-            if(io_context)
+            if (o_payloadHash)
             {
-                SHA512_Update(io_context, buf, readSize);
+                if (i_sbMode == SB_MODE_V1)
+                {
+                    SHA512_Update(&sha.sha512Ctx, buf, readSize);
+                }
+                else if (i_sbMode == SB_MODE_V2)
+                {
+                    sha3_update(&sha.sha3Ctx, buf, readSize);
+                }
             }
 
             xipSectionOffset += readSize;
@@ -269,9 +299,23 @@ fapi2::ReturnCode loadSeepromtoPibmem(
             memcpy_byte(pibmemAddr, buf, readSize);
             pibmemAddr = pibmemAddr + readSize / 4;
         }
+
+        // Calculate SHA hash final
+        if (o_payloadHash)
+        {
+            if (i_sbMode == SB_MODE_V1)
+            {
+                SHA512_Final(&sha.sha512Ctx, (SHA512_t *)o_payloadHash);
+            }
+            else if (i_sbMode == SB_MODE_V2)
+            {
+                sha3_final((sha3_t *)o_payloadHash, &sha.sha3Ctx);
+            }
+            SBEV_INFO(SBEV_FUNC " Sha final done");
+        }
+
     }while(0);
     SBEV_EXIT(SBEV_FUNC);
     #undef SBEV_FUNC
     return fapiRc;
 }
-

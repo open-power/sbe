@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -129,19 +129,38 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_DATA_DECOMPRESSION_FAILED);
         }
 
-        // Now Copy the base.compressed to just above the data.compressed
-        SHA512_CTX context;
-        SHA512_t result;
-        SHA512_Init(&context);
+        // Declare local input struct
+        ROM_hw_params l_hw_parms __attribute__ ((aligned(8)));
+        // Clear/zero-out the struct since we want 0 ('zero') values for
+        // struct elements my_ecid, entry_point and log
+        memset(&l_hw_parms, 0x00, sizeof(ROM_hw_params));
+        populateHWParams(&l_hw_parms);
+
+        // Secure Boot mode
+        SB_SETTING_SB_MODES sbMode = (SB_SETTING_SB_MODES)l_hw_parms.sbMode;
+        SBEV_INFO(SBEV_FUNC " sb_mode in .sb_setting [%d]" sbMode);
+        if (sbMode >= SB_MODE_MAX)
+        {
+            SBEV_ERROR(SBEV_FUNC " Invalid sb_mode in .sb_setting [%d]" sbMode);
+            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SB_SETTING_INVALID_MODE);
+        }
+
+        // Declaring the global variable for storing fw and hbbl payload calculated hash
+        SHA_DIGEST_t calPayloadHashBase = {0};
+        SHA_DIGEST_t calPayloadHashHbbl = {0};
+
+         // Now Copy the base.compressed to just above the data.compressed
         uint32_t base_start_address = 0;
         uint32_t payload_size = 0;
-        fapirc = loadSeepromtoPibmem(
-                                    P9_XIP_SECTION_SBE_BASE,
-                                    base_start_address,
-                                    data_start_address,
-                                    data_start_address - SBE_BASE_IMAGE_START, // assuming we have space still start of pIBMEM
-                                    payload_size,
-                                    &context);
+        // Clearing calPayloadHashBase digest struct
+        memset (&calPayloadHashBase, 0x00, sizeof(calPayloadHashBase));
+        fapirc = loadSeepromtoPibmem( P9_XIP_SECTION_SBE_BASE,
+                                      base_start_address,
+                                      data_start_address,
+                                      data_start_address - SBE_BASE_IMAGE_START, // assuming we have space still start of pIBMEM
+                                      payload_size,
+                                      &calPayloadHashBase,
+                                      sbMode);
         if(fapirc)
         {
             SBEV_ERROR(SBEV_FUNC "Loading base to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]"
@@ -149,21 +168,23 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
         }
 
-        SHA512_Final(&context, &result);
-        for (uint8_t i=0; i<sizeof(result); i=i+4)
+        for (uint8_t i=0; i<sizeof(calPayloadHashBase); i=i+4)
         {
-            SBEV_INFO("SHA512 of payload is %x %x %x %x",
-                    result[i],result[i+1],result[i+2],result[i+3]);
+            SBEV_INFO("SHA of payload is %x %x %x %x",
+                    calPayloadHashBase[i], calPayloadHashBase[i+1],
+                    calPayloadHashBase[i+2], calPayloadHashBase[i+3]);
         }
 
-        SBEV_INFO(SBEV_FUNC "Verify SBE-FW secure header.");
+
         SBEV_INFO(SBEV_FUNC "payload_size=%u", payload_size);
         payload_size = ALIGN_8_BYTE_CIELING(payload_size);
-        SBEV_INFO(SBEV_FUNC "payload_size=%u", payload_size);
-        sbeFwSecureHdrRsp = verifySecureHdr(
-                                P9_XIP_SECTION_SBE_SBH_FIRMWARE,
-                                VERIFY_HW_SIG_C_SBE_FW,
-                                &result, payload_size, &sbeFwSecureHdrResponse);
+        SBEV_INFO(SBEV_FUNC "Aligned payload_size=%u", payload_size);
+        SBEV_INFO(SBEV_FUNC "Verify SBE-FW secure header.");
+        sbeFwSecureHdrRsp = verifySecureHdr( P9_XIP_SECTION_SBE_SBH_FIRMWARE,
+                                             VERIFY_HW_SIG_C_SBE_FW,
+                                             (SHA512_t*) &calPayloadHashBase,
+                                             payload_size,
+                                             &sbeFwSecureHdrResponse);
         SBEV_INFO(SBEV_FUNC "Completed SBE-FW secure header verification. Response: [0x%08x] Status: [0x%02x]",
             sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
 
@@ -246,35 +267,39 @@ void sbevthreadroutine(void *i_pArg)
         uint32_t hbbl_end_address = 0;
         uint32_t hbbl_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
         uint32_t hbbl_size = 0;
-        SHA512_Init(&context);
-        fapirc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_HBBL,
-                                hbbl_start_address,
-                                hbbl_end_address,
-                                (uint32_t)(&_base_origin) - hbbl_start_address, // we can load till verification image start
-                                hbbl_size,
-                                &context);
+
+        // Clearing calPayloadHashHbbl digest struct
+        memset (&calPayloadHashHbbl, 0x00, sizeof(calPayloadHashHbbl));
+        fapirc = loadSeepromtoPibmem( P9_XIP_SECTION_SBE_HBBL,
+                                      hbbl_start_address,
+                                      hbbl_end_address,
+                                      (uint32_t)(&_base_origin) - hbbl_start_address, // we can load till verification image start
+                                      hbbl_size,
+                                      &calPayloadHashHbbl,
+                                      sbMode);
         if(fapirc)
         {
-            SBEV_ERROR(SBEV_FUNC "Loading hbbl to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
+            SBEV_ERROR(SBEV_FUNC "Loading .hbbl to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
                 fapirc, hbbl_start_address, hbbl_end_address);
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(HBBL_LOADING_FAILED);
         }
         SBEV_INFO(SBEV_FUNC "hbbl_end_address=0x%08X, hbbl_size=0x%08X",
                             hbbl_end_address, hbbl_size);
 
-        SHA512_Final(&context, &result);
-        for (uint8_t i=0; i<sizeof(result); i=i+4)
+        for (uint8_t i=0; i<sizeof(calPayloadHashHbbl); i=i+4)
         {
-            SBEV_INFO("SHA512 of payload is %x %x %x %x",
-                    result[i],result[i+1],result[i+2],result[i+3]);
+            SBEV_INFO("SHA of payload is %x %x %x %x",
+                calPayloadHashHbbl[i], calPayloadHashHbbl[i+1],
+                calPayloadHashHbbl[i+2], calPayloadHashHbbl[i+3]);
         }
         ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size = hbbl_size;
 
         SBEV_INFO(SBEV_FUNC "Verify HBBL secure header.");
-        sbeHbblSecureHdrRsp = verifySecureHdr(
-                                P9_XIP_SECTION_SBE_SBH_HBBL,
-                                VERIFY_HW_SIG_A_HBBL,
-                                &result, hbbl_size, &hbblSecureHdrResponse);
+        sbeHbblSecureHdrRsp = verifySecureHdr(  P9_XIP_SECTION_SBE_SBH_HBBL,
+                                                VERIFY_HW_SIG_A_HBBL,
+                                                (SHA512_t*) &calPayloadHashHbbl,
+                                                hbbl_size,
+                                                &hbblSecureHdrResponse);
         if( sbeHbblSecureHdrRsp == ROM_FAILED )
         {
             SBEV_ERROR(SBEV_FUNC "HBBL Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
@@ -360,6 +385,7 @@ void sbevthreadroutine(void *i_pArg)
                                      (uint32_t)(&_base_origin) - section_start_address,
                                      section_size,
                                      NULL,
+                                     sbMode,
                                      measSeeprom);
         if(fapirc)
         {

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,6 +27,8 @@
 
 #include "fapi2.H"
 #include "sha512.H"
+#include "sha3.H"
+#include "ROM.H"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +45,11 @@ extern void jump2boot();
 
 #define ALIGN_8_BYTE_FLOOR(x)   ((x) & 0xFFFFFFF8)
 #define ALIGN_8_BYTE_CIELING(x) ((x + 7) & 0xFFFFFFF8)
+
+// SHA3 and SHA512 digest length are 64 Bytes
+#define SHA_DIGEST_LENGTH 64
+// Common sha digest typedef
+typedef uint8_t SHA_DIGEST_t[SHA_DIGEST_LENGTH];
 
 ///
 /// @brief Copy a memory block from source to destination.
@@ -63,7 +70,8 @@ void memcpy_byte(void* i_dest, const void* i_src, size_t i_len);
 /// @param[in, out]     io_endAddr    End address in PIBMEM.
 /// @param[in, out]     i_availSize   Available Size in PIBMEM.
 /// @param[in, out]     io_size       Size of section in PIBMEM.
-/// @param[in, out]     io_context    SHA512 context struct pointer used during SHA512 Init
+/// @param[out]         o_payloadHash SBE sha context structure pointer, which is give output as digest
+/// @param[in]          i_sbMode      SB Mode for selecting the sha algo
 /// @param[in]          i_measSection measurement Section to be loaded. By Default false.
 ///
 /// @return FAPI_RC_SUCCESS if the spi master read completes successfully,
@@ -75,7 +83,8 @@ fapi2::ReturnCode loadSeepromtoPibmem(
                     uint32_t& io_endAddr,
                     uint32_t  i_availSize,
                     uint32_t& io_size,
-                    SHA512_CTX* io_context,
+                    SHA_DIGEST_t* o_payloadHash = NULL,
+                    SB_SETTING_SB_MODES i_sbMode = SB_MODE_V1,
                     bool i_measSection = false);
 
 

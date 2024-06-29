@@ -193,7 +193,7 @@ static int multi_key_verify(uint8_t* digest, int key_count, uint8_t* keys,
  *
  * @param[out] params Pointer to HW params
  */
-static void populateHWParams(ROM_hw_params* params)
+void populateHWParams(ROM_hw_params* params)
 {
     #define SBEV_FUNC " populateHWParams "
     SBEV_ENTER(SBEV_FUNC);
@@ -205,7 +205,7 @@ static void populateHWParams(ROM_hw_params* params)
     uint32_t start_address = (uint32_t)params->hw_key_hash;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
     uint32_t size = SHA512_DIGEST_LENGTH;
-    uint32_t fapiRc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_SB_SETTINGS, start_address, endAddress, SHA512_DIGEST_LENGTH, size, NULL);
+    uint32_t fapiRc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_SB_SETTINGS, start_address, endAddress, SHA512_DIGEST_LENGTH, size);
     if(fapiRc)
     {
         SBEV_INFO(SBEV_FUNC "loadSeepromtoPibmem failed with rc 0x%08X for start address:"
@@ -481,7 +481,7 @@ ROM_response verifySecureHdr(
     uint32_t start_address = (uint32_t)container;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
     uint32_t size = sizeof(container);
-    fapirc = loadSeepromtoPibmem(secureHdrXipSection, start_address, endAddress, sizeof(container), size, NULL);
+    fapirc = loadSeepromtoPibmem(secureHdrXipSection, start_address, endAddress, sizeof(container), size);
     if(fapirc)
     {
         SBEV_ERROR(SBEV_FUNC " Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",

@@ -42,12 +42,25 @@
 #define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
 
 /**
+ * @brief SB Setting SB Modes
+ *
+ */
+enum SB_SETTING_SB_MODES : uint8_t
+{
+    SB_MODE_V1 = 0x00,
+    SB_MODE_V2 = 0x01,
+    SB_MODE_MAX
+};
+
+/**
  *  @brief Indicates container header section versions
  */
-enum SECURE_HDR_V1_CONTAINER_SECTION_VERSION : uint16_t
+enum SECURE_HDR_CONTAINER_SECTION_VERSION : uint16_t
 {
     SECURE_HDR_V1_CONTAINER_VERSION = 0x0001,
     SECURE_HDR_V1_HEADER_VERSION    = 0x0001,
+    SECURE_HDR_V2_CONTAINER_VERSION = 0x0002,
+    SECURE_HDR_V2_HEADER_VERSION    = 0x0002
 };
 
 /**

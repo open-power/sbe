@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -40,12 +40,38 @@
 #define VERIFY_HW_SIG_A_HBBL         0                          //Verify HW Signature A incase of HBBL secure Hdr
 #define VERIFY_HW_SIG_C_SBE_FW       2                          //Verify HW Signature C incase of SBE_FW secure Hdr
 
+
+/**
+ * @brief Secure Header response
+ *
+ */
 typedef struct secureHdrResponse
 {
     SHA512truncated_t sha512Truncated;
     uint32_t          flag;
     uint8_t           statusCode;
 }secureHdrResponse_t;
+
+/**
+ * @brief Function to Populate Hardware parameters from .sb_setting
+ *
+ * V1 and V2 Secure boot setting
+ * +----------------------------------------------------+
+ * |    SBE Settings from .sb_setting format            |
+ * +----------------------------------------------------+
+ * | HW key Hash                            | 64 Bytes  |
+ * |----------------------------------------+-----------|
+ * | Minimum secure version(MSV)            | 1 Bytes   |
+ * |----------------------------------------+-----------|
+ * | SB Mode                                | 1 Bytes   |
+ * |----------------------------------------+-----------|
+ * | Reserved                               | 6 Bytes   |
+ * +----------------------------------------------------+
+ *
+ * @param[out] params Pointer to HW params
+ * @return None
+ */
+void populateHWParams(ROM_hw_params* params);
 
 /**
  * @brief Verify Secure Header.
