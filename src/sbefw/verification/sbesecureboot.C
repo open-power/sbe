@@ -201,11 +201,13 @@ void populateHWParams(ROM_hw_params* params)
     SBEV_INFO("SBE Settings(HW Key Hash):Start Offset: [0x%08X] Size: [0x%08X] ", getXipOffsetAbs(P9_XIP_SECTION_SBE_SB_SETTINGS), getXipSize(P9_XIP_SECTION_SBE_SB_SETTINGS));
 
     //Populate params struct
+    // Clearing buffer
+    memset(params, 0x00, sizeof(ROM_hw_params));
     //Get HW key hash from .sb_settings
     uint32_t start_address = (uint32_t)params->hw_key_hash;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
     uint32_t size = SHA512_DIGEST_LENGTH;
-    uint32_t fapiRc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_SB_SETTINGS, start_address, endAddress, SHA512_DIGEST_LENGTH, size);
+    uint32_t fapiRc = loadSeepromtoPibmem(P9_XIP_SECTION_SBE_SB_SETTINGS, start_address, endAddress, SHA512_DIGEST_LENGTH, size, SB_MODE_NOT_REQUIRED, NULL);
     if(fapiRc)
     {
         SBEV_INFO(SBEV_FUNC "loadSeepromtoPibmem failed with rc 0x%08X for start address:"
@@ -239,7 +241,7 @@ void populateHWParams(ROM_hw_params* params)
 static ROM_response ROM_verify( ROM_v1_container_raw* container,
                          ROM_hw_params* params,
                          int hw_sig_to_verify,
-                         SHA512_t* payload_hash,
+                         void* payload_hash,
                          uint64_t payload_size,
                          uint32_t *flag)
 {
@@ -442,14 +444,8 @@ static ROM_response ROM_verify( ROM_v1_container_raw* container,
         VERIFY_FAILED(SW_PAYLD_SZ_TEST);
     }
 
-    memcpy_byte(hashDataBuff, &header->payload_hash, SHA512_DIGEST_LENGTH);
-    if(memcmp(&hashDataBuff, payload_hash, sizeof(SHA512_t)))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : invalid sw payload hash");
-        VERIFY_FAILED(HEADER_HASH_TEST);
-    }
+    memcpy_byte(payload_hash, &header->payload_hash, SHA512_DIGEST_LENGTH);
 
-    SBEV_INFO("Secure HDR Verified");
     params->log=CONTEXT|COMPLETED;
 
     SBEV_EXIT(SBEV_FUNC);
@@ -460,7 +456,7 @@ static ROM_response ROM_verify( ROM_v1_container_raw* container,
 ROM_response verifySecureHdr(
         p9_xip_section_sbe_t secureHdrXipSection,
         int hw_sig_to_verify,
-        SHA512_t* payload_hash,
+        void* payload_hash,
         uint64_t payload_size,
         secureHdrResponse_t *secureHdrResponse)
 {
@@ -481,7 +477,7 @@ ROM_response verifySecureHdr(
     uint32_t start_address = (uint32_t)container;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
     uint32_t size = sizeof(container);
-    fapirc = loadSeepromtoPibmem(secureHdrXipSection, start_address, endAddress, sizeof(container), size);
+    fapirc = loadSeepromtoPibmem(secureHdrXipSection, start_address, endAddress, sizeof(container), size, SB_MODE_NOT_REQUIRED, NULL);
     if(fapirc)
     {
         SBEV_ERROR(SBEV_FUNC " Loading data to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
@@ -497,7 +493,12 @@ ROM_response verifySecureHdr(
         }
     }
 
-    status = ROM_verify((ROM_v1_container_raw*)container, &l_hw_parms, hw_sig_to_verify, payload_hash, payload_size, &secureHdrResponse->flag);
+    status = ROM_verify( (ROM_v1_container_raw*)container,
+                         &l_hw_parms,
+                         hw_sig_to_verify,
+                         (void*) payload_hash,
+                         payload_size,
+                         &secureHdrResponse->flag );
     secureHdrResponse->statusCode = (uint8_t)l_hw_parms.log;
     SBEV_INFO(SBEV_FUNC "Status code is [0x%08X%08X]", SBE::higher32BWord(l_hw_parms.log), SBE::lower32BWord(l_hw_parms.log));
 

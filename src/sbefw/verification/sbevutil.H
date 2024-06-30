@@ -70,22 +70,22 @@ void memcpy_byte(void* i_dest, const void* i_src, size_t i_len);
 /// @param[in, out]     io_endAddr    End address in PIBMEM.
 /// @param[in, out]     i_availSize   Available Size in PIBMEM.
 /// @param[in, out]     io_size       Size of section in PIBMEM.
-/// @param[out]         o_payloadHash SBE sha context structure pointer, which is give output as digest
 /// @param[in]          i_sbMode      SB Mode for selecting the sha algo
+/// @param[out]         o_payloadHash calculated payload hash
 /// @param[in]          i_measSection measurement Section to be loaded. By Default false.
 ///
 /// @return FAPI_RC_SUCCESS if the spi master read completes successfully,
 ///         else error code.
 ///
 fapi2::ReturnCode loadSeepromtoPibmem(
-                    p9_xip_section_sbe_t i_section,
-                    uint32_t& io_startAddr,
-                    uint32_t& io_endAddr,
-                    uint32_t  i_availSize,
-                    uint32_t& io_size,
-                    SHA_DIGEST_t* o_payloadHash = NULL,
-                    SB_SETTING_SB_MODES i_sbMode = SB_MODE_V1,
-                    bool i_measSection = false);
+                                        p9_xip_section_sbe_t i_section,
+                                        uint32_t& io_startAddr,
+                                        uint32_t& io_endAddr,
+                                        uint32_t  i_availSize,
+                                        uint32_t& io_size,
+                                        SB_SETTING_SB_MODES i_sbMode,
+                                        SHA_DIGEST_t* o_payloadHash,
+                                        bool i_measSection = false);
 
 
 #endif //SBEV_UTIL_H

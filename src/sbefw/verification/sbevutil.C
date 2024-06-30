@@ -79,15 +79,14 @@ void memcpy_byte(void* i_dest, const void* i_src, size_t i_len)
 }
 
 
-fapi2::ReturnCode loadSeepromtoPibmem(
-                    p9_xip_section_sbe_t i_section,
-                    uint32_t& io_startAddr,
-                    uint32_t& io_endAddr,
-                    uint32_t  i_availSize,
-                    uint32_t& io_size,
-                    SHA_DIGEST_t* o_payloadHash,
-                    SB_SETTING_SB_MODES i_sbMode,
-                    bool i_measSection)
+fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
+                                      uint32_t& io_startAddr,
+                                      uint32_t& io_endAddr,
+                                      uint32_t  i_availSize,
+                                      uint32_t& io_size,
+                                      SB_SETTING_SB_MODES i_sbMode,
+                                      SHA_DIGEST_t* o_payloadHash,
+                                      bool i_measSection)
 {
     #define SBEV_FUNC " loadSeepromtoPibmem "
     SBEV_ENTER(SBEV_FUNC);
@@ -129,7 +128,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
             sha3_ctx_t sha3Ctx;
         }sha_t;
 
-        sha_t sha;
+        sha_t sha __attribute__ ((aligned(8)));
         if (o_payloadHash)
         {
             if (i_sbMode == SB_MODE_V1)
@@ -237,8 +236,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(
         uint32_t *pibmemAddr =(uint32_t *)(io_startAddr);
         while(xipSectionSize > 0)
         {
-            SBEV_INFO(SBEV_FUNC " xipSectionOffset is 0x%08X", xipSectionOffset);
-            SBEV_INFO(SBEV_FUNC " xipSectionSize is 0x%08X", xipSectionSize);
+            SBEV_INFO(SBEV_FUNC " xipSectionOffset is 0x%08X, xipSectionSize is 0x%08X", xipSectionOffset, xipSectionSize);
             uint32_t readSize = 0, actReadSize = 0;
             if(xipSectionSize >= SPI_READ_SIZE_BYTES)
             {

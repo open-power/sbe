@@ -116,6 +116,7 @@
 #define XIP_HEADER_READ_FAILED                  0x00B0
 #define UNLOCK_ALL_SEEPROM_FAILED               0x00B1
 #define SB_SETTING_INVALID_MODE                 0x00B2
+#define PAYLOAD_SIZE_MISMATCH                   0x00B3
 
 #define PARTIAL                0x0002
 #define COMPLETED              0x0003
