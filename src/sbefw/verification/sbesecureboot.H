@@ -77,6 +77,7 @@ void populateHWParams(ROM_hw_params* params);
  * @brief Verify Secure Header.
  *
  * @param[in] secureHdrXipSection  index of the xip section, for which secure header verification needed
+ * @param[in] hw_params            sb setting data
  * @param[in] hw_sig_to_verify     either VERIFY_HW_SIG_A_HBBL or VERIFY_HW_SIG_C_SBE_FW
  * @param[out] *payload_hash       Secure header payload hash (SBE_FW or HBBL Payload hash)
  * @param[in] payload_size         SBE_FW or HBBL Payload size
@@ -87,6 +88,7 @@ void populateHWParams(ROM_hw_params* params);
  */
 ROM_response verifySecureHdr(
         p9_xip_section_sbe_t secureHdrXipSection,
+        ROM_hw_params hw_params,
         int hw_sig_to_verify,
         void* payload_hash,
         uint64_t payload_size,

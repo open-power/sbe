@@ -425,6 +425,7 @@ const uint8_t V1_HW_KEY_COUNT = 3;
 const uint8_t V1_SW_KEY_COUNT_MIN = 1;
 const uint8_t V1_SW_KEY_COUNT_MAX = 3;
 const size_t V1_MAX_SECURE_HEADER_SIZE = 4096;
+const size_t V1_SECURE_HEADER_SIZE = 1288;
 
 /**
  * Secure Header V2 macro
@@ -435,6 +436,8 @@ const uint8_t  ROM_V2_HASH_ALG = 2;
 const uint8_t  ROM_V2_SIG_ALG = 2;
 const uint8_t  V2_SW_KEY_COUNT = 2;
 const size_t   V2_SECURE_HEADER_SIZE = 15360;
+// Sum of Secure header size V1 + V2
+const size_t SECURE_HEADER_SIZE = (V1_SECURE_HEADER_SIZE + V2_SECURE_HEADER_SIZE);
 
 // Security Flags
 

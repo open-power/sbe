@@ -93,7 +93,7 @@ void sbevthreadroutine(void *i_pArg)
     #define SBEV_FUNC " sbevthreadroutine "
     SBEV_ENTER(SBEV_FUNC);
 
-    SBEV_INFO("Inside verification thread");
+    SBEV_INFO("sbevthreadroutine start...");
 
     secureHdrResponse_t hbblSecureHdrResponse;
     secureHdrResponse_t sbeFwSecureHdrResponse;
@@ -111,6 +111,7 @@ void sbevthreadroutine(void *i_pArg)
     do{
         SBEV_INFO(SBEV_FUNC "Verify Secure containers");
 
+        SBEV_INFO(SBEV_FUNC "Loading .data to pibmem");
         // Copy the data.compressed to just above the verification
         uint32_t data_end_address = (uint32_t)(&_base_origin); // _base_origin is start of verification image which is defined in verification linker
         uint32_t data_start_address = 0; // will be returned by loadSeepromtoPibmem
@@ -160,6 +161,7 @@ void sbevthreadroutine(void *i_pArg)
         SBEV_INFO(SBEV_FUNC ".base aligned xip payload size=%u", alignedPayloadSize);
         SBEV_INFO(SBEV_FUNC "Verify SBE-FW secure header.");
         sbeFwSecureHdrRsp = verifySecureHdr( P9_XIP_SECTION_SBE_SBH_FIRMWARE,
+                                             l_hw_parms,
                                              VERIFY_HW_SIG_C_SBE_FW,
                                              &shPayloadHashBase,
                                              alignedPayloadSize,
@@ -187,9 +189,10 @@ void sbevthreadroutine(void *i_pArg)
         uint32_t hbblPayloadSize = 0;
         xipPayloadSizeHbbl = hbblPayloadSize = getXipSize(P9_XIP_SECTION_SBE_HBBL);
 
-        SBEV_INFO(SBEV_FUNC "Verify HBBL secure header.");
+        SBEV_INFO(SBEV_FUNC " Verifying HBBL secure header");
         sbeHbblSecureHdrRsp = verifySecureHdr(
                                 P9_XIP_SECTION_SBE_SBH_HBBL,
+                                l_hw_parms,
                                 VERIFY_HW_SIG_A_HBBL,
                                 &shPayloadHashHbbl,
                                 hbblPayloadSize,
@@ -208,7 +211,7 @@ void sbevthreadroutine(void *i_pArg)
 
         // Now Copy the base.compressed to just above the data.compressed
         uint32_t base_start_address = 0;
-        SBEV_INFO("Loading .base to pibmem via loadSeepromtoPibmem");
+        SBEV_INFO("Loading .base to pibmem");
         uint32_t loadedBasePayloadSize = 0;
         fapirc = loadSeepromtoPibmem( P9_XIP_SECTION_SBE_BASE,
                                       base_start_address,
@@ -258,7 +261,10 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
         }
 
+        memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &shPayloadHashBase, sizeof(SHA512truncated_t));
+
         // decompress the base section
+        SBEV_INFO(SBEV_FUNC "Decompressing .base image");
         uint8_t *decompBuffer = (uint8_t*)SBE_BASE_IMAGE_START;
         SBEV_INFO(SBEV_FUNC "base_start_address=0x%08X, SBE_BASE_IMAGE_START=0x%08X",
                             base_start_address, SBE_BASE_IMAGE_START);
@@ -288,6 +294,7 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_HEADER_INVALID_DATA_ADDR);
         }
         // decompress data section
+        SBEV_INFO(SBEV_FUNC "Decompressing .data image");
         decompBuffer = (uint8_t*)data_address;
         rc = decompress(
                         (uint8_t*)data_start_address,
@@ -322,6 +329,7 @@ void sbevthreadroutine(void *i_pArg)
         sbevSetSecureAccessBit(isSecureHdrPassed, sbeFwSecureHdrResponse.flag);
 
         // Copy the HBBL to pibmem
+        SBEV_INFO(SBEV_FUNC "Loading .hbbl to pibmem");
         uint32_t hbbl_end_address = 0;
         uint32_t hbbl_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
         uint32_t loadedHbblPayloadSize = 0;
@@ -380,6 +388,8 @@ void sbevthreadroutine(void *i_pArg)
 
             UPDATE_ERROR_REG_HBBL(HEADER_HASH_TEST);
         }
+
+        memcpy(&hbblSecureHdrResponse.sha512Truncated, &shPayloadHashHbbl, sizeof(SHA512truncated_t));
 
         loadValue = (uint64_t)(SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
