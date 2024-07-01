@@ -41,6 +41,14 @@
 #define SB_SETTING_MSV_SIZE         (1U) // 1 Byte
 #define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
 
+// TODO Added Support for dilithium, has to deleted once dilithium ported
+#define DILITHIUM_PUB_KEY_SIZE 2336
+#define DILITHIUM_SIG_SIZE 4668
+
+typedef uint8_t dilithium_key_t[DILITHIUM_PUB_KEY_SIZE];
+typedef uint8_t dilithium_signature_t[DILITHIUM_SIG_SIZE];
+
+
 /**
  * @brief SB Setting SB Modes
  *
@@ -86,8 +94,8 @@ enum ROM_HASH_ALGORITHM : uint8_t
  */
 enum ROM_SIGNATURE_ALGORITHM : uint8_t
 {
-    SIG_ALG_ECDSA521 = 0x01,
-    SIG_ALG_ECDSA521_DILITHIUM = 0x02,
+    SIG_ALG_ECDSA521            = 0x01,
+    SIG_ALG_ECDSA521_DILITHIUM  = 0x02,
 };
 
 typedef struct
@@ -128,7 +136,7 @@ typedef struct
   uint64_t        container_size;  // filled by caller
   uint8_t         reserved[6];
   ecc_key_t       hw_pkey_a;
-//   dilithium_key_t hw_pkey_d; // TODO uncomment once dilithium algo ported
+  dilithium_key_t hw_pkey_d;
   uint64_t        prefix; // prefix header place holder
   // followed by sw header (if not special prefix)
   // followed by optional unprotected payload data
@@ -174,7 +182,7 @@ typedef struct
   // followed by prefix data (sig,keys) key raw
 }__attribute__((packed)) ROM_v2_prefix_header_raw;
 
-#define PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v2_prefix_header_raw))
+#define V2_PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v2_prefix_header_raw))
 
 /**
  * @brief Secure header V1 Prefix Header HW Signatures and SW/FW PUB Keys
@@ -197,9 +205,9 @@ typedef struct
 typedef struct
 {
   ecc_signature_t        hw_sig_a;
-  // dilithium_signature_t  hw_sig_d; // TODO uncomment once dilithium algo ported
+  dilithium_signature_t  hw_sig_d;
   ecc_key_t              sw_pkey_p;
-  // dilithium_key_t        sw_pkey_s;// TODO uncomment once dilithium algo ported
+  dilithium_key_t        sw_pkey_s;
 }__attribute__((packed)) ROM_v2_prefix_data_raw;
 
 /**
@@ -268,7 +276,7 @@ typedef struct
 typedef struct
 {
   ecc_signature_t       sw_sig_p;
-//   dilithium_signature_t sw_sig_s; // TODO uncomment once dilithium algo ported
+  dilithium_signature_t sw_sig_s;
   // followed by zero's padding to 10K
   // followed by protected sw payload_data
   // followed by unprotected sw payload_text
@@ -416,7 +424,7 @@ const uint8_t ROM_V1_SIG_ALG = 1;
 const uint8_t V1_HW_KEY_COUNT = 3;
 const uint8_t V1_SW_KEY_COUNT_MIN = 1;
 const uint8_t V1_SW_KEY_COUNT_MAX = 3;
-const size_t MAX_SECURE_HEADER_V1_SIZE = 4096;
+const size_t V1_MAX_SECURE_HEADER_SIZE = 4096;
 
 /**
  * Secure Header V2 macro
@@ -426,8 +434,7 @@ const uint16_t ROM_V2_VERSION = 2;
 const uint8_t  ROM_V2_HASH_ALG = 2;
 const uint8_t  ROM_V2_SIG_ALG = 2;
 const uint8_t  V2_SW_KEY_COUNT = 2;
-const size_t   SECURE_HEADER_V2_SIZE = 15360;
-
+const size_t   V2_SECURE_HEADER_SIZE = 15360;
 
 // Security Flags
 
