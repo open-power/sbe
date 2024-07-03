@@ -196,6 +196,7 @@ SECTIONS
     . = ALIGN(8);
 
    // heap space start at the beginning of pibmem address
+   // Note: heap will not be used for loading any image from beginning of pibmem
    _heap_space_start_ = SBE_BASE_ORIGIN;
    _heap_space_end_ = SBE_VERIFICATION_HEAP_START_OFFSET;
    _heap_space_size_ = _heap_space_end_ - _heap_space_start_;

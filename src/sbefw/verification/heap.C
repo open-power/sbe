@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2022,2024                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -28,7 +29,7 @@
 #include "heap.H"
 #include "pk_api.h"
 #include "sbeglobals.H"
-#include "sbetrace.H"
+#include "sbevtrace.H"
 
 #define CANARY 0xFEEDB0B0ull
 #define CANARY_MASK 0xFFFFFFF0ull
@@ -53,7 +54,7 @@ Heap::Heap(uint32_t i_heap_start, uint32_t i_heap_size) {
 }
 
 void Heap::initialize() {
-    SBE_INFO(" Available heap to start at addr: 0x%X, of size: 0x%X",
+    SBEV_INFO(" Available heap to start at addr: 0x%X, of size: 0x%X",
              iv_heap_midline, iv_heap_top - iv_heap_midline);
 }
 
@@ -124,7 +125,7 @@ void* Heap::scratch_alloc(const uint32_t i_size, const alloc_flags i_flags) {
     // The midline, determined by the pakstack usage, is the limit on what can
     // be allocated
     if (l_rc == RC_OUT_OF_SPACE) {
-        SBE_ERROR(
+        SBEV_ERROR(
             "scratch_alloc: Out of scratch space. rounded_size=0x%X limit=0x%X "
             "bottom=0x%X",
             rounded_size, iv_heap_midline, iv_scratch_bottom);
@@ -132,13 +133,13 @@ void* Heap::scratch_alloc(const uint32_t i_size, const alloc_flags i_flags) {
     }
 
     if (l_rc == RC_INVALID_REQ_FOR_PERSISTANT) {
-        SBE_ERROR(
+        SBEV_ERROR(
             "scratch_alloc: Persistent blocks must be allocated before any "
             "temporary blocks.");
         return NULL;
     }
 
-    SBE_INFO(
+    SBEV_INFO(
         "scratch_alloc: rounded_size=0x%X limit=0x%X old_bottom=0x%X "
         "new_bottom=0x%X",
         rounded_size, l_heap_midline, l_scratch_bottom, new_bottom);
@@ -163,7 +164,7 @@ void Heap::scratch_free(const void* i_ptr) {
         const uint32_t flags = (header >> 32) & ~CANARY_MASK;
 
         if (canary != CANARY) {
-            SBE_ERROR(
+            SBEV_ERROR(
                 "scratch_free: Block header corrupted, halting. ptr=%p "
                 "header=0x%08X%08X",
                 i_ptr, header >> 32, header & 0xFFFFFFFF);
@@ -171,7 +172,7 @@ void Heap::scratch_free(const void* i_ptr) {
         }
 
         if (flags & BLOCK_FLAG_FREED) {
-            SBE_ERROR(
+            SBEV_ERROR(
                 "scratch_free: Double free detected, halting. ptr=%p "
                 "header=0x%08X%08X",
                 i_ptr, header >> 32, header & 0xFFFFFFFF);
@@ -201,7 +202,7 @@ uint64_t Heap::scratch_bottom_header() {
     const uint32_t canary = (header >> 32) & CANARY_MASK;
 
     if (canary != CANARY) {
-        SBE_ERROR(
+        SBEV_ERROR(
             "scratch: Chain of blocks corrupted, halting. ptr=%p "
             "header=0x%08X%08X",
             iv_scratch_bottom, header >> 32, header & 0xFFFFFFFF);
@@ -243,7 +244,7 @@ size_t Heap::getFreeHeapSize() {
         SBE_DEBUG("Available free heap space is 0x%08x", freeHeapSpace);
     } else {
         freeHeapSpace = 0x0;
-        SBE_INFO("No free heap space");
+        SBEV_INFO("No free heap space");
     }
 
     return freeHeapSpace;

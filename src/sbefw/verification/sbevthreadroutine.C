@@ -36,6 +36,7 @@
 #include "sbevsecuritysetting.H"
 #include "sbeDecompression.h"
 #include "base_toc.H"
+#include "heap.H"
 
 #define BUILD_TAG_LENGTH 20
 
@@ -88,6 +89,44 @@ static void writeTruncatedHbblPayloadHash(SHA512truncated_t i_sha512Truncated)
     putscom_abs((OTPROM_MEASUREMENT_REG15), hashData);
 }
 
+static ROM_response verifyPayloadSize(uint32_t i_calPayloadSize, uint32_t i_shPayloadSize)
+{
+    ROM_response resp = ROM_DONE;
+    if (i_calPayloadSize != i_shPayloadSize)
+    {
+        SBEV_ERROR(SBEV_FUNC "FAILED : SH verified payload size mismatch"
+                            " with loaded pibmem payload size");
+
+        secureBootStatus_t secureBootStatus;
+        UPDATE_ERROR_REG_SBEFW(PAYLOAD_SIZE_MISMATCH);
+        resp = ROM_FAILED;
+    }
+    return resp;
+}
+
+static ROM_response verifyPayloadHash(SHA_DIGEST_t& i_calPayloadHash, SHA_DIGEST_t& i_shPayloadHash)
+{
+    ROM_response resp = ROM_DONE;
+    if(memcmp(&i_calPayloadHash, &i_shPayloadHash, sizeof(i_calPayloadHash)))
+    {
+        SBEV_ERROR(SBEV_FUNC "FAILED : invalid payload hash");
+
+        uint32_t * calHash = (uint32_t*) &i_calPayloadHash;
+        uint32_t * shHash = (uint32_t*) &i_shPayloadHash;
+
+        SBEV_ERROR("Calculated payload hash | Secure header payload hash");
+        for (uint8_t i=0; i < (sizeof(SHA_DIGEST_t)/sizeof(uint32_t)); i++)
+        {
+            SBEV_ERROR("        %08x        |        %08x", calHash[i], shHash[i]);
+        }
+
+        secureBootStatus_t secureBootStatus;
+        UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
+        resp = ROM_FAILED;
+    }
+    return resp;
+}
+
 void sbevthreadroutine(void *i_pArg)
 {
     #define SBEV_FUNC " sbevthreadroutine "
@@ -108,6 +147,9 @@ void sbevthreadroutine(void *i_pArg)
     uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
     uint32_t fapirc = 0;
 
+    // Initialize heap space
+    Heap::get_instance().initialize();
+
     do{
         SBEV_INFO(SBEV_FUNC "Verify Secure containers");
 
@@ -120,9 +162,9 @@ void sbevthreadroutine(void *i_pArg)
                     P9_XIP_SECTION_SBE_DATA,
                     data_start_address,
                     data_end_address,
-                    data_end_address - SBE_BASE_IMAGE_START, // assuming we have space still start of pIBMEM
+                    data_end_address - SBE_VERIFICATION_HEAP_START_OFFSET, // assuming we have space still end of HEAP
                     data_size,
-                    SB_MODE_NOT_REQUIRED,
+                    SB_MODE_INVALID,
                     NULL);
         if(fapirc)
         {
@@ -138,7 +180,7 @@ void sbevthreadroutine(void *i_pArg)
         // Secure Boot mode
         SB_SETTING_SB_MODES sbMode = (SB_SETTING_SB_MODES)l_hw_parms.sbMode;
         SBEV_INFO(SBEV_FUNC " SB_MODE in .sb_setting [%d]" sbMode);
-        if (sbMode >= SB_MODE_MAX)
+        if (sbMode >= SB_MODE_INVALID)
         {
             SBEV_ERROR(SBEV_FUNC " Invalid sb_mode in .sb_setting [%d]" sbMode);
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SB_SETTING_INVALID_MODE);
@@ -168,20 +210,6 @@ void sbevthreadroutine(void *i_pArg)
                                              &sbeFwSecureHdrResponse);
         SBEV_INFO(SBEV_FUNC "Completed SBE-FW secure header verification. Response: [0x%08x] Status: [0x%02x]",
             sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-
-        if( sbeFwSecureHdrRsp == ROM_DONE )
-        {
-            isSecureHdrPassed = 1;
-            SBEV_INFO(SBEV_FUNC "Prefix header flag in SBE_FW secure container [0x%08x]", sbeFwSecureHdrResponse.flag);
-            SBEV_INFO(SBEV_FUNC "Completed SBE_FW secure header verification. Response:[0x%08x] Status:[0x%02x]",
-                sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-        }
-        if(!isSecureHdrPassed)
-        {
-            SBEV_ERROR(SBEV_FUNC "SBE_FW Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
-                sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-            UPDATE_ERROR_REG_SBEFW(sbeFwSecureHdrResponse.statusCode);
-        }
 
         // hbbl secure header verification
         // hbbl payload size
@@ -227,41 +255,38 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_CODE_DECOMPRESSION_FAILED);
         }
 
-        // Verify the SH verify payload size with loaded pibmem size
-        SBEV_INFO(SBEV_FUNC ".base SH verified payload size: %d, "
+        // Verify the SH payload size with loaded pibmem size
+        if (sbeFwSecureHdrRsp == ROM_DONE)
+        {
+            SBEV_INFO(SBEV_FUNC ".base SH verified payload size: %d, "
                              ".base loaded pibmem payload size: %d",
                              xipPayloadSizeBase, loadedBasePayloadSize);
-        if (xipPayloadSizeBase != loadedBasePayloadSize)
-        {
-            SBEV_ERROR(SBEV_FUNC "FAILED :.base SH verified payload size mismatch"
-                                 " with .base loaded pibmem payload size");
-            UPDATE_ERROR_REG_SBEFW(PAYLOAD_SIZE_MISMATCH);
+            sbeFwSecureHdrRsp = verifyPayloadSize(loadedBasePayloadSize, xipPayloadSizeBase);
         }
 
-        if(memcmp(&calPayloadHashBase, &shPayloadHashBase, sizeof(shPayloadHashBase)))
+        // Verify the SH .base payload hash with calculated payload hash
+        if (sbeFwSecureHdrRsp == ROM_DONE)
         {
-            SBEV_ERROR(SBEV_FUNC "FAILED : invalid .base sw payload hash");
-
-            SBEV_ERROR(".base payload hash: ");
-            for (uint8_t i=0; i<sizeof(calPayloadHashBase); i=i+4)
-            {
-                SBEV_ERROR("    %02x %02x %02x %02x",
-                        calPayloadHashBase[i], calPayloadHashBase[i+1],
-                        calPayloadHashBase[i+2], calPayloadHashBase[i+3]);
-            }
-
-            SBEV_ERROR("FW Secure header payload hash: ");
-            for (uint8_t i=0; i<sizeof(shPayloadHashBase); i=i+4)
-            {
-                SBEV_ERROR("    %02x %02x %02x %02x",
-                                shPayloadHashBase[i], shPayloadHashBase[i+1],
-                                shPayloadHashBase[i+2],shPayloadHashBase[i+3]);
-            }
-
-            UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
+            SBEV_INFO(SBEV_FUNC "Verifying .base calculated payload hash with secure header payload hash");
+            sbeFwSecureHdrRsp = verifyPayloadHash(calPayloadHashBase, shPayloadHashBase);
         }
 
-        memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &shPayloadHashBase, sizeof(SHA512truncated_t));
+        memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &calPayloadHashBase, sizeof(SHA512truncated_t));
+
+        if( sbeFwSecureHdrRsp == ROM_DONE )
+        {
+            isSecureHdrPassed = 1;
+            SBEV_INFO(SBEV_FUNC "Prefix header flag in SBE_FW secure container [0x%08x]", sbeFwSecureHdrResponse.flag);
+            SBEV_INFO(SBEV_FUNC "Completed SBE_FW secure header verification. Response:[0x%08x] Status:[0x%02x]",
+                sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
+        }
+
+        if(!isSecureHdrPassed)
+        {
+            SBEV_ERROR(SBEV_FUNC "SBE_FW Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
+                sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
+            UPDATE_ERROR_REG_SBEFW(sbeFwSecureHdrResponse.statusCode);
+        }
 
         // decompress the base section
         SBEV_INFO(SBEV_FUNC "Decompressing .base image");
@@ -349,47 +374,29 @@ void sbevthreadroutine(void *i_pArg)
                 fapirc, hbbl_start_address, hbbl_end_address);
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(HBBL_LOADING_FAILED);
         }
-        SBEV_INFO(SBEV_FUNC "hbbl_end_address=0x%08X, hbbl_size=0x%08X",
-                            hbbl_end_address, loadedHbblPayloadSize);
+        SBEV_INFO(SBEV_FUNC "hbbl_end_address: 0x%08X, hbbl_size: 0x%08X",
+                                    hbbl_end_address, loadedHbblPayloadSize);
 
         // Storing hbbl size
         ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size = loadedHbblPayloadSize;
 
-        // Verify the SH verify payload size with loaded pibmem size
-        SBEV_INFO(SBEV_FUNC ".hbbl SH verified payload size: %d, "
+        // Verify the SH payload size with loaded pibmem size
+        if (sbeHbblSecureHdrRsp == ROM_DONE)
+        {
+            SBEV_INFO(SBEV_FUNC ".hbbl SH verified payload size: %d, "
                              ".hbbl loaded pibmem payload size: %d",
                              xipPayloadSizeHbbl, loadedHbblPayloadSize);
-        if (xipPayloadSizeHbbl != loadedHbblPayloadSize)
-        {
-            SBEV_ERROR(SBEV_FUNC "FAILED : HBBL SH verified payload size mismatch"
-                                 " with hbbl loaded pibmem payload size");
-            UPDATE_ERROR_REG_HBBL(PAYLOAD_SIZE_MISMATCH);
+            sbeHbblSecureHdrRsp = verifyPayloadSize(loadedHbblPayloadSize, xipPayloadSizeHbbl);
         }
 
-        if(memcmp(&calPayloadHashHbbl, &shPayloadHashHbbl, sizeof(shPayloadHashHbbl)))
+        // Verify the SH .hbbl payload hash with calculated payload hash
+        if (sbeHbblSecureHdrRsp == ROM_DONE)
         {
-            SBEV_ERROR(SBEV_FUNC "FAILED : invalid .hbbl sw payload hash");
-
-            SBEV_ERROR(".hbbl calculated payload hash: ");
-            for (uint8_t i=0; i<sizeof(calPayloadHashHbbl); i=i+4)
-            {
-                SBEV_ERROR("    %02x %02x %02x %02x",
-                                calPayloadHashHbbl[i],calPayloadHashHbbl[i+1],
-                                calPayloadHashHbbl[i+2],calPayloadHashHbbl[i+3]);
-            }
-
-            SBEV_ERROR(".hbbl Secure header payload hash: ");
-            for (uint8_t i=0; i<sizeof(shPayloadHashHbbl); i=i+4)
-            {
-                SBEV_ERROR("    %02x %02x %02x %02x",
-                                shPayloadHashHbbl[i], shPayloadHashHbbl[i+1],
-                                shPayloadHashHbbl[i+2],shPayloadHashHbbl[i+3]);
-            }
-
-            UPDATE_ERROR_REG_HBBL(HEADER_HASH_TEST);
+            SBEV_INFO(SBEV_FUNC "Verifying .hbbl calculated payload hash with secure header payload hash");
+            sbeHbblSecureHdrRsp = verifyPayloadHash(calPayloadHashHbbl, shPayloadHashHbbl);
         }
 
-        memcpy(&hbblSecureHdrResponse.sha512Truncated, &shPayloadHashHbbl, sizeof(SHA512truncated_t));
+        memcpy(&hbblSecureHdrResponse.sha512Truncated, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
 
         loadValue = (uint64_t)(SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
@@ -419,7 +426,7 @@ void sbevthreadroutine(void *i_pArg)
                                          section_end_address,
                                          (uint32_t)(&_base_origin) - section_start_address,
                                          section_size,
-                                         SB_MODE_NOT_REQUIRED,
+                                         SB_MODE_INVALID,
                                          NULL);
             if(fapirc)
             {
@@ -493,11 +500,11 @@ void sbevthreadroutine(void *i_pArg)
         BASE_IMG_TOC->buildTag_size = BUILD_TAG_LENGTH;
 
         //Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
-        SBEV_INFO("Writing truncated SBE_FW payload hash into otprom register 8-11 (x10018-x1001B)");
+        SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
         writeTruncatedSbeFwPayloadHash(sbeFwSecureHdrResponse.sha512Truncated);
 
         //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
-        SBEV_INFO("Writing truncated HBBL payload hash into otprom register 12-15 (x1001C-x1001F)");
+        SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
         writeTruncatedHbblPayloadHash(hbblSecureHdrResponse.sha512Truncated);
 
         //Check if TPM Deconfig bit is set.(Write the updated value into otprom
@@ -645,7 +652,7 @@ void sbevthreadroutine(void *i_pArg)
     fapi2::ReturnCode rc = SBE::unlockAllSEEPROMs();
     if(rc != FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR("Failed to unlock all the SEEPROMs with rc 0x%08X", rc);
+        SBEV_ERROR("Failed to unlock all the SEEPROMs with rc 0x%08X", rc);
         UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(UNLOCK_ALL_SEEPROM_FAILED);
     }
 

@@ -122,6 +122,7 @@
 #define SB_SETTING_INVALID_MODE                 0x00B2
 #define PAYLOAD_SIZE_MISMATCH                   0x00B3
 #define CONTAINER_SIZE_TEST                     0x00B4
+#define SCRATCH_ALLOC_FAILED                    0x00B5
 
 #define PARTIAL                0x0002
 #define COMPLETED              0x0003

@@ -57,8 +57,7 @@ enum SB_SETTING_SB_MODES : uint8_t
 {
     SB_MODE_V1 = 0x00,
     SB_MODE_V2 = 0x01,
-    SB_MODE_MAX,
-    SB_MODE_NOT_REQUIRED,
+    SB_MODE_INVALID
 };
 
 /**

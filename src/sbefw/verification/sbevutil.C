@@ -103,19 +103,19 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
         // There is an assumption that caller will always sent either of the startAddress or endAddress.
         if((io_startAddr == 0) && (io_endAddr == 0))
         {
-            SBE_ERROR(SBEV_FUNC " Both io_startAddr and io_endAddr are zero");
+            SBEV_ERROR(SBEV_FUNC " Both io_startAddr and io_endAddr are zero");
             fapiRc = RC_INVALID_ARGUMENT;
             break;
         }
         else if((io_startAddr != 0) && (io_endAddr != 0))
         {
-            SBE_ERROR(SBEV_FUNC " Both io_startAddr and io_endAddr are non-zero");
+            SBEV_ERROR(SBEV_FUNC " Both io_startAddr and io_endAddr are non-zero");
             fapiRc = RC_INVALID_ARGUMENT;
             break;
         }
         else if((io_startAddr & 0x07) || (io_endAddr & 0x07))
         {
-            SBE_ERROR(SBEV_FUNC " io_startAddr or io_endAddr is not a multiple of 8");
+            SBEV_ERROR(SBEV_FUNC " io_startAddr or io_endAddr is not a multiple of 8");
             fapiRc = RC_INVALID_ARGUMENT;
             break;
         }
@@ -153,7 +153,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
         }
         if(xipSectionOffset == 0)
         {
-            SBE_ERROR(SBEV_FUNC " xipSectionOffset is 0. Section passed is %u", i_section);
+            SBEV_ERROR(SBEV_FUNC " xipSectionOffset is 0. Section passed is %u", i_section);
         }
         if(io_size == 0)
         {
@@ -196,8 +196,8 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
 
         if(io_size > i_availSize)
         {
-            SBE_ERROR(SBEV_FUNC " There is shortage of space in pibmem. End Address: 0x%08X"
-                                " Start Address: 0x%08X Available Size 0x%08X",
+            SBEV_ERROR(SBEV_FUNC "There is shortage of space in pibmem, End Address: 0x%08X,"
+                                " Start Address: 0x%08X, Available Size 0x%08X",
                                 io_endAddr, io_startAddr, i_availSize);
             fapiRc = RC_PIBMEM_OVERFLOW;
             break;
@@ -217,7 +217,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
         uint32_t lfrAddress = SBE_LFR_REG_ADDR;
         PPE_LVD(lfrAddress, lfrReg);
         SBEV_INFO(SBEV_FUNC "isSecondaryBootsSeeprom [0x%02x]", (uint8_t)lfrReg.sec_boot_seeprom);
-        SBE_INFO(SBE_FUNC "isSecondaryMeasSeeprom [0x%02x]", (uint8_t)lfrReg.sec_meas_seeprom);
+        SBEV_INFO(SBEV_FUNC "isSecondaryMeasSeeprom  [0x%02x]", (uint8_t)lfrReg.sec_meas_seeprom);
 
         size_t engine;
         if(i_measSection)
