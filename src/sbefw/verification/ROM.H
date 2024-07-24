@@ -33,6 +33,7 @@
 #include <ppe42_string.h>
 #include <vector>
 #include <sha3.H>
+#include <mlca.H>
 
 #ifndef __PPE__
     #include <array>
@@ -40,13 +41,6 @@
 
 #define SB_SETTING_MSV_SIZE         (1U) // 1 Byte
 #define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
-
-// TODO Added Support for dilithium, has to deleted once dilithium ported
-#define DILITHIUM_PUB_KEY_SIZE 2336
-#define DILITHIUM_SIG_SIZE 4668
-
-typedef uint8_t dilithium_key_t[DILITHIUM_PUB_KEY_SIZE];
-typedef uint8_t dilithium_signature_t[DILITHIUM_SIG_SIZE];
 
 
 /**
@@ -135,7 +129,7 @@ typedef struct
   uint64_t        container_size;  // filled by caller
   uint8_t         reserved[6];
   ecc_key_t       hw_pkey_a;
-  dilithium_key_t hw_pkey_d;
+  dilithium_r2_5_crypto_pub_key_t hw_pkey_d;
   uint64_t        prefix; // prefix header place holder
   // followed by sw header (if not special prefix)
   // followed by optional unprotected payload data
@@ -203,10 +197,10 @@ typedef struct
  */
 typedef struct
 {
-  ecc_signature_t        hw_sig_a;
-  dilithium_signature_t  hw_sig_d;
-  ecc_key_t              sw_pkey_p;
-  dilithium_key_t        sw_pkey_s;
+  ecc_signature_t                       hw_sig_a;
+  dilithium_r2_5_crypto_signature_t     hw_sig_d;
+  ecc_key_t                             sw_pkey_p;
+  dilithium_r2_5_crypto_pub_key_t       sw_pkey_s;
 }__attribute__((packed)) ROM_v2_prefix_data_raw;
 
 /**
@@ -274,8 +268,8 @@ typedef struct
  */
 typedef struct
 {
-  ecc_signature_t       sw_sig_p;
-  dilithium_signature_t sw_sig_s;
+  ecc_signature_t                   sw_sig_p;
+  dilithium_r2_5_crypto_signature_t sw_sig_s;
   // followed by zero's padding to 10K
   // followed by protected sw payload_data
   // followed by unprotected sw payload_text

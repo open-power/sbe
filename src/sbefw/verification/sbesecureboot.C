@@ -40,6 +40,7 @@
 #include "sbevutil.H"
 #include "p10_scom_pibms.H"
 #include "heap.H"
+#include "mlca.H"
 
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }
@@ -80,6 +81,29 @@ inline uint8_t get8(void* src)
     uint8_t dest;
     memcpy_byte(&dest, src,sizeof(uint8_t));
     return dest;
+}
+
+/*
+    Create Heap space for the variable because
+    If any variable is taking more than 32kb of space in stack
+    Then ppe compiler is using r12 register and r12 register is not supported
+    By PPE compiler so it halting
+    To avoid pk halt we have to use heap instead of stack.
+*/
+void * mlca_alloc(uint32_t size)
+{
+    void * l_scratch = (void *)Heap::get_instance().scratch_calloc(size);
+    if (l_scratch == NULL)
+    {
+        SBEV_ERROR(mlca_alloc "Scratch allocation failed");
+    }
+    return l_scratch;
+}
+
+// Free the alocated heap space
+void mlca_free(void * ptr)
+{
+    Heap::get_instance().scratch_free(ptr);
 }
 
 static int valid_ver1_alg(ROM_version_raw* ver_alg, uint8_t sig_alg)
@@ -574,8 +598,8 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
     }
 
     //Process HW Keys and verify HW keys Hash
-    memcpy(hashDataBuff, &container->hw_pkey_a, (sizeof(ecc_key_t) + sizeof(dilithium_key_t)));
-    sha3(hashDataBuff, (sizeof(ecc_key_t) + sizeof(dilithium_key_t)), &digest);
+    memcpy(hashDataBuff, &container->hw_pkey_a, (sizeof(ecc_key_t) + DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE));
+    sha3(hashDataBuff, (sizeof(ecc_key_t) + DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE), &digest);
 
     //Return the calculated SHA3-512 HW Key Hash.
     if(memcmp(digest, params->hw_key_hash, SHA3_DIGEST_LENGTH))
@@ -609,6 +633,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
     memcpy_byte(hashDataBuff, prefix, V2_PREFIX_HEADER_SIZE(prefix));
     sha3(hashDataBuff, V2_PREFIX_HEADER_SIZE(prefix), &digest);
 
+
     //Verify HW signature A (ECDSA521)
     if(ec_verify(container->hw_pkey_a, digest, hw_data->hw_sig_a) < 1)
     {
@@ -616,16 +641,16 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
         VERIFY_FAILED(HW_ECDSA_SIG_TEST);
     }
 
-    // TODO enable code after dilithium ported
-    // if(! (dilithium_wrap(hw_data->hw_sig_d,
-    //                     digest,
-    //                     container->hw_pkey_d,
-    //                     shvReq->scratchStart,
-    //                     shvReq->scratchSize)))
-    // {
-    //     SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, Dilithium");
-    //     VERIFY_FAILED(V_V2_HW_DILITHIUM_SIG_TEST);
-    // }
+    // Verify HW signature D (Dilithium)
+    int l_dilithiumResp = 0;
+    l_dilithiumResp = r2_verify(hw_data->hw_sig_d, DILITHIUM_R2_5_CRYPTO_SIG_SIZE,
+                                digest, SHA3_DIGEST_LENGTH,
+                                container->hw_pkey_d, DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE);
+    if(l_dilithiumResp <= 0)
+    {
+        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, Dilithium Resp:%d",l_dilithiumResp);
+        VERIFY_FAILED(HW_DILITHIUM_SIG_TEST);
+    }
 
     SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
     SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
@@ -674,7 +699,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     // finish procesing prefix header
     // test for protection of all sw key material (sanity check)
-    if(size != (sizeof(ecc_key_t) + sizeof(dilithium_key_t)))
+    if(size != (sizeof(ecc_key_t) + DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : incomplete sw key protection in prefix header");
         VERIFY_FAILED(SW_KEY_PROTECTION_TEST);
@@ -683,7 +708,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     /************************** SW/FW Hdr Checks ******************************/
     // start processing sw header
-    header = (ROM_v2_sw_header_raw*)(hw_data->sw_pkey_s + sizeof(dilithium_key_t));
+    header = (ROM_v2_sw_header_raw*)(hw_data->sw_pkey_s + DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE);
 
     // test for fw secure version - compare what was passed in via
     // params.log to what the container's sw header has
@@ -722,17 +747,16 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
         VERIFY_FAILED(SW_ECDSA_SIG_TEST);
     }
 
-    // TODO enable once dilithium ported
-    // //Verify SW signature S (Dilithium)
-    // if(! (dilithium_wrap(sw_sig->sw_sig_s,
-    //                 digest,
-    //                 hw_data->sw_pkey_s,
-    //                 shvReq->scratchStart,
-    //                 shvReq->scratchSize)))
-    // {
-    //     SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, Dilithium");
-    //     VERIFY_FAILED(SHV_RC_SW_DILITHIUM_SIG_TEST);
-    // }
+    // Verify SW signature S (Dilithium)
+    l_dilithiumResp = r2_verify(sw_sig->sw_sig_s, DILITHIUM_R2_5_CRYPTO_SIG_SIZE,
+                                digest, SHA3_DIGEST_LENGTH,
+                                hw_data->sw_pkey_s, DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE);
+
+    if(l_dilithiumResp <= 0)
+    {
+        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, Dilithium Resp:%d",l_dilithiumResp);
+        VERIFY_FAILED(SW_DILITHIUM_SIG_TEST);
+    }
 
     // test for valid component-id
     if(!( (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID) ||

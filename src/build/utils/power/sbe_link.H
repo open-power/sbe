@@ -117,8 +117,8 @@
     SBE_SEEPROM_BASE_ORIGIN + SBE_XIP_TOC_OFFSET + \
         264  // This needs to be updated.
 // Base Loader start address
-#define SBE_MAX_VERIFICATION_IMAGE_SIZE (62 * 1024)
-#define SBE_VERIFICATION_HEAP_SIZE (100 * 1024)
+#define SBE_MAX_VERIFICATION_IMAGE_SIZE (75 * 1024)
+#define SBE_VERIFICATION_HEAP_SIZE (150 * 1024)
 #define SBE_VERIFICATION_PIBMEM_ORIGIN_WO_ROUNDING \
     (SBE_BASE_ORIGIN + SBE_BASE_LENGTH - SBE_MAX_VERIFICATION_IMAGE_SIZE)
 // vector table should start on 0x200 boundary, start of vector table will be

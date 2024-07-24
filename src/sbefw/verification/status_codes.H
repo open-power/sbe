@@ -88,6 +88,7 @@
 #define SW_PAYLD_SZ_TEST                0x0068
 #define SW_UNPROTECTED_PAYLD_SZ_TEST    0x0069
 #define HW_ECDSA_SIG_TEST               0x006A
+#define HW_DILITHIUM_SIG_TEST           0x006B
 
 #define SW_SIGNATURE_TEST               0x0070
 #define HEADER_ECID_TEST                0x0071
@@ -95,6 +96,7 @@
 #define CODE_PROTECTION_TEST            0x0073
 #define COMPONENT_ID_TEST               0x0074
 #define SW_ECDSA_SIG_TEST               0x0075
+#define SW_DILITHIUM_SIG_TEST           0x0076
 
 #define ENTRY_VALID_TEST                0x0080
 
