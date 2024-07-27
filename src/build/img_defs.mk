@@ -387,8 +387,9 @@ export SECURITY_LIST = $(IMPORT_SRCDIR)/chips/p10/security/P10_Security_Allow_De
 endif
 
 ifndef CROSS_COMPILER_PATH
+export ARCH=`uname -m`
 $(warning The CROSS_COMPILER_PATH variable is not defined; Defaulting to IBM CTE tools path)
-export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/prod
+export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/${ARCH}_prod
 endif
 
 ifndef GCC-TOOL-PREFIX
