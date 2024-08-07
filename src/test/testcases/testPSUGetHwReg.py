@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2020
+# Contributors Listed Below - COPYRIGHT 2017,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -137,8 +137,8 @@ def main():
 
     for i in range(2):
       print("\n  Execute SBE Test PSUGetHwReg - positive testcase - request OCMB{0} address 0x000000000020B08C\n".format(i))
-      getHwReg(OCMB_TARGET_TYPE, i, 0x00000000, 0x0020B08C, GOOD_STATUS, 0x0000000000000000)
-      print("\n  Execute SBE Test PSUGetHwReg - positive testcase - request OCMB{0} address 0x000000000020B08C\n".format(i))
+      getHwReg(OCMB_TARGET_TYPE, i, 0x00000000, 0x0020B08C, GOOD_STATUS, 0x0000000000000820)
+      print("\n  Execute SBE Test PSUGetHwReg - positive testcase - request OCMB{0} address 0x0000000000002134\n".format(i))
       getHwReg(OCMB_TARGET_TYPE, i, 0x00000000, 0x00002134, GOOD_STATUS, 0x00000000100600D2)
 
 
