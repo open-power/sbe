@@ -57,36 +57,62 @@ const uint32_t section_array[] __attribute__((aligned(8))) = {
                                 P9_XIP_SECTION_FIXED,
                             };
 
-static void writeTruncatedSbeFwPayloadHash(SHA512truncated_t i_sha512Truncated)
+const uint32_t regListFw[] __attribute__((aligned(8))) = {
+                                OTPROM_MEASUREMENT_REG8,
+                                OTPROM_MEASUREMENT_REG9,
+                                OTPROM_MEASUREMENT_REG10,
+                                OTPROM_MEASUREMENT_REG11
+                            };
+
+const uint32_t regListHbbl[] __attribute__((aligned(8))) = {
+                                OTPROM_MEASUREMENT_REG12,
+                                OTPROM_MEASUREMENT_REG13,
+                                OTPROM_MEASUREMENT_REG14,
+                                OTPROM_MEASUREMENT_REG15
+                            };
+
+bool writeandverifytruncatedsha512(uint32_t regs[], int regCount, SHA512truncated_t i_sha512Truncated)
 {
+    bool resp = true;
     uint64_t hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 0], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG8), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 1], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG9), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 2], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG10), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 3], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG11), hashData);
+    uint64_t scom_value = 0;
+    for(int i=0; i<regCount; i++)
+    {
+        hashData = 0x00;
+        memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * i], sizeof(uint64_t));
+        putscom_abs(regs[i], hashData);
+        scom_value = 0;
+        getscom_abs(regs[i], &scom_value);
+        if(scom_value != hashData)
+        {
+            SBEV_ERROR(" Verification of register %08X has failed.", regs[i]);
+            SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]", 
+                            SBE::higher32BWord(hashData), SBE::lower32BWord(hashData), SBE::higher32BWord(scom_value) , SBE::lower32BWord(scom_value));
+            resp = false;
+            break;
+        }
+    }
+    return resp;
 }
 
-static void writeTruncatedHbblPayloadHash(SHA512truncated_t i_sha512Truncated)
+bool writeandverifysecuritySwitchReg(uint32_t reg, securitySwitchReg_PCR1_t securitySwitchReg_PCR1)
 {
-    uint64_t hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 0], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG12), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 1], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG13), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 2], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG14), hashData);
-    hashData = 0x00;
-    memcpy(&hashData, &i_sha512Truncated[sizeof(uint64_t) * 3], sizeof(uint64_t));
-    putscom_abs((OTPROM_MEASUREMENT_REG15), hashData);
+    bool resp = true;
+    uint64_t data = 0;
+    uint64_t scom_value = 0;
+    memcpy(&data, (uint8_t *)&securitySwitchReg_PCR1, sizeof(securitySwitchReg_PCR1_t));
+    SBEV_INFO("Writing securitySwitchReg_PCR1 details [0x%08X 0x%08X] into Register [0x%08X]",
+                  SBE::higher32BWord(data),SBE::lower32BWord(data), reg);
+    putscom_abs(reg, data);
+    getscom_abs(reg, &scom_value);
+    if(data != scom_value)
+    {
+        SBEV_ERROR(" Verification of register %08X has failed.", reg);
+        SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]", 
+                        SBE::higher32BWord(data), SBE::lower32BWord(data), SBE::higher32BWord(scom_value) , SBE::lower32BWord(scom_value));
+        resp = false;
+    }
+    return resp;
 }
 
 static ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
@@ -162,10 +188,11 @@ void sbevthreadroutine(void *i_pArg)
     ROM_response sbeFwSecureHdrRsp;
     ROM_response sbeHbblSecureHdrRsp;
     fapi2::buffer<uint64_t> securityReg;
-    uint64_t data = 0;
     uint32_t isSecureHdrPassed = 0;
     uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
     uint32_t fapirc = 0;
+    bool respsbeFw;
+    bool resp;
 
     // Initialize heap space
     Heap::get_instance().initialize();
@@ -529,24 +556,31 @@ void sbevthreadroutine(void *i_pArg)
 
         //Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
         SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
-        writeTruncatedSbeFwPayloadHash(sbeFwSecureHdrResponse.sha512Truncated);
+        respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
+        if(respsbeFw == false)
+        {
+            UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
+        }
 
         //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
         SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
-        writeTruncatedHbblPayloadHash(hbblSecureHdrResponse.sha512Truncated);
-
+        resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
+        if(resp == false)
+        {
+            UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
+        }
         //Check if TPM Deconfig bit is set.(Write the updated value into otprom
         //regs and TPM)
         getscom_abs(0x10005, &securityReg());
 
         //Write extendSecurityStatePCR1 into measurement register x10013
         securitySwitchReg_PCR1.update(securityReg());
-        data = 0;
-        memcpy(&data, (uint8_t *)&securitySwitchReg_PCR1, sizeof(securitySwitchReg_PCR1_t));
-        SBEV_INFO("Writing securitySwitchReg_PCR1 details [0x%08X 0x%08X] into Register [0x%08X]",
-                SBE::higher32BWord(data),SBE::lower32BWord(data), OTPROM_MEASUREMENT_REG3);
-        putscom_abs(OTPROM_MEASUREMENT_REG3, data);
-
+        resp = writeandverifysecuritySwitchReg(OTPROM_MEASUREMENT_REG3, securitySwitchReg_PCR1);
+        //Avoid overwriting in the same error register in case writeAndVerifyTruncatedSbePayloadHashFw fails
+        if(resp == false && respsbeFw != false)
+        {
+            UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMNET_WRC_SECURITY_REG_MISMATCH);
+        }
         //Skip if error/rc/deconfig bit set in TPM sequence.
         if( (g_sbevRole == SBE_ROLE_MASTER) && (!(securityReg.getBit<TPM_DECONFIG_BIT>())) )
         {

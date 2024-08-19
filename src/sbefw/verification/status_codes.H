@@ -102,29 +102,31 @@
 
 #define SECURE_VERSION_TEST             0x0090
 
-#define BASE_CODE_DECOMPRESSION_FAILED          0x00A0
-#define BASE_DATA_DECOMPRESSION_FAILED          0x00A1
-#define BASE_HEADER_INVALID_DATA_ADDR           0x00A2
-#define BASE_HEADER_BSS_OVERFLOW                0x00A3
-#define HBBL_LOADING_FAILED                     0x00A4
-#define HDCT_LOADING_FAILED                     0x00A5
-#define RING_LOADING_FAILED                     0x00A6
-#define OVERRIDES_LOADING_FAILED                0x00A7
-#define FA_EC_CL2_LOADING_FAILED                0x00A8
-#define FA_EC_MMA_LOADING_FAILED                0x00A9
-#define FA_RING_OVRD_LOADING_FAILED             0x00AA
-#define B_SB_SETTINGS_LOADING_FAILED            0x00AB
-#define M_SB_SETTINGS_LOADING_FAILED            0x00AC
-#define SBH_FIRMWARE_LOAD_FAILED                0x00AD
-#define SBH_HBBL_LOAD_FAILED                    0x00AE
-#define MSEEPROM_READ_FAILED_TO_FETCH_XIP_HDR   0x00AF
-#define XIP_HEADER_READ_FAILED                  0x00B0
-#define UNLOCK_ALL_SEEPROM_FAILED               0x00B1
+#define BASE_CODE_DECOMPRESSION_FAILED              0x00A0
+#define BASE_DATA_DECOMPRESSION_FAILED              0x00A1
+#define BASE_HEADER_INVALID_DATA_ADDR               0x00A2
+#define BASE_HEADER_BSS_OVERFLOW                    0x00A3
+#define HBBL_LOADING_FAILED                         0x00A4
+#define HDCT_LOADING_FAILED                         0x00A5
+#define RING_LOADING_FAILED                         0x00A6
+#define OVERRIDES_LOADING_FAILED                    0x00A7
+#define FA_EC_CL2_LOADING_FAILED                    0x00A8
+#define FA_EC_MMA_LOADING_FAILED                    0x00A9
+#define FA_RING_OVRD_LOADING_FAILED                 0x00AA
+#define B_SB_SETTINGS_LOADING_FAILED                0x00AB
+#define M_SB_SETTINGS_LOADING_FAILED                0x00AC
+#define SBH_FIRMWARE_LOAD_FAILED                    0x00AD
+#define SBH_HBBL_LOAD_FAILED                        0x00AE
+#define MSEEPROM_READ_FAILED_TO_FETCH_XIP_HDR       0x00AF
+#define XIP_HEADER_READ_FAILED                      0x00B0
+#define UNLOCK_ALL_SEEPROM_FAILED                   0x00B1
 
-#define SB_SETTING_INVALID_MODE                 0x00B2
-#define PAYLOAD_SIZE_MISMATCH                   0x00B3
-#define CONTAINER_SIZE_TEST                     0x00B4
-#define SCRATCH_ALLOC_FAILED                    0x00B5
+#define SB_SETTING_INVALID_MODE                     0x00B2
+#define PAYLOAD_SIZE_MISMATCH                       0x00B3
+#define CONTAINER_SIZE_TEST                         0x00B4
+#define SCRATCH_ALLOC_FAILED                        0x00B5
+#define OTP_MEASUREMENT_RWC_MISMATCH                0x00B6
+#define OTP_MEASUREMNET_WRC_SECURITY_REG_MISMATCH   0x00B7
 
 #define PARTIAL                0x0002
 #define COMPLETED              0x0003
