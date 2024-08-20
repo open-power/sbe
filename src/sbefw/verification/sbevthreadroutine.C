@@ -89,7 +89,9 @@ static void writeTruncatedHbblPayloadHash(SHA512truncated_t i_sha512Truncated)
     putscom_abs((OTPROM_MEASUREMENT_REG15), hashData);
 }
 
-static ROM_response verifyPayloadSize(uint32_t i_calPayloadSize, uint32_t i_shPayloadSize)
+static ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
+                                       uint32_t i_calPayloadSize,
+                                       uint32_t i_shPayloadSize)
 {
     ROM_response resp = ROM_DONE;
     if (i_calPayloadSize != i_shPayloadSize)
@@ -98,13 +100,23 @@ static ROM_response verifyPayloadSize(uint32_t i_calPayloadSize, uint32_t i_shPa
                             " with loaded pibmem payload size");
 
         secureBootStatus_t secureBootStatus;
-        UPDATE_ERROR_REG_SBEFW(PAYLOAD_SIZE_MISMATCH);
+        if (i_sections == P9_XIP_SECTION_SBE_BASE)
+        {
+            UPDATE_ERROR_REG_SBEFW(PAYLOAD_SIZE_MISMATCH);
+        }
+        else
+        {
+            UPDATE_ERROR_REG_HBBL(PAYLOAD_SIZE_MISMATCH);
+        }
+
         resp = ROM_FAILED;
     }
     return resp;
 }
 
-static ROM_response verifyPayloadHash(SHA_DIGEST_t& i_calPayloadHash, SHA_DIGEST_t& i_shPayloadHash)
+static ROM_response verifyPayloadHash( const p9_xip_section_sbe_t i_sections,
+                                       SHA_DIGEST_t& i_calPayloadHash,
+                                       SHA_DIGEST_t& i_shPayloadHash)
 {
     ROM_response resp = ROM_DONE;
     if(memcmp(&i_calPayloadHash, &i_shPayloadHash, sizeof(i_calPayloadHash)))
@@ -121,7 +133,15 @@ static ROM_response verifyPayloadHash(SHA_DIGEST_t& i_calPayloadHash, SHA_DIGEST
         }
 
         secureBootStatus_t secureBootStatus;
-        UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
+        if (i_sections == P9_XIP_SECTION_SBE_BASE)
+        {
+            UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
+        }
+        else
+        {
+            UPDATE_ERROR_REG_HBBL(HEADER_HASH_TEST);
+        }
+
         resp = ROM_FAILED;
     }
     return resp;
@@ -261,14 +281,18 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_INFO(SBEV_FUNC ".base SH verified payload size: %d, "
                              ".base loaded pibmem payload size: %d",
                              xipPayloadSizeBase, loadedBasePayloadSize);
-            sbeFwSecureHdrRsp = verifyPayloadSize(loadedBasePayloadSize, xipPayloadSizeBase);
+            sbeFwSecureHdrRsp = verifyPayloadSize( P9_XIP_SECTION_SBE_BASE,
+                                                   loadedBasePayloadSize,
+                                                   xipPayloadSizeBase);
         }
 
         // Verify the SH .base payload hash with calculated payload hash
         if (sbeFwSecureHdrRsp == ROM_DONE)
         {
             SBEV_INFO(SBEV_FUNC "Verifying .base calculated payload hash with secure header payload hash");
-            sbeFwSecureHdrRsp = verifyPayloadHash(calPayloadHashBase, shPayloadHashBase);
+            sbeFwSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_BASE,
+                                                   calPayloadHashBase,
+                                                   shPayloadHashBase);
         }
 
         memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &calPayloadHashBase, sizeof(SHA512truncated_t));
@@ -386,14 +410,18 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_INFO(SBEV_FUNC ".hbbl SH verified payload size: %d, "
                              ".hbbl loaded pibmem payload size: %d",
                              xipPayloadSizeHbbl, loadedHbblPayloadSize);
-            sbeHbblSecureHdrRsp = verifyPayloadSize(loadedHbblPayloadSize, xipPayloadSizeHbbl);
+            sbeHbblSecureHdrRsp = verifyPayloadSize( P9_XIP_SECTION_SBE_HBBL,
+                                                     loadedHbblPayloadSize,
+                                                     xipPayloadSizeHbbl);
         }
 
         // Verify the SH .hbbl payload hash with calculated payload hash
         if (sbeHbblSecureHdrRsp == ROM_DONE)
         {
             SBEV_INFO(SBEV_FUNC "Verifying .hbbl calculated payload hash with secure header payload hash");
-            sbeHbblSecureHdrRsp = verifyPayloadHash(calPayloadHashHbbl, shPayloadHashHbbl);
+            sbeHbblSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_HBBL,
+                                                     calPayloadHashHbbl,
+                                                     shPayloadHashHbbl);
         }
 
         memcpy(&hbblSecureHdrResponse.sha512Truncated, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
