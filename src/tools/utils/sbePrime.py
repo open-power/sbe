@@ -121,7 +121,7 @@ def main():
     ddlevel      = "None"
     hbStandalone = "0"
     simicsPath   = "simics"
-    secureBootMode = "v1"
+    secureBootMode = "v2"
 
     #----------------------------
     # Read command line args
