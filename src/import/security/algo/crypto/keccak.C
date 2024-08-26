@@ -65,21 +65,7 @@ static const uint64_t keccak_rcs[KECCAK_ROUNDS] =
 static void keccak_permute(Keccak_state* state)
 {
     uint64_t* A = state->A;
-    int i, j;
-    uint64_t CZ[5], DZ[5], tmp[2];
-
-    static const uint8_t m5t[25] =
-    {
-        0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4
-    };
-    static const uint8_t Aseq[] =
-    {
-        10, 7, 11, 17, 18, 3, 5, 16, 8, 21, 24, 4, 15, 23, 19, 13, 12, 2, 20, 14, 22, 9, 6
-    };
-    static const uint8_t ROTseq[] =
-    {
-        3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44
-    };
+    int i = 0;
 
     /**
      *  For i_r from 12+2l-n_r to 12+2l-1, A=Rnd(A,i_r)
@@ -89,25 +75,50 @@ static void keccak_permute(Keccak_state* state)
     for (i = 0; i < KECCAK_ROUNDS; ++i)
     {
         /* θ(A) */
-        for (j = 0; j < 5; ++j)
-        {
-            CZ[j] = A[j] ^ A[j + 5] ^ A[j + 10] ^ A[j + 15] ^ A[j + 20];
-        }
+        uint64_t CZ[5];
+        uint64_t DZ[5];
+        uint64_t tmp0, tmp1;
+        CZ[0] = A[0] ^ A[5] ^ A[10] ^ A[15] ^ A[20];
+        CZ[1] = A[1] ^ A[6] ^ A[11] ^ A[16] ^ A[21];
+        CZ[2] = A[2] ^ A[7] ^ A[12] ^ A[17] ^ A[22];
+        CZ[3] = A[3] ^ A[8] ^ A[13] ^ A[18] ^ A[23];
+        CZ[4] = A[4] ^ A[9] ^ A[14] ^ A[19] ^ A[24];
 
-        for (j = 0; j < 5; ++j)
-        {
-            DZ[j] = CZ[m5t[j + 4]] ^ ROTL64(CZ[m5t[j + 1]], 1);
-        }
+        DZ[0] = CZ[4] ^ ROTL64(CZ[1], 1);
+        DZ[1] = CZ[0] ^ ROTL64(CZ[2], 1);
+        DZ[2] = CZ[1] ^ ROTL64(CZ[3], 1);
+        DZ[3] = CZ[2] ^ ROTL64(CZ[4], 1);
+        DZ[4] = CZ[3] ^ ROTL64(CZ[0], 1);
 
         /**
          * for (int j = 0; j < KECCAK_P_64L; ++j)
          *  A[j] ^= DZ[j % 5];
         */
-        for (j = 0; j < KECCAK_P_64L; ++j)
-        {
-            A[j] ^= DZ[m5t[j]];
-        }
-
+        A[0] ^= DZ[0];
+        A[1] ^= DZ[1];
+        A[2] ^= DZ[2];
+        A[3] ^= DZ[3];
+        A[4] ^= DZ[4];
+        A[5] ^= DZ[0];
+        A[6] ^= DZ[1];
+        A[7] ^= DZ[2];
+        A[8] ^= DZ[3];
+        A[9] ^= DZ[4];
+        A[10] ^= DZ[0];
+        A[11] ^= DZ[1];
+        A[12] ^= DZ[2];
+        A[13] ^= DZ[3];
+        A[14] ^= DZ[4];
+        A[15] ^= DZ[0];
+        A[16] ^= DZ[1];
+        A[17] ^= DZ[2];
+        A[18] ^= DZ[3];
+        A[19] ^= DZ[4];
+        A[20] ^= DZ[0];
+        A[21] ^= DZ[1];
+        A[22] ^= DZ[2];
+        A[23] ^= DZ[3];
+        A[24] ^= DZ[4];
 
         /* pi(ρ(θ(A))) */
         /** A[0] = A[0] */
@@ -122,32 +133,115 @@ static void keccak_permute(Keccak_state* state)
          *   A[t] = A['idx'((x + 3y) mod 5', x]
          *
         */
-        tmp[0] = ROTL64(A[1], 1);
+        tmp0 = ROTL64(A[1], 1);
+        tmp1 = ROTL64(A[10], 3);
+        A[10] = tmp0;
+        tmp0 = ROTL64(A[7], 6);
+        A[7] = tmp1;
+        tmp1 = ROTL64(A[11], 10);
+        A[11] = tmp0;
+        tmp0 = ROTL64(A[17], 15);
+        A[17] = tmp1;
+        tmp1 = ROTL64(A[18], 21);
+        A[18] = tmp0;
+        tmp0 = ROTL64(A[3], 28);
+        A[3] = tmp1;
+        tmp1 = ROTL64(A[5], 36);
+        A[5] = tmp0;
+        tmp0 = ROTL64(A[16], 45);
+        A[16] = tmp1;
+        tmp1 = ROTL64(A[8], 55);
+        A[8] = tmp0;
+        tmp0 = ROTL64(A[21], 2);
+        A[21] = tmp1;
+        tmp1 = ROTL64(A[24], 14);
+        A[24] = tmp0;
+        tmp0 = ROTL64(A[4], 27);
+        A[4] = tmp1;
+        tmp1 = ROTL64(A[15], 41);
+        A[15] = tmp0;
+        tmp0 = ROTL64(A[23], 56);
+        A[23] = tmp1;
+        tmp1 = ROTL64(A[19], 8);
+        A[19] = tmp0;
+        tmp0 = ROTL64(A[13], 25);
+        A[13] = tmp1;
+        tmp1 = ROTL64(A[12], 43);
+        A[12] = tmp0;
+        tmp0 = ROTL64(A[2], 62);
+        A[2] = tmp1;
+        tmp1 = ROTL64(A[20], 18);
+        A[20] = tmp0;
+        tmp0 = ROTL64(A[14], 39);
+        A[14] = tmp1;
+        tmp1 = ROTL64(A[22], 61);
+        A[22] = tmp0;
+        tmp0 = ROTL64(A[9], 20);
+        A[9] = tmp1;
+        tmp1 = ROTL64(A[6], 44);
+        A[6] = tmp0;
+        A[1] = tmp1;
 
-        for (j = 0; j < 23; ++j)
-        {
-            tmp[(j + 1) % 2] = ROTL64(A[Aseq[j]], ROTseq[j]);
-            A[Aseq[j]] = tmp[j % 2];
-        }
 
-        A[1] = tmp[1];
 
         /* χ(π(ρ(θ(A))))
          * for (int t = 0; t < KECCAK_P_64L; ++t) {
          *   A[t] = A[t] ^ ~A['idx'((x + 1) mod 5', x] & A['idx'((x + 2) mod 5', x]
          */
-        for (j = 0; j < 5; ++j)
-        {
-            for (int z = 0; z < 5; ++z)
-            {
-                CZ[z] = A[m5t[z + 4] + j * 5] ^ (~A[z + j * 5] & A[m5t[z + 1] + j * 5]);
-            }
+        CZ[0] = A[4] ^ (~A[0] & A[1]);
+        CZ[1] = A[0] ^ (~A[1] & A[2]);
+        CZ[2] = A[1] ^ (~A[2] & A[3]);
+        CZ[3] = A[2] ^ (~A[3] & A[4]);
+        CZ[4] = A[3] ^ (~A[4] & A[0]);
+        A[4] = CZ[0];
+        A[0] = CZ[1];
+        A[1] = CZ[2];
+        A[2] = CZ[3];
+        A[3] = CZ[4];
 
-            for (int z = 0; z < 5; ++z)
-            {
-                A[m5t[z + 4] + j * 5] = CZ[z];
-            }
-        }
+        CZ[0] = A[9] ^ (~A[5] & A[6]);
+        CZ[1] = A[5] ^ (~A[6] & A[7]);
+        CZ[2] = A[6] ^ (~A[7] & A[8]);
+        CZ[3] = A[7] ^ (~A[8] & A[9]);
+        CZ[4] = A[8] ^ (~A[9] & A[5]);
+        A[9] = CZ[0];
+        A[5] = CZ[1];
+        A[6] = CZ[2];
+        A[7] = CZ[3];
+        A[8] = CZ[4];
+
+        CZ[0] = A[14] ^ (~A[10] & A[11]);
+        CZ[1] = A[10] ^ (~A[11] & A[12]);
+        CZ[2] = A[11] ^ (~A[12] & A[13]);
+        CZ[3] = A[12] ^ (~A[13] & A[14]);
+        CZ[4] = A[13] ^ (~A[14] & A[10]);
+        A[14] = CZ[0];
+        A[10] = CZ[1];
+        A[11] = CZ[2];
+        A[12] = CZ[3];
+        A[13] = CZ[4];
+
+        CZ[0] = A[19] ^ (~A[15] & A[16]);
+        CZ[1] = A[15] ^ (~A[16] & A[17]);
+        CZ[2] = A[16] ^ (~A[17] & A[18]);
+        CZ[3] = A[17] ^ (~A[18] & A[19]);
+        CZ[4] = A[18] ^ (~A[19] & A[15]);
+        A[19] = CZ[0];
+        A[15] = CZ[1];
+        A[16] = CZ[2];
+        A[17] = CZ[3];
+        A[18] = CZ[4];
+
+        CZ[0] = A[24] ^ (~A[20] & A[21]);
+        CZ[1] = A[20] ^ (~A[21] & A[22]);
+        CZ[2] = A[21] ^ (~A[22] & A[23]);
+        CZ[3] = A[22] ^ (~A[23] & A[24]);
+        CZ[4] = A[23] ^ (~A[24] & A[20]);
+        A[24] = CZ[0];
+        A[20] = CZ[1];
+        A[21] = CZ[2];
+        A[22] = CZ[3];
+        A[23] = CZ[4];
 
         /* ι(χ(π(ρ(θ(A)))): Add round constant */
         A[0] ^= keccak_rcs[i];
@@ -388,7 +482,6 @@ void shake256_wipe(Keccak_state* state)
 
 void shake128(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen)
 {
-
     Keccak_state state;
 
     size_t blocks = outlen / SHAKE128_RATE;
@@ -402,7 +495,6 @@ void shake128(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen)
 
 void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen)
 {
-
     Keccak_state state;
 
     size_t blocks = outlen / SHAKE256_RATE;
@@ -444,7 +536,7 @@ void sha3_512_init(Keccak_state* state)
 
 void sha3_512_update(Keccak_state* state, const void* data, size_t len)
 {
-    keccak_sponge_absorb_update(state, (const uint8_t*)data, len, SHA3_512_RATE);
+    keccak_sponge_absorb_update(state, (const uint8_t*) data, len, SHA3_512_RATE);
 }
 
 void sha3_512_final(uint8_t md[64], Keccak_state* state)

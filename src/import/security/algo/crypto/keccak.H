@@ -25,7 +25,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // EKB-Mirror-To: hw/ppe
 
-#pragma once
+#ifndef MLCA_KECCAK_H
+#define MLCA_KECCAK_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -173,3 +174,6 @@ void shake256_squeezeblocks(uint8_t* out, size_t nblocks, Keccak_state* state);
  * SHAKE256 final state wipe
 */
 void shake256_wipe(Keccak_state* state);
+
+
+#endif
