@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2021
+# Contributors Listed Below - COPYRIGHT 2017,2024
 # [+] International Business Machines Corp.
 #
 #
@@ -97,7 +97,7 @@ def main(argv):
         # Create binaries folder
         run_system_cmd('mkdir -p '+sbe_binary_dir)
         for ecLevel, ddLevel in p10_EC.items():
-            #Sign SBE image
+            # Sign SBE image
             run_system_cmd(img_dir + '/signSbeImage -s ' + img_dir + "/sbeScratchDir -i " + img_dir + '/' + 'sbe_seeprom_' + ddLevel + '.bin -t ' + img_dir + "/ipl_image_tool -d " + img_dir)
 
             # Copy sbe seeprom binary to binaries folder.
@@ -116,10 +116,10 @@ def main(argv):
             # Copy sbe raw binary to scratch folder for HW.
             run_system_cmd('cp '+sbe_binary_dir+'/'+basename+'.bin'+' '+scratch_dir+'/'+basename+'.bin')
 
-            #Delete ring section from sbeSeepromImage
+            # Delete ring section from sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + scratch_dir+'/'+basename+'.bin' + " delete .rings" )
 
-            #add pnor header
+            # Add pnor header
             run_system_cmd("env echo -en VERSION\\\\0 > "+scratch_dir+"/"+basename+".sha.bin")
             run_system_cmd("sha512sum "+scratch_dir+"/"+basename+".bin | awk '{print $1}' | xxd -pr -r >> "+scratch_dir+"/"+basename+".sha.bin")
             run_system_cmd("dd if="+scratch_dir+"/"+basename+".sha.bin of="+scratch_dir+"/"+basename+".hdr.bin ibs=4k conv=sync")
@@ -131,37 +131,49 @@ def main(argv):
 
     elif (mode == "SIMICS"):
         for ecLevel, ddLevel in p10_EC.items():
-
-            #Update HBBL and ECC to SBE BOOT SEEPROM and MEASUREMENT SEEPROM.
+            # Update HBBL and ECC to SBE BOOT SEEPROM and MEASUREMENT SEEPROM.
             sbeSeepromImage = sbe_binary_dir + "/p10_10.sbe_seeprom.bin"
             sbeSeepromImageEcc = sbeSeepromImage + ".ecc"
             sbeMeasurementSeepromImage = sbe_binary_dir + "/sbe_measurement_seeprom.bin"
             sbeMeasurementSeepromImageEcc = sbeMeasurementSeepromImage + ".ecc"
-            hbbl = scratch_dir + "/HBBL.staged"
-            hbblHeader = scratch_dir + "/HBBL.header"
-            hbblHeaderStripped = scratch_dir + "/HBBL.header.stripped"
 
-            #Delete HBBL from sbeSeepromImage
+            hbbl = scratch_dir + "/HBBL.staged"
+            # V1 HBBL header
+            v1_hbblHeader = scratch_dir + "/HBBL.header"
+            v1_hbblHeaderStripped = scratch_dir + "/HBBL.header.stripped"
+
+            # V3 HBBL header
+            v3_hbblHeader = scratch_dir + "/V3" +"/HBBL.header"
+
+            # Delete HBBL from sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .hbbl" )
 
-            #Append HBBL into sbeSeepromImage
-            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .hbbl " + hbbl )
+            # Append v1 HBBL into sbeSeepromImage
+            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .hbbl " + hbbl)
 
-            #Strip HBBL.header to 1288 bytes
-            run_system_cmd("dd bs=1 count=1288 if=" + hbblHeader + " of=" + hbblHeaderStripped)
+            # Strip V1 HBBL.header to 1288 bytes
+            run_system_cmd("dd bs=1 count=1288 if=" + v1_hbblHeader + " of=" + v1_hbblHeaderStripped)
 
-            #Append HBBL into.header into sbeSeepromImage
+            # Copying stripped v1 header in to some common header
+            run_system_cmd(" cat " + v1_hbblHeaderStripped + " > " + scratch_dir + "/V1_V3_HBBL_FW_SECUREHEADER")
+
+            # Deleting v1 striped header
+            run_system_cmd(" rm -f " +  v1_hbblHeaderStripped)
+
+            # Copying v3 header in to some common header
+            run_system_cmd(" cat " + v3_hbblHeader + " >> " + scratch_dir + "/V1_V3_HBBL_FW_SECUREHEADER")
+
+            # Append HBBL into.header into sbeSeepromImage
             run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " delete .sbh_hbbl" )
-            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .sbh_hbbl " + hbblHeaderStripped )
-            run_system_cmd("rm -f " +  hbblHeaderStripped)
+            run_system_cmd(img_dir + "/ipl_image_tool " + sbeSeepromImage + " append .sbh_hbbl " + scratch_dir + "/V1_V3_HBBL_FW_SECUREHEADER" )
 
-            #Inject ECC into sbeSeepromImage
+            # Inject ECC into sbeSeepromImage
             run_system_cmd( "ecc --p8 --inject " + sbeSeepromImage + " --output " + sbeSeepromImageEcc )
 
-            #Inject ECC into sbeMeasurementSeepromImage
+            # Inject ECC into sbeMeasurementSeepromImage
             run_system_cmd( "ecc --p8 --inject " + sbeMeasurementSeepromImage + " --output " + sbeMeasurementSeepromImageEcc )
 
-        #Create the sbe_sim_path directory.
+        # Create the sbe_sim_path directory.
         sbe_sim_data = sbe_binary_dir + "/../sbe_sim_data"
         sbeOpToolsRegister.exportFiles(sbe_sim_data, img_dir)
 
