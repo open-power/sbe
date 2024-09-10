@@ -86,7 +86,7 @@ bool writeandverifytruncatedsha512(uint32_t regs[], int regCount, SHA512truncate
         if(scom_value != hashData)
         {
             SBEV_ERROR(" Verification of register %08X has failed.", regs[i]);
-            SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]", 
+            SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]",
                             SBE::higher32BWord(hashData), SBE::lower32BWord(hashData), SBE::higher32BWord(scom_value) , SBE::lower32BWord(scom_value));
             resp = false;
             break;
@@ -108,7 +108,7 @@ bool writeandverifysecuritySwitchReg(uint32_t reg, securitySwitchReg_PCR1_t secu
     if(data != scom_value)
     {
         SBEV_ERROR(" Verification of register %08X has failed.", reg);
-        SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]", 
+        SBEV_ERROR(" Write data: [0x%08X %08X], read data: [0x%08X %08X]",
                         SBE::higher32BWord(data), SBE::lower32BWord(data), SBE::higher32BWord(scom_value) , SBE::lower32BWord(scom_value));
         resp = false;
     }
@@ -191,8 +191,8 @@ void sbevthreadroutine(void *i_pArg)
     uint32_t isSecureHdrPassed = 0;
     uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
     uint32_t fapirc = 0;
-    bool respsbeFw;
-    bool resp;
+    bool respsbeFw = false;
+    bool resp = false;
 
     // Initialize heap space
     Heap::get_instance().initialize();
@@ -320,9 +320,17 @@ void sbevthreadroutine(void *i_pArg)
             sbeFwSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_BASE,
                                                    calPayloadHashBase,
                                                    shPayloadHashBase);
-        }
 
-        memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &calPayloadHashBase, sizeof(SHA512truncated_t));
+            // Update measurement only Secure header verification success and irrespective of payload hash verification
+            memcpy(&sbeFwSecureHdrResponse.sha512Truncated, &calPayloadHashBase, sizeof(SHA512truncated_t));
+            // Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
+            SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
+            respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
+            if(respsbeFw == false)
+            {
+                UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
+            }
+        }
 
         if( sbeFwSecureHdrRsp == ROM_DONE )
         {
@@ -385,7 +393,7 @@ void sbevthreadroutine(void *i_pArg)
         }
 
         // reserve the space for bss area.
-        //      we are re-using iv_L2LoaderAddr for storing the bss space required
+        // we are re-using iv_L2LoaderAddr for storing the bss space required
         uint32_t bssSpaceReqd = bSeepromHdr->iv_L2LoaderAddr;
         SBEV_INFO(SBEV_FUNC "bssSpaceReqd=0x%08X", bssSpaceReqd);
         if(endOffset + bssSpaceReqd > (uint32_t)(&_base_origin))
@@ -449,9 +457,17 @@ void sbevthreadroutine(void *i_pArg)
             sbeHbblSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_HBBL,
                                                      calPayloadHashHbbl,
                                                      shPayloadHashHbbl);
-        }
 
-        memcpy(&hbblSecureHdrResponse.sha512Truncated, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
+            // Update measurement only Secure header verification success and irrespective of payload hash verification
+            memcpy(&hbblSecureHdrResponse.sha512Truncated, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
+            //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
+            SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
+            resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
+            if(resp == false)
+            {
+                UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
+            }
+        }
 
         loadValue = (uint64_t)(SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
@@ -554,21 +570,6 @@ void sbevthreadroutine(void *i_pArg)
         // Update the size;
         BASE_IMG_TOC->buildTag_size = BUILD_TAG_LENGTH;
 
-        //Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
-        SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
-        respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
-        if(respsbeFw == false)
-        {
-            UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
-        }
-
-        //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
-        SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
-        resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
-        if(resp == false)
-        {
-            UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
-        }
         //Check if TPM Deconfig bit is set.(Write the updated value into otprom
         //regs and TPM)
         getscom_abs(0x10005, &securityReg());
