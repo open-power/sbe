@@ -62,7 +62,7 @@ sb_helptext()
         echo "  and inserted into respective XIP section of SBE base image."
         echo "  ./sb workon"
         echo "  Please enter secure header version with -v option as below..."
-        echo "  ./sb cronus -v v1/v2"
+        echo "  ./sb cronus -v v1/v3"
         ;;
     simsetup)
         echo "  Topic 'Patch simics action files on fips Sandbox'"

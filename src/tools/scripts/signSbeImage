@@ -28,7 +28,7 @@
 set -e
 
 # Tool version , Update tool version based on release
-TOOL_VERSION=1
+TOOL_VERSION=2
 
 # @brief Checks whether the file that is the input argument exists on the file
 # system. The function
@@ -89,7 +89,7 @@ usage()
     echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
     echo "  -d: SBE Image Dir path in op-build"
     echo "  -f: signing Mode. Production/Development(Default)"
-    echo "  -v: Secure Boot Mode is v1/v2(v1 is default)"
+    echo "  -v: Secure Boot Mode is v1/v3(v3 is default)"
 }
 
 while getopts "h?s:i:t:b:d:S:f:v:" opt;
@@ -171,18 +171,18 @@ if [ -z $SECUREBOOT_MODE ]; then
     SECUREBOOT_MODE="${SECUREBOOT_MODE:-v1}" #Default Secure Boot Mode (v1 secure header).
 fi
 
-# Secure boot mode, it could be either v1 or v2
+# Secure boot mode, it could be either v1 or v3
 echo "***INFO | SBE | signSbeImage : Secure boot mode ... $SECUREBOOT_MODE"
 
 # Based on user input , selecting secure boot mode , default is v1 secure mode
-# Note: No other input expected from user apart from v1 or v2
+# Note: No other input expected from user apart from v1 or v3
 if [ "$SECUREBOOT_MODE" == "v1" ]; then
     # If v1 secure header Secure Boot Mode => 0x0
     SB_MODE="\x00"
 
-elif [ "$SECUREBOOT_MODE" == "v2" ] ;then
-    # If v2 secure header Secure Boot Mode => 0x1
-    SB_MODE="\x01"
+elif [ "$SECUREBOOT_MODE" == "v3" ] ;then
+    # If v3 secure header Secure Boot Mode => 0x2
+    SB_MODE="\x02"
 
 else
     echo "***ERROR | SBE | signSbeImage : Invalid secure boot mode : $SECUREBOOT_MODE. Please supply the -v option."
@@ -192,24 +192,24 @@ fi
 
 SIGNING_DIR=
 V1_DEV_KEY_DIR=
-V2_DEV_KEY_DIR=
+V3_DEV_KEY_DIR=
 V1_SIGNTOOL_ARGS=
-V2_SIGNTOOL_ARGS=
+V3_SIGNTOOL_ARGS=
 
 # Determine if our path setup has been provided by the environment
 if [ ! -z $SIGNING_BASE_DIR ]; then
-    echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment for V1/v2 signing"
+    echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment for V1/v3 signing"
     RH_DIR=`sed "s/^.*release \([0-9]*\).*$/rh\1/" /etc/redhat-release`
     SIGNING_DIR=$SIGNING_BASE_DIR/$RH_DIR/$SIGNING_UTILS_DIR
     V1_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
-    V2_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
+    V3_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
 
 elif [ -z $SBE_IMG_DIR_OP ]; then
 
     if [ -n $SIGNING_RHEL_PATH ]; then
         echo "***INFO | SBE | signSbeImage : Not OP_build. Fetching keys and signing scripts."
         V1_DEV_KEY_DIR=${SIGNING_RHEL_PATH}/sb-signing-utils/test/keys/
-        V2_DEV_KEY_DIR=${SIGNING_RHEL_PATH}/sb-signing-utils/test/v2_keys/
+        V3_DEV_KEY_DIR=${SIGNING_RHEL_PATH}/sb-signing-utils/test/v3_keys/
         SIGNING_DIR=${SIGNING_RHEL_PATH}/bin/
     else
         echo "***ERROR | SBE | SIGNING_RHEL_PATH env var is not defined"
@@ -219,7 +219,7 @@ elif [ -z $SBE_IMG_DIR_OP ]; then
 else
     echo "***INFO | SBE | signSbeImage : OP_build. Fetching keys and signing scripts from OP-Build Tree"
     V1_DEV_KEY_DIR=${HOST_DIR}/etc/keys/
-    V2_DEV_KEY_DIR=${HOST_DIR}/etc/v2_keys/
+    V3_DEV_KEY_DIR=${HOST_DIR}/etc/v3_keys/
     SIGNING_DIR=${HOST_DIR}/usr/bin/
 fi
 
@@ -246,15 +246,16 @@ V1_SIGNTOOL_ARGS="$V1_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
                 --hwKeyA ${V1_DEV_KEY_DIR}/hw_key_a.key --hwKeyB ${V1_DEV_KEY_DIR}/hw_key_b.key \
                 --hwKeyC ${V1_DEV_KEY_DIR}/hw_key_c.key --swKeyP ${V1_DEV_KEY_DIR}/sw_key_p.key "
 
-#Set flag basis Development or production mode.
-# Only v2 will be production signed.
+# Set flag basis Development or production mode.
+# Only v3 will be production signed.
+# V1 can only be imprint signed
 if [ "$SIGNING_MODE" = "Development" ]; then
     echo "***INFO | SBE | signSbeImage : Development Mode Signing"
-    V2_SIGNTOOL_ARGS="$V2_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
-                    --hwKeyA ${V2_DEV_KEY_DIR}/runtime_hw_key_a.key  \
-                    --hwKeyD ${V2_DEV_KEY_DIR}/runtime_hw_key_d.key  \
-                    --swKeyP ${V2_DEV_KEY_DIR}/runtime_sw_key_p.key  \
-                    --swKeyS ${V2_DEV_KEY_DIR}/runtime_sw_key_s.key  "
+    V3_SIGNTOOL_ARGS="$V3_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
+                    --hwKeyA ${V3_DEV_KEY_DIR}/runtime_hw_key_a.key  \
+                    --hwKeyD ${V3_DEV_KEY_DIR}/runtime_hw_key_d.key  \
+                    --swKeyP ${V3_DEV_KEY_DIR}/runtime_sw_key_p.key  \
+                    --swKeyS ${V3_DEV_KEY_DIR}/runtime_sw_key_s.key  "
 
 elif [ "$SIGNING_MODE" = "Production" ] ||
      [ "$SIGNING_MODE" = "production" ]; then
@@ -269,7 +270,7 @@ elif [ "$SIGNING_MODE" = "Production" ] ||
         exit -1
     fi
 
-    V2_SIGNTOOL_ARGS="$V2_SIGNTOOL_ARGS --mode production --flags 0x40000000 \
+    V3_SIGNTOOL_ARGS="$V3_SIGNTOOL_ARGS --mode production --flags 0x40000000 \
                 --hwKeyA __getkey --hwKeyD __getkey --swKeyP __get --swKeyS __get \
                 --sign-project-config $SB_PROJECT_INI --archiveIn $SB_ARCHIVE_IN"
 
@@ -306,10 +307,10 @@ check_path ${V1_DEV_KEY_DIR}/hw_key_a.key
 check_path ${V1_DEV_KEY_DIR}/hw_key_b.key
 check_path ${V1_DEV_KEY_DIR}/hw_key_c.key
 check_path ${V1_DEV_KEY_DIR}/sw_key_p.key
-check_path ${V2_DEV_KEY_DIR}/runtime_hw_key_a.key
-check_path ${V2_DEV_KEY_DIR}/runtime_hw_key_d.key
-check_path ${V2_DEV_KEY_DIR}/runtime_sw_key_p.key
-check_path ${V2_DEV_KEY_DIR}/runtime_sw_key_s.key
+check_path ${V3_DEV_KEY_DIR}/runtime_hw_key_a.key
+check_path ${V3_DEV_KEY_DIR}/runtime_hw_key_d.key
+check_path ${V3_DEV_KEY_DIR}/runtime_sw_key_p.key
+check_path ${V3_DEV_KEY_DIR}/runtime_sw_key_s.key
 check_path ${IPL_IMAGE_TOOL}
 check_path ${SBEBINSIMIMAGE}
 check_path ${SIGNING_DIR}/crtSignedContainer.sh
@@ -339,23 +340,23 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
     dd bs=1 count=1288 if=${SCRATCH_DIR}/V1_SBE_HBBL.header of=${SCRATCH_DIR}/V1_SBE_HBBL_stripped.header
 
     # copy v1 secure header content in final header file
-    cat ${SCRATCH_DIR}/V1_SBE_HBBL_stripped.header > ${SCRATCH_DIR}/V1_V2_HBBL_FW_SECURE.header
+    cat ${SCRATCH_DIR}/V1_SBE_HBBL_stripped.header > ${SCRATCH_DIR}/V1_V3_HBBL_FW_SECURE.header
 
-    # Sign the .hbbl binary for v2
-    CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V2_SIGNTOOL_ARGS \
+    # Sign the .hbbl binary for v3
+    CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V3_SIGNTOOL_ARGS \
         --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin \
-        --contrHdrOut ${SCRATCH_DIR}/V2_SBE_HBBL.header \
-        --security-version $SV --validate -V 2"
+        --contrHdrOut ${SCRATCH_DIR}/V3_SBE_HBBL.header \
+        --security-version $SV --validate -V 3"
     echo "$CMD"
     $CMD
 
-    # Appending v2 secure header in final header file
-    cat ${SCRATCH_DIR}/V2_SBE_HBBL.header >> ${SCRATCH_DIR}/V1_V2_HBBL_FW_SECURE.header
+    # Appending v3 secure header in final header file
+    cat ${SCRATCH_DIR}/V3_SBE_HBBL.header >> ${SCRATCH_DIR}/V1_V3_HBBL_FW_SECURE.header
 
-    # Append the stripped V1_V2_HBBL_FW_SECURE.header into .sbh_hbbl xip section
+    # Append the stripped V1_V3_HBBL_FW_SECURE.header into .sbh_hbbl xip section
     echo "Appending secure header into .sbh_hbbl xip section"
     $IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sbh_hbbl
-    $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_hbbl $SCRATCH_DIR/V1_V2_HBBL_FW_SECURE.header || exit -1
+    $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_hbbl $SCRATCH_DIR/V1_V3_HBBL_FW_SECURE.header || exit -1
 
 elif [ "$BUILD_TYPE" = "PNOR" ]; then
 
@@ -392,26 +393,26 @@ echo "Strip V1_SBE_FW.header content"
 dd bs=1 count=1288 if=${SCRATCH_DIR}/V1_SBE_FW.header of=${SCRATCH_DIR}/V1_SBE_FW_stripped.header
 
 # Copy v1 secure header content in final header file
-cat ${SCRATCH_DIR}/V1_SBE_FW_stripped.header > ${SCRATCH_DIR}/V1_V2_SBE_FW_SECURE.header
+cat ${SCRATCH_DIR}/V1_SBE_FW_stripped.header > ${SCRATCH_DIR}/V1_V3_SBE_FW_SECURE.header
 
-# Sign the SBE firmware binary image(payload.bin) for v2 secure header
-CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V2_SIGNTOOL_ARGS \
+# Sign the SBE firmware binary image(payload.bin) for v3 secure header
+CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V3_SIGNTOOL_ARGS \
     --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin \
-    --contrHdrOut ${SCRATCH_DIR}/V2_SBE_FW.header \
-    --security-version $SV --validate -V 2"
+    --contrHdrOut ${SCRATCH_DIR}/V3_SBE_FW.header \
+    --security-version $SV --validate -V 3"
 echo "$CMD"
 $CMD
 
-# Appending v2 secure header in final header file
-cat ${SCRATCH_DIR}/V2_SBE_FW.header >> ${SCRATCH_DIR}/V1_V2_SBE_FW_SECURE.header
+# Appending v3 secure header in final header file
+cat ${SCRATCH_DIR}/V3_SBE_FW.header >> ${SCRATCH_DIR}/V1_V3_SBE_FW_SECURE.header
 
-# Append the V1_V2_SBE_FW_SECURE.header into .sbh_firmware xip section
+# Append the V1_V3_SBE_FW_SECURE.header into .sbh_firmware xip section
 echo "Appending secure header into .sbh_firmware xip section"
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sbh_firmware
-$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/V1_V2_SBE_FW_SECURE.header || exit -1
+$IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/V1_V3_SBE_FW_SECURE.header || exit -1
 
 # Converting secure boot mode from lower case to upper case
-# To simplifies HW key has generation for v1 and v2
+# To simplifies HW key has generation for v1 and v3
 declare -u HW_KEY_HASH=$SECUREBOOT_MODE
 
 # Hash of the HW keys. Fetch the value from any of the secure container which is created.

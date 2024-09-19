@@ -45,7 +45,7 @@ export RH_MACHINE_VERSION=$(cat /etc/redhat-release 2>&1 | grep -Po '(?<=release
 if [ "$RH_MACHINE_VERSION" == "7" ]; then
     export SIGNING_RHEL_PATH=/gsa/rchgsa/home/c/e/cengel/signtool/RHEL7/
 elif [ "$RH_MACHINE_VERSION" == "8" ]; then
-    export SIGNING_RHEL_PATH=/gsa/rchgsa/home/c/e/cengel/signtool/RHEL8/
+    export SIGNING_RHEL_PATH=/gsa/rchgsa/home/c/e/cengel/signtool_v3/RHEL8/
 else
     echo "Error: Machine not supported for Signing script"
 fi

@@ -83,7 +83,7 @@ def main():
         print(" \t  -n,--no_build  = [ Optional ] Flag to determine if sbei component should be compiled")
         print(" \t  -m,--simicsPath    = [ Optional ] Path to create the simics folder")
         print(" \t  -b,--hbStandalone  = [ Optional ] Flag to determine if sb prime is for sbe or HBstnadalone")
-        print(" \t  -v,--securebootmode  = v2 / v1 (default) secure header v1 and v2 are case sensitive ")
+        print(" \t  -v,--securebootmode  = v1 / v3 (default) secure header v1 and v3 are case sensitive ")
         print(" \t  -h,--help      = Help")
         print("------------------------------------------------------------------------------------")
 
@@ -121,7 +121,7 @@ def main():
     ddlevel      = "None"
     hbStandalone = "0"
     simicsPath   = "simics"
-    secureBootMode = "v2"
+    secureBootMode = "v3" # v3 is default
 
     #----------------------------
     # Read command line args
