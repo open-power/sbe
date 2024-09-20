@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -69,7 +69,7 @@ typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
             putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg)
 
 #define UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(err_code) \
-            UPDATE_ERROR_REG_HBBL(err_code);     \
+            UPDATE_ERROR_REG_VERIFICATION_STATUS(err_code);     \
             pk_halt()
 
 //Secure boot status Mailbox scratch 11 (SCOM x50182)

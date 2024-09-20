@@ -185,14 +185,15 @@ void sbevthreadroutine(void *i_pArg)
     securitySwitchReg_PCR1_t securitySwitchReg_PCR1;
     SHA512truncated_t sha512Truncated;
     secureBootStatus_t secureBootStatus;
-    ROM_response sbeFwSecureHdrRsp;
-    ROM_response sbeHbblSecureHdrRsp;
+    ROM_response sbeFwSecureHdrRsp = ROM_FAILED;
+    ROM_response sbeHbblSecureHdrRsp = ROM_FAILED;
     fapi2::buffer<uint64_t> securityReg;
     uint32_t isSecureHdrPassed = 0;
     uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
     uint32_t fapirc = 0;
     bool respsbeFw = false;
     bool resp = false;
+    bool isSecureBootModeIsValid = true;
 
     // Initialize heap space
     Heap::get_instance().initialize();
@@ -227,10 +228,11 @@ void sbevthreadroutine(void *i_pArg)
         // Secure Boot mode
         SB_SETTING_SB_MODES sbMode = (SB_SETTING_SB_MODES)l_hw_parms.sbMode;
         SBEV_INFO(SBEV_FUNC " SB_MODE in .sb_setting [%d]" sbMode);
-        if (sbMode >= SB_MODE_INVALID)
+        if ((sbMode == SB_MODE_V2) || (sbMode >= SB_MODE_INVALID))
         {
+            isSecureBootModeIsValid = false;
             SBEV_ERROR(SBEV_FUNC " Invalid sb_mode in .sb_setting [%d]" sbMode);
-            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(SB_SETTING_INVALID_MODE);
+            UPDATE_ERROR_REG_SBEFW(SB_SETTING_INVALID_MODE);
         }
 
         // Declaring the variable for storing fw and hbbl payload calculated hash
@@ -248,15 +250,22 @@ void sbevthreadroutine(void *i_pArg)
         SBEV_INFO(SBEV_FUNC ".base actual xip payload size =%u", xipPayloadSizeBase);
         alignedPayloadSize = ALIGN_8_BYTE_CIELING(xipPayloadSizeBase);
         SBEV_INFO(SBEV_FUNC ".base aligned xip payload size=%u", alignedPayloadSize);
-        SBEV_INFO(SBEV_FUNC "Verify SBE-FW secure header.");
-        sbeFwSecureHdrRsp = verifySecureHdr( P9_XIP_SECTION_SBE_SBH_FIRMWARE,
+
+        // Skip verify SBE FW secure header in case if secure boot mode is not v1 or v3
+        if (isSecureBootModeIsValid)
+        {
+            SBEV_INFO(SBEV_FUNC "Verify SBE-FW secure header.");
+            sbeFwSecureHdrRsp = verifySecureHdr( P9_XIP_SECTION_SBE_SBH_FIRMWARE,
                                              l_hw_parms,
                                              VERIFY_HW_SIG_C_SBE_FW,
                                              &shPayloadHashBase,
                                              alignedPayloadSize,
                                              &sbeFwSecureHdrResponse);
-        SBEV_INFO(SBEV_FUNC "Completed SBE-FW secure header verification. Response: [0x%08x] Status: [0x%02x]",
-            sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
+
+            SBEV_INFO(SBEV_FUNC "Completed SBE-FW secure header verification. Response: [0x%08x] Status: [0x%02x]",
+                      sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
+
+        }
 
         // hbbl secure header verification
         // hbbl payload size
@@ -264,24 +273,29 @@ void sbevthreadroutine(void *i_pArg)
         uint32_t hbblPayloadSize = 0;
         xipPayloadSizeHbbl = hbblPayloadSize = getXipSize(P9_XIP_SECTION_SBE_HBBL);
 
-        SBEV_INFO(SBEV_FUNC " Verifying HBBL secure header");
-        sbeHbblSecureHdrRsp = verifySecureHdr(
-                                P9_XIP_SECTION_SBE_SBH_HBBL,
-                                l_hw_parms,
-                                VERIFY_HW_SIG_A_HBBL,
-                                &shPayloadHashHbbl,
-                                hbblPayloadSize,
-                                &hbblSecureHdrResponse);
-        if( sbeHbblSecureHdrRsp == ROM_FAILED )
+        // Skip verify HBBL FW secure header in case if secure boot mode is not v1 or v3
+        if (isSecureBootModeIsValid)
         {
-            SBEV_ERROR(SBEV_FUNC "HBBL Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
-                sbeHbblSecureHdrRsp, hbblSecureHdrResponse.statusCode);
-            UPDATE_ERROR_REG_HBBL(hbblSecureHdrResponse.statusCode);
-        }
-        else
-        {
-            SBEV_INFO(SBEV_FUNC "Completed HBBL secure header verification. Response:[0x%08x] Status:[0x%02x]",
-                sbeHbblSecureHdrRsp, hbblSecureHdrResponse.statusCode);
+            SBEV_INFO(SBEV_FUNC " Verifying HBBL secure header");
+            sbeHbblSecureHdrRsp = verifySecureHdr(
+                                    P9_XIP_SECTION_SBE_SBH_HBBL,
+                                    l_hw_parms,
+                                    VERIFY_HW_SIG_A_HBBL,
+                                    &shPayloadHashHbbl,
+                                    hbblPayloadSize,
+                                    &hbblSecureHdrResponse);
+
+            if( sbeHbblSecureHdrRsp == ROM_FAILED )
+            {
+                SBEV_ERROR(SBEV_FUNC "HBBL Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
+                    sbeHbblSecureHdrRsp, hbblSecureHdrResponse.statusCode);
+                UPDATE_ERROR_REG_HBBL(hbblSecureHdrResponse.statusCode);
+            }
+            else
+            {
+                SBEV_INFO(SBEV_FUNC "Completed HBBL secure header verification. Response:[0x%08x] Status:[0x%02x]",
+                    sbeHbblSecureHdrRsp, hbblSecureHdrResponse.statusCode);
+            }
         }
 
         // Now Copy the base.compressed to just above the data.compressed
@@ -330,6 +344,13 @@ void sbevthreadroutine(void *i_pArg)
             {
                 UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
             }
+        }
+        else
+        {
+            // Update measurement registter with 0xFF in case of failure
+            memset(&sbeFwSecureHdrResponse.sha512Truncated, 0xFF, sizeof(SHA512truncated_t));
+            respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
+
         }
 
         if( sbeFwSecureHdrRsp == ROM_DONE )
@@ -467,6 +488,12 @@ void sbevthreadroutine(void *i_pArg)
             {
                 UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
             }
+        }
+        else
+        {
+            memset(&hbblSecureHdrResponse.sha512Truncated, 0xFF, sizeof(SHA512truncated_t));
+            resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
+
         }
 
         loadValue = (uint64_t)(SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE)<<32;
