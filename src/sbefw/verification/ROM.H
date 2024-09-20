@@ -42,6 +42,15 @@
 #define SB_SETTING_MSV_SIZE         (1U) // 1 Byte
 #define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
 
+/// V3 Secure Header Signature verify
+/// Dilithium public key size (bytes)
+#define DIL_PUBLIC_KEY_SIZE     2600
+
+/// Dilithium signature size (bytes)
+#define DIL_SIG_SIZE            4668
+
+typedef uint8_t dil_crypto_pub_key_t[DIL_PUBLIC_KEY_SIZE];
+typedef uint8_t dil_crypto_signature_t[DIL_SIG_SIZE];
 
 /**
  * @brief SB Setting SB Modes
@@ -62,8 +71,8 @@ enum SECURE_HDR_CONTAINER_SECTION_VERSION : uint16_t
 {
     SECURE_HDR_V1_CONTAINER_VERSION = 0x0001,
     SECURE_HDR_V1_HEADER_VERSION    = 0x0001,
-    SECURE_HDR_V2_CONTAINER_VERSION = 0x0002,
-    SECURE_HDR_V2_HEADER_VERSION    = 0x0002
+    SECURE_HDR_V3_CONTAINER_VERSION = 0x0003,
+    SECURE_HDR_V3_HEADER_VERSION    = 0x0003
 };
 
 /**
@@ -120,7 +129,7 @@ typedef struct
 
 
 /**
- * @brief Secure Header V2 Hardware Header format
+ * @brief Secure Header V3 Hardware Header format
  *
  */
 typedef struct
@@ -130,11 +139,11 @@ typedef struct
   uint64_t        container_size;  // filled by caller
   uint8_t         reserved[6];
   ecc_key_t       hw_pkey_a;
-  dilithium_r2_5_crypto_pub_key_t hw_pkey_d;
+  dil_crypto_pub_key_t hw_pkey_d;
   uint64_t        prefix; // prefix header place holder
   // followed by sw header (if not special prefix)
   // followed by optional unprotected payload data
-}__attribute__((packed)) ROM_v2_container_raw;
+}__attribute__((packed)) ROM_v3_container_raw;
 
 /**
  * @brief Secure header V1 Prefix Header Format
@@ -160,7 +169,7 @@ typedef struct
 
 
 /**
- * @brief Secure header V2 Prefix Header Format
+ * @brief Secure header V3 Prefix Header Format
  *
  */
 typedef struct
@@ -174,9 +183,9 @@ typedef struct
   uint8_t         ecid[ECID_SIZE];
   uint8_t         reserved1[3];
   // followed by prefix data (sig,keys) key raw
-}__attribute__((packed)) ROM_v2_prefix_header_raw;
+}__attribute__((packed)) ROM_v3_prefix_header_raw;
 
-#define V2_PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v2_prefix_header_raw))
+#define V3_PREFIX_HEADER_SIZE(_p) (sizeof(ROM_v3_prefix_header_raw))
 
 /**
  * @brief Secure header V1 Prefix Header HW Signatures and SW/FW PUB Keys
@@ -193,16 +202,16 @@ typedef struct
 }__attribute__((packed)) ROM_v1_prefix_data_raw;
 
 /**
- * @brief Secure Header V2 Prefix Header HW Signatures and SW/FW PUB Keys
+ * @brief Secure Header V3 Prefix Header HW Signatures and SW/FW PUB Keys
  *
  */
 typedef struct
 {
   ecc_signature_t                       hw_sig_a;
-  dilithium_r2_5_crypto_signature_t     hw_sig_d;
+  dil_crypto_signature_t                hw_sig_d;
   ecc_key_t                             sw_pkey_p;
-  dilithium_r2_5_crypto_pub_key_t       sw_pkey_s;
-}__attribute__((packed)) ROM_v2_prefix_data_raw;
+  dil_crypto_pub_key_t                  sw_pkey_s;
+}__attribute__((packed)) ROM_v3_prefix_data_raw;
 
 /**
  * @brief Secure header V1 SW/FW Header format
@@ -228,7 +237,7 @@ typedef struct
 
 
 /**
- * @brief  Secure header V2 SW/FW Header format
+ * @brief  Secure header V3 SW/FW Header format
  *
  */
 typedef struct
@@ -244,9 +253,9 @@ typedef struct
   uint8_t         ecid[ECID_SIZE];
   uint8_t         reserved1[7];
   // followed by sw sig raw
-}__attribute__((packed)) ROM_v2_sw_header_raw;
+}__attribute__((packed)) ROM_v3_sw_header_raw;
 
-#define V2_SW_HEADER_SIZE(_p) (sizeof(ROM_v2_sw_header_raw))
+#define V3_SW_HEADER_SIZE(_p) (sizeof(ROM_v3_sw_header_raw))
 
 
 /**
@@ -264,17 +273,17 @@ typedef struct
 }__attribute__((packed)) ROM_v1_sw_sig_raw;
 
 /**
- * @brief Secure Header V2 SW/FW Header Signatures
+ * @brief Secure Header V3 SW/FW Header Signatures
  *
  */
 typedef struct
 {
   ecc_signature_t                   sw_sig_p;
-  dilithium_r2_5_crypto_signature_t sw_sig_s;
+  dil_crypto_signature_t            sw_sig_s;
   // followed by zero's padding to 10K
   // followed by protected sw payload_data
   // followed by unprotected sw payload_text
-}__attribute__((packed)) ROM_v2_sw_sig_raw;
+}__attribute__((packed)) ROM_v3_sw_sig_raw;
 
 /**
  * @brief Secure Header Verification Response
@@ -422,16 +431,16 @@ const size_t V1_MAX_SECURE_HEADER_SIZE = 4096;
 const size_t V1_SECURE_HEADER_SIZE = 1288;
 
 /**
- * Secure Header V2 macro
+ * Secure Header V3 macro
  *
  */
-const uint16_t ROM_V2_VERSION = 2;
-const uint8_t  ROM_V2_HASH_ALG = 2;
-const uint8_t  ROM_V2_SIG_ALG = 2;
-const uint8_t  V2_SW_KEY_COUNT = 2;
-const size_t   V2_SECURE_HEADER_SIZE = 15360;
-// Sum of Secure header size V1 + V2
-const size_t SECURE_HEADER_SIZE = (V1_SECURE_HEADER_SIZE + V2_SECURE_HEADER_SIZE);
+const uint16_t ROM_V3_VERSION = 3;
+const uint8_t  ROM_V3_HASH_ALG = 2;
+const uint8_t  ROM_V3_SIG_ALG = 3;
+const uint8_t  V3_SW_KEY_COUNT = 2;
+const size_t   V3_SECURE_HEADER_SIZE = 15360;
+// Sum of Secure header size V1 + V3
+const size_t SECURE_HEADER_SIZE = (V1_SECURE_HEADER_SIZE + V3_SECURE_HEADER_SIZE);
 
 // Security Flags
 

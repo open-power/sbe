@@ -135,7 +135,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
             {
                 SHA512_Init(&sha.sha512Ctx);
             }
-            else if(i_sbMode == SB_MODE_V2)
+            else if(i_sbMode == SB_MODE_V3)
             {
                 sha3_init(&sha.sha3Ctx);
             }
@@ -280,7 +280,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
                 {
                     SHA512_Update(&sha.sha512Ctx, buf, readSize);
                 }
-                else if (i_sbMode == SB_MODE_V2)
+                else if (i_sbMode == SB_MODE_V3)
                 {
                     sha3_update(&sha.sha3Ctx, buf, readSize);
                 }
@@ -305,7 +305,7 @@ fapi2::ReturnCode loadSeepromtoPibmem(p9_xip_section_sbe_t i_section,
             {
                 SHA512_Final(&sha.sha512Ctx, (SHA512_t *)o_payloadHash);
             }
-            else if (i_sbMode == SB_MODE_V2)
+            else if (i_sbMode == SB_MODE_V3)
             {
                 sha3_final((sha3_t *)o_payloadHash, &sha.sha3Ctx);
             }

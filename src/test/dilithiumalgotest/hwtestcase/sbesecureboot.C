@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -171,14 +172,14 @@ static int valid_ecid(int ecid_count, uint8_t* ecids, uint8_t* hw_ecid)
     #undef SBEV_FUNC
 }
 
-static int valid_ver2_alg(ROM_version_raw* ver_alg)
+static int valid_ver3_alg(ROM_version_raw* ver_alg)
 {
-    #define SBEV_FUNC " valid_ver2_alg "
+    #define SBEV_FUNC " valid_ver3_alg "
     SBEV_ENTER(SBEV_FUNC);
 
     //Validate header version
     SBEV_INFO("Hdr: Version : %d", get16(&ver_alg->version));
-    if(get16(&ver_alg->version) != SECURE_HDR_V2_HEADER_VERSION)
+    if(get16(&ver_alg->version) != SECURE_HDR_V3_HEADER_VERSION)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad header version");
         return 0;
@@ -718,9 +719,9 @@ static ROM_response ROM_verify( ROM_v1_container_raw* container,
 
 
 /**
- * @brief Verify Secure container V2
+ * @brief Verify Secure container V3
  *
- * @param ROM_v2_container_raw* Pointer to secure container start address
+ * @param ROM_v3_container_raw* Pointer to secure container start address
  * @param ROM_hw_params*     Pointer to HW Keys Hash
  * @param *payload_hash      calculated payload hash to verify with signature (SBE_FW or HBBL Payload hash)
  * @param *payload_size      SBE_FW or HBBL Payload size
@@ -728,19 +729,19 @@ static ROM_response ROM_verify( ROM_v1_container_raw* container,
  *
  * @return Secure container verification response.
  */
-static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
+static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
                          ROM_hw_params* params,
                          sha3_t* payload_hash,
                          uint64_t payload_size,
                          uint32_t *flag)
 {
-    #define SBEV_FUNC " ROM_verify_2 "
+    #define SBEV_FUNC " ROM_verify_3 "
     SBEV_ENTER(SBEV_FUNC);
 
-    ROM_v2_prefix_header_raw *prefix;
-    ROM_v2_prefix_data_raw* hw_data;
-    ROM_v2_sw_header_raw* header;
-    ROM_v2_sw_sig_raw* sw_sig;
+    ROM_v3_prefix_header_raw *prefix;
+    ROM_v3_prefix_data_raw* hw_data;
+    ROM_v3_sw_header_raw* header;
+    ROM_v3_sw_sig_raw* sw_sig;
     sha3_t digest;
 
     //NOTE: Keep the array size 8 byte aligned to overcome sram allignment issues.
@@ -752,7 +753,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
     uint8_t hashDataBuff[hashDataBuffSize]  __attribute__ ((aligned(8))) = {0x00};
     uint64_t size;
 
-    SBEV_INFO(SBEV_FUNC "Secure Header V2 payload_size=%u", payload_size);
+    SBEV_INFO(SBEV_FUNC "Secure Header V3 payload_size=%u", payload_size);
     // params.log is used to pass in a FW minimum Secure Version to
     // compare against the container's sw header's fw_secure_version field
     uint8_t i_fw_msv = static_cast<uint8_t>(params->log);
@@ -769,7 +770,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     //Validate Container Version
     SBEV_INFO("Container Version: 0x%X", get16(&container->version));
-    if(!(get16(&container->version) == SECURE_HDR_V2_CONTAINER_VERSION))
+    if(!(get16(&container->version) == SECURE_HDR_V3_CONTAINER_VERSION))
     {
         SBEV_ERROR (SBEV_FUNC "FAILED : bad container version");
         VERIFY_FAILED(CONTAINER_VERSION_TEST);
@@ -778,8 +779,8 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
     // Validate Container Size
     SBEV_INFO("container->container_size: %d, Calculated container size size: %d",
                         get64(&container->container_size),
-                        (uint32_t)payload_size + V2_SECURE_HEADER_SIZE);
-    if(get64(&container->container_size) != (V2_SECURE_HEADER_SIZE+payload_size))
+                        (uint32_t)payload_size + V3_SECURE_HEADER_SIZE);
+    if(get64(&container->container_size) != (V3_SECURE_HEADER_SIZE+payload_size))
     {
         SBEV_ERROR (SBEV_FUNC "FAILED : bad container size");
         VERIFY_FAILED(CONTAINER_SIZE_TEST);
@@ -800,26 +801,26 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     /*********************** Prefix Hdr Checks ********************************/
     // process prefix header
-    prefix = (ROM_v2_prefix_header_raw*)&container->prefix;
+    prefix = (ROM_v3_prefix_header_raw*)&container->prefix;
     // test for valid header version, hash & signature algorithms (sanity check)
-    if(!valid_ver2_alg(&prefix->ver_alg))
+    if(!valid_ver3_alg(&prefix->ver_alg))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : bad prefix header version or hash/sig algo's");
         VERIFY_FAILED(PREFIX_VER_ALG_TEST);
     }
 
     // valid prefix header signatures (all)
-    hw_data = (ROM_v2_prefix_data_raw*)(prefix->reserved1 + 3);
+    hw_data = (ROM_v3_prefix_data_raw*)(prefix->reserved1 + 3);
 
-    // Validate the V2_PREFIX_HEADER_SIZE fits in our hashDataBuff
-    if (hashDataBuffSize < V2_PREFIX_HEADER_SIZE(prefix))
+    // Validate the V3_PREFIX_HEADER_SIZE fits in our hashDataBuff
+    if (hashDataBuffSize < V3_PREFIX_HEADER_SIZE(prefix))
     {
         VERIFY_FAILED(PREFIX_HEADER_SZ_TEST);
     }
 
     //Calculate Hash of prefix header
-    memcpy_byte(hashDataBuff, prefix, V2_PREFIX_HEADER_SIZE(prefix));
-    sha3(hashDataBuff, V2_PREFIX_HEADER_SIZE(prefix), &digest);
+    memcpy_byte(hashDataBuff, prefix, V3_PREFIX_HEADER_SIZE(prefix));
+    sha3(hashDataBuff, V3_PREFIX_HEADER_SIZE(prefix), &digest);
 
 
     //Verify HW signature A (ECDSA521)
@@ -882,7 +883,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     // test for valid sw key count
     SBEV_INFO("Prefix Hdr: SW Key Count: %d", get8(&prefix->sw_key_count));
-    if (get8(&prefix->sw_key_count) != V2_SW_KEY_COUNT)
+    if (get8(&prefix->sw_key_count) != V3_SW_KEY_COUNT)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : sw key count not equal to 2");
         VERIFY_FAILED(SW_KEY_INVALID_COUNT);
@@ -899,7 +900,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
 
     /************************** SW/FW Hdr Checks ******************************/
     // start processing sw header
-    header = (ROM_v2_sw_header_raw*)(hw_data->sw_pkey_s + sizeof(dilithium_key_t));
+    header = (ROM_v3_sw_header_raw*)(hw_data->sw_pkey_s + sizeof(dilithium_key_t));
 
     // test for fw secure version - compare what was passed in via
     // params.log to what the container's sw header has
@@ -911,7 +912,7 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
     }
 
     // test for valid header version, hash & signature algorithms (sanity check)
-    if(!valid_ver2_alg(&header->ver_alg))
+    if(!valid_ver3_alg(&header->ver_alg))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : bad sw header version or hash/sign algo's");
         VERIFY_FAILED(HEADER_VER_ALG_TEST);
@@ -924,11 +925,11 @@ static ROM_response secureHeaderV2Verification( ROM_v2_container_raw* container,
         VERIFY_FAILED(HEADER_ECID_TEST);
     }
 
-    sw_sig = (ROM_v2_sw_sig_raw*) (header->reserved1 + 7);
+    sw_sig = (ROM_v3_sw_sig_raw*) (header->reserved1 + 7);
 
     //Calculate Hash of SW/FW header
-    memcpy(hashDataBuff, header, V2_SW_HEADER_SIZE(header));
-    sha3(hashDataBuff, V2_SW_HEADER_SIZE(header), &digest);
+    memcpy(hashDataBuff, header, V3_SW_HEADER_SIZE(header));
+    sha3(hashDataBuff, V3_SW_HEADER_SIZE(header), &digest);
 
     // test for valid sw header signatures (all)
     //Verify SW signature P (ECDSA521)
@@ -1018,7 +1019,7 @@ ROM_response verifySecureHdr(
     }
     uint32_t start_address = (uint32_t)container;
     uint32_t endAddress = 0; // dummy variable to keep loadSeepromtoPibmem happy
-    uint32_t size = SECURE_HEADER_SIZE; // Secure header size (V1 + V2)
+    uint32_t size = SECURE_HEADER_SIZE; // Secure header size (V1 + V3)
     uint32_t sectionSize = 0;
     fapirc = loadSeepromtoPibmem( secureHdrXipSection,
                                   start_address,
@@ -1057,10 +1058,10 @@ ROM_response verifySecureHdr(
             break;
         }
 
-        case SB_MODE_V2:
+        case SB_MODE_V3:
         {
-            ROM_v2_container_raw * v2Ptr = (ROM_v2_container_raw *) (container + V1_SECURE_HEADER_SIZE);
-            status = secureHeaderV2Verification( v2Ptr,
+            ROM_v3_container_raw * v3Ptr = (ROM_v3_container_raw *) (container + V1_SECURE_HEADER_SIZE);
+            status = secureHeaderV2Verification( v3Ptr,
                                                  &hw_params,
                                                  (sha3_t*) payload_hash,
                                                  payload_size,
