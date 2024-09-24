@@ -28,32 +28,32 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* Flags to be defined by platform for Dilithium R2 V variant .
-   NO_CRYSTALS_CIP , NO_CRYSTALS_KEX , NO_CRYSTALS_R3,
-   NO_DILITHIUM_R2_3, NO_DILITHIUM_R2_4, USE_DYNAMIC_ALLOC
+/**
+ * Flags to be defined by platform for ML-DSA variant .
+ * - USE_DYNAMIC_ALLOC : To use dynamic memory allocation
+ * - NO_CRYSTALS_CIP, NO_CRYSTALS_KEX : Disable kyber algo
+ * - NO_DILITHIUM_SIGN      : Disable the dilithium sign algo (r2/r3)
+ * - NO_MLDSA_SIGN          : Disable ML-DSA sign algo ()
+ * - NO_DILITHIUM_VERIFY    : Disable the dilithium verify algo (r2/r3)
+ * - NO_MLDSA_VERIFY        : Disable ML-DSA verify algo
+ *
+ * ML-DSA Variant support
+ * - DIL_MLDSA_44
+ * - DIL_MLDSA_65
+ * - DIL_MLDSA_87
+ *
+ * DIL_MLDSA_87 used in this project to verify the signature
+ */
 
-    Dilithium variants supported (K/L):
-        round2
-            Dil III   Dil-5/4
-            Dil IV    Dil-6/5
-            Dil V     Dil-8/7
-*/
+/// Dilithium public key size (bytes) @ref DIL_MLDSA_87_PUB_BYTES
+#define DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE     (2592)
 
-// Dilithium public key size (bytes)
-#define DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE     2336
-
-// Dilithium secrete key size (bytes)
-#define DILITHIUM_R2_5_CRYPTO_SECRETKEY_SIZE     5136
-
-// Dilithium signature size (bytes)
-#define DILITHIUM_R2_5_CRYPTO_SIG_SIZE           4668
-
-typedef uint8_t dilithium_r2_5_crypto_pub_key_t[DILITHIUM_R2_5_CRYPTO_PUBLICKEY_SIZE];
-typedef uint8_t dilithium_r2_5_crypto_signature_t[DILITHIUM_R2_5_CRYPTO_SIG_SIZE];
+/// Dilithium signature size (bytes) @ref DIL_MLDSA_SIGBYTES8x7
+#define DIL_MLDSA_87_CRYPTO_SIG_SIZE           (4627)
 
 
 // Enable of USE_DYNAMIC_ALLOC, The caller must support the mlca_alloc
-// And mlca_free functions, which are used in the r2_verify function
+// And mlca_free functions, which are used by dilithum
 #if defined(USE_DYNAMIC_ALLOC)
     /**
     * @brief Allocate heap space of given size
@@ -76,7 +76,7 @@ typedef uint8_t dilithium_r2_5_crypto_signature_t[DILITHIUM_R2_5_CRYPTO_SIG_SIZE
 #endif
 
 /**
- * @brief Verifies dilithium signature
+ * @brief ML-DSA dilithium verification
  *
  * @param[in] sig Pointer to input signature
  * @param[in] siglen Length of signature
@@ -85,7 +85,8 @@ typedef uint8_t dilithium_r2_5_crypto_signature_t[DILITHIUM_R2_5_CRYPTO_SIG_SIZE
  * @param[in] pk Pointer to bit-packed public key
  * @param[in] pkbytes Length of public key
  *
- * @return > 0 if signature could be verified correctly and 0 otherwise
+ * @return 0 (failure) or >0 (written bytecount)
  */
-int r2_verify(const uint8_t* sig, size_t siglen, const uint8_t* m,
-              size_t mlen, const uint8_t* pk, size_t pkbytes);
+int mldsa_verify(const uint8_t* sig, size_t siglen,
+                 const uint8_t* m, size_t mlen,
+                 const uint8_t* pk, size_t pkbytes);

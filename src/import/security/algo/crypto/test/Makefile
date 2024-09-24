@@ -6,6 +6,7 @@
 # OpenPOWER sbe Project
 #
 # Contributors Listed Below - COPYRIGHT 2024
+# [+] International Business Machines Corp.
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,9 +36,9 @@ CFLAGS = -g -I. -I../ # -Wall
 
 MACROS =  -DNO_CRYSTALS_CIP
 MACROS += -DNO_CRYSTALS_KEX
-MACROS += -DNO_CRYSTALS_R3
-MACROS += -DNO_DILITHIUM_R2_3
-MACROS += -DNO_DILITHIUM_R2_4
+MACROS += -DNO_DILITHIUM_SIGN
+MACROS += -DNO_MLDSA_SIGN
+MACROS += -DNO_DILITHIUM_VERIFY
 
 # Define the directories
 BUILD_DIR = build
@@ -71,103 +72,3 @@ $(BUILD_DIR)/%.o: %.C $(HEADERS)
 clean:
 	rm -rf $(TARGET)
 	rm -rf $(BUILD_DIR)
-
-
-
-
-
-# export SUB_OBJDIR = /sbefw/verification
-# export VPATH = $(SBE_FW_DIR)/core:$(CRYPTO_DIR)
-
-# OBJS = $(addprefix $(OBJDIR)/, $(VERIFICATION_OBJECTS))
-# LIBNAME = libVerification
-
-# include img_defs.mk
-# include verificationfiles.mk
-
-# $(LIBNAME).a: $(OBJS)
-# 	$(AR) crs $(OBJDIR)/$(LIBNAME).a $(OBJDIR)/*.o
-
-# .PHONY: clean verify
-# verify: $(OBJS)
-
-# $(OBJS) $(OBJS:.o=.d): | $(OBJDIR)
-
-# $(OBJDIR):
-# 	mkdir -p $(OBJDIR)
-
-# #clean the kernel directory first, then the application level clean
-# clean:
-# 	rm -fr $(OBJDIR)
-
-# ifneq ($(MAKECMDGOALS),clean)
-# 	include $(OBJS:.o=.d)
-# endif
-
-
-
-
-
-
-# # # Sample Makefile
-# CC=gcc
-# CFLAGS=-g -Wall
-# LIBS=-lm
-
-# # Source files
-# SRCS=main.c mlca.c keccak.c
-# # Object files
-# OBJS=$(SRCS:.c=.o)
-
-# # Executable name
-# EXECUTABLE=main
-
-# # Default target
-# all: $(EXECUTABLE)
-
-# # Linking step
-# $(EXECUTABLE): $(OBJS)
-# 	$(CC) $(OBJS) $(LIBS) -o $@
-
-# # Compilation rules
-# %.o: %.c
-# 	$(CC) $(CFLAGS) -c $< -o $@
-
-# # Clean target
-# clean:
-# 	rm -f $(OBJS) $(EXECUTABLE)
-
-
-
-
-# VPATH = ../
-# TARGET = dilithium
-
-# CC = gcc
-# CFLAGS = -g -I. -I../
-# OBJ_DIR = build
-
-# # Find all .c files in the current directory and directories specified in VPATH
-# SRCS = $(wildcard *.C) $(wildcard ../*.C)
-
-# # Convert source file paths to object file paths in the build directory
-# OBJS = $(patsubst %.C, $(OBJ_DIR)/%.o, $(notdir $(SRCS)))
-
-# # Default target
-# all: $(OBJ_DIR) $(TARGET)
-
-# # Create build directory if it doesn't exist
-# $(OBJ_DIR):
-# 	mkdir -p $(OBJ_DIR)
-
-# # Linking the object files
-# $(TARGET): $(OBJS)
-# 	$(CC) -o $@ $^
-
-# # Compiling .c files to .o files
-# $(OBJ_DIR)/%.o: %.c
-# 	$(CC) $(CFLAGS) -c -lstdc++ $< -o $@
-
-# # Clean up build files
-# clean:
-# 	rm -rf $(OBJ_DIR) $(TARGET)

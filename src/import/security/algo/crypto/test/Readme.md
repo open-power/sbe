@@ -22,7 +22,7 @@ The make command (build) will generate an executable file named dilithium.
         * build  : `make dilithium` (another way of build)
 
 * **To run**:
-    * `./dilithium -t KAT/PQCsignKAT_2528.rsp outputKatRsp.txt`
+    * `./dilithium -t KAT/PQCsignKAT_4896.rsp outputKatRsp.txt`
 
 * **Help**:
     * `./dilithium -h`
