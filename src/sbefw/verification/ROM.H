@@ -44,10 +44,10 @@
 
 /// V3 Secure Header Signature verify
 /// Dilithium public key size (bytes)
-#define DIL_PUBLIC_KEY_SIZE     2600
+#define DIL_PUBLIC_KEY_SIZE     2592
 
 /// Dilithium signature size (bytes)
-#define DIL_SIG_SIZE            4668
+#define DIL_SIG_SIZE            4627
 
 typedef uint8_t dil_crypto_pub_key_t[DIL_PUBLIC_KEY_SIZE];
 typedef uint8_t dil_crypto_signature_t[DIL_SIG_SIZE];
@@ -99,6 +99,7 @@ enum ROM_SIGNATURE_ALGORITHM : uint8_t
 {
     SIG_ALG_ECDSA521            = 0x01,
     SIG_ALG_ECDSA521_DILITHIUM  = 0x02,
+    SIG_ALG_ECDSA521_MLDSA      = 0x03
 };
 
 typedef struct

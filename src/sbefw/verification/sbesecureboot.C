@@ -183,7 +183,7 @@ static int valid_ver3_alg(ROM_version_raw* ver_alg)
 
     //Validate header sign algo version
     SBEV_INFO("Hdr: Sign Algo : %d", get8(&ver_alg->sig_alg));
-    if(get8(&ver_alg->sig_alg) != SIG_ALG_ECDSA521_DILITHIUM)
+    if(get8(&ver_alg->sig_alg) != SIG_ALG_ECDSA521_MLDSA)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad signature algorithm version");
         return 0;
@@ -540,7 +540,7 @@ static ROM_response ROM_verify( ROM_v1_container_raw* container,
  *
  * @return Secure container verification response.
  */
-static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
+static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
                          ROM_hw_params* params,
                          sha3_t* payload_hash,
                          uint64_t payload_size,
@@ -598,7 +598,6 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
     }
 
     //Process HW Keys and verify HW keys Hash
-    // TODO JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
     memcpy(hashDataBuff, &container->hw_pkey_a, (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE));
     sha3(hashDataBuff, (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE), &digest);
 
@@ -643,12 +642,10 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
     }
 
     // Verify HW signature D (Dilithium)
-
-    // TODO JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
     int l_dilithiumResp = 0;
-    // l_dilithiumResp = r2_verify(hw_data->hw_sig_d, DIL_SIG_SIZE,
-    //                             digest, SHA3_DIGEST_LENGTH,
-    //                             container->hw_pkey_d, DIL_PUBLIC_KEY_SIZE);
+    l_dilithiumResp = mldsa_verify(hw_data->hw_sig_d, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+                                digest, SHA3_DIGEST_LENGTH,
+                                container->hw_pkey_d, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
     if(l_dilithiumResp <= 0)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, Dilithium Resp:%d",l_dilithiumResp);
@@ -702,7 +699,6 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
 
     // finish procesing prefix header
     // test for protection of all sw key material (sanity check)
-    // TODO JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
     if(size != (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE))
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : incomplete sw key protection in prefix header");
@@ -712,7 +708,6 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
 
     /************************** SW/FW Hdr Checks ******************************/
     // start processing sw header
-    // TODO JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
     header = (ROM_v3_sw_header_raw*)(hw_data->sw_pkey_s + DIL_PUBLIC_KEY_SIZE);
 
     // test for fw secure version - compare what was passed in via
@@ -753,11 +748,9 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
     }
 
     // Verify SW signature S (Dilithium)
-    // TODO: JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
-    // Pre-req changes
-    // l_dilithiumResp = r2_verify(sw_sig->sw_sig_s, DIL_SIG_SIZE,
-    //                             digest, SHA3_DIGEST_LENGTH,
-    //                             hw_data->sw_pkey_s, DIL_PUBLIC_KEY_SIZE);
+    l_dilithiumResp = mldsa_verify(sw_sig->sw_sig_s, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+                                digest, SHA3_DIGEST_LENGTH,
+                                hw_data->sw_pkey_s, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
     if(l_dilithiumResp <= 0)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, Dilithium Resp:%d",l_dilithiumResp);
@@ -868,8 +861,8 @@ ROM_response verifySecureHdr(
 
         case SB_MODE_V3:
         {
-            ROM_v3_container_raw * v3Ptr = (ROM_v3_container_raw *) (container + V1_SECURE_HEADER_SIZE);
-            status = secureHeaderV2Verification( v3Ptr,
+            ROM_v3_container_raw * v3Ptr = (ROM_v3_container_raw *) ((uint8_t *)container + V1_SECURE_HEADER_SIZE);
+            status = secureHeaderV3Verification( v3Ptr,
                                                  &hw_params,
                                                  (sha3_t*) payload_hash,
                                                  payload_size,
