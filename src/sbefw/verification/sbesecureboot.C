@@ -643,11 +643,12 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
     }
 
     // Verify HW signature D (Dilithium)
-    int l_dilithiumResp = 0;
+
     // TODO JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
-    l_dilithiumResp = r2_verify(hw_data->hw_sig_d, DIL_SIG_SIZE,
-                                digest, SHA3_DIGEST_LENGTH,
-                                container->hw_pkey_d, DIL_PUBLIC_KEY_SIZE);
+    int l_dilithiumResp = 0;
+    // l_dilithiumResp = r2_verify(hw_data->hw_sig_d, DIL_SIG_SIZE,
+    //                             digest, SHA3_DIGEST_LENGTH,
+    //                             container->hw_pkey_d, DIL_PUBLIC_KEY_SIZE);
     if(l_dilithiumResp <= 0)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, Dilithium Resp:%d",l_dilithiumResp);
@@ -753,10 +754,10 @@ static ROM_response secureHeaderV2Verification( ROM_v3_container_raw* container,
 
     // Verify SW signature S (Dilithium)
     // TODO: JIRA: PFSBE-1147 DIL_SIG_SIZE and DIL_PUBLIC_KEY_SIZE will accordingly
-    l_dilithiumResp = r2_verify(sw_sig->sw_sig_s, DIL_SIG_SIZE,
-                                digest, SHA3_DIGEST_LENGTH,
-                                hw_data->sw_pkey_s, DIL_PUBLIC_KEY_SIZE);
-
+    // Pre-req changes
+    // l_dilithiumResp = r2_verify(sw_sig->sw_sig_s, DIL_SIG_SIZE,
+    //                             digest, SHA3_DIGEST_LENGTH,
+    //                             hw_data->sw_pkey_s, DIL_PUBLIC_KEY_SIZE);
     if(l_dilithiumResp <= 0)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, Dilithium Resp:%d",l_dilithiumResp);
