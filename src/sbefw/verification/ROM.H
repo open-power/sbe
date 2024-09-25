@@ -43,14 +43,14 @@
 #define SB_SETTING_SB_MODE_SIZE     (1U) // 1 Byte
 
 /// V3 Secure Header Signature verify
-/// Dilithium public key size (bytes)
-#define DIL_PUBLIC_KEY_SIZE     2592
+/// ML-DSA public key size (bytes)
+#define MLDSA_PUBLIC_KEY_SIZE     2592
 
-/// Dilithium signature size (bytes)
-#define DIL_SIG_SIZE            4627
+/// ML-DSA signature size (bytes)
+#define MLDSA_SIG_SIZE            4627
 
-typedef uint8_t dil_crypto_pub_key_t[DIL_PUBLIC_KEY_SIZE];
-typedef uint8_t dil_crypto_signature_t[DIL_SIG_SIZE];
+typedef uint8_t mldsa_pub_key_t[MLDSA_PUBLIC_KEY_SIZE];
+typedef uint8_t mldsa_signature_t[MLDSA_SIG_SIZE];
 
 /**
  * @brief SB Setting SB Modes
@@ -106,7 +106,7 @@ typedef struct
 {
   uint16_t     version;     // (1: see versions above)
   uint8_t      hash_alg;    // (1: SHA-512, 2: SHA3-512)
-  uint8_t      sig_alg;     // (1: SHA-512/ECDSA-521, 2: SHA3-512,ECDSA 521/Dilithium)
+  uint8_t      sig_alg;     // (1: SHA-512/ECDSA-521, 2: SHA3-512,ECDSA 521/Dilithium, 3: SHA3-512,ECDSA 521/ML-DSA)
 }__attribute__((packed)) ROM_version_raw;
 
 /**
@@ -140,7 +140,7 @@ typedef struct
   uint64_t        container_size;  // filled by caller
   uint8_t         reserved[6];
   ecc_key_t       hw_pkey_a;
-  dil_crypto_pub_key_t hw_pkey_d;
+  mldsa_pub_key_t hw_pkey_d;
   uint64_t        prefix; // prefix header place holder
   // followed by sw header (if not special prefix)
   // followed by optional unprotected payload data
@@ -209,9 +209,9 @@ typedef struct
 typedef struct
 {
   ecc_signature_t                       hw_sig_a;
-  dil_crypto_signature_t                hw_sig_d;
+  mldsa_signature_t                     hw_sig_d;
   ecc_key_t                             sw_pkey_p;
-  dil_crypto_pub_key_t                  sw_pkey_s;
+  mldsa_pub_key_t                       sw_pkey_s;
 }__attribute__((packed)) ROM_v3_prefix_data_raw;
 
 /**
@@ -280,7 +280,7 @@ typedef struct
 typedef struct
 {
   ecc_signature_t                   sw_sig_p;
-  dil_crypto_signature_t            sw_sig_s;
+  mldsa_signature_t                 sw_sig_s;
   // followed by zero's padding to 10K
   // followed by protected sw payload_data
   // followed by unprotected sw payload_text

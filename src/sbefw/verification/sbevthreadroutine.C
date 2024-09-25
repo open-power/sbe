@@ -265,6 +265,12 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_INFO(SBEV_FUNC "Completed SBE-FW secure header verification. Response: [0x%08x] Status: [0x%02x]",
                       sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
 
+            if (sbeFwSecureHdrRsp != ROM_DONE)
+            {
+                SBEV_ERROR(SBEV_FUNC "SBE_FW Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
+                           sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
+                UPDATE_ERROR_REG_SBEFW(sbeFwSecureHdrResponse.statusCode);
+            }
         }
 
         // hbbl secure header verification
@@ -340,7 +346,7 @@ void sbevthreadroutine(void *i_pArg)
             // Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
             SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
             respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
-            if(respsbeFw == false)
+            if((respsbeFw == false) & (sbeFwSecureHdrRsp == ROM_DONE))
             {
                 UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
             }
@@ -359,13 +365,6 @@ void sbevthreadroutine(void *i_pArg)
             SBEV_INFO(SBEV_FUNC "Prefix header flag in SBE_FW secure container [0x%08x]", sbeFwSecureHdrResponse.flag);
             SBEV_INFO(SBEV_FUNC "Completed SBE_FW secure header verification. Response:[0x%08x] Status:[0x%02x]",
                 sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-        }
-
-        if(!isSecureHdrPassed)
-        {
-            SBEV_ERROR(SBEV_FUNC "SBE_FW Secure Header Verification Failed. Response:[0x%08x] Status:[0x%02x]"
-                sbeFwSecureHdrRsp, sbeFwSecureHdrResponse.statusCode);
-            UPDATE_ERROR_REG_SBEFW(sbeFwSecureHdrResponse.statusCode);
         }
 
         // decompress the base section
@@ -484,7 +483,7 @@ void sbevthreadroutine(void *i_pArg)
             //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
             SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
             resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
-            if(resp == false)
+            if((resp == false) & (sbeHbblSecureHdrRsp == ROM_DONE))
             {
                 UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
             }
@@ -752,4 +751,3 @@ void sbevthreadroutine(void *i_pArg)
     SBEV_EXIT(SBEV_FUNC);
     #undef SBEV_FUNC
 }
-

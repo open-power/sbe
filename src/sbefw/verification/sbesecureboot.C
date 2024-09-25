@@ -45,6 +45,9 @@
 #define VERIFY_FAILED(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
                             return ROM_FAILED; }
 
+#define VERIFY_FAILED_BREAK(_c) { params->log=ERROR_EVENT|CONTEXT|(_c); \
+                            break; }
+
 #define UPDATE_ERROR_LOG(_c) hw_params.log=ERROR_EVENT|CONTEXT|(_c)
 
 #define UPDATE_LOG(_c) params->log=CONTEXT|(_c)
@@ -83,12 +86,20 @@ inline uint8_t get8(void* src)
     return dest;
 }
 
-/*
-    Create Heap space for the variable because
-    If any variable is taking more than 32kb of space in stack
-    Then ppe compiler is using r12 register and r12 register is not supported
-    By PPE compiler so it halting
-    To avoid pk halt we have to use heap instead of stack.
+/**
+ * Supporting platform specific "mlca_alloc" and "mlca_free" for ML-DSA support
+ *
+ * PPE constrains:
+ *  - The compiler does not support declaring variables that use more than 32KB of stack space. If variables exceeding this limit are declared, the compiler attempts to use the R12 register, which is not available in the register list
+ *  - PPE complier not support more than 8 parameterized functions
+ *  - User define variable size more than 32KB in any of the functions complier
+ *    may get use of register 12, PPE not support register 12.
+ *    Which implicitly halt the PPE
+ *
+ * Keep in mind of above constrains, modified the mldsa function - "mldsa_verify"
+ * which start using dynamic memory for huge buffers by enabling complier flag
+ * "USE_DYNAMIC_ALLOC". It need support "mlca_alloc" and "mlca_free" for dynamic
+ * memory allocation
 */
 void * mlca_alloc(uint32_t size)
 {
@@ -554,15 +565,16 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
     ROM_v3_sw_header_raw* header;
     ROM_v3_sw_sig_raw* sw_sig;
     sha3_t digest;
+    ROM_response status = ROM_FAILED;
 
     //NOTE: Keep the array size 8 byte aligned to overcome sram allignment issues.
-    //2468 bytes is MAX hash we calculate and hence buffer size is 2472 bytes.
-    //i.e ECDSA PUB Key + Dilithium PUB Key
+    //2468 bytes is MAX hash we calculate and hence buffer size is 2832 bytes.
+    //i.e ECDSA PUB Key + MLDSA PUB Key
     //NOTE: The same buffer is used for hash list as well.
-    //Currently considering hash list wont grow more than 2472
-    const uint32_t hashDataBuffSize = sizeof(uint64_t) * 309;
-    uint8_t hashDataBuff[hashDataBuffSize]  __attribute__ ((aligned(8))) = {0x00};
-    uint64_t size;
+    //Currently considering hash list wont grow more than 2832
+    const uint32_t hashDataBuffSize = sizeof(uint64_t) * 384;
+    uint64_t size = 0;
+    uint8_t * hashDataBuff = (uint8_t *)Heap::get_instance().scratch_calloc(hashDataBuffSize);
 
     SBEV_INFO(SBEV_FUNC "Secure Header V3 payload_size=%u", payload_size);
     // params.log is used to pass in a FW minimum Secure Version to
@@ -570,226 +582,246 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
     uint8_t i_fw_msv = static_cast<uint8_t>(params->log);
     UPDATE_LOG (BEGIN);
 
-    /************************* Container Checks *******************************/
-    //Validate Magic Number
-    SBEV_INFO("Magic number: 0x%X", get32(&container->magic_number));
-    if(!(get32(&container->magic_number) == ROM_MAGIC_NUMBER))
+    do{
+        if (hashDataBuff == NULL)
+        {
+            SBEV_ERROR(SBEV_FUNC "Scratch allocation failed size: %d, available size: %d",
+                        hashDataBuffSize, Heap::get_instance().getFreeHeapSize());
+            VERIFY_FAILED_BREAK(SCRATCH_ALLOC_FAILED);
+        }
+
+        /************************* Container Checks *******************************/
+        //Validate Magic Number
+        SBEV_INFO("Magic number: 0x%X", get32(&container->magic_number));
+        if(!(get32(&container->magic_number) == ROM_MAGIC_NUMBER))
+        {
+            SBEV_ERROR (SBEV_FUNC "FAILED : bad container magic number");
+            VERIFY_FAILED_BREAK(MAGIC_NUMBER_TEST);
+        }
+
+        //Validate Container Version
+        SBEV_INFO("Container Version: 0x%X", get16(&container->version));
+        if(!(get16(&container->version) == SECURE_HDR_V3_CONTAINER_VERSION))
+        {
+            SBEV_ERROR (SBEV_FUNC "FAILED : bad container version");
+            VERIFY_FAILED_BREAK(CONTAINER_VERSION_TEST);
+        }
+
+        // Validate Container Size
+        SBEV_INFO("container->container_size: %d, Calculated container size size: %d",
+                            get64(&container->container_size),
+                            (uint32_t)payload_size + V3_SECURE_HEADER_SIZE);
+        if(get64(&container->container_size) != (V3_SECURE_HEADER_SIZE+payload_size))
+        {
+            SBEV_ERROR (SBEV_FUNC "FAILED : bad container size");
+            VERIFY_FAILED_BREAK(CONTAINER_SIZE_TEST);
+        }
+
+        //Process HW Keys and verify HW keys Hash
+        memcpy(hashDataBuff, &container->hw_pkey_a, (sizeof(ecc_key_t) + MLDSA_PUBLIC_KEY_SIZE));
+        sha3(hashDataBuff, (sizeof(ecc_key_t) + MLDSA_PUBLIC_KEY_SIZE), &digest);
+
+        //Return the calculated SHA3-512 HW Key Hash.
+        if(memcmp(digest, params->hw_key_hash, SHA3_DIGEST_LENGTH))
+        {
+            SBEV_ERROR (SBEV_FUNC "FAILED : invalid hw keys");
+            VERIFY_FAILED_BREAK(HW_KEY_HASH_TEST);
+        }
+        /**************************************************************************/
+
+
+        /*********************** Prefix Hdr Checks ********************************/
+        // process prefix header
+        prefix = (ROM_v3_prefix_header_raw*)&container->prefix;
+        // test for valid header version, hash & signature algorithms (sanity check)
+        if(!valid_ver3_alg(&prefix->ver_alg))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : bad prefix header version or hash/sig algo's");
+            VERIFY_FAILED_BREAK(PREFIX_VER_ALG_TEST);
+        }
+
+        // valid prefix header signatures (all)
+        hw_data = (ROM_v3_prefix_data_raw*)(prefix->reserved1 + 3);
+
+        // Validate the V3_PREFIX_HEADER_SIZE fits in our hashDataBuff
+        if (hashDataBuffSize < V3_PREFIX_HEADER_SIZE(prefix))
+        {
+            VERIFY_FAILED_BREAK(PREFIX_HEADER_SZ_TEST);
+        }
+
+        //Calculate Hash of prefix header
+        memcpy_byte(hashDataBuff, prefix, V3_PREFIX_HEADER_SIZE(prefix));
+        sha3(hashDataBuff, V3_PREFIX_HEADER_SIZE(prefix), &digest);
+
+
+        //Verify HW signature A (ECDSA521)
+        if(ec_verify(container->hw_pkey_a, digest, hw_data->hw_sig_a) < 1)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature A, ECDSA521");
+            VERIFY_FAILED_BREAK(HW_ECDSA_SIG_TEST);
+        }
+
+        // Verify HW signature D (mldsa)
+        int l_mldsaResp = 0;
+        l_mldsaResp = mldsa_verify(hw_data->hw_sig_d, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+                                    digest, SHA3_DIGEST_LENGTH,
+                                    container->hw_pkey_d, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
+        if(l_mldsaResp <= 0)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, mldsa Resp:%d",l_mldsaResp);
+            VERIFY_FAILED_BREAK(HW_MLDSA_SIG_TEST);
+        }
+
+        SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
+        SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
+
+        // Return the Prefix Hdr flag
+        *flag = get32(&prefix->flags);
+
+        // test for machine specific matching ecid
+        uint8_t ecidZeroBlock[ECID_SIZE];
+        memset(ecidZeroBlock, 0x00, ECID_SIZE);
+
+        // Perform ECID check only if ECID value in secure header is non zero
+        if(memcmp(prefix->ecid,ecidZeroBlock, ECID_SIZE))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized prefix ecid");
+            VERIFY_FAILED_BREAK(PREFIX_ECID_TEST);
+        }
+
+        // test for valid prefix payload hash
+        SBEV_INFO("Prefix Hdr: Payload Size: %d", get64(&prefix->payload_size));
+        size = get64(&prefix->payload_size);
+
+        // Validate the prefix payload fits in our hashDataBuff
+        if (hashDataBuffSize < size)
+        {
+            VERIFY_FAILED_BREAK(PREFIX_PAYLD_SZ_TEST);
+        }
+
+        memcpy_byte(hashDataBuff, &hw_data->sw_pkey_p, size);
+        sha3(hashDataBuff, size, &digest);
+        memcpy_byte(hashDataBuff, &prefix->payload_hash, SHA3_DIGEST_LENGTH);
+
+        if(memcmp(hashDataBuff, digest, sizeof(sha3_t)))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : invalid prefix payload hash");
+            VERIFY_FAILED_BREAK(PREFIX_HASH_TEST);
+        }
+
+        // test for valid sw key count
+        SBEV_INFO("Prefix Hdr: SW Key Count: %d", get8(&prefix->sw_key_count));
+        if (get8(&prefix->sw_key_count) != V3_SW_KEY_COUNT)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : sw key count not equal to 2");
+            VERIFY_FAILED_BREAK(SW_KEY_INVALID_COUNT);
+        }
+
+        // finish procesing prefix header
+        // test for protection of all sw key material (sanity check)
+        if(size != (sizeof(ecc_key_t) + MLDSA_PUBLIC_KEY_SIZE))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : incomplete sw key protection in prefix header");
+            VERIFY_FAILED_BREAK(SW_KEY_PROTECTION_TEST);
+        }
+        /**************************************************************************/
+
+        /************************** SW/FW Hdr Checks ******************************/
+        // start processing sw header
+        header = (ROM_v3_sw_header_raw*)(hw_data->sw_pkey_s + MLDSA_PUBLIC_KEY_SIZE);
+
+        // test for fw secure version - compare what was passed in via
+        // params.log to what the container's sw header has
+        SBEV_INFO("SW Hdr: Secure Version: %d", get8(&header->fw_secure_version));
+        if(get8(&header->fw_secure_version) < i_fw_msv)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : bad container fw secure version");
+            VERIFY_FAILED_BREAK(SECURE_VERSION_TEST);
+        }
+
+        // test for valid header version, hash & signature algorithms (sanity check)
+        if(!valid_ver3_alg(&header->ver_alg))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : bad sw header version or hash/sign algo's");
+            VERIFY_FAILED_BREAK(HEADER_VER_ALG_TEST);
+        }
+
+        // Perform ECID check only if ECID value in secure header is non zero
+        if(memcmp(header->ecid, ecidZeroBlock, ECID_SIZE))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized SW ecid");
+            VERIFY_FAILED_BREAK(HEADER_ECID_TEST);
+        }
+
+        sw_sig = (ROM_v3_sw_sig_raw*) (header->reserved1 + 7);
+
+        //Calculate Hash of SW/FW header
+        memcpy_byte(hashDataBuff, header, V3_SW_HEADER_SIZE(header));
+        sha3(hashDataBuff, V3_SW_HEADER_SIZE(header), &digest);
+
+        // test for valid sw header signatures (all)
+        //Verify SW signature P (ECDSA521)
+        if(ec_verify(hw_data->sw_pkey_p, digest, sw_sig->sw_sig_p) < 1)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature P, ECDSA521");
+            VERIFY_FAILED_BREAK(SW_ECDSA_SIG_TEST);
+        }
+
+        // Verify SW signature S (mldsa)
+        l_mldsaResp = mldsa_verify(sw_sig->sw_sig_s, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+                                    digest, SHA3_DIGEST_LENGTH,
+                                    hw_data->sw_pkey_s, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
+        if(l_mldsaResp <= 0)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, mldsa Resp:%d",l_mldsaResp);
+            VERIFY_FAILED_BREAK(SW_MLDSA_SIG_TEST);
+        }
+
+        // test for valid component-id
+        if(!( (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID) ||
+            (get64(&header->component_id) == FW_SECURE_HDR_COMPONENT_ID)))
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED : invalid component ID [0x%08X %08X]",
+                            (get64(&header->component_id) >> 32 & 0xFFFFFFFF),
+                            (get64(&header->component_id) & 0xFFFFFFFF));
+            VERIFY_FAILED_BREAK(COMPONENT_ID_TEST);
+        }
+
+        // Compare .base image protected payload size (payload_text)
+        if(get64(&header->payload_size_protected) != payload_size)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED :  Invalid protcted payload section size exp:%d, act:%d",
+                    get64(&header->payload_size_protected), payload_size);
+            VERIFY_FAILED_BREAK(SW_PAYLD_SZ_TEST);
+        }
+
+        // Compare unprotected payload size
+        if(get64(&header->payload_size_unprotected) != 0)
+        {
+            SBEV_ERROR(SBEV_FUNC "FAILED :  Invalid protcted payload section size: %d",
+                    get64(&header->payload_size_unprotected));
+            VERIFY_FAILED_BREAK(SW_UNPROTECTED_PAYLD_SZ_TEST);
+        }
+
+        memcpy_byte(payload_hash, &header->payload_hash_protected, sizeof(sha3_t));
+
+        status = ROM_DONE;
+        UPDATE_LOG(COMPLETED);
+    }while(false);
+
+    Heap::get_instance().scratch_free(hashDataBuff);
+
+    if (status == ROM_DONE)
     {
-        SBEV_ERROR (SBEV_FUNC "FAILED : bad container magic number");
-        VERIFY_FAILED(MAGIC_NUMBER_TEST);
+        SBEV_INFO("Secure HDR Verified");
     }
-
-    //Validate Container Version
-    SBEV_INFO("Container Version: 0x%X", get16(&container->version));
-    if(!(get16(&container->version) == SECURE_HDR_V3_CONTAINER_VERSION))
+    else
     {
-        SBEV_ERROR (SBEV_FUNC "FAILED : bad container version");
-        VERIFY_FAILED(CONTAINER_VERSION_TEST);
+        SBEV_INFO("Secure HDR Verification - Failed");
     }
-
-    // Validate Container Size
-    SBEV_INFO("container->container_size: %d, Calculated container size size: %d",
-                        get64(&container->container_size),
-                        (uint32_t)payload_size + V3_SECURE_HEADER_SIZE);
-    if(get64(&container->container_size) != (V3_SECURE_HEADER_SIZE+payload_size))
-    {
-        SBEV_ERROR (SBEV_FUNC "FAILED : bad container size");
-        VERIFY_FAILED(CONTAINER_SIZE_TEST);
-    }
-
-    //Process HW Keys and verify HW keys Hash
-    memcpy(hashDataBuff, &container->hw_pkey_a, (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE));
-    sha3(hashDataBuff, (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE), &digest);
-
-    //Return the calculated SHA3-512 HW Key Hash.
-    if(memcmp(digest, params->hw_key_hash, SHA3_DIGEST_LENGTH))
-    {
-        SBEV_ERROR (SBEV_FUNC "FAILED : invalid hw keys");
-        VERIFY_FAILED(HW_KEY_HASH_TEST);
-    }
-    /**************************************************************************/
-
-
-    /*********************** Prefix Hdr Checks ********************************/
-    // process prefix header
-    prefix = (ROM_v3_prefix_header_raw*)&container->prefix;
-    // test for valid header version, hash & signature algorithms (sanity check)
-    if(!valid_ver3_alg(&prefix->ver_alg))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : bad prefix header version or hash/sig algo's");
-        VERIFY_FAILED(PREFIX_VER_ALG_TEST);
-    }
-
-    // valid prefix header signatures (all)
-    hw_data = (ROM_v3_prefix_data_raw*)(prefix->reserved1 + 3);
-
-    // Validate the V3_PREFIX_HEADER_SIZE fits in our hashDataBuff
-    if (hashDataBuffSize < V3_PREFIX_HEADER_SIZE(prefix))
-    {
-        VERIFY_FAILED(PREFIX_HEADER_SZ_TEST);
-    }
-
-    //Calculate Hash of prefix header
-    memcpy_byte(hashDataBuff, prefix, V3_PREFIX_HEADER_SIZE(prefix));
-    sha3(hashDataBuff, V3_PREFIX_HEADER_SIZE(prefix), &digest);
-
-
-    //Verify HW signature A (ECDSA521)
-    if(ec_verify(container->hw_pkey_a, digest, hw_data->hw_sig_a) < 1)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature A, ECDSA521");
-        VERIFY_FAILED(HW_ECDSA_SIG_TEST);
-    }
-
-    // Verify HW signature D (Dilithium)
-    int l_dilithiumResp = 0;
-    l_dilithiumResp = mldsa_verify(hw_data->hw_sig_d, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
-                                digest, SHA3_DIGEST_LENGTH,
-                                container->hw_pkey_d, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
-    if(l_dilithiumResp <= 0)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, Dilithium Resp:%d",l_dilithiumResp);
-        VERIFY_FAILED(HW_DILITHIUM_SIG_TEST);
-    }
-
-    SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
-    SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
-
-    // Return the Prefix Hdr flag
-    *flag = get32(&prefix->flags);
-
-    // test for machine specific matching ecid
-    uint8_t ecidZeroBlock[ECID_SIZE];
-    memset(ecidZeroBlock, 0x00, ECID_SIZE);
-
-    // Perform ECID check only if ECID value in secure header is non zero
-    if(memcmp(prefix->ecid,ecidZeroBlock, ECID_SIZE))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized prefix ecid");
-        VERIFY_FAILED(PREFIX_ECID_TEST);
-    }
-
-    // test for valid prefix payload hash
-    SBEV_INFO("Prefix Hdr: Payload Size: %d", get64(&prefix->payload_size));
-    size = get64(&prefix->payload_size);
-
-    // Validate the prefix payload fits in our hashDataBuff
-    if (hashDataBuffSize < size)
-    {
-        VERIFY_FAILED(PREFIX_PAYLD_SZ_TEST);
-    }
-
-    memcpy_byte(hashDataBuff, &hw_data->sw_pkey_p, size);
-    sha3(hashDataBuff, size, &digest);
-    memcpy_byte(hashDataBuff, &prefix->payload_hash, SHA3_DIGEST_LENGTH);
-
-    if(memcmp(&hashDataBuff, digest, sizeof(sha3_t)))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : invalid prefix payload hash");
-        VERIFY_FAILED(PREFIX_HASH_TEST);
-    }
-
-    // test for valid sw key count
-    SBEV_INFO("Prefix Hdr: SW Key Count: %d", get8(&prefix->sw_key_count));
-    if (get8(&prefix->sw_key_count) != V3_SW_KEY_COUNT)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : sw key count not equal to 2");
-        VERIFY_FAILED(SW_KEY_INVALID_COUNT);
-    }
-
-    // finish procesing prefix header
-    // test for protection of all sw key material (sanity check)
-    if(size != (sizeof(ecc_key_t) + DIL_PUBLIC_KEY_SIZE))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : incomplete sw key protection in prefix header");
-        VERIFY_FAILED(SW_KEY_PROTECTION_TEST);
-    }
-    /**************************************************************************/
-
-    /************************** SW/FW Hdr Checks ******************************/
-    // start processing sw header
-    header = (ROM_v3_sw_header_raw*)(hw_data->sw_pkey_s + DIL_PUBLIC_KEY_SIZE);
-
-    // test for fw secure version - compare what was passed in via
-    // params.log to what the container's sw header has
-    SBEV_INFO("SW Hdr: Secure Version: %d", get8(&header->fw_secure_version));
-    if(get8(&header->fw_secure_version) < i_fw_msv)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : bad container fw secure version");
-        VERIFY_FAILED(SECURE_VERSION_TEST);
-    }
-
-    // test for valid header version, hash & signature algorithms (sanity check)
-    if(!valid_ver3_alg(&header->ver_alg))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : bad sw header version or hash/sign algo's");
-        VERIFY_FAILED(HEADER_VER_ALG_TEST);
-    }
-
-    // Perform ECID check only if ECID value in secure header is non zero
-    if(memcmp(header->ecid,ecidZeroBlock,ECID_SIZE))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : unauthorized SW ecid");
-        VERIFY_FAILED(HEADER_ECID_TEST);
-    }
-
-    sw_sig = (ROM_v3_sw_sig_raw*) (header->reserved1 + 7);
-
-    //Calculate Hash of SW/FW header
-    memcpy(hashDataBuff, header, V3_SW_HEADER_SIZE(header));
-    sha3(hashDataBuff, V3_SW_HEADER_SIZE(header), &digest);
-
-    // test for valid sw header signatures (all)
-    //Verify SW signature P (ECDSA521)
-    if(ec_verify(hw_data->sw_pkey_p, digest, sw_sig->sw_sig_p) < 1)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature P, ECDSA521");
-        VERIFY_FAILED(SW_ECDSA_SIG_TEST);
-    }
-
-    // Verify SW signature S (Dilithium)
-    l_dilithiumResp = mldsa_verify(sw_sig->sw_sig_s, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
-                                digest, SHA3_DIGEST_LENGTH,
-                                hw_data->sw_pkey_s, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
-    if(l_dilithiumResp <= 0)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, Dilithium Resp:%d",l_dilithiumResp);
-        VERIFY_FAILED(SW_DILITHIUM_SIG_TEST);
-    }
-
-    // test for valid component-id
-    if(!( (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID) ||
-          (get64(&header->component_id) == FW_SECURE_HDR_COMPONENT_ID)))
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED : invalid component ID [0x%08X %08X]",
-                        (get64(&header->component_id) >> 32 & 0xFFFFFFFF),
-                        (get64(&header->component_id) & 0xFFFFFFFF));
-        VERIFY_FAILED(COMPONENT_ID_TEST);
-    }
-
-    // Compare .base image protected payload size (payload_text)
-    if(get64(&header->payload_size_protected) != payload_size)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED :  Invalid protcted payload section size exp:%d, act:%d",
-                   get64(&header->payload_size_protected), payload_size);
-        VERIFY_FAILED(SW_PAYLD_SZ_TEST);
-    }
-
-    // Compare unprotected payload size
-    if(get64(&header->payload_size_unprotected) != 0)
-    {
-        SBEV_ERROR(SBEV_FUNC "FAILED :  Invalid protcted payload section size: %d",
-                   get64(&header->payload_size_unprotected));
-        VERIFY_FAILED(SW_UNPROTECTED_PAYLD_SZ_TEST);
-    }
-
-    memcpy_byte(payload_hash, &header->payload_hash_protected, sizeof(sha3_t));
-
-    SBEV_INFO("Secure HDR Verified");
-    UPDATE_LOG(COMPLETED);
 
     SBEV_EXIT(SBEV_FUNC);
-    return ROM_DONE;
+    return status;
     #undef SBEV_FUNC
 }
 
