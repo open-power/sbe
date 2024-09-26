@@ -11,7 +11,7 @@
 Test with KAT (Known Answer Test) vectors.
 main.c expects two arguments: input_file (KAT file) and output_file (result).
 The make command (build) will generate an executable file named hw_dilithium.
-For execute: `/hw_dilithium $SBEROOT/src/import/security/algo/crypto/test/KAT/PQCsignKAT_5136_ck_full.rsp hw_kat_bin.bin`
+For execute: `/hw_dilithium $SBEROOT/src/import/security/algo/crypto/test/PQCsignKAT_4896.rsp hw_kat_bin.bin`
 Will generate binary file of max size 300KB each.
 
 ### Part A: (Image build process)
@@ -23,7 +23,7 @@ Will generate binary file of max size 300KB each.
         * build  : `make hw_dilithium` (another way of build)
 
 3. **To run**:
-    * ```./hw_dilithium $SBEROOT/src/import/security/algo/crypto/test/KAT/PQCsignKAT_5136_ck_full.rsp hw_kat_bin.bin```
+    * ```./hw_dilithium $SBEROOT/src/import/security/algo/crypto/test/KAT/PQCsignKAT_4896.rsp hw_kat_bin.bin```
 
     > Tool changes the output file name hw_kat_bin_0.bin, hw_kat_bin_1.bin ...
     > each file max of 300KB

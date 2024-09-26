@@ -29,9 +29,11 @@
 #include <ctype.h>
 
 #define	MAX_MARKER_LEN		50
-#define DILITHIUM_R2_8x7_CRYPTO_PUBLICKEYBYTES  2336
-#define DILITHIUM_R2_8x7_CRYPTO_SECRETKEYBYTES  5136
-#define DILITHIUM_R2_8x7_CRYPTO_BYTES           4668
+/// Dilithium public key size (bytes) @ref DIL_MLDSA_87_PUB_BYTES
+#define DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE     (2592)
+
+/// Dilithium signature size (bytes) @ref DIL_MLDSA_SIGBYTES8x7
+#define DIL_MLDSA_87_CRYPTO_SIG_SIZE           (4627)
 
 uint8_t fileName[10][50] = {0};
 
@@ -188,14 +190,14 @@ int updateHeader(const FILE * i_file, uint32_t i_count, uint32_t i_size)
 
 FILE * addDataToBinFile(char * i_outputFileName, uint8_t * i_msg, uint32_t i_msgLen, uint8_t * i_pk, uint8_t * i_sm)
 {
-    const uint32_t maxSizeOfFile = 307200; // 300 KB
+    const uint32_t maxSizeOfFile = 256000; // 250 KB
     static uint32_t count = 0;
     static uint32_t fileCount = 0;
     static uint32_t bytesWrittenToFile = 0;
     static FILE *outputFile = NULL;
     static FILE *headerFilePtr = NULL;
 
-    uint32_t vectorSize = i_msgLen + DILITHIUM_R2_8x7_CRYPTO_PUBLICKEYBYTES + DILITHIUM_R2_8x7_CRYPTO_BYTES;
+    uint32_t vectorSize = i_msgLen + DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE + DIL_MLDSA_87_CRYPTO_SIG_SIZE;
 
     if (bytesWrittenToFile > (maxSizeOfFile - vectorSize))
     {
@@ -267,8 +269,8 @@ FILE * addDataToBinFile(char * i_outputFileName, uint8_t * i_msg, uint32_t i_msg
     };
     bytesWrittenToFile += fwrite(&packet, sizeof(uint8_t), sizeof(packet), outputFile);
     bytesWrittenToFile += fwrite(i_msg, sizeof(uint8_t), i_msgLen, outputFile);
-    bytesWrittenToFile += fwrite(i_pk, sizeof(uint8_t), DILITHIUM_R2_8x7_CRYPTO_PUBLICKEYBYTES, outputFile);
-    bytesWrittenToFile += fwrite(i_sm, sizeof(uint8_t), DILITHIUM_R2_8x7_CRYPTO_BYTES, outputFile);
+    bytesWrittenToFile += fwrite(i_pk, sizeof(uint8_t), DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE, outputFile);
+    bytesWrittenToFile += fwrite(i_sm, sizeof(uint8_t), DIL_MLDSA_87_CRYPTO_SIG_SIZE, outputFile);
 
     fpos_t pos;
     fgetpos(outputFile, &pos);
@@ -329,8 +331,8 @@ int generateBinaryFile(char * i_katFile, char * i_outputFileName)
     int                 ret_val;
 
     uint8_t             msg[3300];
-    uint8_t             pk[DILITHIUM_R2_8x7_CRYPTO_PUBLICKEYBYTES];
-    uint8_t             sign[DILITHIUM_R2_8x7_CRYPTO_BYTES];
+    uint8_t             pk[DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE];
+    uint8_t             sign[DIL_MLDSA_87_CRYPTO_SIG_SIZE];
 
     size_t              mlen;
 
@@ -381,13 +383,13 @@ int generateBinaryFile(char * i_katFile, char * i_outputFileName)
         }
 
         // Read public key from KAT file and convert it to hex
-        if ( !readHex(katFile, pk, DILITHIUM_R2_8x7_CRYPTO_PUBLICKEYBYTES, "pk = ") )
+        if ( !readHex(katFile, pk, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE, "pk = ") )
         {
             printf("ERROR: unable to read 'pk' from <%s>\n", katFile);
             return -4;
         }
 
-        uint32_t maxSignLen = mlen + DILITHIUM_R2_8x7_CRYPTO_BYTES;
+        uint32_t maxSignLen = mlen + DIL_MLDSA_87_CRYPTO_SIG_SIZE;
         // Allocate space for signature data
         uint8_t * sm = (unsigned char *)calloc(maxSignLen, sizeof(unsigned char));
 
