@@ -1,996 +1,684 @@
-Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register Name,Description/Usage,Type,
-2,TP,0x000F001A ,0x00,,ATTN,"Interrupt register for special attention, checkstop, recoverable error",attnPIBStatus.C,write_allowlist,
-,TP,0x00040030,0x00,,HWSV,TOD error and interrupt register,p9_tod_init.C,write_allowlist,
-,TP,0x00040013,0x00,,HWSV,TOD TX TTYPE-2 triggering register,p9_tod_init.C,write_allowlist,
-,TP,0x00040018,0x00,,HWSV,TOD Load-TOD-Mod triggering register,p9_tod_init.C,write_allowlist,
-,TP,0x00040016,0x00,,HWSV,TOD TX TTYPE-5 triggering register,p9_tod_init.C,write_allowlist,
-,TP,0x00040021,0x00,,HWSV,TOD Load Register ,p9_tod_init.C,write_allowlist,
-,TP,0x00040015,0x00,,HWSV,TOD TX TTYPE-4 triggering register,p9_tod_init.C,write_allowlist,
-,TP,0x00040032,0x00,,HWSV,TOD error mask register,p9_tod_init.C,write_allowlist,
-,TP,0x00040001,0x00,,HWSV,TOD primary configuration: distribution port-0 control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040003,0x00,,HWSV,TOD secondary configuration: distribution port-0 control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040004,0x00,,HWSV,TOD secondary configuration: distribution port-1 control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040002,0x00,,HWSV,TOD primary configuration: distribution port-1 control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040029,0x00,,HWSV,TOD RX TType control register ,p9_tod_setup.C,write_allowlist,
-,TP,0x00040007,0x00,,HWSV,TOD primary/secondary configuration control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040005,0x00,,HWSV,TOD slave path control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040000,0x00,,HWSV,TOD master paths control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040006,0x00,,HWSV,TOD internal path control register,p9_tod_setup.C,write_allowlist,
-,Nest 3,0x05013419,0x05,,HWSV,PB Electrical Round-Trip Delay Control Register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040010,0x00,,HWSV,TOD chip control register,p9_tod_setup.C,write_allowlist,
-,TP,0x00040022,0x00,,HWSV,TOD start fsm register,p9_tod_init.C,write_allowlist,
-,TP,0x01020019,0x01,,CINI,sticky error register for system reference clock,osccClockReg.C,write_allowlist,
-,NEST,0x05013819,0x05,,HWSV,TOD delay register,p9_tod_setup.C,write_allowlist,
-,Nest 3,0x05012913,0x05,,HWSV,PSI Host Bridge Control/Status Register(CLEAR),hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x0501290E,0x05,,HWSV,PSI Host Bridge Control/Status Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04011830,0x04,,HWSV,PSI Tx Cntl Reg,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04011820,0x04,,HWSV,PSI Rx Cntl Reg,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04011821,0x04,,HWSV,PSI Rx Mode Reg,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04011831,0x04,,HWSV,PSI Tx Mode Reg,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04000019,0x04,,HWSV,Chiplet Config Register 1,hwcoProcPsiInit.C,write_allowlist,
-,Nest 2,0x04000029,0x04,,HWSV,Chiplet Config Register Clear,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012912,0x05,,HWSV,PSI Host Bridge Control/Status Register(OR),hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012800,0x05,,HWSV,PSI TX and Common Control Status Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012808,0x05,,HWSV,PSI RX Control Status Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012806,0x05,,HWSV,PSI TX Data Flow FSM,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x0501280E,0x05,,HWSV,PSI RX Data Flow FSM,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012911,0x05,,HWSV,PSI Host Bridge Debug Service Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x0501280A,0x05,,HWSV,PSI Rx Error Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012802,0x05,,HWSV,PSI Tx Error Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012810,0x05,,HWSV,PSI Tx Inta Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012818,0x05,,HWSV,PSI Rx Inta Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05012813,0x05,,HWSV,PSI Tx Misc Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x0501281B,0x05,,HWSV,PSI Rx Misc Register,hwcoProcPsiInit.C,write_allowlist,
-,Nest 3,0x05011C12,0x05,,PERF,PB_TRACE,,write_allowlist,
-,Nest 3,0x05011C13,0x05,,PERF,PB_PMU_CNPME,,write_allowlist,
-,Nest 3,0x05011C14,0x05,,PERF,PB_PMU_CNPMW,,write_allowlist,
-,Nest 3,0x05011C15,0x05,,PERF,PB_PMU_PRESCALER,,write_allowlist,
-,Nest 3,0x05011C16,0x05,,PERF,PB_EVENT,,write_allowlist,
-,Nest 3,0x05011C17,0x05,,PERF,PB_EVENT_COMPA,,write_allowlist,
-,Nest 3,0x05011C18,0x05,,PERF,PB_EVENT_COMPB,,write_allowlist,
-,Nest 3,0x05011C19,0x05,,PERF,PB_EVENT_COMP_EXT,,write_allowlist,
-,Nest 3,0x05011C1A,0x05,,PERF,PB_PMU0_CNPME,,write_allowlist,
-,Nest 3,0x05011C1B,0x05,,PERF,PB_PMU1_CNPME,,write_allowlist,
-,Nest 3,0x05011C1C,0x05,,PERF,PB_PMU2_CNPME,,write_allowlist,
-,Nest 3,0x05011C1D,0x05,,PERF,PB_PMU3_CNPME,,write_allowlist,
-,Nest 3,0x05011C1E,0x05,,PERF,PB_PMU0_CNPMW,,write_allowlist,
-,Nest 3,0x05011C1F,0x05,,PERF,PB_PMU1_CNPMW,,write_allowlist,
-,Nest 3,0x05011C20,0x05,,PERF,PB_PMU2_CNPMW,,write_allowlist,
-,Nest 3,0x05011C21,0x05,,PERF,PB_PMU3_CNPMW,,write_allowlist,
-,Nest 3,0x05011C22,0x05,,PERF,PB_NMPM_COUNT,,write_allowlist,
-,Nest 3,0x05011C23,0x05,,PERF,PB_LMPM_COUNT,,write_allowlist,
-,Nest 3,0x05011C24,0x05,,PERF,PB_RCMD_INTDAT_COUNT,,write_allowlist,
-,Nest 3,0x05011C25,0x05,,PERF,PB_EXTDAT_COUNT,,write_allowlist,
-,Nest 3,0x0501341A,0x05,,PERF,PB_ELINK_PMU_CTL_REG,,write_allowlist,
-,Nest 3,0x0501341B,0x05,,PERF,PB_ELINK_PMU0,,write_allowlist,
-,Nest 3,0x0501341C,0x05,,PERF,PB_ELINK_PMU1,,write_allowlist,
-,Nest 3,0x0501341D,0x05,,PERF,PB_ELINK_PMU2,,write_allowlist,
-,Nest 3,0x0501341E,0x05,,PERF,PB_ELINK_PMU3,,write_allowlist,
-,Nest 3,0x0501341F,0x05,,PERF,PB_ELINK_PMU4,,write_allowlist,
-,Nest 3,0x05013420,0x05,,PERF,PB_ELINK_PMU5,,write_allowlist,
-,Nest 3,0x05013421,0x05,,PERF,PB_ELINK_PMU6,,write_allowlist,
-,Nest 3,0x05013422,0x05,,PERF,PB_ELINK_PMU7,,write_allowlist,
-,Nest 3,0x05013424,0x05,,PERF,PB_TRACE_CFG,,write_allowlist,
-,Nest 3,0x0501381A,0x05,,PERF,PB_OLINK_PMU_CTL_REG,,write_allowlist,
-,Nest 3,0x0501381B,0x05,,PERF,PB_OLINK_PMU0,,write_allowlist,
-,Nest 3,0x0501381C,0x05,,PERF,PB_OLINK_PMU1,,write_allowlist,
-,Nest 3,0x0501381D,0x05,,PERF,PB_OLINK_PMU2,,write_allowlist,
-,Nest 3,0x0501381E,0x05,,PERF,PB_OLINK_PMU3,,write_allowlist,
-,Nest 3,0x0501381F,0x05,,PERF,PB_OLINK_PMU4,,write_allowlist,
-,Nest 3,0x05013820,0x05,,PERF,PB_OLINK_PMU5,,write_allowlist,
-,Nest 3,0x05013821,0x05,,PERF,PB_OLINK_PMU6,,write_allowlist,
-,Nest 3,0x05013822,0x05,,PERF,PB_OLINK_PMU7,,write_allowlist,
-,Nest 3,0x05013824,0x05,,PERF,PB_TRACE_CFG,,write_allowlist,
-,Nest 1,0x03010829,0x03,,PERF,PB_MC23_PORT0,,write_allowlist,
-,Nest 1,0x030108A9,0x03,,PERF,PB_MC23_PORT2,,write_allowlist,
-,Nest 1,0x0301083C,0x03,,PERF,PB_MC23_PBI01_BUSEN0,,write_allowlist,
-,Nest 1,0x030108BC,0x03,,PERF,PB_MC23_PBI23_BUSEN0,,write_allowlist,
-,Nest 1,0x0301083D,0x03,,PERF,PB_MC23_PBI01_BUSEN1,,write_allowlist,
-,Nest 1,0x030108BD,0x03,,PERF,PB_MC23_PBI23_BUSEN1,,write_allowlist,
-,Nest 1,0x0301083E,0x03,,PERF,PB_MC23_PBI01_BUSEN2,,write_allowlist,
-,Nest 1,0x030108BE,0x03,,PERF,PB_MC23_PBI23_BUSEN2,,write_allowlist,
-,Nest 1,0x0301083F,0x03,,PERF,PB_MC23_PBI01_BUSEN3,,write_allowlist,
-,Nest 1,0x030108BF,0x03,,PERF,PB_MC23_PBI01_BUSEN3,,write_allowlist,
-,Nest 3,0x0501111E,0x05,,PERF,PB_NPU0_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501113E,0x05,,PERF,PB_NPU1_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501131E,0x05,,PERF,PB_NPU2_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501133E,0x05,,PERF,PB_NPU3_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501151E,0x05,,PERF,PB_NPU4_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501153E,0x05,,PERF,PB_NPU5_NTL_PERF_CONFIG,,write_allowlist,
-,Nest 3,0x0501111F,0x05,,PERF,PB_NPU0_NTL_PMU,,write_allowlist,
-,Nest 3,0x0501113F,0x05,,PERF,PB_NPU1_NTL_PMU,,write_allowlist,
-,Nest 3,0x0501131F,0x05,,PERF,PB_NPU2_NTL_PMU,,write_allowlist,
-,Nest 3,0x0501133F,0x05,,PERF,PB_NPU3_NTL_PMU,,write_allowlist,
-,Nest 3,0x0501151F,0x05,,PERF,PB_NPU4_NTL_PMU,,write_allowlist,
-,Nest 3,0x0501153F,0x05,,PERF,PB_NPU5_NTL_PMU,,write_allowlist,
-,Nest 2,0x04010C04,0x04,,PERF,PB_PBCQ0_PMU_CONF,,write_allowlist,
-,Nest 2,0x04011004,0x04,,PERF,PB_PBCQ1_PMU_CONF,,write_allowlist,
-,Nest 2,0x04011404,0x04,,PERF,PB_PBCQ2_PMU_CONF,,write_allowlist,
-,MC,0x070123DB,0x07-0x08,,HWSV,MCBIST Control Register,lib/dimm/ccs.H,write_allowlist,
-,MC,0x070123A7,0x07-0x08,,HWSV,MCP Configured Command Sequence Mode Register,lib/dimm/ccs.H,write_allowlist,
-,MC,0x8000C0110701103F,0x07-0x08,,HWSV,,lib/dimm/rank.H,write_allowlist,
-,MC,0x8000C0350701103F,0x07-0x08,,HWSV,,lib/dimm/rank.H,write_allowlist,
-,MC,0x07010913,0x07-0x08,,HWSV,MCP Final Arb parameters,lib/mc/port.H,write_allowlist,
-,MC,0x07010918,0x07-0x08,,HWSV,MCP DDR Interface SCOM Control,lib/mc/port.H,write_allowlist,
-,MC,0x07010932,0x07-0x08,,HWSV,MCP Refresh Register 0,lib/mc/port.H,write_allowlist,
-,MC,0x07010A0A,0x07-0x08,,HWSV,MCP Read ECC Control Register,lib/mc/port.H,write_allowlist,
-,MC,0x070123E0,0x07-0x08,,HWSV,MCP MCBIST Configuration Register,lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x07012366,0x07-0x08,,HWSV,MCP MCBIST error Status Register(Read Only??),lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x07012355,0x07-0x08,,HWSV,MCP MBS Memory Scrub/Read Error Count Register 0,lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x07012356,0x07-0x08,,HWSV,MCP MBS Memory Scrub/Read Error Count Register 1,lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x07012300,0x07-0x08,,HWSV,MCP MCBIST Fault Isolation Register,lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x07012357,0x07-0x08,,HWSV,MCP MBS Memory Scrub/Read Error Threshold Register,lib/mcbist/mcbist.H,write_allowlist,
-,MC,0x8000C8090701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000C80A0701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000C8000701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000C8010701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000C8020701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000C8070701103F,0x07-0x08,,HWSV,,lib/phy/read_cntrl.H,write_allowlist,
-,MC,0x8000CC000701103F,0x07-0x08,,HWSV,,lib/phy/write_cntrl.H,write_allowlist,
-,MC,0x8000CC010701103F,0x07-0x08,,HWSV,,lib/phy/write_cntrl.H,write_allowlist,
-,MC,0x8000CC020701103F,0x07-0x08,,HWSV,,lib/phy/write_cntrl.H,write_allowlist,
-,MC,0x8000CC050701103F,0x07-0x08,,HWSV,,lib/phy/write_cntrl.H,write_allowlist,
-,MC,0x8000CC060701103F,0x07-0x08,,HWSV,,lib/phy/write_cntrl.H,write_allowlist,
-,TP,90021,0x00,,HB,pMisc Mode Register,,write_allowlist,
-,TP,00000000000F0042,0x00,,HB,??,,write_allowlist,
-,Nest 1,000000000301080A,0x03,,HB,MC Primary Memory Config Register,,write_allowlist,
-,Nest 1,3010810,0x03,,HB,MC Performace Register 1,,write_allowlist,
-,Nest 1,3010812,0x03,,HB,MC Mode1 Register,,write_allowlist,
-,Nest 1,000000000301088A,0x03,,HB,MC Primary Memory Config Register (MC23.PBI23),,write_allowlist,
-,Nest 1,3010890,0x03,,HB,MC Performance Register 1 (MC23.PBI23),,write_allowlist,
-,Nest 1,3010892,0x03,,HB,MC Mode1 Register (MC23.PBI23),,write_allowlist,
-,Nest 3,000000000501080A,0x05,,HB,MC Primary Memory Config Register (MC01.PBIO1),,write_allowlist,
-,Nest 3,5010810,0x05,,HB,MC Performance Register 1  (MC01.PBIO1),,write_allowlist,
-,Nest 3,5010812,0x05,,HB,MC Mode1 Register  (MC01.PBIO1),,write_allowlist,
-,Nest 3,000000000501088A,0x05,,HB,MC Primary Memory Config Register (MC01.PBI23),,write_allowlist,
-,Nest 3,5010890,0x05,,HB,MC Performance Register 1 (MC01.PBI23),,write_allowlist,
-,Nest 3,5010892,0x05,,HB,MC Mode1 Register (MC01.PBI23),,write_allowlist,
-,Nest 3,000000000501180A,0x05,,HB,PB PowerBus PB WEST Mode Config reg,,write_allowlist,
-,Nest 3,000000000501180B,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501180C,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501180D,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501180E,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501180F,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,5011810,0x05,,HB,PB PowerBus PB west HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0A,0x05,,HB,PB PowerBus PB CENT Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0B,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0C,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0D,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0E,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C0F,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C10,0x05,,HB,PB PowerBus PB CENT HP Mode Config reg,,write_allowlist,
-,Nest 3,0000000005011C26,0x05,,HB,PB PowerBus PB CENT GP CMD RATE DP0 reg,,write_allowlist,
-,Nest 3,0000000005011C27,0x05,,HB,PB PowerBus PB CENT GP CMD RATE DP1 reg,,write_allowlist,
-,Nest 3,0000000005011C28,0x05,,HB,PB PowerBus PB CENT RGP CMD RATE DP0 reg,,write_allowlist,
-,Nest 3,0000000005011C29,0x05,,HB,PB PowerBus PB CENT RGP CMD RATE DP1 reg,,write_allowlist,
-,Nest 3,0000000005011C2A,0x05,,HB,PB PowerBus PB CENT SP CMD RATE DP0 reg,,write_allowlist,
-,Nest 3,0000000005011C2B,0x05,,HB,PB PowerBus PB CENT SP CMD RATE DP1 reg,,write_allowlist,
-,Nest 3,000000000501200A,0x05,,HB,PB PowerBus PB east Mode Config reg,,write_allowlist,
-,Nest 3,000000000501200B,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501200C,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501200D,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501200E,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501200F,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,5012010,0x05,,HB,PB PowerBus PB east HP Mode Config reg,,write_allowlist,
-,Nest 3,000000000501340A,0x05,,HB,PB PowerBus Electrical Framer/Parser 01 Config Register,,write_allowlist,
-,Nest 3,000000000501340B,0x05,,HB,PB PowerBus Electrical Framer/Parser 23 Config Register,,write_allowlist,
-,Nest 3,000000000501340C,0x05,,HB,PB PowerBus Electrical Framer/Parser 45 Config Register,,write_allowlist,
-,Nest 3,5013410,0x05,,HB,PB PowerBus Electrical Link Data Buffer 01 Config Register,,write_allowlist,
-,Nest 3,5013411,0x05,,HB,PB PowerBus Electrical Link Data Buffer 23 Config Register,,write_allowlist,
-,Nest 3,5013412,0x05,,HB,PB PowerBus Electrical Link Data Buffer 45 Config Register,,write_allowlist,
-,Nest 3,5013423,0x05,,HB,PB PowerBus Electrical Miscellaneous Config Register,,write_allowlist,
-,Nest 3,5013424,0x05,,HB,PB PowerBus Electrical Link Trace Config Register,,write_allowlist,
-,Nest 3,000000000501380A,0x05,,HWSV,PB PowerBus Optical Framer/Parser 01 Config Register,,write_allowlist,
-,Nest 3,000000000501380B,0x05,,HWSV,PB PowerBus Optical Framer/Parser 23 Config Register,,write_allowlist,
-,Nest 3,000000000501380C,0x05,,HWSV,PB PowerBus Optical Framer/Parser 45 Config Register,,write_allowlist,
-,Nest 3,000000000501380D,0x05,,HWSV,PB PowerBus Optical Framer/Parser 67 Config Register,,write_allowlist,
-,Nest 3,0000000005013810,0x05,,HWSV,PB PowerBus Optical Link Data Buffer 01 Config Register,,write_allowlist,
-,Nest 3,0000000005013811,0x05,,HWSV,PB PowerBus Optical Link Data Buffer 23 Config Register,,write_allowlist,
-,Nest 3,0000000005013812,0x05,,HWSV,PB PowerBus Optical Link Data Buffer 45 Config Register,,write_allowlist,
-,Nest 3,0000000005013813,0x05,,HWSV,PB PowerBus Optical Link Data Buffer 67 Config Register,,write_allowlist,
-,Nest 3,0000000005013823,0x05,,HWSV,PB PowerBus Optical Miscellaneous Config Register,,write_allowlist,
-,Nest 3,0000000005013824,0x05,,HWSV,PB PowerBus Optical Link Trace Config Register,,write_allowlist,
-,XBUS,6000019,0x06,,HB,XB Chiplet Config Register 1,,write_allowlist,
-,OBUS,9000019,0x09-0x0C,,HWSV,OBUS Chiplet Config Register 1,,write_allowlist,
-,XBUS,000000000601180A,0x06,,HB,PowerBus ELL Config register,,write_allowlist,
-,OBUS,000000000901080A,0x09-0x0C,,HWSV,PowerBus OLL Config register,,write_allowlist,
-,XBUS,6011818,0x06,,HB,PowerBus ELL Replay Threshold register,,write_allowlist,
-,OBUS,9010818,0x09-0x0C,,HWSV,PowerBus OLL Replay Threshold register,,write_allowlist,
-,XBUS,6011819,0x06,,HB,PowerBus ELL SL ECC Threshold register,,write_allowlist,
-,OBUS,9010819,0x09-0x0C,,HWSV,PowerBus OLL SL ECC Threshold register,,write_allowlist,
-,XBUS,000000000601180B,0x06,,HB,PowerBus ELL Control register,,write_allowlist,
-,XBUS,0000000006011C0B,0x06,,HB,PowerBus ELL Control register,,write_allowlist,
-,XBUS,000000000601200B,0x06,,HB,PowerBus ELL Control register,,write_allowlist,
-,OBUS,000000000901080B,0x09-0x0C,FF0FFFFFFF0FFFFF,HWSV,PowerBus OLL Control register,,write_partialwriteallowlist,
-,OBUS,000000000901080C,0x09-0x0C,,HWSV,PowerBus OLL PHY Training Config register,,write_allowlist,
-,OBUS,000000000901080F,0x09-0x0C,,HWSV,PowerBus OLL Optical Config register,,write_allowlist,
-,OBUS,0000000009010810,0x09-0x0C,,HWSV,PowerBus OLL TX0 Lane Control register,,write_allowlist,
-,OBUS,0000000009010811,0x09-0x0C,,HWSV,PowerBus OLL TX1 Lane Control register,,write_allowlist,
-,OBUS,0000000009010812,0x09-0x0C,,HWSV,PowerBus OLL RX0 Lane Control register,,write_allowlist,
-,OBUS,0000000009010813,0x09-0x0C,,HWSV,PowerBus OLL RX1 Lane Control register,,write_allowlist,
-,OBUS,0000000009010816,0x09-0x0C,,HWSV,PowerBus OLL Link0 Error Status register,,write_allowlist,
-,OBUS,0000000009010817,0x09-0x0C,,HWSV,PowerBus OLL Link1 Error Status register,,write_allowlist,
-,OBUS,000000000901081A,0x09-0x0C,,HWSV,PowerBus OLL Retrain Threshold register,,write_allowlist,
-,OBUS,0000000009011050,0x09-0x0C,,HWSV,PPE External Interface XCR register,,write_allowlist,
-,OBUS,8000080009010C3F,0x09-0x0C,,HWSV,rx(tx)_lane_ana_pdwn rx_lane_dig_pdwn and rx_lane_disabled,,write_allowlist,
-,Core,0000000020010A9C,0x20-0x37,,HB,Direct injects into logic - no latches!!,,write_allowlist,
-,Core,0000000020010A9D,0x20-0x37,,HB,RAS Mode Register,,write_allowlist,
-,OBUS,0000000009010C00,0x09-0x0C,FFFFFFFFFFFFC000,HWSV,OBUS PHY FIR register,,write_partialwriteallowlist,
-,OBUS,0000000009010C03,0x09-0x0C,FFFFFFFFFFFFC000,HWSV,OBUS PHY FIR Mask register,,write_partialwriteallowlist,
-,OBUS,0000000009010800,0x09-0x0C,FFFFFFFFFFFFDFFC,HWSV,PB PowerBus Optical DL FIR register,,write_partialwriteallowlist,
-,OBUS,0000000009010803,0x09-0x0C,FFFFFFFFFFFFDFFC,HWSV,PB PowerBus Optical DL FIR Mask register,,write_partialwriteallowlist,
-,XBUS,8000000006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000000F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000001006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000001106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000002F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000003006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000003106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000080F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000081006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000081106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000082F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000083006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000083106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000280F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000281006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000281106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000282F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000283006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000283106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000300F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000301006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000301106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000302F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000303006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000303106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C00F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C01006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C01106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C02F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C03006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8000C03106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002200F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002201006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002201106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002202F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002203006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002203106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002400F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002401006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002402F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002403006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C00F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C01006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C02F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C03006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C80F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C81006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C82F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8002C83006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004040F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004041006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004042F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004043006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C0F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C1006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C2F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80040C3006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C0F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C1006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C2F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,80043C3006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004440F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004441006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442106010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442206010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442306010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442406010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442506010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442606010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442706010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442806010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442906010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442A06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442B06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442C06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442D06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442E06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004442F06010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8004443006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008080006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008082006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008100006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008102006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008300006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008302006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008400006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008402006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008C00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8008C02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009700006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009702006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009800006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009802006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009900006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009902006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009980006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009982006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009A00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009A02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009B00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009B02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009B80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009B82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009E00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009E02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009E80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009E82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009F00006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009F02006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009F80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,8009F82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800A380006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800A382006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800A800006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800A802006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800AE80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800AE82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800AF80006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800AF82006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800B800006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800B802006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C040006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C042006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C0C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C0C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C140006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C142006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C1C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C1C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C240006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C242006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C840006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C842006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C8C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C8C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C9C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800C9C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800CEC0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800CEC2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800CF40006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800CF42006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D340006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D342006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D3C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D3C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D440006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D442006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D4C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D4C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D540006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D542006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D5C0006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D5C2006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D640006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800D642006010C3F,0x06,,HB,,,write_allowlist,
-,XBUS,800F040006010C3F,0x06,,HB,,,write_allowlist,
-,Nest 3,90000CF405011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000E0605011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000E4305011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000E6105011811,0x05,,HB,,,write_allowlist,
-,Nest 3,90000E6105012011,0x05,,HB,,,write_allowlist,
-,Nest 3,90000EA205011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000EE105011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000F0505011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000F2005011C11,0x05,,HB,,,write_allowlist,
-,Nest 3,90000F4005011811,0x05,,HB,,,write_allowlist,
-,Nest 3,90000F4005012011,0x05,,HB,,,write_allowlist,
-,PB,501382F,0x05,,,PB Optical Link Mailbox Data Movement register,,read_denylist,
-,PB,5013830,0x05,,,PB Optical Link Mailbox 00 Register,,read_denylist,
-,PB,5013834,0x05,,,PB Optical Link Mailbox 20 Register,,read_denylist,
-,PB,5013838,0x05,,,PB Optical Link Mailbox 40 Register,,read_denylist,
-,PB,501383C,0x05,,,PB Optical Link Mailbox 60 Register,,read_denylist,
-,Nest 1,301082D,0x03,,,MC01 Array Access Data register,,read_denylist,
-,Nest 1,30108AD,0x03,,,MC23 Array Access Data register,,read_denylist,
-,MC01,7012315,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012316,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012317,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012318,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012319,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231A,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231B,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231C,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231D,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231E,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701231F,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012320,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012321,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012322,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012323,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012324,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012325,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012326,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012327,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012328,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012329,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232A,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232B,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232C,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232D,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232E,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,701232F,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012330,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012331,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012332,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012333,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012334,0x07,,,CCS Array 0 registers,,read_denylist,
-,MC01,7012335,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012336,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012337,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012338,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012339,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233A,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233B,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233C,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233D,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233E,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701233F,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012340,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012341,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012342,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012343,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012344,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012345,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012346,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012347,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012348,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012349,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234A,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234B,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234C,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234D,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234E,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701234F,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012350,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012351,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012352,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012353,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,7012354,0x07,,,CCS Array 1 registers,,read_denylist,
-,MC01,701093C,0x07,,,Port 0 Performance Monitor Count register,,read_denylist,
-,MC01,701097C,0x07,,,Port 1 Performance Monitor Count register,,read_denylist,
-,MC01,70109BC,0x07,,,Port 2 Performance Monitor Count register,,read_denylist,
-,MC01,70109FC,0x07,,,Port 3 Performance Monitor Count register,,read_denylist,
-,MC01,7010A2A,0x07,,,Port 0 Array Access Data Register,,read_denylist,
-,MC01,7010A6A,0x07,,,Port 1 Array Access Data Register,,read_denylist,
-,MC01,7010AAA,0x07,,,Port 2 Array Access Data Register,,read_denylist,
-,MC01,7010AEA,0x07,,,Port 3 Array Access Data Register,,read_denylist,
-,MC23,8012315,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012316,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012317,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012318,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012319,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231A,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231B,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231C,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231D,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231E,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801231F,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012320,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012321,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012322,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012323,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012324,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012325,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012326,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012327,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012328,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012329,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232A,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232B,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232C,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232D,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232E,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,801232F,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012330,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012331,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012332,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012333,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012334,0x08,,,CCS Array 0 registers,,read_denylist,
-,MC23,8012335,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012336,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012337,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012338,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012339,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233A,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233B,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233C,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233D,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233E,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801233F,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012340,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012341,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012342,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012343,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012344,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012345,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012346,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012347,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012348,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012349,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234A,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234B,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234C,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234D,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234E,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801234F,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012350,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012351,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012352,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012353,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,8012354,0x08,,,CCS Array 1 registers,,read_denylist,
-,MC23,801093C,0x08,,,Port 0 Performance Monitor Count register,,read_denylist,
-,MC23,801097C,0x08,,,Port 1 Performance Monitor Count register,,read_denylist,
-,MC23,80109BC,0x08,,,Port 2 Performance Monitor Count register,,read_denylist,
-,MC23,80109FC,0x08,,,Port 3 Performance Monitor Count register,,read_denylist,
-,MC23,8010A2A,0x08,,,Port 0 Array Access Data Register,,read_denylist,
-,MC23,8010A6A,0x08,,,Port 1 Array Access Data Register,,read_denylist,
-,MC23,8010AAA,0x08,,,Port 2 Array Access Data Register,,read_denylist,
-,MC23,8010AEA,0x08,,,Port 3 Array Access Data Register,,read_denylist,
-,TP,0x000F001A, 0x00,, HWSV, SPL_WKUP system checkstop indicator register,p9_cpu_special_wakeup_lib.H,write_allowlist,
-,TP,0x0006C08A, 0x00,, HWSV, SPL_WKUP OCC Flag Register register,p9_cpu_special_wakeup_lib.H,write_allowlist,
-,TP,0x0006C08B, 0x00,, HWSV, I2C LockActions with OCC Flag CLEAR Register,hwsvVpdSyncSvc.C,write_allowlist,
-,TP,0x0006C08C, 0x00,, HWSV, I2C LockActions with OCC Flag OR Register,hwsvVpdSyncSvc.C,write_allowlist,
-,Core,200F010A,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F010B,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F010C,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F010D,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F010A,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F010B,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F010C,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F010D,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups assert and deassert registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0111,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0112,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0113,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0114,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0111,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0112,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0113,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0114,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups history registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0040,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups Network Control registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0040,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups Network Control registers, p9_cpu_special_wakeup.H, write_allowlist,
-,Core,200F0100,0x20-0x37,,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F0100,0x10-0x15,,HWSV,  SPL_WKUP-special wakeups GPMMR registers, p9_cpu_special_wakeup.H, write_allowlist,
-,EQ,100F03FF,0x10-0x15,,HWSV,  EQ Atomic Lock register for special wakeup ffdc collection, p9_eq_clear_atomic_lock, write_allowlist,
-,CORE,0x200f0108,0x20-0x37,,HWSV,,p9_block_wakeup_intr.C,write_allowlist,
-,CORE,0x200f0101,0x20-0x37,,HWSV,,p9_block_wakeup_intr.C,write_allowlist,
-,CORE,0x200f0107,0x20-0x37,,HWSV,,p9_block_wakeup_intr.C,write_allowlist,
-,,0x050107D0,0x05,,DUMP,,for performance dumps,write_allowlist,
-,PERV,0x000107D0,0x00-0x37,,DUMP,,Local checkstops: Stop trace on all perv chiplets,write_allowlist,
-,,0x05011C0A,0x05,,DUMP,, MPIPL: restart traces ,write_allowlist,
-,,0x06000029,0x06,,DUMP,,"Stop clocks, except refresh",write_allowlist,
-,OBUS,0x09000029,0x09-0xC,,DUMP,,clear XBUS iovalids,write_allowlist,
-,MCBIST,0x07000010,0x07-0x08,,DUMP,,Collect rings ,write_allowlist,
-,MCBIST,0x07000020,0x07-0x08,,DUMP,,Collect rings ,write_allowlist,
-,PES,0x0D000010,0x0D-0x0F,,DUMP,,Collect rings which require deterministic scan enable,write_allowlist,
-,PES,0x0D000020,0x0D-0x0F,,DUMP,,Collect rings which require deterministic scan enable,write_allowlist,
-,,0x000A0006,0x00,,DUMP,,Switch PIB I2C masters ,write_allowlist,
-,,0x000A1006,0x00,,DUMP,,Switch PIB I2C masters ,write_allowlist,
-,,0x000A2006,0x00,,DUMP,,Switch PIB I2C masters ,write_allowlist,
-,,0x000A3006,0x00,,DUMP,,Switch PIB I2C masters ,write_allowlist,
-,XBUS,0x0601103F,0x06,,HBFW,General XBUS indirect SCOM registers,p9_xbus_g0_scom.C,write_allowlist,
-,XBUS,0x0601143F,0x06,,HBFW,General XBUS indirect SCOM registers,p9_xbus_g1_scom.C,write_allowlist,
-,XBUS,0x06011C0A,0x06,,HBFW,PowerBus ELL Config Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x06011C18,0x06,,HBFW,PowerBus ELL Replay Threshold Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x06011C19,0x06,,HBFW,PowerBus ELL SL ECC Threshold Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x0601200A,0x06,,HBFW,PowerBus ELL Config Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x06012018,0x06,,HBFW,PowerBus ELL Replay Threshold Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x06012019,0x06,,HBFW,PowerBus ELL SL ECC Threshold Register,p9_fbc_ioe_dl_scom.C,write_allowlist,
-,XBUS,0x060F0042,0x06,,HBFW,NET CTRL0 Register,p9_xbus_enable_ridi.C,write_allowlist,
-,TP,0x0006C700,0x00,,HB,AVSBus O2SCTRL First Frame Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C701,0x00,,HB,AVSBus O2SCTRL Second Frame Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C702,0x00,,HB,AVSBus O2SCTRL First Frame Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C703,0x00,,HB,AVSBus O2SCTRL1  Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C707,0x00,,HB,AVSBus O2SCMD Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C708,0x00,,HB,AVSBus O2SWD  Bus 0 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C710,0x00,,HB,AVSBus O2SCTRL First Frame Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C711,0x00,,HB,AVSBus O2SCTRL Second Frame Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C712,0x00,,HB,AVSBus O2SCTRL First Frame Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C713,0x00,,HB,AVSBus O2SCTRL1  Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C717,0x00,,HB,AVSBus O2SCMD Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C718,0x00,,HB,AVSBus O2SWD  Bus 0 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C720,0x00,,HB,AVSBus O2SCTRL First Frame Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C721,0x00,,HB,AVSBus O2SCTRL Second Frame Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C722,0x00,,HB,AVSBus O2SCTRL First Frame Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C723,0x00,,HB,AVSBus O2SCTRL1  Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C727,0x00,,HB,AVSBus O2SCMD Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C728,0x00,,HB,AVSBus O2SWD  Bus 1 Bridge A,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C730,0x00,,HB,AVSBus O2SCTRL First Frame Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C731,0x00,,HB,AVSBus O2SCTRL Second Frame Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C732,0x00,,HB,AVSBus O2SCTRL First Frame Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C733,0x00,,HB,AVSBus O2SCTRL1  Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C737,0x00,,HB,AVSBus O2SCMD Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,TP,0x0006C738,0x00,,HB,AVSBus O2SWD  Bus 1 Bridge B,p9_setup_evid.C,write_allowlist,
-,CACHE,0x100F0151,0x10-0x16,,HBFW,QPPM DPLL Frequency Control Register,p9_setup_evid.C,write_allowlist,
-,CACHE,0x100F01B6,0x10-0x16,,HBFW,QPPM VDM Config Register,p9_setup_evid.C,write_allowlist,
-,,0x8002200f09010c3f,0x09-0x0C,,HWSV,,p9_io_obus_dccal and other O bus procedures,write_allowlist,
-,EX,0x1001200A,0x10-0x15,,HWSV,CME SRAM Control register,dump cme sram,write_allowlist,
-,EX,0x1001240A,0x10-0x15,,HWSV,CME SRAM Control register,dump cme sram,write_allowlist,
-,EX,0x1001200D,0x10-0x15,,HWSV,CME SRAM Address register,dump cme sram,write_allowlist,
-,EX,0x1001240D,0x10-0x15,,HWSV,CME SRAM Address register,dump cme sram,write_allowlist,
-
+Version,Chiplet,Base Address,Chiplet Id - range,Bit Mask,User,Register name,Description/Usage,Type
+,DLM,C01140F,0x0C-0x0F,,L. Lambrecht,REG0.PMU_CNTR,performance monitor used for link utilization (possibly remove),read_denylist
+,INT,2010AA0,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH0_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AA4,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH0_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AA8,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH1_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AAC,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH1_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AB0,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH2_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AB4,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH2_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010AB8,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH3_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010ABC,0x02,,D. Shedivy,INT_PC.NXC_REGS.INT_PC_NXC_WATCH3_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109A0,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH0_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109A4,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH0_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109A8,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH1_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109AC,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH1_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109B0,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH2_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109B4,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH2_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109B8,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH3_SPEC,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,20109BC,0x02,,D. Shedivy,INT_VC.INT_VC_ENDC_WATCH3_DATA0,Read has side-effects on Cache Watch sequence,read_denylist
+,INT,2010B20,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_TRIG_EOI,Read has side-effects on LSI state,read_denylist
+,INT,2010B21,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_STEOI_LD,Read has side-effects on LSI state,read_denylist
+,INT,2010B24,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_00,Read has side-effects on LSI state,read_denylist
+,INT,2010B25,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_01,Read has side-effects on LSI state,read_denylist
+,INT,2010B26,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_10,Read has side-effects on LSI state,read_denylist
+,INT,2010B27,0x02,,D. Shedivy,INT_PC.REGS.INT_TCTXT_LSI_SET_11,Read has side-effects on LSI state,read_denylist
+,MCD,301080F,0x03,,J. Liberty,MCD.BANK0_MCD_RW,Read might show snapshot of some state of  MCD MDI storage.  ,read_denylist
+,MM (NMMU),2010C4D,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU0_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C4E,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU1_CTL_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C4F,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU0_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C50,0x02-0x03,,J. Truelove,MM0.MM_NMMU_PMU1_CNT_REG,Could reverse engineer NMMUs actions,read_denylist
+,MM (NMMU),2010C51,0x02-0x03,,J. Truelove,MM0.MM_NMMU_FLT_STAT_REG,Could reverse engineer NMMUs actions,read_denylist
+,NX,2011040,0x02,,J. Reilly,NX.DMA.SU_STATUS,Can see signs of NX activity,read_denylist
+,NX,20110A7,0x02,,J. Reilly,NX.PBI.CQ_WRAP.NXCQ_SCOM.NX_PMU0_COUNTER_REG,Can see signs of NX activity,read_denylist
+,NX,20110AA,0x02,,J. Reilly,NX.PBI.CQ_WRAP.NXCQ_SCOM.NX_PMU1_COUNTER_REG,Can see signs of NX activity,read_denylist
+,NX,20110C3,0x02,,J. Reilly,NX.PBI.PBI_UMAC.EFT_HI_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20110C4,0x02,,J. Reilly,NX.PBI.PBI_UMAC.SYM_HI_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20119C5,0x02,,J. Reilly,NX.PBI.PBI_UMAC.GZIP_HI_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20110CC,0x02,,J. Reilly,NX.PBI.PBI_UMAC.EFT_LO_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20110CD,0x02,,J. Reilly,NX.PBI.PBI_UMAC.SYM_LO_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20110CE,0x02,,J. Reilly,NX.PBI.PBI_UMAC.GZIP_LO_PRIOR_RCV_FIFO_CNTL,Can see signs of NX activity,read_denylist
+,NX,20110E0,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_CFG,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E1,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_ST0,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E2,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_ST1,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E3,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_ST2,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E4,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_BYPASS,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E5,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_RDELAY,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E6,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_RESET,Made write-only with sticky bit from pervasive,read_denylist
+,NX,20110E8,0x02,,J. Reilly,NX.PBI.PBI_RNG.NX_RNG_ST,Made write-only with sticky bit from pervasive,read_denylist
+,PAU,10010986,0x10-0x13,,J. Mikos,PAU0.CS.CTL.MISC.PERF_COUNT,Performance counter,read_denylist
+,PAU,10450108,0x10-0x13,,J. Mikos,PAU0.DAT.MISC.DISPALT_DAT0,Read array containing Powerbus data,read_denylist
+,PAU,10450110,0x10-0x13,,J. Mikos,PAU0.DAT.MISC.DISPALT_DAT1,Read array containing Powerbus data,read_denylist
+,PAU,10010B47,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_REQ,Interrupt request source,read_denylist
+,PAU,10010B90,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE0,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B91,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE1,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B92,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE2,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B93,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE3,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B94,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE4,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B95,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE5,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B96,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE6,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B97,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE7,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B98,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE8,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B99,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE9,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9A,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE10,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9B,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE11,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9C,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE12,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9D,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE13,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9E,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE14,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010B9F,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_0_PE15,Records which error causes system interrupt per PE (0-15),read_denylist
+,PAU,10010BA0,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE0,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA1,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE1,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA2,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE2,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA3,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE3,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA4,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE4,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA5,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE5,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA6,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE6,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA7,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE7,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA8,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE8,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BA9,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE9,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAA,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE10,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAB,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE11,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAC,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE12,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAD,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE13,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAE,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE14,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010BAF,0x10-0x13,,J. Mikos,PAU0.MISC.REGS.INT_LOG_1_PE15,Records error details for error caused a System Interrupt for each PE (0-15),read_denylist
+,PAU,10010A25,0x10-0x13,,J. Mikos,PAU0.OTL0.MISC.PMU_COUNT,Performance counter,read_denylist
+,PAU,10010A55,0x10-0x13,,J. Mikos,PAU0.OTL1.MISC.PMU_COUNT,Performance counter,read_denylist
+,PAU,10010AAF,0x10-0x13,,J. Mikos,PAU0.XSL.XSL_MAIN.PMU_COUNT,Performance counter,read_denylist
+,PAU,10010AF8,0x10-0x13,,J. Mikos,PAU0.XTS.REG.XTS_PMU_CNT,Performance counter,read_denylist
+,PB (FBC),1001181B,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU0_TLPM_COUNTER,"Performance counter; repeat for PTLSCOM23,45,67",read_denylist
+,PB (FBC),1001181C,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU1_TLPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),1001181D,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU2_TLPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),1001181E,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU3_TLPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),10011821,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU0_CNPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),10011822,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU1_CNPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),10011823,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU2_CNPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),10011824,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_PMU3_CNPM_COUNTER,Performance counter,read_denylist
+,PB (FBC),10011831,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_MAILBOX_01_REG,"Link mailbox - non secure; repeat for PTLSCOM23,45,67",read_denylist
+,PB (FBC),10011833,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_MAILBOX_11_REG,Link mailbox - non secure,read_denylist
+,PB (FBC),10011835,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_MAILBOX_21_REG,Link mailbox - non secure,read_denylist
+,PB (FBC),10011837,0x10-0x13,,P. Reddy,PB.PTLSCOM10.PB_MAILBOX_31_REG,Link mailbox - non secure,read_denylist
+,PB_BRIDGE,3011C80,0x03,,C. Slicker,PB_BRIDGE.NHTM.SC.HTM_MODE,HTM Collection Mode - optional if WR is secure,read_denylist
+,PB_BRIDGE,3011C81,0x03,,C. Slicker,PB_BRIDGE.NHTM.SC.HTM_MEM,HTM Collection Mem - trace memory - optional if nHTM enable is secure,read_denylist
+,PB_BRIDGE,3011C82,0x03,,C. Slicker,PB_BRIDGE.NHTM.SC.HTM0_STAT,HTM Collection Status - optional if nHTM enable is secure,read_denylist
+,PB_BRIDGE,3011C83,0x03,,C. Slicker,PB_BRIDGE.NHTM.SC.HTM0_LAST,HTM Collection Last - contains address of last buffer written into trace  - optional if nHTM enable is secure,read_denylist
+,PB_BRIDGE,3011C84,0x03,,C. Slicker,PB_BRIDGE.NHTM.SC.HTM1_LAST,HTM Collection Last - contains address of last buffer written into trace  - optional if nHTM enable is secure,read_denylist
+,PB_BRIDGE,3011D55,0x03,,C. Slicker,PB_BRIDGE.HCA.HCA_DROP_COUNT_REG,Read side-effect. Clears value when read.,read_denylist
+,PEPHB,8010900,0x08-0x09,,E. Lais,PEPHB0.ETUX16.RSB.RSB.SCOM.SSR.PHB5_SCOM_HVIAR,Ultravisor only;  there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010940,0x08-0x09,,E. Lais,PEPHB1.ETUX08.RSB.RSB.SCOM.SSR.PHB5_SCOM_HVIAR,Ultravisor only;  there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010980,0x08-0x09,,E. Lais,PEPHB2.ETUX08.RSB.RSB.SCOM.SSR.PHB5_SCOM_HVIAR,Ultravisor only;  there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010905,0x08-0x09,,E. Lais,PEPHB0.ETUX16.RSB.RSB.REGS.REGS_UVI.PHB5_SCOM_UV_OFFSET_CNTL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010945,0x08-0x09,,E. Lais,PEPHB1.ETUX08.RSB.RSB.REGS.REGS_UVI.PHB5_SCOM_UV_OFFSET_CNTL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010985,0x08-0x09,,E. Lais,PEPHB2.ETUX08.RSB.RSB.REGS.REGS_UVI.PHB5_SCOM_UV_OFFSET_CNTL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010906,0x08-0x09,,E. Lais,PEPHB0.ETUX16.PHB5_SCOM_UV_SEC_INCL_CMP,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010946,0x08-0x09,,E. Lais,PEPHB1.ETUX08.PHB5_SCOM_UV_SEC_INCL_CMP,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010986,0x08-0x09,,E. Lais,PEPHB2.ETUX08.PHB5_SCOM_UV_SEC_INCL_CMP,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010907,0x08-0x09,,E. Lais,PEPHB0.ETUX16.PHB5_SCOM_UV_SEC_INCL_MSK,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010947,0x08-0x09,,E. Lais,PEPHB1.ETUX08.PHB5_SCOM_UV_SEC_INCL_MSK,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010987,0x08-0x09,,E. Lais,PEPHB2.ETUX08.PHB5_SCOM_UV_SEC_INCL_MSK,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010904,0x08-0x09,,E. Lais,PEPHB0.ETUX16.PHB5_SCOM_UV_SEC_EXCL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010944,0x08-0x09,,E. Lais,PEPHB1.ETUX08.PHB5_SCOM_UV_SEC_EXCL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,PEPHB,8010984,0x08-0x09,,E. Lais,PEPHB2.ETUX08.PHB5_SCOM_UV_SEC_EXCL,Ultravisor only; there are 6 phb stacks on the chip thus 6 versions of this register,read_denylist
+,VAS,201142A,0x02,,C. Hanudel,VAS.VA_RG.SCF.VAS_MMIODATA,Can see signs of VAS activity,read_denylist
+,VAS,2011431,0x02,,C. Hanudel,VAS.VA_RG.SCF.VAS_MMIOECC,Can see signs of VAS activity,read_denylist
+,VAS,2011434,0x02,,C. Hanudel,VAS.VA_RG.SCF.VAS_CAMDATA0,Can see signs of VAS activity,read_denylist
+,VAS,2011435,0x02,,C. Hanudel,VAS.VA_RG.SCF.VAS_CAMDATA1,Can see signs of VAS activity,read_denylist
+,VAS,201144F,0x02,,C. Hanudel,VAS.VA_EG.EG_SCF.VAS_SOUTHCTL,Can see signs of VAS activity,read_denylist
+,PB,501382F,0x05,,,PB Optical Link Mailbox Data Movement register,,read_denylist
+,PB,5013830,0x05,,,PB Optical Link Mailbox 00 Register,,read_denylist
+,PB,5013834,0x05,,,PB Optical Link Mailbox 20 Register,,read_denylist
+,PB,5013838,0x05,,,PB Optical Link Mailbox 40 Register,,read_denylist
+,PB,501383C,0x05,,,PB Optical Link Mailbox 60 Register,,read_denylist
+,Nest 1,301082D,0x03,,,MC01 Array Access Data register,,read_denylist
+,Nest 1,30108AD,0x03,,,MC23 Array Access Data register,,read_denylist
+,MC01,7012315,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012316,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012317,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012318,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012319,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231A,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231B,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231C,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231D,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231E,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701231F,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012320,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012321,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012322,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012323,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012324,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012325,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012326,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012327,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012328,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012329,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232A,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232B,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232C,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232D,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232E,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,701232F,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012330,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012331,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012332,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012333,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012334,0x07,,,CCS Array 0 registers,,read_denylist
+,MC01,7012335,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012336,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012337,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012338,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012339,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233A,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233B,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233C,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233D,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233E,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701233F,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012340,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012341,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012342,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012343,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012344,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012345,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012346,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012347,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012348,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012349,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234A,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234B,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234C,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234D,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234E,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701234F,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012350,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012351,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012352,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012353,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,7012354,0x07,,,CCS Array 1 registers,,read_denylist
+,MC01,701093C,0x07,,,Port 0 Performance Monitor Count register,,read_denylist
+,MC01,701097C,0x07,,,Port 1 Performance Monitor Count register,,read_denylist
+,MC01,70109BC,0x07,,,Port 2 Performance Monitor Count register,,read_denylist
+,MC01,70109FC,0x07,,,Port 3 Performance Monitor Count register,,read_denylist
+,MC01,7010A2A,0x07,,,Port 0 Array Access Data Register,,read_denylist
+,MC01,7010A6A,0x07,,,Port 1 Array Access Data Register,,read_denylist
+,MC01,7010AAA,0x07,,,Port 2 Array Access Data Register,,read_denylist
+,MC01,7010AEA,0x07,,,Port 3 Array Access Data Register,,read_denylist
+,MC23,8012315,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012316,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012317,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012318,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012319,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231A,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231B,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231C,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231D,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231E,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801231F,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012320,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012321,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012322,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012323,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012324,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012325,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012326,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012327,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012328,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012329,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232A,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232B,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232C,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232D,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232E,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,801232F,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012330,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012331,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012332,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012333,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012334,0x08,,,CCS Array 0 registers,,read_denylist
+,MC23,8012335,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012336,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012337,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012338,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012339,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233A,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233B,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233C,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233D,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233E,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801233F,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012340,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012341,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012342,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012343,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012344,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012345,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012346,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012347,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012348,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012349,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234A,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234B,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234C,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234D,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234E,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801234F,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012350,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012351,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012352,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012353,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,8012354,0x08,,,CCS Array 1 registers,,read_denylist
+,MC23,801093C,0x08,,,Port 0 Performance Monitor Count register,,read_denylist
+,MC23,801097C,0x08,,,Port 1 Performance Monitor Count register,,read_denylist
+,MC23,80109BC,0x08,,,Port 2 Performance Monitor Count register,,read_denylist
+,MC23,80109FC,0x08,,,Port 3 Performance Monitor Count register,,read_denylist
+,MC23,8010A2A,0x08,,,Port 0 Array Access Data Register,,read_denylist
+,MC23,8010A6A,0x08,,,Port 1 Array Access Data Register,,read_denylist
+,MC23,8010AAA,0x08,,,Port 2 Array Access Data Register,,read_denylist
+,MC23,8010AEA,0x08,,,Port 3 Array Access Data Register,,read_denylist
+,PSI,3011D12,0x03,,HWSV,PSI Host Bridge Control/Status Register(OR),,write_allowlist
+,PSI,3011D13,0x03,,HWSV,PSI Host Bridge Control/Status Register(CLEAR),,write_allowlist
+,PSI,3011D11,0x03,,HWSV,PSI Host Bridge Debug Service Register,,write_allowlist
+,PSI,3011C00,0x03,,HWSV,PSI TX and Common Control Status Register,,write_allowlist
+,PSI,3011C08,0x03,,HWSV,PSI RX Control Status Register,,write_allowlist
+,PSI,3011C06,0x03,,HWSV,PSI TX Data Flow FSM,,write_allowlist
+,PSI,3011C0E,0x03,,HWSV,PSI RX Data Flow FSM,,write_allowlist
+,PSI,3011C0A,0x03,,HWSV,PSI Rx Error Register,,write_allowlist
+,PSI,3011C02,0x03,,HWSV,PSI Tx Error Register,,write_allowlist
+,PSI,3011C10,0x03,,HWSV,PSI Tx Internal Address Register,,write_allowlist
+,PSI,3011C18,0x03,,HWSV,PSI Rx Internal Address Register,,write_allowlist
+,PSI,3011C13,0x03,,HWSV,PSI Tx Misc Register,,write_allowlist
+,PSI,3011C1B,0x03,,HWSV,PSI Rx Misc Register,,write_allowlist
+,N1,3000029,0x03,,HWSV,N1_CPLT_CONF1(CLEAR),,write_allowlist
+,N1,3000019,0x03,,HWSV,N1_CPLT_CONF1(OR),,write_allowlist
+,TP,00F001A,0x00,,HWSV,PCBMS_INTERRUPT_TYPE_REG,,write_allowlist
+,TP,1011030,0x01,,HWSV,PSI_SCOM_REGS.TX_PSI_CNTL,,write_allowlist
+,TP,1011020,0x01,,HWSV,PSI_SCOM_REGS.RX_PSI_CNTL,,write_allowlist
+,TP,1011031,0x01,,HWSV,PSI_SCOM_REGS.TX_PSI_MODE,,write_allowlist
+,TP,1011021,0x01,,HWSV,PSI_SCOM_REGS.RX_PSI_MODE,,write_allowlist
+,TP,40001,0x00,,HWSV,TOD_PRI_PORT_0_CTRL_REG,,write_allowlist
+,TP,40030,0x00,,HWSV,TOD error and interrupt register,,write_allowlist
+,TP,40013,0x00,,HWSV,TOD TX TTYPE-2 triggering register,,write_allowlist
+,TP,40018,0x00,,HWSV,TOD Load-TOD-Mod triggering register,,write_allowlist
+,TP,40016,0x00,,HWSV,TOD TX TTYPE-5 triggering register,,write_allowlist
+,TP,40021,0x00,,HWSV,TOD Load Register ,,write_allowlist
+,TP,40015,0x00,,HWSV,TOD TX TTYPE-4 triggering register,,write_allowlist
+,TP,40032,0x00,,HWSV,TOD error mask register,,write_allowlist
+,TP,40003,0x00,,HWSV,TOD secondary configuration: distribution port-0 control register,,write_allowlist
+,TP,40004,0x00,,HWSV,TOD secondary configuration: distribution port-1 control register,,write_allowlist
+,TP,40002,0x00,,HWSV,TOD primary configuration: distribution port-1 control register,,write_allowlist
+,TP,40029,0x00,,HWSV,TOD RX TType control register ,,write_allowlist
+,TP,40007,0x00,,HWSV,TOD primary/secondary configuration control register,,write_allowlist
+,TP,40005,0x00,,HWSV,TOD slave path control register,,write_allowlist
+,TP,40000,0x00,,HWSV,TOD master paths control register,,write_allowlist
+,TP,40006,0x00,,HWSV,TOD internal path control register,,write_allowlist
+,TP,40010,0x00,,HWSV,TOD chip control register,,write_allowlist
+,TP,40022,0x00,,HWSV,TOD start fsm register,,write_allowlist
+,TP,4000B,0x00,,HWSV,TOD misc reset register,,write_allowlist
+,TP,4000D,0x00,,HWSV,TOD timer register,,write_allowlist
+,IOHS,1801100A,0x18-0x1F,,Paul Ganfield,DLP0.DLP.DLP_CONFIG,,write_allowlist
+,EQ,2002849B,0x20-0x27,,Jim Bishop,Core 3 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002449B,0x20-0x27,,Jim Bishop,Core 2 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002249B,0x20-0x27,,Jim Bishop,Core 1 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,2002149B,0x20-0x27,,Jim Bishop,Core 0 ECP.EC.PC.TFX_SM,,write_allowlist
+,EQ,20028498,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_AND),,write_allowlist
+,EQ,20024498,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_AND),,write_allowlist
+,EQ,20022498,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_AND),,write_allowlist
+,EQ,20021498,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_AND),,write_allowlist
+,EQ,20028497,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_OR),,write_allowlist
+,EQ,20024497,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (WOX_OR),,write_allowlist
+,EQ,20022497,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_OR),,write_allowlist
+,EQ,20021497,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(WOX_OR),,write_allowlist
+,EQ,20028499,0x20-0x27,,Phyp,Core 3 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (RWX),,write_allowlist
+,EQ,20024499,0x20-0x27,,Phyp,Core 2 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN (RWX),,write_allowlist
+,EQ,20022499,0x20-0x27,,Phyp,Core 1 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(RWX),,write_allowlist
+,EQ,20021499,0x20-0x27,,Phyp,Core 0 ECP.EC.PC.COMMON.SPR_COMMON.SPATTN(RWX),,write_allowlist
+,EQ,200E0122,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
+,EQ,460E0122,0x00,,Greg Still,PCBSLEQ.QME.QME_FLAGS ,,write_allowlist
+,PB,3011351,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,3011391,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,30113D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301100B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301100D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301100F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011011,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301104B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301104D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301104F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011051,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301108B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301108D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301108F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011091,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,30110CB,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,30110CD,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,30110CF,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,30110D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301110B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301110D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301110F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011111,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301114B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301114D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301114F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011151,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301118B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301118D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301118F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011191,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,30111CB,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,30111CD,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,30111CF,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,30111D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301120B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301120D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301120F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011211,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301124B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301124D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301124F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011251,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301128B,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301128D,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301128F,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011291,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,30112CB,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,30112CD,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,30112CF,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,30112D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301130B,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301130D,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301130F,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011311,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301134B,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301134D,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301134F,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011351,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301138B,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,301138D,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,301138F,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,3011391,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,30113CB,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE1_NEXT,,write_allowlist
+,PB,30113CD,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE2_NEXT,,write_allowlist
+,PB,30113CF,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE3_NEXT,,write_allowlist
+,PB,30113D1,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE4_NEXT,,write_allowlist
+,PB,301100C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301100E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011010,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011012,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ0.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301104C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301104E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011050,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011052,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ1.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301108C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301108E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011090,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011092,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ2.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,30110CC,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,30110CE,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,30110D0,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,30110D2,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ3.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301110C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301110E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011110,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011112,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ4.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301114C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301114E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011150,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011152,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ5.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301118C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301118E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011190,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011192,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ6.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,30111CC,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,30111CE,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,30111D0,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,30111D2,0x03,,HWSV,PB.PB_COM.PB_SCOM_EQ7.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301120C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301120E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011210,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011212,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN1.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301124C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301124E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011250,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011252,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN2.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301128C,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301128E,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011290,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011292,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN3.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,30112CC,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,30112CE,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,30112D0,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,30112D2,0x03,,HWSV,PB.PB_COM.PB_SCOM_EN4.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301130C,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301130E,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011310,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011312,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES1.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301134C,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301134E,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011350,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011352,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES2.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,301138C,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,301138E,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,3011390,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,3011392,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES3.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,PB,30113CC,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE1_CURR,,write_allowlist
+,PB,30113CE,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE2_CURR,,write_allowlist
+,PB,30113D0,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE3_CURR,,write_allowlist
+,PB,30113D2,0x03,,HWSV,PB.PB_COM.PB_SCOM_ES4.PB_STATION_HP_MODE4_CURR,,write_allowlist
+,EQ,200E012A,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_SCRB (OR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
+,EQ,200E012B,0x20-0x27,,Greg Still,PCBSLEQ.QME.QME_SCRB (CLEAR),This Scratch register can be used by GPE or QME firmware. ,write_allowlist
+,TP,6C0B7,0x00,,Greg Still,OCB_OCI OCC Flags 3 (OR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
+,TP,6C0B6,0x00,,Greg Still,OCB_OCI OCC Flags 3 (CLEAR),The OCCFLG register is a scratch register that can be used by OCC firmware for flag setting ,write_allowlist
+,TP,6C002,0x00,,Greg Still,OCB_OCI OCC Interrupt Source 0 Register (OR),These interrupts are used by Hcode. ,write_allowlist
+,TP,90051,0x00,,HWSV,Topology ID Translation Table 0,,write_allowlist
+,TP,90052,0x00,,HWSV,Topology ID Translation Table 1,,write_allowlist
+,TP,90053,0x00,,HWSV,Topology ID Translation Table 2,,write_allowlist
+,TP,90054,0x00,,HWSV,Topology ID Translation Table 3,,write_allowlist
+,PB.EQ0,301100A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg ,,write_allowlist
+,PB.EQ0,3011013,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ0,3011014,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ0,3011015,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ0,301102A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ0,301102B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ1,301104A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ1,3011053,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ1,3011054,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ1,3011055,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ1,301106A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ1,301106B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ2,301108A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ2,3011093,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ2,3011094,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ2,3011095,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ2,30110AA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ2,30110AB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ3,30110CA,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ3,30110D3,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ3,30110D4,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ3,30110D5,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ3,30110EA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ3,30110EB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ4,301110A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ4,3011113,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ4,3011114,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ4,3011115,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ4,301112A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ4,301112B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ5,301114A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ5,3011153,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ5,3011154,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ5,3011155,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ5,301116A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ5,301116B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ6,301118A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ6,3011193,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ6,3011194,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ6,3011195,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ6,30111AA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ6,30111AB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EQ7,30111CA,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EQ7,30111D3,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EQ7,30111D4,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EQ7,30111D5,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EQ7,30111EA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EQ7,30111EB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EN1,301120A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg ,,write_allowlist
+,PB.EN1,3011213,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EN1,3011214,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EN1,3011215,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EN1,301122A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EN1,301122B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EN2,301124A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EN2,3011253,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EN2,3011254,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EN2,3011255,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EN2,301126A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EN2,301126B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EN3,301128A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EN3,3011293,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EN3,3011294,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EN3,3011295,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EN3,30112AA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EN3,30112AB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.EN4,30112CA,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.EN4,30112D3,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.EN4,30112D4,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.EN4,30112D5,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.EN4,30112EA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.EN4,30112EB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.ES1,301130A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg ,,write_allowlist
+,PB.ES1,3011313,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.ES1,3011314,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.ES1,3011315,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.ES1,301132A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.ES1,301132B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.ES2,301134A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.ES2,3011353,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.ES2,3011354,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.ES2,3011355,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.ES2,301136A,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.ES2,301136B,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.ES3,301138A,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.ES3,3011393,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.ES3,3011394,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.ES3,3011395,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.ES3,30113AA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.ES3,30113AB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.ES4,30113CA,0x03,,HWSV,PowerBus PB RaceTrack Station Mode Config reg,,write_allowlist
+,PB.ES4,30113D3,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 1,,write_allowlist
+,PB.ES4,30113D4,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 2,,write_allowlist
+,PB.ES4,30113D5,0x03,,HWSV,PowerBus PB RaceTrack Station Configuration Register 3,,write_allowlist
+,PB.ES4,30113EA,0x03,,HWSV,PowerBus PB RaceTrack Station GP CMD RATE reg,,write_allowlist
+,PB.ES4,30113EB,0x03,,HWSV,PowerBus PB RaceTrack Station SP CMD RATE reg,,write_allowlist
+,PB.ES4,3011396,0x03,,HWSV,PowerBus PB RaceTrack Snooper Configuration Register 1,,write_allowlist
+,PB.ES4,3011397,0x03,,HWSV,PowerBus PB RaceTrack Snooper Configuration Register 2,,write_allowlist
+,PB.ES4,3011398,0x03,,HWSV,PowerBus PB RaceTrack Snooper Configuration Register 3,,write_allowlist
+,PB.ES4,3011399,0x03,,HWSV,PowerBus PB RaceTrack Snooper Configuration Register 4,,write_allowlist
+,PAU,10000019,0x10-0x13,,HWSV,Chiplet Config Register 1 - VITL FUNC (OR),,write_allowlist
+,PAU,1001180A,0x10-0x13,,HWSV,PowerBus TL Framer/Parser 01 Config Register,,write_allowlist
+,PAU,1001180B,0x10-0x13,,HWSV,PowerBus TL Framer/Parser 23 Config Register,,write_allowlist
+,PAU,1001180C,0x10-0x13,,HWSV,PowerBus TL RCmd Rate Control Register,,write_allowlist
+,PAU,10011810,0x10-0x13,,HWSV,PowerBus TL Link Data Buffer 01 Config Register,,write_allowlist
+,PAU,10011811,0x10-0x13,,HWSV,PowerBus TL Link Data Buffer 23 Config Register,,write_allowlist
+,PAU,10011814,0x10-0x13,,HWSV,PowerBus SMP Link 01 PowerSave Mode Config Register,,write_allowlist
+,PAU,10011815,0x10-0x13,,HWSV,PowerBus SMP Link 01 PowerSave Misc Config Register,,write_allowlist
+,PAU,10011816,0x10-0x13,,HWSV,PowerBus SMP Link 23 PowerSave Mode Config Register,,write_allowlist
+,PAU,10011817,0x10-0x13,,HWSV,PowerBus SMP Link 23 PowerSave Misc Config Register,,write_allowlist
+,PAU,10011825,0x10-0x13,,HWSV,PowerBus AX TL Miscellaneous Config Register,,write_allowlist
+,PAU,10011806,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR Action 0 Register,,write_allowlist
+,PAU,10011807,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR Action 1 Register,,write_allowlist
+,PAU,10011803,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 Mask Register,,write_allowlist
+,PAU,10012C06,0x10-0x13,,HWSV,Fault Isolation Action0 Register,,write_allowlist
+,PAU,10012C07,0x10-0x13,,HWSV,Fault Isolation Action1 Register,,write_allowlist
+,PAU,10012C03,0x10-0x13,,HWSV,Pervasive FIR Mask Register,,write_allowlist
+,PAU,1001097C,0x10-0x13,,HWSV,PAU0.CS.SM3.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001097D,0x10-0x13,,HWSV,PAU0.CS.SM3.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001085C,0x10-0x13,,HWSV,PAU0.CS.SM0.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001085D,0x10-0x13,,HWSV,PAU0.CS.SM0.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001085E,0x10-0x13,,HWSV,PAU0.CS.SM0.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,100108BC,0x10-0x13,,HWSV,PAU0.CS.SM1.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,100108BD,0x10-0x13,,HWSV,PAU0.CS.SM1.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,100108BE,0x10-0x13,,HWSV,PAU0.CS.SM1.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001091E,0x10-0x13,,HWSV,PAU0.CS.SM2.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001091C,0x10-0x13,,HWSV,PAU0.CS.SM2.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001091D,0x10-0x13,,HWSV,PAU0.CS.SM2.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001097E,0x10-0x13,,HWSV,PAU0.CS.SM3.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001085F,0x10-0x13,,HWSV,PAU0.CS.SM0.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,100108BF,0x10-0x13,,HWSV,PAU0.CS.SM1.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,1001091F,0x10-0x13,,HWSV,PAU0.CS.SM2.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,1001097F,0x10-0x13,,HWSV,PAU0.CS.SM3.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,1001105C,0x10-0x13,,HWSV,PAU5.CS.SM0.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,100110BC,0x10-0x13,,HWSV,PAU5.CS.SM1.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001111C,0x10-0x13,,HWSV,PAU5.CS.SM2.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001117C,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE0,,write_allowlist
+,PAU,1001105D,0x10-0x13,,HWSV,PAU5.CS.SM0.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,100110BD,0x10-0x13,,HWSV,PAU5.CS.SM1.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001111D,0x10-0x13,,HWSV,PAU5.CS.SM2.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001117D,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE1,,write_allowlist
+,PAU,1001105E,0x10-0x13,,HWSV,PAU5.CS.SM0.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,100110BE,0x10-0x13,,HWSV,PAU5.CS.SM1.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001111E,0x10-0x13,,HWSV,PAU5.CS.SM2.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001117E,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE2,,write_allowlist
+,PAU,1001105F,0x10-0x13,,HWSV,PAU5.CS.SM0.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,100110BF,0x10-0x13,,HWSV,PAU5.CS.SM1.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,1001111F,0x10-0x13,,HWSV,PAU5.CS.SM2.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,1001117F,0x10-0x13,,HWSV,PAU5.CS.SM3.SNP.MISC.TOPOLOGY_TABLE3,,write_allowlist
+,PAU,10012C0D,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Address Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.� The I/O PPEs can only be accessed via a scom satellite.� The PPE does not have the ability to SCOM out.� There is a custom interface to communicate to the PHYs (which don't contain any customer data).�� Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
+,PAU,10012C0E,0x10-0x13,,Christopher W Steffen,PPE Local SRAM Data Register,"These are the SRAM address and data registers for the 4 I/O PPEs on the chip.� The I/O PPEs can only be accessed via a scom satellite.� The PPE does not have the ability to SCOM out.� There is a custom interface to communicate to the PHYs (which don't contain any customer data).�� Worst case, a rogue program could be loaded to take down an I/O Link which would be denial of service.",write_allowlist
+,PAU,10011800,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register,,write_allowlist
+,PAU,10011801,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register (AND),,write_allowlist
+,PAU,10011802,0x10-0x13,,HWSV,PowerBus Transaction Layer FIR0 register (OR),,write_allowlist
+,PAU,10012C00,0x10-0x13,,HWSV,Pervasive FIR Register,,write_allowlist
+,PAU,10012C01,0x10-0x13,,HWSV,Pervasive FIR Register (AND),,write_allowlist
+,PAU,10012C02,0x10-0x13,,HWSV,Pervasive FIR Register (OR),,write_allowlist
+,PAU,10012C03,0x10-0x13,,HWSV,Pervasive FIR Mask Register,,write_allowlist
+,PAU,10012C04,0x10-0x13,,HWSV,Pervasive FIR Mask Register (AND),,write_allowlist
+,PAU,10012C05,0x10-0x13,,HWSV,Pervasive FIR Mask Register (OR),,write_allowlist
+,Nest,0201180C,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG0,,write_allowlist
+,Nest,0201180D,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG1,,write_allowlist
+,Nest,0201180E,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG2,,write_allowlist
+,Nest,0201180F,0x02-0x03,,HWSV,PB.PBCQ.PEPBREGS.PE_TOPOLOGY_REG3,,write_allowlist
+,IOHS,1801100B,0x18-0x1F,,Paul Ganfield,PowerBus OLL Control register,,write_allowlist
+,IOHS,1801100C,0x18-0x1F,,Paul Ganfield,PowerBus OLL PHY Training Config register,,write_allowlist
+,IOHS,1801100D,0x18-0x1F,,Paul Ganfield,PowerBus OLL Secondary Config register,,write_allowlist
+,IOHS,1801100F,0x18-0x1F,,Paul Ganfield,PowerBus OLL Optical Config register,,write_allowlist
+,IOHS,18011018,0x18-0x1F,,Paul Ganfield,PowerBus OLL Replay Threshold register,,write_allowlist
+,IOHS,18011019,0x18-0x1F,,Paul Ganfield,PowerBus OLL SL ECC Threshold register,,write_allowlist
+,IOHS,1801101A,0x18-0x1F,,Paul Ganfield,PowerBus OLL Retrain Threshold register,,write_allowlist
+,IOHS,18011006,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Action 0 Register,,write_allowlist
+,IOHS,18011007,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Action 1 Register,,write_allowlist
+,IOHS,18011003,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Mask Register,,write_allowlist
+,IOHS,18011002,0x18-0x1F,,Paul Ganfield,PowerBus OLL FIR Register,,write_allowlist
+,IOHS,18011012,0x18-0x1F,,HWSV,PowerBus OLL Link0 Receive Lane Control register,,write_allowlist
+,IOHS,18011013,0x18-0x1F,,HWSV,PowerBus OLL Link1 Receive Lane Control register,,write_allowlist
+,IOHS,18011000,0x18-0x1F,,HWSV,PowerBus OLL FIR Register,,write_allowlist
+,IOHS,18011001,0x18-0x1F,,HWSV,PowerBus OLL FIR Register (AND),,write_allowlist
+,IOHS,18011002,0x18-0x1F,,HWSV,PowerBus OLL FIR Register (OR),,write_allowlist
+,IOHS,1801100E,0x18-0x1F,,HWSV,PowerBus OLL Latency Measure register,,write_allowlist
+,IOHS,18011016,0x18-0x1F,,HWSV,PowerBus OLL Link0 Error Status Register,,write_allowlist
+,IOHS,18011017,0x18-0x1F,,HWSV,PowerBus OLL Link1 Error Status Register,,write_allowlist
+,IOHS,18011022,0x18-0x1F,,HWSV,PowerBus OLL Link0 Syndrome Capture register,,write_allowlist
+,IOHS,18011023,0x18-0x1F,,HWSV,PowerBus OLL Link1 Syndrome Capture register,,write_allowlist
+,PB,30113B4,0x03,,HWSV,PowerBus EXTFIR Action 0 Register,,write_allowlist
+,PB,30113B5,0x03,,HWSV,PowerBus EXTFIR Action 1 Register,,write_allowlist
+,PB,30113B1,0x03,,HWSV,PowerBus EXTFIR mask registers,,write_allowlist
+,PB.ES3,30113AE,0x03,,HWSV,PowerBus EH EXTFIR register,,write_allowlist
+,PB.ES3,30113AF,0x03,,HWSV,PowerBus EH EXTFIR register (AND),,write_allowlist
+,PB.ES3,30113B0,0x03,,HWSV,PowerBus EH EXTFIR register (OR),,write_allowlist
+,NX,20110B0,0x02,,HWSV,topology id translation table entries 0:7,,write_allowlist
+,NX,20110B1,0x02,,HWSV,topology id translation table entries 8:15,,write_allowlist
+,NX,20110B2,0x02,,HWSV,topology id translation table entries 16:23,,write_allowlist
+,NX,20110B3,0x02,,HWSV,topology id translation table entries 24:31,,write_allowlist
+,NX,2011450,0x02,,HWSV,topology id translation table entries 0:7,,write_allowlist
+,NX,2011451,0x02,,HWSV,topology id translation table entries 8:15,,write_allowlist
+,NX,2011452,0x02,,HWSV,topology id translation table entries 16:23,,write_allowlist
+,NX,2011453,0x02,,HWSV,topology id translation table entries 24:31,,write_allowlist
+,INT,2010804,0x02,,HWSV,Topology ID Translation Table Register 0,,write_allowlist
+,INT,2010805,0x02,,HWSV,Topology ID Translation Table Register 1,,write_allowlist
+,INT,2010806,0x02,,HWSV,Topology ID Translation Table Register 2,,write_allowlist
+,INT,2010807,0x02,,HWSV,Topology ID Translation Table Register 3,,write_allowlist
+,MMx,2010C2C,0x02-0x03,,HWSV,topology id translation table entries 0:7,,write_allowlist
+,MMx,2010C2D,0x02-0x03,,HWSV,topology id translation table entries 8:15,,write_allowlist
+,MMx,2010C2E,0x02-0x03,,HWSV,topology id translation table entries 16:23,,write_allowlist
+,MMx,2010C2F,0x02-0x03,,HWSV,topology id translation table entries 24:31,,write_allowlist
+,IOHS PHY,10012C3F,0x10-0x13,,HWSV,IOHS PHY Indirect Registers,,write_allowlist
+,IOHS PHY,10012C21,0x10-0x13,,HWSV,PPE Work Register 1,,write_allowlist
