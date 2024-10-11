@@ -201,8 +201,8 @@ if [ ! -z $SIGNING_BASE_DIR ]; then
     echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment for V1/v3 signing"
     RH_DIR=`sed "s/^.*release \([0-9]*\).*$/rh\1/" /etc/redhat-release`
     SIGNING_DIR=$SIGNING_BASE_DIR/$RH_DIR/$SIGNING_UTILS_DIR
-    V1_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
-    V3_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys
+    V1_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys/test/keys
+    V3_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys/test/v3_keys
 
 elif [ -z $SBE_IMG_DIR_OP ]; then
 
