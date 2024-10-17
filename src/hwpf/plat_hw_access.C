@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -203,7 +203,7 @@ static uint32_t getEffectiveAddress(const plat_target_handle_t &i_target, const 
                             l_scom.setSatId(4 +getRemainder(i_target.getTargetInstance(),3));
                         }
                     }
-                    l_chipletId = PCI0_CHIPLET_ID + (i_target.getTargetInstance() / 3); 
+                    l_chipletId = PCI0_CHIPLET_ID + (i_target.getTargetInstance() / 3);
                 }
                 l_scom.setChipletId(l_chipletId);
                 translatedAddr = l_scom.getAddr();
@@ -254,6 +254,74 @@ static fapi2::ReturnCode pibRcToFapiRc(const uint32_t i_pibRc)
     return l_fapiRc;
 }
 
+/**
+ * @brief workaround_retryScomIncaseParityErr:
+ *        Retry getscom / putscom in case of parity error
+ *
+ * @param[in]  - i_addr : Address
+ *
+ * @param[out] - io_data: The data pointer
+ *
+ * @param[in] - i_isRead: if true do getscom else do putscom
+ *
+ * @param[in] - i_pibErr: overide the pib error
+ *
+ * @return: pib error
+ */
+
+static uint32_t workaround_retryScomIncaseParityErr(const uint32_t i_addr,
+                                                    uint64_t *io_data,
+                                                    const bool i_isRead,
+                                                    const uint8_t i_pibErr)
+{
+    FAPI_INF(" >> workaround_retryScomIncaseParityErr ");
+
+    uint8_t pibErr = i_pibErr;
+    static uint8_t retryCount = 0;
+
+    do
+    {
+        //we only need one retry at most.
+        if (retryCount > 0)
+        {
+            SBE_INFO(" retryCount is more than one, retryCount:%d ",retryCount);
+            break;
+        }
+
+        // Match Address Formats 0x01060000-0x0106FFFF
+        if ((i_addr & 0xFFFF0000) == 0x01060000)
+	    {
+            if ( i_isRead )
+            {
+                // Incrementing the re-try count
+                ++retryCount;
+                SBE_DEBUG(" retryCount = %d ",retryCount);
+                pibErr = getscom_abs(i_addr, io_data);
+            }
+            else
+            {
+                // Incrementing the re-try count
+                ++retryCount;
+                SBE_DEBUG(" retryCount = %d ",retryCount);
+                pibErr = putscom_abs(i_addr, *io_data);
+            }
+
+            if (pibErr == PIB_NO_ERROR)
+            {
+                break;
+            }
+        }
+        else
+        {
+            SBE_DEBUG(" Address Formats not matched to retry  add[0x%08x]",i_addr);
+            break;
+        }
+
+
+    } while (false);
+
+    return pibErr;
+}
 
 #if 0
 ///
@@ -360,6 +428,19 @@ static fapi2::ReturnCode handle_scom_error(const uint32_t i_addr, uint64_t *io_d
         getscom_abs((i_addr & 0x07000000) | 0x500F0001, &data);
         FAPI_IMP("Group membership: %08x%08x", data >> 32, data & 0xFFFFFFFF);
     }
+
+    // If there is a Scom parity error within a certain range of addresses
+    // we retry the scom operation once
+    if (i_pibRc == PIB_PARITY_ERROR)
+    {
+        i_pibRc = workaround_retryScomIncaseParityErr(i_addr, io_data, i_isRead, i_pibRc);
+        if (i_pibRc == PIB_NO_ERROR)
+        {
+            return FAPI2_RC_SUCCESS;
+        }
+    }
+    
+
     // Need a clean-up later. Presently no re-tries required.
     // Fail at the first instance.
     /* Attempt recovery */
