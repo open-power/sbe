@@ -55,10 +55,9 @@ if [ $2 -ne 1 ];  then
 fi
 
 if [ -z $SECUREBOOT_MODE]; then
-    SECUREBOOT_MODE="${SECUREBOOT_MODE:-v1}" #Default Secure Boot Mode (v1 secure header)
-    echo "***INFO: Defaulting v1 secure header"
+    SECUREBOOT_MODE="${SECUREBOOT_MODE:-V1}" #Default Secure Boot Mode (V1 secure header)
+    echo "***INFO: Defaulting V1 secure header"
 fi
-
 
 echo "Add ecc to the binary workspace"
 #Check that the binary exists before adding ecc to it.

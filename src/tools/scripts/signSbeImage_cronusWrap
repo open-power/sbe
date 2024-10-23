@@ -45,7 +45,7 @@ SCRATCH_DIR=$SBEROOT/images/sbeScratchDir
 SBE_IMAGE=$SBEROOT/images/sbe_seeprom_DD1.bin
 IPL_IMAGE_TOOL=$SBEROOT/images/ipl_image_tool
 
-# Creating two different directory for v1 and v3 and copying sbe seeprom binary in those directory
+# Creating two different directory for V1 and V3 and copying sbe seeprom binary in those directory
 mkdir -p $SBEROOT/images/v1signed && cp -r $SBEROOT/images/sbe_seeprom_DD1.bin $SBEROOT/images/v1signed/
 mkdir -p $SBEROOT/images/v3signed && cp -r $SBEROOT/images/sbe_seeprom_DD1.bin $SBEROOT/images/v3signed/
 
@@ -56,10 +56,10 @@ check_path $IPL_IMAGE_TOOL
 check_path $SBEROOT/images/v1signed/sbe_seeprom_DD1.bin
 check_path $SBEROOT/images/v3signed/sbe_seeprom_DD1.bin
 
-# Sign SBE Image for v1
-$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v1signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v v1
+# Sign SBE Image for V1
+$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v1signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v V1
 
-# Sign SBE Image for v3
-$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v3signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v v3
+# Sign SBE Image for V3
+$SIGINING_SCRIPT -s $SCRATCH_DIR -i $SBEROOT/images/v3signed/sbe_seeprom_DD1.bin -t $IPL_IMAGE_TOOL -v V3
 
 exit 0

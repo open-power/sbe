@@ -89,7 +89,7 @@ usage()
     echo "  -b: Build Type PNOR/STANDALONE (Default PNOR)."
     echo "  -d: SBE Image Dir path in op-build"
     echo "  -f: signing Mode. Production/Development(Default)"
-    echo "  -v: Secure Boot Mode is v1/v3(v3 is default)"
+    echo "  -v: Secure Boot Mode is V1/V3(V3 is default)"
 }
 
 while getopts "h?s:i:t:b:d:S:f:v:" opt;
@@ -166,22 +166,28 @@ if [ -z $BUILD_TYPE ]; then
     BUILD_TYPE="PNOR" #Default Build Type
 fi
 
-if [ -z $SECUREBOOT_MODE ]; then
-    echo "***INFO | SBE | signSbeImage : Secure Boot Mode not entered. Defaulting v1 secure header"
-    SECUREBOOT_MODE="${SECUREBOOT_MODE:-v1}" #Default Secure Boot Mode (v1 secure header).
+# Check for secureboot mode passed in by environment variable
+if [ ! -z $BR2_SIGNING_CONTAINER_VERSION ]; then
+    SECUREBOOT_MODE=$BR2_SIGNING_CONTAINER_VERSION
+    echo "***INFO | SBE | signSbeImage : SECUREBOOT_MODE passed via " \
+             "BR2_SIGNING_CONTAINER_VERSION as $SECUREBOOT_MODE"
+
+elif [ -z $SECUREBOOT_MODE ]; then
+    echo "***INFO | SBE | signSbeImage: Defaulting V1 secure header"
+    SECUREBOOT_MODE="${SECUREBOOT_MODE:-V1}" # Default Secure Boot Mode (V1 secure header).
 fi
 
-# Secure boot mode, it could be either v1 or v3
+# Secure boot mode, it could be either V1 or V3
 echo "***INFO | SBE | signSbeImage : Secure boot mode ... $SECUREBOOT_MODE"
 
-# Based on user input , selecting secure boot mode , default is v1 secure mode
-# Note: No other input expected from user apart from v1 or v3
-if [ "$SECUREBOOT_MODE" == "v1" ]; then
-    # If v1 secure header Secure Boot Mode => 0x0
+# Based on user input , selecting secure boot mode , default is V1 secure mode
+# Note: No other input expected from user apart from V1 or V3
+if [ "$SECUREBOOT_MODE" == "V1" ]; then
+    # If V1 secure header Secure Boot Mode => 0x0
     SB_MODE="\x00"
 
-elif [ "$SECUREBOOT_MODE" == "v3" ] ;then
-    # If v3 secure header Secure Boot Mode => 0x2
+elif [ "$SECUREBOOT_MODE" == "V3" ] ;then
+    # If V3 secure header Secure Boot Mode => 0x2
     SB_MODE="\x02"
 
 else
@@ -198,7 +204,7 @@ V3_SIGNTOOL_ARGS=
 
 # Determine if our path setup has been provided by the environment
 if [ ! -z $SIGNING_BASE_DIR ]; then
-    echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment for V1/v3 signing"
+    echo "***INFO | SBE | signSbeImage : Fetching signing tools from provided environment for V1/V3 signing"
     RH_DIR=`sed "s/^.*release \([0-9]*\).*$/rh\1/" /etc/redhat-release`
     SIGNING_DIR=$SIGNING_BASE_DIR/$RH_DIR/$SIGNING_UTILS_DIR
     V1_DEV_KEY_DIR=${SIGNING_BASE_DIR}/sb-signing-keys/test/keys
@@ -227,9 +233,9 @@ fi
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SIGNING_DIR
 PATH=$SIGNING_DIR:$PATH
 
-# Check for signing mode passed in by environment (p10)
-if [ ! -z $BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE ]; then
-    SIGNING_MODE=$BR2_OPENPOWER_P10_SECUREBOOT_SIGN_MODE
+# Check for signing mode passed in by environment (p11)
+if [ ! -z $BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE ]; then
+    SIGNING_MODE=$BR2_OPENPOWER_P11_SECUREBOOT_SIGN_MODE
 
 # Check for signing mode passed in by environment (p9)
 elif [ ! -z $BR2_OPENPOWER_SECUREBOOT_SIGN_MODE ]; then
@@ -241,13 +247,13 @@ elif [ -z $SIGNING_MODE ]; then
     echo "***INFO | SBE | signSbeImage : Defaulting signing mode to $SIGNING_MODE "
 fi
 
-# For P11 we will always do v1 as dev signing.
+# For P11 we will always do V1 as dev signing.
 V1_SIGNTOOL_ARGS="$V1_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
                 --hwKeyA ${V1_DEV_KEY_DIR}/hw_key_a.key --hwKeyB ${V1_DEV_KEY_DIR}/hw_key_b.key \
                 --hwKeyC ${V1_DEV_KEY_DIR}/hw_key_c.key --swKeyP ${V1_DEV_KEY_DIR}/sw_key_p.key "
 
 # Set flag basis Development or production mode.
-# Only v3 will be production signed.
+# Only V3 will be production signed.
 # V1 can only be imprint signed
 if [ "$SIGNING_MODE" = "Development" ]; then
     echo "***INFO | SBE | signSbeImage : Development Mode Signing"
@@ -327,7 +333,7 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
 
     # Sign the .hbbl binary
     echo "Sign .hbbl section"
-    # Sign the .hbbl binary for v1
+    # Sign the .hbbl binary for V1
     CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V1_SIGNTOOL_ARGS \
         --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin \
         --contrHdrOut ${SCRATCH_DIR}/V1_SBE_HBBL.header \
@@ -339,10 +345,10 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
     echo "Strip SBE_HBBL.header content"
     dd bs=1 count=1288 if=${SCRATCH_DIR}/V1_SBE_HBBL.header of=${SCRATCH_DIR}/V1_SBE_HBBL_stripped.header
 
-    # copy v1 secure header content in final header file
+    # copy V1 secure header content in final header file
     cat ${SCRATCH_DIR}/V1_SBE_HBBL_stripped.header > ${SCRATCH_DIR}/V1_V3_HBBL_FW_SECURE.header
 
-    # Sign the .hbbl binary for v3
+    # Sign the .hbbl binary for V3
     CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V3_SIGNTOOL_ARGS \
         --sign-project-FW-token HBBL --protectedPayload ${SCRATCH_DIR}/hbbl.bin \
         --contrHdrOut ${SCRATCH_DIR}/V3_SBE_HBBL.header \
@@ -350,7 +356,7 @@ if [ "$BUILD_TYPE" = "STANDALONE" ]; then
     echo "$CMD"
     $CMD
 
-    # Appending v3 secure header in final header file
+    # Appending V3 secure header in final header file
     cat ${SCRATCH_DIR}/V3_SBE_HBBL.header >> ${SCRATCH_DIR}/V1_V3_HBBL_FW_SECURE.header
 
     # Append the stripped V1_V3_HBBL_FW_SECURE.header into .sbh_hbbl xip section
@@ -380,7 +386,7 @@ alignFileSize $SCRATCH_DIR/base.bin
 # Rename base.bin to sbe_fw.bin
 mv $SCRATCH_DIR/base.bin $SCRATCH_DIR/sbe_fw.bin
 
-# Sign the SBE firmware binary image(payload.bin) for v1 secure header
+# Sign the SBE firmware binary image(payload.bin) for V1 secure header
 CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V1_SIGNTOOL_ARGS \
     --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin \
     --contrHdrOut ${SCRATCH_DIR}/V1_SBE_FW.header \
@@ -392,10 +398,10 @@ $CMD
 echo "Strip V1_SBE_FW.header content"
 dd bs=1 count=1288 if=${SCRATCH_DIR}/V1_SBE_FW.header of=${SCRATCH_DIR}/V1_SBE_FW_stripped.header
 
-# Copy v1 secure header content in final header file
+# Copy V1 secure header content in final header file
 cat ${SCRATCH_DIR}/V1_SBE_FW_stripped.header > ${SCRATCH_DIR}/V1_V3_SBE_FW_SECURE.header
 
-# Sign the SBE firmware binary image(payload.bin) for v3 secure header
+# Sign the SBE firmware binary image(payload.bin) for V3 secure header
 CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V3_SIGNTOOL_ARGS \
     --sign-project-FW-token SBE_FW --protectedPayload ${SCRATCH_DIR}/sbe_fw.bin \
     --contrHdrOut ${SCRATCH_DIR}/V3_SBE_FW.header \
@@ -403,7 +409,7 @@ CMD="$SIGNING_DIR/crtSignedContainer.sh --scratchDir ${SCRATCH_DIR} $V3_SIGNTOOL
 echo "$CMD"
 $CMD
 
-# Appending v3 secure header in final header file
+# Appending V3 secure header in final header file
 cat ${SCRATCH_DIR}/V3_SBE_FW.header >> ${SCRATCH_DIR}/V1_V3_SBE_FW_SECURE.header
 
 # Append the V1_V3_SBE_FW_SECURE.header into .sbh_firmware xip section
@@ -411,13 +417,9 @@ echo "Appending secure header into .sbh_firmware xip section"
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE delete .sbh_firmware
 $IPL_IMAGE_TOOL $SBEBINSIMIMAGE append .sbh_firmware $SCRATCH_DIR/V1_V3_SBE_FW_SECURE.header || exit -1
 
-# Converting secure boot mode from lower case to upper case
-# To simplifies HW key has generation for v1 and v3
-declare -u HW_KEY_HASH=$SECUREBOOT_MODE
-
 # Hash of the HW keys. Fetch the value from any of the secure container which is created.
 # We need to filter out the HW keys from the print container output and convert the output to .bin format
-print-container -w0 --imagefile ${SCRATCH_DIR}/${HW_KEY_HASH}_SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
+print-container -w0 --imagefile ${SCRATCH_DIR}/${SECUREBOOT_MODE}_SBE_FW.header | grep -A1 "HW keys hash" | grep "           " | head -1 | tr -d " " | tr -d "\n" | xxd -r -p > $SCRATCH_DIR/hw_keys_hash.bin
 
 # Append minimum secure version(MSV), SB Mode and reserved bytes
 # into .sb_settings xip section after HW key hash
