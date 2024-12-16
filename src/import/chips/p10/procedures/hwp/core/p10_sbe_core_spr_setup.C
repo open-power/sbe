@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -172,6 +172,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
     uint64_t l_bootloader_offset = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::buffer<uint64_t> l_scsr_or = 0;
+    fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP> l_chip_target;
 
     FAPI_DBG("Entering...");
 
@@ -182,14 +183,15 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_program_sprs(
                            l_bootloader_offset),
              "Error from FAPI_ATTR_GET (ATTR_SBE_BOOTLOADER_OFFSET)");
 
-    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_MASTER_HRMOR_ADDRESS,
-                           FAPI_SYSTEM,
-                           l_master_hrmor),
-             "Error from FAPI_ATTR_GET (ATTR_SBE_MASTER_HRMOR_ADDRESS)");
-
     for (auto l_core_target : i_core_targets)
     {
         auto l_eq = l_core_target.getParent<fapi2::TARGET_TYPE_EQ>();
+        l_chip_target = l_core_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_MASTER_HRMOR_ADDRESS,
+                               l_chip_target,
+                               l_master_hrmor),
+                 "Error from FAPI_ATTR_GET (ATTR_SBE_MASTER_HRMOR_ADDRESS)");
+
 
         RamCore l_ram_t1(l_core_target, THREAD_1);
         RamCore l_ram_t2(l_core_target, THREAD_2);
