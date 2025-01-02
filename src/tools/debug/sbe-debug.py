@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # IBM_PROLOG_BEGIN_TAG
 # This is an automatically generated prolog.
 #
@@ -107,11 +107,11 @@ def getSymbolInfo( symbol ):
 def createPibmemDumpFile( offset, length, input_file=None):
     if input_file is None:
         input_file = file_path
-    fileHandle = open(input_file)
+    fileHandle = open(input_file,'rb')
     fileHandle.seek(int(offset, 16))
     fileData = fileHandle.read(int(length, 16))
     fileHandle.close()
-    fileHandle = open(output_path +"DumpPIBMEM", 'w')
+    fileHandle = open(output_path +"DumpPIBMEM", 'wb')
     fileHandle.write(fileData)
     fileHandle.close()
 
@@ -401,7 +401,7 @@ def ppeState():
                          31 : ["R31", False]
                      }
         print("File path: ", file_path)
-        fileHandle = open(file_path)
+        fileHandle = open(file_path, 'rb')
         l_cnt = 0
         print('********************************************************************')
         print('Reg'.ljust(15),'Reg Value'.ljust(20))
@@ -436,13 +436,14 @@ def sbeLocalRegister():
     if(target == 'FILE'):
         endianChar = getEndian(unTaredDumpFile)
         print("File path: ", file_path)
-        fileHandle = open(file_path)
+        fileHandle = open(file_path, 'rb')
         l_cnt = 0
         print('********************************************************************')
         print('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = struct.unpack(endianChar + "H",fileHandle.read(2))
-            str2 = fileHandle.read(32).decode().strip('\x00')
+            str2 = fileHandle.read(32)
+            str2 = str2.decode(encoding='utf-8')
             str3 = struct.unpack(endianChar + "Q",fileHandle.read(8))
             print(str(format(str1[0],'02X')).ljust(11),str(format(str3[0],'016X')).ljust(20),str2)
             l_cnt = l_cnt + 42;
@@ -477,13 +478,14 @@ def sbeState():
     if(target == 'FILE'):
         endianChar = getEndian(unTaredDumpFile)
         print("File path: ", file_path)
-        fileHandle = open(file_path)
+        fileHandle = open(file_path,'rb')
         l_cnt = 0
         print('********************************************************************')
         print('Reg Number       Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = struct.unpack(endianChar + "Q",fileHandle.read(8))
-            str2 = fileHandle.read(32).decode().strip('\x00')
+            str2 = fileHandle.read(32)
+            str2 = str2.decode(encoding='utf-8')
             str3 = struct.unpack(endianChar + "I",fileHandle.read(4))
             str4 = struct.unpack(endianChar + "Q",fileHandle.read(8))
             print(str(format(str1[0],'016X')).ljust(11),str(format(str4[0],'016X')).ljust(20),str2)
