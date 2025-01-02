@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2022
+# Contributors Listed Below - COPYRIGHT 2015,2025
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -459,6 +459,8 @@ tar:
 	@mkdir $(TAR_OBJDIR)/ppetracepp
 	@mkdir $(TAR_OBJDIR)/parserplugins
 	@cp  $(SIMICS_PPE_TAR_FILES) $(TAR_OBJDIR)
+#	enum.py present in TEST_SRCDIR dir is not needed by sbe-debug.py.
+	@rm -rf $(TAR_OBJDIR)/enum.py
 	@cp  $(SIMICS_BB_TAR_FILES) $(TAR_OBJDIR)
 	@cp  $(SIMICS_PPETRACEPP_TAR_FILES) $(TAR_OBJDIR)/ppetracepp
 	@cp  $(SIMICS_PARSERPLUGINS_TAR_FILES) $(TAR_OBJDIR)/parserplugins
