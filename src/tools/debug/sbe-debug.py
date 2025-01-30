@@ -428,10 +428,9 @@ def sbeLocalRegister():
         print('Reg Number  Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = struct.unpack(endianChar + "H",fileHandle.read(2))
-            str2 = fileHandle.read(32)
-            str2 = str2.decode(encoding='utf-8')
+            str2 = fileHandle.read(32).decode().strip('\x00')
             str3 = struct.unpack(endianChar + "Q",fileHandle.read(8))
-            print(str(format(str1[0],'02X')).ljust(11),str(format(str3[0],'016X')).ljust(20),str2.ljust(40))
+            print(str(format(str1[0],'02X')).ljust(11),str(format(str3[0],'016X')).ljust(20),str2)
             l_cnt = l_cnt + 42;
 
         print('********************************************************************')
@@ -470,11 +469,10 @@ def sbeState():
         print('Reg Number       Reg Value            Reg String')
         while(l_cnt < os.path.getsize(file_path)):
             str1 = struct.unpack(endianChar + "Q",fileHandle.read(8))
-            str2 = fileHandle.read(32)
-            str2 = str2.decode(encoding='utf-8')
+            str2 = fileHandle.read(32).decode().strip('\x00')
             str3 = struct.unpack(endianChar + "I",fileHandle.read(4))
             str4 = struct.unpack(endianChar + "Q",fileHandle.read(8))
-            print(str(format(str1[0],'016X')).ljust(11),str(format(str4[0],'016X')).ljust(20),str2.ljust(40))
+            print(str(format(str1[0],'016X')).ljust(11),str(format(str4[0],'016X')).ljust(20),str2)
             l_cnt = l_cnt + 52;
 
         print('********************************************************************')
