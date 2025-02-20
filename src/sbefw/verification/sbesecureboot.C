@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -653,24 +653,39 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
         memcpy_byte(hashDataBuff, prefix, V3_PREFIX_HEADER_SIZE(prefix));
         sha3(hashDataBuff, V3_PREFIX_HEADER_SIZE(prefix), &digest);
 
-
+        // TODO JIRA: PFSBE-1090 Lock down SBE verification image to maintain a constant PCR6
         //Verify HW signature A (ECDSA521)
-        if(ec_verify(container->hw_pkey_a, digest, hw_data->hw_sig_a) < 1)
+        if(!SBE::isSimicsRunning())
         {
-            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature A, ECDSA521");
-            VERIFY_FAILED_BREAK(HW_ECDSA_SIG_TEST);
+            if(ec_verify(container->hw_pkey_a, digest, hw_data->hw_sig_a) < 1)
+            {
+                SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature A, ECDSA521");
+                VERIFY_FAILED_BREAK(HW_ECDSA_SIG_TEST);
+            }
         }
+        else
+        {
+            SBEV_INFO("Skipping HW signature A (ECDSA521) verification - Simics running");
+        }
+        
 
         // Verify HW signature D (mldsa)
-        int l_mldsaResp = 0;
-        l_mldsaResp = mldsa_verify(hw_data->hw_sig_d, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
-                                    digest, SHA3_DIGEST_LENGTH,
-                                    container->hw_pkey_d, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
-        if(l_mldsaResp <= 0)
+        if(!SBE::isSimicsRunning())
         {
-            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, mldsa Resp:%d",l_mldsaResp);
-            VERIFY_FAILED_BREAK(HW_MLDSA_SIG_TEST);
+            int l_mldsaResp = 0;
+            l_mldsaResp = mldsa_verify(hw_data->hw_sig_d, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+                                        digest, SHA3_DIGEST_LENGTH,
+                                        container->hw_pkey_d, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
+            if(l_mldsaResp <= 0)
+            {
+                SBEV_ERROR(SBEV_FUNC "FAILED : Invalid HW signature D, mldsa Resp:%d",l_mldsaResp);
+                VERIFY_FAILED_BREAK(HW_MLDSA_SIG_TEST);
+            }
         }
+        else
+        {
+            SBEV_INFO("Skipping HW signature D (mldsa) verification - Simics running");
+        }  
 
         SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
         SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
@@ -761,21 +776,37 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
 
         // test for valid sw header signatures (all)
         //Verify SW signature P (ECDSA521)
-        if(ec_verify(hw_data->sw_pkey_p, digest, sw_sig->sw_sig_p) < 1)
+        if(!SBE::isSimicsRunning())
         {
-            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature P, ECDSA521");
-            VERIFY_FAILED_BREAK(SW_ECDSA_SIG_TEST);
+            if(ec_verify(hw_data->sw_pkey_p, digest, sw_sig->sw_sig_p) < 1)
+            {
+                SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature P, ECDSA521");
+                VERIFY_FAILED_BREAK(SW_ECDSA_SIG_TEST);
+            }
         }
-
+        else
+        {
+            SBEV_INFO("Skipping SW signature P (ECDSA521) verification - Simics running");
+        }
+        
         // Verify SW signature S (mldsa)
-        l_mldsaResp = mldsa_verify(sw_sig->sw_sig_s, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
+        if(!SBE::isSimicsRunning())
+        {
+            int l_mldsaResp = 0;
+            l_mldsaResp = mldsa_verify(sw_sig->sw_sig_s, DIL_MLDSA_87_CRYPTO_SIG_SIZE,
                                     digest, SHA3_DIGEST_LENGTH,
                                     hw_data->sw_pkey_s, DIL_MLDSA_87_CRYPTO_PUBLICKEY_SIZE);
-        if(l_mldsaResp <= 0)
-        {
-            SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, mldsa Resp:%d",l_mldsaResp);
-            VERIFY_FAILED_BREAK(SW_MLDSA_SIG_TEST);
+            if(l_mldsaResp <= 0)
+            {
+                SBEV_ERROR(SBEV_FUNC "FAILED : Invalid SW signature S, mldsa Resp:%d",l_mldsaResp);
+                VERIFY_FAILED_BREAK(SW_MLDSA_SIG_TEST);
+            }
         }
+        else
+        {
+            SBEV_INFO("Skipping SW signature S (mldsa) verification - Simics running");
+        }
+        
 
         // test for valid component-id
         if(!( (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID) ||
