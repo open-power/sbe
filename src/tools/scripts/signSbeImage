@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2024
+# Contributors Listed Below - COPYRIGHT 2016,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -255,7 +255,8 @@ V1_SIGNTOOL_ARGS="$V1_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
 # Set flag basis Development or production mode.
 # Only V3 will be production signed.
 # V1 can only be imprint signed
-if [ "$SIGNING_MODE" = "Development" ]; then
+if [ "$SIGNING_MODE" = "Development" ] ||
+   [ "$SIGNING_MODE" = "development" ]; then
     echo "***INFO | SBE | signSbeImage : Development Mode Signing"
     V3_SIGNTOOL_ARGS="$V3_SIGNTOOL_ARGS --mode development --flags 0x40080000 \
                     --hwKeyA ${V3_DEV_KEY_DIR}/runtime_hw_key_a.key  \
