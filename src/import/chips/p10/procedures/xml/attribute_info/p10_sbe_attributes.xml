@@ -522,6 +522,14 @@
     <value>0x200000</value>
   </entry>
   <entry>
+    <name>ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
+    <name>ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE</name>
+    <value>0x0</value>
+  </entry>
+  <entry>
     <name>ATTR_SBE_BOOT_SIDE</name>
     <value>0x0</value>
   </entry>

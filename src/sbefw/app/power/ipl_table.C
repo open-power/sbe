@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -826,7 +826,15 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 
         // Get hbbl section
         uint32_t hbblStartAddress = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
-        uint32_t hbblSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size;
+        uint64_t hbblSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size;
+
+        // Set the hbbl size in ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE, proc, hbblSize);
+
+        // Clear ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET before running the HWP.
+        // While loading hbbl in chunks this value will have to start from zero.
+        uint64_t loadHbblChunkOffset = 0x0;
+        PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, proc, loadHbblChunkOffset);
 
         SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSize, (uint8_t *)hbblStartAddress)
         if(rc != FAPI2_RC_SUCCESS)

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -113,6 +113,7 @@ using namespace scomt::proc;
 ///
 /// @param[in] i_master_chip_target Reference to processor chip target
 /// @param[in] i_master_core_target Reference to the master core target
+/// @param[in] i_offset Offset into address space, to permit loading in chunks
 /// @param[in] i_payload_size Size of image payload, in B
 /// @param[out] o_load_base_address Base real address for bootloader load
 /// @param[out] o_load_size Size of complete bootloader payload
@@ -124,6 +125,7 @@ fapi2::ReturnCode
 calc_image_footprint(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
     const fapi2::Target<fapi2::TARGET_TYPE_CORE>& i_master_core_target,
+    const uint64_t i_offset,
     const uint64_t i_payload_size,
     uint64_t& o_load_base_address,
     uint64_t& o_load_size,
@@ -168,6 +170,7 @@ calc_image_footprint(
     // add hostboot HRMOR offset and bootloader offset contributions
     l_drawer_base_address_nm0 += l_hostboot_hrmor_offset;
     l_drawer_base_address_nm0 += l_bootloader_offset;
+    l_drawer_base_address_nm0 += i_offset;
 
     // check that base address is cacheline aligned
     FAPI_ASSERT(!(l_drawer_base_address_nm0 % FABRIC_CACHELINE_SIZE),
@@ -189,7 +192,7 @@ calc_image_footprint(
     o_load_size = i_payload_size;
     o_load_exception_vector = false;
 
-    if (l_exception_instruction != 0)
+    if ((l_exception_instruction != 0) && (i_offset == 0))
     {
         o_load_exception_vector = true;
         o_load_size += EXCEPTION_VECTOR_SIZE;
@@ -221,7 +224,6 @@ fapi_try_exit:
 ///        Cacheline 0 is filled up by BootloaderConfigData_t structure content
 ///        fully. Cacheline 1 is filled up by Partial BootloaderConfigData_t
 ///        structure data
-/// @param[in] i_load_size Size of complete bootloader payload
 /// @param[inout] io_data Pointer to cacheline buffer to fill
 /// @return fapi::ReturnCode. FAPI2_RC_SUCCESS if success, else error code.
 ///
@@ -229,7 +231,6 @@ fapi2::ReturnCode
 get_bootloader_config_data(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_master_chip_target,
     const uint8_t i_cacheline,
-    const uint64_t i_load_size,
     uint8_t* io_data)
 {
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
@@ -244,6 +245,7 @@ get_bootloader_config_data(
     uint8_t* stashDataPtr = NULL;
     // Variable to fetch Hash Key from Seeprom
     uint8_t* hashKeyPtr = NULL;
+    uint64_t l_load_size;
 
     fapi2::buffer<uint64_t> l_cbs_cs;
     BootloaderConfigData_t l_bootloader_config_data;
@@ -304,7 +306,11 @@ get_bootloader_config_data(
                  "Error from FAPI_ATTR_GET (ATTR_NUM_KEY_ADDR_PAIR)");
 
         // pass size of load including exception vectors and bootloader
-        l_bootloader_config_data.blLoadSize = i_load_size;
+        FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE,
+                               i_master_chip_target,
+                               l_load_size));
+
+        l_bootloader_config_data.blLoadSize = l_load_size + EXCEPTION_VECTOR_SIZE;
 
         // Set Secure Settings Byte
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SECURE_SETTINGS,
@@ -471,6 +477,7 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
     uint32_t l_cacheline_num = 0;
     fapi2::ATTR_IS_MPIPL_Type l_is_mpipl = fapi2::ENUM_ATTR_IS_MPIPL_FALSE;
     fapi2::ATTR_ECO_MODE_Type l_eco_mode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
+    fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET_Type l_offset = 0;
     p10_PBA_oper_flag l_pba_flags;
     uint8_t l_data[FABRIC_CACHELINE_SIZE];
     uint64_t l_target_address;
@@ -512,8 +519,11 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
 
     // calculate base address/size for image load
     // also, determine if FW specific exception vector will be installed
+    FAPI_DBG("Start offset: %d", l_offset);
+    FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, i_master_chip_target, l_offset));
     FAPI_TRY(calc_image_footprint(i_master_chip_target,
                                   i_master_core_target,
+                                  l_offset,
                                   i_payload_size,
                                   l_load_base_address,
                                   l_load_size,
@@ -550,7 +560,6 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
                 // write bootloader configuration data in first cacheline
                 FAPI_TRY(get_bootloader_config_data(i_master_chip_target,
                                                     l_cacheline_num,
-                                                    l_load_size,
                                                     l_data),
                          "Error from get_bootloader_config_data");
             }
@@ -601,11 +610,18 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
         }
     }
 
-    // Write attributes for sbe core spr setup
-    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SBE_MASTER_HRMOR_ADDRESS,
-                           i_master_chip_target,
-                           l_load_base_address),
-             "Error from FAPI_ATTR_SET (ATTR_SBE_MASTER_HRMOR_ADDRESS)");
+    // Write attributes for sbe core spr setup (only on first call)
+    if (l_offset == 0)
+    {
+        FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SBE_MASTER_HRMOR_ADDRESS,
+                               i_master_chip_target,
+                               l_load_base_address),
+                 "Error from FAPI_ATTR_SET (ATTR_SBE_MASTER_HRMOR_ADDRESS)");
+    }
+
+    l_offset += l_load_size;
+    FAPI_DBG("End offset: %d", l_offset);
+    FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, i_master_chip_target, l_offset));
 
 fapi_try_exit:
     FAPI_DBG("End");
