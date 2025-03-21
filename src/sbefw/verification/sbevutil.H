@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,6 +45,8 @@ extern void jump2boot();
 
 #define ALIGN_8_BYTE_FLOOR(x)   ((x) & 0xFFFFFFF8)
 #define ALIGN_8_BYTE_CIELING(x) ((x + 7) & 0xFFFFFFF8)
+
+#define SBE_LFR_REG_ADDR    0xc0002040
 
 // SHA3 and SHA512 digest length are 64 Bytes
 #define SHA_DIGEST_LENGTH 64

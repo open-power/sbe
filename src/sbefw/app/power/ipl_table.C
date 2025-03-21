@@ -37,6 +37,7 @@
 #include "sbearchregdump.H"
 #include "sbecmdmpipl.H"
 #include "base_toc.H"
+#include "isteploadhbbl.H"
 // TODO Workaround
 #include "plat_target_parms.H"
 
@@ -113,7 +114,6 @@
 // istep 5 hwp header files
 #include "p10_sbe_instruct_start.H"
 #include "p10_sbe_core_spr_setup.H"
-#include "p10_sbe_load_bootloader.H"
 
 // istep mpipl header files
 #include "p10_query_corecachemma_access_state.H"
@@ -758,14 +758,9 @@ constexpr uint32_t HB_MEM_WINDOW_SIZE = 64*1024*1024; //64 MB
 ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
 {
     ReturnCode rc = FAPI2_RC_SUCCESS;
-    // Get master Core
-    uint8_t coreId = 0;
     uint8_t l_is_mpipl = 0;
     Target< TARGET_TYPE_SYSTEM > sysTgt;
     Target<TARGET_TYPE_PROC_CHIP > proc = plat_getChipTarget();
-    FAPI_ATTR_GET(fapi2::ATTR_MASTER_CORE,proc,coreId);
-    fapi2::Target<fapi2::TARGET_TYPE_CORE >
-        coreTgt(plat_getTargetHandleByInstance<fapi2::TARGET_TYPE_CORE>(coreId));
 
     uint64_t drawer_base_address_nm0, drawer_base_address_nm1;
     uint64_t drawer_base_address_m;
@@ -824,22 +819,20 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = (uint64_t)bSbSettingsOffset;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR, sysTgt, hashKeyAddr);
 
-        // Get hbbl section
-        uint32_t hbblStartAddress = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
-        uint64_t hbblSize = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size;
-
         // Set the hbbl size in ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE
+        uint64_t hbblSize = getXipSize(P9_XIP_SECTION_SBE_HBBL);
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_HBBL_SIZE, proc, hbblSize);
 
         // Clear ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET before running the HWP.
         // While loading hbbl in chunks this value will have to start from zero.
         uint64_t loadHbblChunkOffset = 0x0;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, proc, loadHbblChunkOffset);
+        SHA_DIGEST_t calPayloadHashHbbl = {0};
 
-        SBE_EXEC_HWP(rc, p10_sbe_load_bootloader, proc, coreTgt, hbblSize, (uint8_t *)hbblStartAddress)
+        rc = loadHbbl((SB_SETTING_SB_MODES)sbMode, &calPayloadHashHbbl);
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(" p10_sbe_load_bootloader failed");
+            SBE_ERROR(" loadHbbl failed with FAPI RC 0x%08x", rc);
             break;
         }
 

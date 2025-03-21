@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -55,7 +55,6 @@ void jump2boot()
 } // end extern "C"
 
 #define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size
-#define SBE_LFR_REG_ADDR    0xc0002040
 
 enum: uint32_t
 {
