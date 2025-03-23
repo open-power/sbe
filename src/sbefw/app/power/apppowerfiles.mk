@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2022
+# Contributors Listed Below - COPYRIGHT 2015,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -38,6 +38,7 @@ APPPOWERPIBMEM-CPP-SOURCES += sbehostfifomsg.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdmemconfig.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdupdatecorefuncstates.C
 APPPOWERPIBMEM-CPP-SOURCES += sbecmdtpmextendmode.C
+APPPOWERPIBMEM-CPP-SOURCES += isteploadhbbl.C
 
 APPPOWERPIBMEM-C-SOURCES =
 APPPOWERPIBMEM-S-SOURCES =
@@ -56,6 +57,7 @@ APPPOWERSEEPROM-CPP-SOURCES += sbecmdcntlinst.C
 APPPOWERSEEPROM-CPP-SOURCES += sbecmdflushnvdimm.C
 APPPOWERSEEPROM-CPP-SOURCES += sbecmdexitcachecontained.C
 APPPOWERSEEPROM-CPP-SOURCES += sbecmdtpmextendmode.C
+APPPOWERSEEPROM-CPP-SOURCES += isteploadhbbl.C
 
 APPPOWERSEEPROM-C-SOURCES =
 APPPOWERSEEPROM-S-SOURCES =

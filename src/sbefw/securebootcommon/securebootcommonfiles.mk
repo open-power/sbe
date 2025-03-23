@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2020,2021
+# Contributors Listed Below - COPYRIGHT 2020,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -28,6 +28,7 @@ COMMON-CPP-SOURCES += sbeTPMCommand.C
 COMMON-CPP-SOURCES += sha512.C
 COMMON-CPP-SOURCES += sbesecuritycommon.C
 COMMON-CPP-SOURCES += sbeXipUtils.C
+COMMON-CPP-SOURCES += keccak.C
 
 COMMON-C-SOURCES =
 COMMON-S-SOURCES =

@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2021
+# Contributors Listed Below - COPYRIGHT 2021,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -26,7 +26,7 @@
 # This is an automatically generated prolog.
 #
 export SUB_OBJDIR = /sbefw/securebootcommon
-export VPATH = $(SBE_FW_DIR)/core
+export VPATH = $(SBE_FW_DIR)/core:$(CRYPTO_DIR)
 
 OBJS = $(addprefix $(OBJDIR)/, $(SECUREBOOT_COMMON_OBJECTS))
 LIBNAME = libsecurebootcommon
