@@ -827,12 +827,12 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         // While loading hbbl in chunks this value will have to start from zero.
         uint64_t loadHbblChunkOffset = 0x0;
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, proc, loadHbblChunkOffset);
-        SHA_DIGEST_t calPayloadHashHbbl = {0};
 
-        rc = loadHbbl((SB_SETTING_SB_MODES)sbMode, &calPayloadHashHbbl);
+
+        rc = loadAndVerifyHbbl((SB_SETTING_SB_MODES)sbMode, hbblSize);
         if(rc != FAPI2_RC_SUCCESS)
         {
-            SBE_ERROR(" loadHbbl failed with FAPI RC 0x%08x", rc);
+            SBE_ERROR(" loadAndVerifyHbbl failed with FAPI RC 0x%08x", rc);
             break;
         }
 

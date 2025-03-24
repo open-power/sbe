@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2025                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -26,5 +27,14 @@
 
 #include "sbevutil.H"
 
-fapi2::ReturnCode loadHbbl(SB_SETTING_SB_MODES i_sbMode,
-                            SHA_DIGEST_t* o_payloadHash );
+/**
+ * @brief Read .hbbl from seeprom in chunks and load into mainstore cache/memory.
+ *        Verify payload size and payload hash.
+ *        Update OTP regs with calculated payload hash
+ *
+ * @param i_sbMode Secure Boot mode
+ * @param i_hbblPayloadSize Size of .hbbl from seeprom XIP header
+ * @return fapi2::ReturnCode rc
+ */
+fapi2::ReturnCode loadAndVerifyHbbl(const SB_SETTING_SB_MODES i_sbMode,
+                                    const uint32_t i_hbblPayloadSize);

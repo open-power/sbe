@@ -6,6 +6,7 @@
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
 /* Contributors Listed Below - COPYRIGHT 2025                             */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -30,11 +31,22 @@
 #include "p10_scom_pibms.H"
 #include "status_codes.H"
 #include "p10_sbe_load_bootloader.H"
+#include "base_toc.H"
+#include "sbesecuritycommon.H"
+#include "sbeOtpromMeasurementReg.H"
 
 #define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size
-fapi2::ReturnCode loadHbbl(SB_SETTING_SB_MODES i_sbMode,
-                           SHA_DIGEST_t* o_payloadHash
-                                     )
+
+const uint32_t regListHbbl[] __attribute__((aligned(8))) = {
+    OTPROM_MEASUREMENT_REG12,
+    OTPROM_MEASUREMENT_REG13,
+    OTPROM_MEASUREMENT_REG14,
+    OTPROM_MEASUREMENT_REG15
+};
+
+static fapi2::ReturnCode loadHbbl(SB_SETTING_SB_MODES i_sbMode,
+                           SHA_DIGEST_t* o_payloadHash,
+                           uint32_t i_payloadSize)
 {
     #define SBE_FUNC " loadHbbl "
     SBE_ENTER(SBE_FUNC);
@@ -177,4 +189,69 @@ fapi2::ReturnCode loadHbbl(SB_SETTING_SB_MODES i_sbMode,
     SBE_EXIT(SBE_FUNC);
     #undef SBE_FUNC
     return fapiRc;
+}
+
+fapi2::ReturnCode loadAndVerifyHbbl(const SB_SETTING_SB_MODES i_sbMode,
+                                    const uint32_t i_hbblPayloadSize)
+{
+   #define SBE_FUNC " loadAndVerifyHbbl "
+   SBE_ENTER(SBE_FUNC)
+
+    fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
+    secureBootStatus_t secureBootStatus;
+    SHA_DIGEST_t calPayloadHashHbbl = {0};
+    SHA512truncated_t sha512TruncatedHbbl = {0};
+    bool resp = false;
+
+    fapiRc = loadHbbl(i_sbMode, &calPayloadHashHbbl, i_hbblPayloadSize);
+    if(fapiRc != FAPI2_RC_SUCCESS)
+    {
+        SBE_ERROR(" loadHbbl failed with FAPI RC 0x%08x", fapiRc);
+    }
+
+    hbbl_SB_data_t *hbbl_SB_data = (hbbl_SB_data_t*)(((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_SB_data_start);
+
+    // Verify the SH payload size with loaded pibmem size
+    if (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE)
+    {
+        SBE_INFO(SBE_FUNC ".hbbl SH verified payload size: %d, "
+                        ".hbbl loaded pibmem payload size: %d",
+                        hbbl_SB_data->iv_hbblPayloadSize, i_hbblPayloadSize);
+        hbbl_SB_data->iv_sbeHbblSecureHdrRsp = verifyPayloadSize( P9_XIP_SECTION_SBE_HBBL,
+                                                hbbl_SB_data->iv_hbblPayloadSize,
+                                                i_hbblPayloadSize);
+    }
+
+    // Verify the SH .hbbl payload hash with calculated payload hash
+    if (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE)
+    {
+        SBE_INFO(SBE_FUNC "Verifying .hbbl calculated payload hash with secure header payload hash");
+        hbbl_SB_data->iv_sbeHbblSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_HBBL,
+                                                calPayloadHashHbbl,
+                                                hbbl_SB_data->iv_shPayloadHashHbbl);
+        //Copy the calculated payload hash into truncated hash to write into measurement reg
+        memcpy(&sha512TruncatedHbbl, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
+    }
+    else
+    {
+        //Copy 0xff into truncated hash to write into measurement reg in case of SHV fail
+        memset(&sha512TruncatedHbbl, 0xFF, sizeof(SHA512truncated_t));
+    }
+
+    // Write into measurement regs on a cold IPL only .
+    // On MPIPL skip writing into measurement regs.
+    if(SBE::isIplReset())
+    {
+        //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
+        SBE_INFO(SBE_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
+        resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), sha512TruncatedHbbl);
+        if((resp == false) & (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE))
+        {
+            UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
+        }
+    }
+
+   SBE_EXIT(SBE_FUNC)
+   return fapiRc;
+   #undef SBE_FUNC
 }

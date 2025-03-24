@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -290,7 +290,11 @@ typedef struct
  * @brief Secure Header Verification Response
  *
  */
-typedef enum { ROM_DONE, ROM_FAILED } ROM_response;
+typedef enum : bool
+{
+  ROM_DONE = 0,
+  ROM_FAILED = 1
+} ROM_response;
 
 typedef struct
 {

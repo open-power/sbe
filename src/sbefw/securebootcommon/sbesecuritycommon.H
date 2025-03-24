@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -38,6 +38,9 @@
 #include "sha512.H"
 #include "p10_ipl_image.H"
 #include "sbeXipUtils.H"
+#include "ROM.H"
+#include "p10_scom_pibms.H"
+#include "sbevutil.H"
 
 #define TPM_DECONFIG_BIT 12
 
@@ -118,5 +121,40 @@ void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context
  * @return None
  */
 void SHA512_XIP_section(p9_xip_section_sbe_t xipSection, SHA512_t *result);
+
+/**
+ * @brief Verify .sbe_fw or .hbbl payload size and update status reg in case of error
+ *
+ * @param i_sections XIP section for which payload size check is to be done
+ * @param i_calPayloadSize actual payload size during image load
+ * @param i_shPayloadSize expected payload size from secure header
+ * @return ROM_response
+ */
+ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
+                                uint32_t i_calPayloadSize,
+                                uint32_t i_shPayloadSize);
+
+/**
+ * @brief Verify .sbe_fw or .hbbl payload hash and update status reg in case of error
+ *
+ * @param i_sections XIP section for which payload hash check is to be done
+ * @param i_calPayloadHash actual payload hash calculated during image load
+ * @param i_shPayloadHash expected payload hash from secure header
+ * @return ROM_response
+ */
+ROM_response verifyPayloadHash( const p9_xip_section_sbe_t i_sections,
+                                SHA_DIGEST_t& i_calPayloadHash,
+                                SHA_DIGEST_t& i_shPayloadHash);
+
+/**
+ * @brief Write the truncated payload hash of .sbe_fw or .hbbl into OTP regs
+ *
+ * @param regs List to OTP regs into which truncated payload hash has to be written
+ * @param regCount No of OTP regs
+ * @param i_sha512Truncated truncated value of the payload hash to be written into OTP regs
+ * @return true
+ * @return false
+ */
+bool writeandverifytruncatedsha512(uint32_t regs[], int regCount, SHA512truncated_t i_sha512Truncated);
 
 #endif /* __SBEFW_SBESECURITYCOMMON_H */
