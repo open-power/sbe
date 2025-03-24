@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2022                             */
+/* Contributors Listed Below - COPYRIGHT 2022,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -31,9 +31,9 @@ typedef struct
     // The order of these field should not be changed (ie, only add new fields at the end)
     //      since this order is assumed in "src/sbefw/verification/sbevthreadroutine.C"
 
-    // HBBL Offset
-    uint32_t hbbl_start;
-    uint32_t hbbl_size;
+    // HBBL SB data
+    uint32_t hbbl_SB_data_start;
+    uint32_t hbbl_SB_data_size;
 
     // HDCT Offset
     uint32_t hdct_start;

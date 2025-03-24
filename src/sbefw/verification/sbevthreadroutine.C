@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -235,9 +235,8 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_SBEFW(SB_SETTING_INVALID_MODE);
         }
 
-        // Declaring the variable for storing fw and hbbl payload calculated hash
+        // Declaring the variable for storing fw payload calculated hash
         SHA_DIGEST_t calPayloadHashBase = {0};
-        SHA_DIGEST_t calPayloadHashHbbl = {0};
         // Declaring the variable for storing fw and hbbl expected payload hash from SH
         SHA_DIGEST_t shPayloadHashBase = {0};
         SHA_DIGEST_t shPayloadHashHbbl = {0};
@@ -275,9 +274,7 @@ void sbevthreadroutine(void *i_pArg)
 
         // hbbl secure header verification
         // hbbl payload size
-        uint32_t xipPayloadSizeHbbl = 0;
-        uint32_t hbblPayloadSize = 0;
-        xipPayloadSizeHbbl = hbblPayloadSize = getXipSize(P9_XIP_SECTION_SBE_HBBL);
+        uint32_t hbblPayloadSize = getXipSize(P9_XIP_SECTION_SBE_HBBL);
 
         // Skip verify HBBL FW secure header in case if secure boot mode is not v1 or v3
         if (isSecureBootModeIsValid)
@@ -424,81 +421,35 @@ void sbevthreadroutine(void *i_pArg)
             UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(BASE_HEADER_BSS_OVERFLOW);
         }
 
-        // Assigning hbbl start address
-        ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start = ALIGN_8_BYTE_CIELING(endOffset + bssSpaceReqd);
+        // Assigning hbbl SB data start address
+        ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_SB_data_start = ALIGN_8_BYTE_CIELING(endOffset + bssSpaceReqd);
 
         uint64_t loadValue = (uint64_t)(SBE_CODE_VERIFICATION_SBEFW_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
 
         sbevSetSecureAccessBit(isSecureHdrPassed, sbeFwSecureHdrResponse.flag);
 
-        // Copy the HBBL to pibmem
-        SBEV_INFO(SBEV_FUNC "Loading .hbbl to pibmem");
-        uint32_t hbbl_end_address = 0;
-        uint32_t hbbl_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_start;
-        uint32_t loadedHbblPayloadSize = 0;
+        // Copy the HBBL SB data to pibmem for verification of .hbbl at runtime
+        SBEV_INFO(SBEV_FUNC "Loading .hbbl SB data to pibmem");
+        uint32_t hbbl_SB_data_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_SB_data_start;
+        uint32_t hbbl_SB_data_end_address = hbbl_SB_data_start_address + sizeof(hbbl_SB_data_t);
 
-        // Clearing calPayloadHashHbbl digest struct
-        memset (&calPayloadHashHbbl, 0x00, sizeof(calPayloadHashHbbl));
-        fapirc = loadSeepromtoPibmem( P9_XIP_SECTION_SBE_HBBL,
-                                      hbbl_start_address,
-                                      hbbl_end_address,
-                                      (uint32_t)(&_base_origin) - hbbl_start_address, // we can load till verification image start
-                                      loadedHbblPayloadSize,
-                                      sbMode,
-                                      &calPayloadHashHbbl);
-        if(fapirc)
-        {
-            SBEV_ERROR(SBEV_FUNC "Loading .hbbl to pibmem is failed with rc [0x%08X], start [0x%08X] end [0x%08X]",
-                fapirc, hbbl_start_address, hbbl_end_address);
-            UPDATE_ERROR_REG_VERIFICATION_STATUS_AND_HALT(HBBL_LOADING_FAILED);
-        }
-        SBEV_INFO(SBEV_FUNC "hbbl_end_address: 0x%08X, hbbl_size: 0x%08X",
-                                    hbbl_end_address, loadedHbblPayloadSize);
+        // Populate hbbl_SB_data_t struct
+        hbbl_SB_data_t hbbl_SB_data = {0};
+        hbbl_SB_data.iv_sbeHbblSecureHdrRsp = sbeHbblSecureHdrRsp;
+        memcpy(&hbbl_SB_data.iv_shPayloadHashHbbl, &shPayloadHashHbbl, sizeof(SHA_DIGEST_t));
+        hbbl_SB_data.iv_hbblPayloadSize = hbblPayloadSize;
 
-        // Storing hbbl size
-        ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_size = loadedHbblPayloadSize;
+        // Copy hbbl_SB_data_t struct into pibmem
+        memcpy((uint32_t*)hbbl_SB_data_start_address, &hbbl_SB_data, sizeof(hbbl_SB_data_t));
 
-        // Verify the SH payload size with loaded pibmem size
-        if (sbeHbblSecureHdrRsp == ROM_DONE)
-        {
-            SBEV_INFO(SBEV_FUNC ".hbbl SH verified payload size: %d, "
-                             ".hbbl loaded pibmem payload size: %d",
-                             xipPayloadSizeHbbl, loadedHbblPayloadSize);
-            sbeHbblSecureHdrRsp = verifyPayloadSize( P9_XIP_SECTION_SBE_HBBL,
-                                                     loadedHbblPayloadSize,
-                                                     xipPayloadSizeHbbl);
-        }
-
-        // Verify the SH .hbbl payload hash with calculated payload hash
-        if (sbeHbblSecureHdrRsp == ROM_DONE)
-        {
-            SBEV_INFO(SBEV_FUNC "Verifying .hbbl calculated payload hash with secure header payload hash");
-            sbeHbblSecureHdrRsp = verifyPayloadHash( P9_XIP_SECTION_SBE_HBBL,
-                                                     calPayloadHashHbbl,
-                                                     shPayloadHashHbbl);
-
-            // Update measurement only Secure header verification success and irrespective of payload hash verification
-            memcpy(&hbblSecureHdrResponse.sha512Truncated, &calPayloadHashHbbl, sizeof(SHA512truncated_t));
-            //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
-            SBEV_INFO(SBEV_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
-            resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
-            if((resp == false) & (sbeHbblSecureHdrRsp == ROM_DONE))
-            {
-                UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
-            }
-        }
-        else
-        {
-            memset(&hbblSecureHdrResponse.sha512Truncated, 0xFF, sizeof(SHA512truncated_t));
-            resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), hbblSecureHdrResponse.sha512Truncated);
-
-        }
+        // Storing hbbl SB data struct size
+        ((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_SB_data_size = sizeof(hbbl_SB_data_t);
 
         loadValue = (uint64_t)(SBE_CODE_VERIFICATION_HBBL_SECURE_HDR_DONE)<<32;
         PPE_STVD(0x50009, loadValue);
 
-        ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_start = ALIGN_8_BYTE_CIELING(hbbl_end_address);
+        ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_start = ALIGN_8_BYTE_CIELING(hbbl_SB_data_end_address);
 
         // Load HDCT, RINGS, FASTARRAY from SEEPROM to PIBMEM.
         uint32_t section_start_address = ((base_toc_t*)(SBE_BASE_ORIGIN))->hdct_start;

@@ -53,6 +53,13 @@ extern void jump2boot();
 // Common sha digest typedef
 typedef uint8_t SHA_DIGEST_t[SHA_DIGEST_LENGTH];
 
+//Struct to pass on hbbl SB data to runtime
+typedef struct{
+    SHA_DIGEST_t iv_shPayloadHashHbbl;
+    uint32_t iv_hbblPayloadSize;
+    ROM_response iv_sbeHbblSecureHdrRsp;
+}hbbl_SB_data_t;
+
 ///
 /// @brief Copy a memory block from source to destination.
 ///
