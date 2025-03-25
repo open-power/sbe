@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -63,7 +63,7 @@ uint32_t checkSbeRole()
                 sbeRole = SBE_ROLE_MASTER;
                 if( !((cbsreg >> 32) & 0x8000000) )
                 {
-                    SBE_INFO(SBE_FUNC "SBE Role is Secondary");
+                    SBE_INFO(SBE_FUNC "SBE Role is Secondary.");
                     sbeRole = SBE_ROLE_SLAVE;
                 }
                 else
@@ -75,13 +75,13 @@ uint32_t checkSbeRole()
             {
                //ALT master
                if( ((cbsreg >> 32) & 0x8000000) )
-                {   
+                {
                     SBE_INFO(SBE_FUNC "SBE Role is Alt-Master");
                     sbeRole = SBE_ROLE_ALT_MASTER;
                 }
                 else
                 {
-                    SBE_INFO(SBE_FUNC "SBE Role is Secondary");
+                    SBE_INFO(SBE_FUNC "SBE Role is Secondary.");
                 }
             }
         }
@@ -94,7 +94,7 @@ uint32_t checkSbeRole()
             }
             else
             {
-                SBE_INFO(SBE_FUNC "SBE Role is Secondary");
+                SBE_INFO(SBE_FUNC "SBE Role is Secondary.");
             }
         }
     }while(0);

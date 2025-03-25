@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,7 +58,7 @@ fapi2::ReturnCode tpmPoisonPCR()
         }
         for(uint32_t i = 0; i < buflen; i++)
         {
-            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
+            SBEM_DEBUG(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
         }
         // Get the command response code.
         uint32_t tpmRc = (tpmGetRN[6] << 24) | (tpmGetRN[7] << 16) |  (tpmGetRN[8] << 8) | tpmGetRN[9];
@@ -108,7 +108,7 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         uint32_t pcrOffset = 13;
         for(uint32_t i = 0; i < size; i ++)
         {
-            SBEM_INFO(SBEM_FUNC "tpmExtendPCR at %d is 0x%02X", i , *(hashKey + i));
+            SBEM_DEBUG(SBEM_FUNC "tpmExtendPCR at %d is 0x%02X", i , *(hashKey + i));
             tpmExtendPCR[offset + i] = *(hashKey + i);
         }
         uint32_t buflen = 72;
@@ -125,7 +125,7 @@ fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
         }
         for(uint32_t i = 0; i < buflen; i++)
         {
-            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
+            SBEM_DEBUG(SBEM_FUNC "TPM transmit data is 0x%02X", *(seqBytes + i));
         }
         // Get the command response code.
         uint32_t tpmRc = (tpmExtendPCR[6] << 24) | (tpmExtendPCR[7] << 16) |  (tpmExtendPCR[8] << 8) | tpmExtendPCR[9];

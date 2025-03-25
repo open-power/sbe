@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -258,7 +258,7 @@ namespace SBE
     void enableXscoms(void)
     {
         #define SBE_FUNC "ENABLE_XSCOMS"
-        SBE_INFO(SBE_FUNC " Enable Xscoms ");
+        SBE_INFO(SBE_FUNC " Enable Xscom's ");
         uint64_t data = 0;
         PPE_LVD(0x90010, data);
         data = (data & 0xfffffffffffffffeull);

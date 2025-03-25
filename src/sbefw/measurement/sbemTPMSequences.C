@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -133,7 +133,7 @@ fapi2::ReturnCode tpmSequenceToStartup()
         }
         for(uint32_t i = 0; i < buflen; i++)
         {
-            SBEM_INFO(SBEM_FUNC "TPM transmit data is 0x%02X", tpmStartCommand[i]);
+            SBEM_DEBUG(SBEM_FUNC "TPM transmit data is 0x%02X", tpmStartCommand[i]);
         }
         uint32_t tpmRc = (tpmStartCommand[6] << 24) | (tpmStartCommand[7] << 16) |  (tpmStartCommand[8] << 8) | tpmStartCommand[9];
         SBEM_INFO(SBEM_FUNC "TPM rc is 0x%08X", tpmRc);
