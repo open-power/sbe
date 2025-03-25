@@ -41,7 +41,6 @@
 #define BUILD_TAG_LENGTH 20
 
 extern uint32_t g_sbevRole;
-extern SHA512truncated_t SHA256separator;
 extern uint32_t _base_origin __attribute__ ((section (".bss")));
 
 // Array of XIP sections for copying these section to pibmem
@@ -254,7 +253,7 @@ void sbevthreadroutine(void *i_pArg)
             // Write SBE_FW truncated payload hash into otprom register 8-11 (x10018-x1001B)
             SBEV_INFO(SBEV_FUNC "Writing truncated SBE_FW payload hash into otprom register 8-11(x10018-x1001B)");
             respsbeFw = writeandverifytruncatedsha512((uint32_t*) regListFw, sizeof(regListFw)/sizeof(regListFw[0]), sbeFwSecureHdrResponse.sha512Truncated);
-            if((respsbeFw == false) & (sbeFwSecureHdrRsp == ROM_DONE))
+            if((respsbeFw == false) && (sbeFwSecureHdrRsp == ROM_DONE))
             {
                 UPDATE_ERROR_REG_SBEFW(OTP_MEASUREMENT_RWC_MISMATCH);
             }
@@ -483,15 +482,8 @@ void sbevthreadroutine(void *i_pArg)
                 break;
             }
 
-            //Extend calculated truncated hash of HBBL secure Hdr into PCR0
-            SBEV_INFO("Extending calculated truncated hash of HBBL secure Hdr into PCR0");
-            fapirc = tpmExtendPCR(TPM_PCR0, hbblSecureHdrResponse.sha512Truncated, sizeof(SHA512truncated_t));
-            if(fapirc)
-            {
-                SBEV_ERROR(SBEV_FUNC "tpmExtendPCR failed while extending truncated hash of HBBL secure Hdr into PCR0");
-                tpmRespCode = SBEV_TPM_EXTEND_HBBL_PAYLOAD_IMAGE_HASH_PCR0_FAILURE;
-                break;
-            }
+            // Extend calculated truncated hash of HBBL secure Hdr into PCR0.
+            // Would be done in runtime image.
 
             //Extend Security state to PCR1.i.e Security Switch Register
             memset(sha512Truncated, 0x00, sizeof(SHA512truncated_t));
@@ -507,17 +499,9 @@ void sbevthreadroutine(void *i_pArg)
 
             /*************************************************TPM_EXTEND_SEPERATOR*******************************************************/
 
-            //Extend separator to denote change of control from measurement
-            //SEEProm to Boots SEEProm PCR0 to PCR7
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR0");
-            fapirc = tpmExtendPCR(TPM_PCR0, SHA256separator, sizeof(SHA512truncated_t));
-            if(fapirc)
-            {
-                SBEV_ERROR(SBEV_FUNC "tpmExtendPCR failed while extending seperator into PCR0");
-                tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR0_FAILURE;
-                break;
-            }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR1");
+            // NOTE: PCR0 separator will be extended in runtime in istep 5.1
+            //Extend separator  PCR1 to PCR7
+            SBEV_INFO("Extending seperator  into TPM_PCR1");
             fapirc = tpmExtendPCR(TPM_PCR1, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -525,7 +509,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR1_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR2");
+            SBEV_INFO("Extending seperator  into TPM_PCR2");
             fapirc = tpmExtendPCR(TPM_PCR2, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -533,7 +517,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR2_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR3");
+            SBEV_INFO("Extending seperator  into TPM_PCR3");
             fapirc = tpmExtendPCR(TPM_PCR3, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -541,7 +525,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR3_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR4");
+            SBEV_INFO("Extending seperator  into TPM_PCR4");
             fapirc = tpmExtendPCR(TPM_PCR4, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -549,7 +533,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR4_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR5");
+            SBEV_INFO("Extending seperator  into TPM_PCR5");
             fapirc = tpmExtendPCR(TPM_PCR5, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -557,7 +541,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR5_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR6");
+            SBEV_INFO("Extending seperator  into TPM_PCR6");
             fapirc = tpmExtendPCR(TPM_PCR6, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {
@@ -565,7 +549,7 @@ void sbevthreadroutine(void *i_pArg)
                 tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR6_FAILURE;
                 break;
             }
-            SBEV_INFO("Extending seperator to denote change of control from measurement to boots seeprom into TPM_PCR7");
+            SBEV_INFO("Extending seperator  into TPM_PCR7");
             fapirc = tpmExtendPCR(TPM_PCR7, SHA256separator, sizeof(SHA512truncated_t));
             if(fapirc)
             {

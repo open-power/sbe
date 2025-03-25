@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,7 +44,7 @@ fapi2::ReturnCode tpmPoisonPCR();
 
 /**
  * @brief This function peforms the sequencing to do extend on the TPM.
- * @param[in] pcrNum   PCT to be extended.
+ * @param[in] pcrNum   PCR to be extended.
  *            hashKey  key to be extended on PCR.
  *            size     Size of the hash key.
  *
@@ -52,7 +52,7 @@ fapi2::ReturnCode tpmPoisonPCR();
  *      error log.
  */
 
-fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size);
+fapi2::ReturnCode tpmExtendPCR(const uint32_t pcrNum, const uint8_t *hashKey, const uint32_t size);
 
 /*
  *  @brief Set TPM deconfig bit.

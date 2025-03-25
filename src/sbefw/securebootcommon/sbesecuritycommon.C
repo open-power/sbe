@@ -40,6 +40,12 @@
 
 #define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size for SHA512
 
+//SHA256 TPM separator
+const SHA512truncated_t SHA256separator = { 0xAD, 0x95, 0x13, 0x1B, 0xC0, 0xB7, 0x99, 0xC0,
+    0xB1, 0xAF, 0x47, 0x7F, 0xB1, 0x4F, 0xCF, 0x26,
+    0xA6, 0xA9, 0xF7, 0x60, 0x79, 0xE4, 0x8B, 0xF0,
+    0x90, 0xAC, 0xB7, 0xE8, 0x36, 0x7B, 0xFD, 0x0E };
+
 void SHA512UpdateXipSection(p9_xip_section_sbe_t xipSection, SHA512_CTX* context, uint64_t* sectionSize)
 {
     uint8_t buf[SPI_READ_SIZE_BYTES] __attribute__ ((aligned(8))) = {0x00};
@@ -121,9 +127,13 @@ ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
         {
             UPDATE_ERROR_REG_SBEFW(PAYLOAD_SIZE_MISMATCH);
         }
-        else
+        else if(i_sections == P9_XIP_SECTION_SBE_HBBL)
         {
             UPDATE_ERROR_REG_HBBL(PAYLOAD_SIZE_MISMATCH);
+        }
+        else
+        {
+            SBE_ERROR("Invalid XIP section passed 0x%8x", i_sections);
         }
 
         resp = ROM_FAILED;
@@ -154,9 +164,13 @@ ROM_response verifyPayloadHash( const p9_xip_section_sbe_t i_sections,
         {
             UPDATE_ERROR_REG_SBEFW(HEADER_HASH_TEST);
         }
-        else
+        else if(i_sections == P9_XIP_SECTION_SBE_HBBL)
         {
             UPDATE_ERROR_REG_HBBL(HEADER_HASH_TEST);
+        }
+        else
+        {
+            SBE_ERROR("Invalid XIP section passed 0x%8x", i_sections);
         }
 
         resp = ROM_FAILED;

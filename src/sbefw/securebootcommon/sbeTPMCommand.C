@@ -88,7 +88,7 @@ fapi2::ReturnCode tpmPoisonPCR()
     #undef SBEM_FUNC
 }
 
-fapi2::ReturnCode tpmExtendPCR(uint32_t pcrNum, uint8_t *hashKey, uint32_t size)
+fapi2::ReturnCode tpmExtendPCR(const uint32_t pcrNum, const uint8_t *hashKey, const uint32_t size)
 {
     #define SBEM_FUNC " tpmExtendPCR "
     SBEM_ENTER(SBEM_FUNC);

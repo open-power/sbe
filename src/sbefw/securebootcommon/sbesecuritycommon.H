@@ -45,6 +45,7 @@
 #define TPM_DECONFIG_BIT 12
 
 typedef uint8_t SHA512truncated_t[SHA512_DIGEST_LENGTH/2];
+extern const SHA512truncated_t SHA256separator;
 
 //TPM PCR
 #define TPM_PCR0 0x00

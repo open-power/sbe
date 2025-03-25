@@ -34,6 +34,9 @@
 #include "base_toc.H"
 #include "sbesecuritycommon.H"
 #include "sbeOtpromMeasurementReg.H"
+#include "tpmStatusCodes.H"
+#include "sbeTPMCommand.H"
+#include "sbeRoleIdentifier.H"
 
 #define SPI_READ_SIZE_BYTES 4096       //4KBytes SPI Buffer size
 
@@ -192,24 +195,31 @@ static fapi2::ReturnCode loadHbbl(SB_SETTING_SB_MODES i_sbMode,
 }
 
 fapi2::ReturnCode loadAndVerifyHbbl(const SB_SETTING_SB_MODES i_sbMode,
-                                    const uint32_t i_hbblPayloadSize)
+                                    const uint32_t i_hbblPayloadSize,
+                                    const uint8_t i_isMpipl)
 {
    #define SBE_FUNC " loadAndVerifyHbbl "
    SBE_ENTER(SBE_FUNC)
 
-    fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
-    secureBootStatus_t secureBootStatus;
-    SHA_DIGEST_t calPayloadHashHbbl = {0};
-    SHA512truncated_t sha512TruncatedHbbl = {0};
-    bool resp = false;
+   fapi2::ReturnCode fapiRc = fapi2::FAPI2_RC_SUCCESS;
+   fapi2::ReturnCode tpmFapiRc = fapi2::FAPI2_RC_SUCCESS;
+   secureBootStatus_t secureBootStatus;
+   SHA_DIGEST_t calPayloadHashHbbl = {0};
+   uint64_t *calPayloadHashHbblptr = (uint64_t*)&calPayloadHashHbbl;
+   uint64_t *expPayloadHashHbblptr = NULL;
+   SHA512truncated_t sha512TruncatedHbbl = {0};
+   fapi2::buffer<uint64_t> securityReg;
+   uint32_t tpmRespCode = SBEM_TPM_OPERATION_SUCCESSFUL;
+   bool resp = false;
 
     fapiRc = loadHbbl(i_sbMode, &calPayloadHashHbbl, i_hbblPayloadSize);
     if(fapiRc != FAPI2_RC_SUCCESS)
     {
-        SBE_ERROR(" loadHbbl failed with FAPI RC 0x%08x", fapiRc);
+        SBE_ERROR(SBE_FUNC " loadHbbl failed with FAPI RC 0x%08x", fapiRc);
     }
 
     hbbl_SB_data_t *hbbl_SB_data = (hbbl_SB_data_t*)(((base_toc_t*)(SBE_BASE_ORIGIN))->hbbl_SB_data_start);
+    expPayloadHashHbblptr = (uint64_t*)&hbbl_SB_data->iv_shPayloadHashHbbl;
 
     // Verify the SH payload size with loaded pibmem size
     if (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE)
@@ -238,20 +248,107 @@ fapi2::ReturnCode loadAndVerifyHbbl(const SB_SETTING_SB_MODES i_sbMode,
         memset(&sha512TruncatedHbbl, 0xFF, sizeof(SHA512truncated_t));
     }
 
-    // Write into measurement regs on a cold IPL only .
-    // On MPIPL skip writing into measurement regs.
-    if(SBE::isIplReset())
+    do
     {
-        //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
-        SBE_INFO(SBE_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
-        resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), sha512TruncatedHbbl);
-        if((resp == false) & (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE))
+
+        // Write into measurement regs on a cold IPL only .
+        // On MPIPL
+        //    1. Skip writing into measurement regs which are one time writable and cleared only on a CBS.
+        //    2. Skip extending into TPM as PHYP has TPM lock at Runtime.
+        if(!(i_isMpipl))
         {
-            UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
+            //Write HBBL truncated payload hash into otprom register 12-15 (x1001C-x1001F)
+            SBE_INFO(SBE_FUNC "Writing truncated HBBL payload hash into otprom register 12-15(x1001C-x1001F)");
+            resp = writeandverifytruncatedsha512((uint32_t*) regListHbbl, sizeof(regListHbbl)/sizeof(regListHbbl[0]), sha512TruncatedHbbl);
+            if((resp == false) && (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_DONE))
+            {
+                UPDATE_ERROR_REG_HBBL(OTP_MEASUREMENT_RWC_MISMATCH);
+            }
         }
+        else //MPIPL path.
+        {
+            SBE_INFO("MPIPL path");
+            // Incase of hash check fail or size check fail on a MPIPL path, gracefully fail continue MPIPL chipop.
+            // SP will create a PEL.
+            // NOTE: PHYP dump will be  lost in this case.
+            PLAT_FAPI_ASSERT(!((fapiRc == FAPI2_RC_SUCCESS) && (hbbl_SB_data->iv_sbeHbblSecureHdrRsp == ROM_FAILED)),
+                                SBE_VERIFY_HBBL_FAIL_IN_MPIPL()
+                                .set_CAL_HASH_0(*(calPayloadHashHbblptr + 0))
+                                .set_CAL_HASH_1(*(calPayloadHashHbblptr + 1))
+                                .set_CAL_HASH_2(*(calPayloadHashHbblptr + 2))
+                                .set_CAL_HASH_3(*(calPayloadHashHbblptr + 3))
+                                .set_CAL_HASH_4(*(calPayloadHashHbblptr + 4))
+                                .set_CAL_HASH_5(*(calPayloadHashHbblptr + 5))
+                                .set_CAL_HASH_6(*(calPayloadHashHbblptr + 6))
+                                .set_CAL_HASH_7(*(calPayloadHashHbblptr + 7))
+                                .set_EXP_HASH_0(*(expPayloadHashHbblptr + 0))
+                                .set_EXP_HASH_1(*(expPayloadHashHbblptr + 1))
+                                .set_EXP_HASH_2(*(expPayloadHashHbblptr + 2))
+                                .set_EXP_HASH_3(*(expPayloadHashHbblptr + 3))
+                                .set_EXP_HASH_4(*(expPayloadHashHbblptr + 4))
+                                .set_EXP_HASH_5(*(expPayloadHashHbblptr + 5))
+                                .set_EXP_HASH_6(*(expPayloadHashHbblptr + 6))
+                                .set_EXP_HASH_7(*(expPayloadHashHbblptr + 7))
+                                .set_ACTUAL_SIZE(i_hbblPayloadSize)
+                                .set_EXP_SIZE(hbbl_SB_data->iv_hbblPayloadSize)
+                                .set_SCRATCH_11(secureBootStatus.statusReg),
+                                "Failed to verify .hbbl in MPIPL. Failing continue MPIPL chipop");
+            break;
+        }
+
+        //Check if TPM Deconfig bit is set.
+        getscom_abs(0x10005, &securityReg());
+
+        //Skip if error/rc/deconfig bit set in TPM sequence.
+        if((!(securityReg.getBit<TPM_DECONFIG_BIT>())))
+        {
+            //Extend calculated truncated hash of HBBL secure Hdr into PCR0
+            SBE_INFO(SBE_FUNC "Extending calculated truncated hash of .hbbl into PCR0");
+            tpmFapiRc = tpmExtendPCR(TPM_PCR0, sha512TruncatedHbbl, sizeof(SHA512truncated_t));
+            if(tpmFapiRc)
+            {
+                SBE_ERROR(SBE_FUNC "tpmExtendPCR failed while extending truncated hash of .hbbl into PCR0");
+                tpmRespCode = SBEV_TPM_EXTEND_HBBL_PAYLOAD_IMAGE_HASH_PCR0_FAILURE;
+                break;
+            }
+
+            /*************************************************TPM_EXTEND_SEPARATOR*******************************************************/
+
+            //Extend separator into PCR0
+            SBE_INFO(SBE_FUNC "Extending separator  TPM_PCR0");
+            tpmFapiRc = tpmExtendPCR(TPM_PCR0, SHA256separator, sizeof(SHA512truncated_t));
+            if(tpmFapiRc)
+            {
+                SBE_ERROR(SBE_FUNC "tpmExtendPCR failed while extending separator into PCR0");
+                tpmRespCode = SBEV_TPM_EXTEND_SEPERATOR_PCR0_FAILURE;
+                break;
+            }
+
+            /*************************************************TPM_EXTEND_SEPARATOR_END***************************************************/
+        }
+    }while(false);
+
+    if((!(i_isMpipl)) &&
+    (tpmRespCode != SBEM_TPM_OPERATION_SUCCESSFUL) &&
+    (!(securityReg.getBit<TPM_DECONFIG_BIT>())))
+    {
+        SBE_INFO(SBE_FUNC "Setting the TPM deconfig bit");
+        tpmFapiRc = setTPMDeconfigBit();
+        if( tpmFapiRc != fapi2::FAPI2_RC_SUCCESS )
+        {
+            SBE_ERROR(SBE_FUNC "Failed to set the deconfig bit with rc 0x%08X", tpmFapiRc);
+        }
+
+        SBE_INFO(SBE_FUNC "Setting the TPM response code into Scratch Reg 11");
+        getscom_abs(MAILBOX_SCRATCH_REG_11, &secureBootStatus.statusReg);
+        secureBootStatus.status.tpmStatus = (uint8_t)tpmRespCode;
+        putscom_abs(MAILBOX_SCRATCH_REG_11, secureBootStatus.statusReg);
+        SBE_INFO("Updated SBE-FW & HBBL secure header status & TPM status into Mailbox scratch 11 [0x%08x 0x%08x]",
+                SBE::higher32BWord(secureBootStatus.statusReg), SBE::lower32BWord(secureBootStatus.statusReg));
     }
 
+fapi_try_exit:
    SBE_EXIT(SBE_FUNC)
-   return fapiRc;
+   return fapi2::current_err;
    #undef SBE_FUNC
 }

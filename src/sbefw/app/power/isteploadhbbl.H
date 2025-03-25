@@ -34,7 +34,9 @@
  *
  * @param i_sbMode Secure Boot mode
  * @param i_hbblPayloadSize Size of .hbbl from seeprom XIP header
+ * @param i_isMpipl Is MPIPL
  * @return fapi2::ReturnCode rc
  */
 fapi2::ReturnCode loadAndVerifyHbbl(const SB_SETTING_SB_MODES i_sbMode,
-                                    const uint32_t i_hbblPayloadSize);
+                                    const uint32_t i_hbblPayloadSize,
+                                    const uint8_t i_isMpipl);

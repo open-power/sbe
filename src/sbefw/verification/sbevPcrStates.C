@@ -5,7 +5,8 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2021                             */
+/* Contributors Listed Below - COPYRIGHT 2021,2025                        */
+/* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -25,12 +26,6 @@
 #include "sbevtrace.H"
 #include "sbesecuritycommon.H"
 #include "sbeTPMCommand.H"
-
-//SHA256 separator
-SHA512truncated_t SHA256separator = { 0xAD, 0x95, 0x13, 0x1B, 0xC0, 0xB7, 0x99, 0xC0,
-                                      0xB1, 0xAF, 0x47, 0x7F, 0xB1, 0x4F, 0xCF, 0x26,
-                                      0xA6, 0xA9, 0xF7, 0x60, 0x79, 0xE4, 0x8B, 0xF0,
-                                      0x90, 0xAC, 0xB7, 0xE8, 0x36, 0x7B, 0xFD, 0x0E };
 
 void securitySwitchReg_PCR1::update(uint64_t securitySwitchReg)
 {

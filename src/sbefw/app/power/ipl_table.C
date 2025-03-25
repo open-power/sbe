@@ -829,7 +829,7 @@ ReturnCode istepLoadBootLoader( voidfuncptr_t i_hwp)
         PLAT_ATTR_INIT(fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET, proc, loadHbblChunkOffset);
 
 
-        rc = loadAndVerifyHbbl((SB_SETTING_SB_MODES)sbMode, hbblSize);
+        rc = loadAndVerifyHbbl((SB_SETTING_SB_MODES)sbMode, hbblSize, l_is_mpipl);
         if(rc != FAPI2_RC_SUCCESS)
         {
             SBE_ERROR(" loadAndVerifyHbbl failed with FAPI RC 0x%08x", rc);
