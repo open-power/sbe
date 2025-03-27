@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -106,14 +106,14 @@
 #define BASE_DATA_DECOMPRESSION_FAILED              0x00A1
 #define BASE_HEADER_INVALID_DATA_ADDR               0x00A2
 #define BASE_HEADER_BSS_OVERFLOW                    0x00A3
-#define HBBL_LOADING_FAILED                         0x00A4
-#define HDCT_LOADING_FAILED                         0x00A5
-#define RING_LOADING_FAILED                         0x00A6
-#define OVERRIDES_LOADING_FAILED                    0x00A7
-#define FA_EC_CL2_LOADING_FAILED                    0x00A8
-#define FA_EC_MMA_LOADING_FAILED                    0x00A9
-#define FA_RING_OVRD_LOADING_FAILED                 0x00AA
-#define B_SB_SETTINGS_LOADING_FAILED                0x00AB
+#define HDCT_LOADING_FAILED                         0x00A4
+#define RING_LOADING_FAILED                         0x00A5
+#define OVERRIDES_LOADING_FAILED                    0x00A6
+#define FA_EC_CL2_LOADING_FAILED                    0x00A7
+#define FA_EC_MMA_LOADING_FAILED                    0x00A8
+#define FA_RING_OVRD_LOADING_FAILED                 0x00A9
+#define B_SB_SETTINGS_LOADING_FAILED                0x00AA
+#define FIXED_LOADING_FAILED                        0x00AB
 #define M_SB_SETTINGS_LOADING_FAILED                0x00AC
 #define SBH_FIRMWARE_LOAD_FAILED                    0x00AD
 #define SBH_HBBL_LOAD_FAILED                        0x00AE
