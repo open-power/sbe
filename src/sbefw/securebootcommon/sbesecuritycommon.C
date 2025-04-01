@@ -116,6 +116,8 @@ ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
                                        uint32_t i_calPayloadSize,
                                        uint32_t i_shPayloadSize)
 {
+    #define SBE_FUNC " verifyPayloadSize "
+    SBE_ENTER(SBE_FUNC);
     ROM_response resp = ROM_DONE;
     if (i_calPayloadSize != i_shPayloadSize)
     {
@@ -133,18 +135,22 @@ ROM_response verifyPayloadSize( const p9_xip_section_sbe_t i_sections,
         }
         else
         {
-            SBE_ERROR("Invalid XIP section passed 0x%8x", i_sections);
+            SBE_ERROR(SBE_FUNC "Invalid XIP section passed 0x%8x", i_sections);
         }
 
         resp = ROM_FAILED;
     }
+    SBE_EXIT(SBE_FUNC);
     return resp;
+    #undef SBE_FUNC
 }
 
 ROM_response verifyPayloadHash( const p9_xip_section_sbe_t i_sections,
                                        SHA_DIGEST_t& i_calPayloadHash,
                                        SHA_DIGEST_t& i_shPayloadHash)
 {
+    #define SBE_FUNC " verifyPayloadHash "
+    SBE_ENTER(SBE_FUNC);
     ROM_response resp = ROM_DONE;
     if(memcmp(&i_calPayloadHash, &i_shPayloadHash, sizeof(SHA_DIGEST_t)))
     {
@@ -170,12 +176,14 @@ ROM_response verifyPayloadHash( const p9_xip_section_sbe_t i_sections,
         }
         else
         {
-            SBE_ERROR("Invalid XIP section passed 0x%8x", i_sections);
+            SBE_ERROR(SBE_FUNC "Invalid XIP section passed 0x%8x", i_sections);
         }
 
         resp = ROM_FAILED;
     }
+    SBE_EXIT(SBE_FUNC);
     return resp;
+    #undef SBE_FUNC
 }
 
 bool writeandverifytruncatedsha512(uint32_t regs[], int regCount, SHA512truncated_t i_sha512Truncated)

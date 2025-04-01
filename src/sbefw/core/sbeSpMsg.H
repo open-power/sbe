@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -649,7 +649,7 @@ typedef struct
             !((threadId <= SMT4_THREAD3) || (threadId == SMT4_THREAD_ALL)) ||
             !((coreId <= SMT4_CORE_ID_LAST) || (coreId == SMT4_ALL_CORES)) )
         {
-            SBE_ERROR(SBE_FUNC "Invalid Parameters, CoreId[%d] ThreadOps[%d] "
+            SBE_ERROR("Invalid Parameters, CoreId[%d] ThreadOps[%d] "
                 "mode[%d] ThreadId[%d]",coreId, threadOps, mode, threadId);
             validatePassFlag = false;
         }

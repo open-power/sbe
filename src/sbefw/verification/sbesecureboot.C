@@ -103,12 +103,16 @@ inline uint8_t get8(void* src)
 */
 void * mlca_alloc(uint32_t size)
 {
+    #define SBEV_FUNC " mlca_alloc "
+    SBEV_ENTER(SBEV_FUNC);
     void * l_scratch = (void *)Heap::get_instance().scratch_calloc(size);
     if (l_scratch == NULL)
     {
-        SBEV_ERROR(mlca_alloc "Scratch allocation failed");
+        SBEV_ERROR(SBEV_FUNC "Scratch allocation failed");
     }
+    SBEV_EXIT(SBEV_FUNC);
     return l_scratch;
+    #undef SBEV_FUNC
 }
 
 // Free the alocated heap space
@@ -667,7 +671,7 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
         {
             SBEV_INFO("Skipping HW signature A (ECDSA521) verification - Simics running");
         }
-        
+
 
         // Verify HW signature D (mldsa)
         if(!SBE::isSimicsRunning())
@@ -685,7 +689,7 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
         else
         {
             SBEV_INFO("Skipping HW signature D (mldsa) verification - Simics running");
-        }  
+        }
 
         SBEV_INFO("Prefix Hdr: Reserved : %d", get64(&prefix->reserved));
         SBEV_INFO("Prefix Hdr: flags : %X", get32(&prefix->flags));
@@ -788,7 +792,7 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
         {
             SBEV_INFO("Skipping SW signature P (ECDSA521) verification - Simics running");
         }
-        
+
         // Verify SW signature S (mldsa)
         if(!SBE::isSimicsRunning())
         {
@@ -806,7 +810,7 @@ static ROM_response secureHeaderV3Verification( ROM_v3_container_raw* container,
         {
             SBEV_INFO("Skipping SW signature S (mldsa) verification - Simics running");
         }
-        
+
 
         // test for valid component-id
         if(!( (get64(&header->component_id) == HBBL_SECURE_HDR_COMPONENT_ID) ||

@@ -210,30 +210,40 @@ void uartDisable(void)
 
 void uartLock(void)
 {
+    #define SBE_FUNC "uartLock"
+    SBE_ENTER(SBE_FUNC);
     int rcPk = PK_OK;
     rcPk = pk_semaphore_pend (&SBE_GLOBAL->sbeUartBinSem, PK_WAIT_FOREVER);
     // PK API failure
     if (rcPk != PK_OK)
     {
-        SBE_ERROR(SBE_FUNC"pk_semaphore_pend failed, "
+        uint32_t count = SBE_GLOBAL->sbeUartBinSem.count;
+        SBE_ERROR(SBE_FUNC "pk_semaphore_pend failed"\
                   "rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d",
-                   rcPk, SBE_GLOBAL->sbeUartBinSem.count);
+                   rcPk, count);
         __wait_for_s1();
     }
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
 }
 
 void uartUnLock(void)
 {
+    #define SBE_FUNC "uartUnLock"
+    SBE_ENTER(SBE_FUNC);
     int rcPk = PK_OK;
     rcPk = pk_semaphore_post(&SBE_GLOBAL->sbeUartBinSem);
     // PK API failure
     if (rcPk != PK_OK)
     {
-        SBE_ERROR(SBE_FUNC"pk_semaphore_post failed, "
+        uint32_t count = SBE_GLOBAL->sbeUartBinSem.count;
+        SBE_ERROR(SBE_FUNC"pk_semaphore_post failed"\
                   "rcPk=%d, SBE_GLOBAL->sbeUartBinSem.count=%d",
-                   rcPk, SBE_GLOBAL->sbeUartBinSem.count);
+                   rcPk, count);
         __wait_for_s1();
     }
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
 }
 
 void sbeMsgConsole(uint32_t num)

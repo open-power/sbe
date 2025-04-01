@@ -35,8 +35,8 @@ using namespace fapi2;
 
 uint32_t checkSbeRole()
 {
-#define SBEM_FUNC "checkSbeRole "
-    SBEM_ENTER(SBEM_FUNC);
+#define SBE_FUNC "checkSbeRole "
+    SBEM_ENTER(SBE_FUNC);
     fapi2::ReturnCode rc = fapi2::FAPI2_RC_SUCCESS;
     uint32_t sbeRole = SBE_ROLE_SLAVE; //1
     do
@@ -98,7 +98,7 @@ uint32_t checkSbeRole()
             }
         }
     }while(0);
-    SBEM_EXIT(SBEM_FUNC);
+    SBEM_EXIT(SBE_FUNC);
     return sbeRole;
-    #undef SBEM_FUNC
+    #undef SBE_FUNC
 }

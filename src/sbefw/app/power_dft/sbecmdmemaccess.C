@@ -1,11 +1,11 @@
 /* IBM_PROLOG_BEGIN_TAG                                                   */
 /* This is an automatically generated prolog.                             */
 /*                                                                        */
-/* $Source: src/sbefw/app/power/sbecmdmemaccess.C $                       */
+/* $Source: src/sbefw/app/power_dft/sbecmdmemaccess.C $                   */
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -216,7 +216,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
             {
                 // Break out, Invalid Size
                 SBE_ERROR("User size[0x%08X] exceeds the Host Pass Through Mode "
-                    "size[0x%08X] Start Index[0x%08X %08X]", 
+                    "size[0x%08X] Start Index[0x%08X %08X]",
                     i_hdr.len, SBE_GLOBAL->hostPassThroughCmdAddr.size,
                     SBE::higher32BWord(i_hdr.getAddr()),
                     SBE::lower32BWord(i_hdr.getAddr()));
@@ -251,7 +251,7 @@ uint32_t processPbaRequest(const sbeMemAccessReqMsgHdr_t &i_hdr,
         // used unless accompanied by LCO_mode (LCO Mode for PBA-Put)
         if(i_hdr.isPbaLcoModeSet())
         {
-            SBE_INFO(SBE_INFO "LCO Mode is set with Core Id[%d]", (uint8_t)i_hdr.coreId);
+            SBE_INFO(SBE_FUNC "LCO Mode is set with Core Id[%d]", (uint8_t)i_hdr.coreId);
             l_core = plat_getTargetHandleByInstance<TARGET_TYPE_CORE>(i_hdr.coreId);
             l_myPbaFlag.setOperationType(p10_PBA_oper_flag::LCO); // LCO operation
         }

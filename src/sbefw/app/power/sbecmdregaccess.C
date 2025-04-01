@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -361,7 +361,7 @@ uint32_t sbeGetHWReg_Wrap( fapi2::sbefifo_hwp_data_istream& i_getStream,
         }
         else
         {
-            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]",
                       (uint32_t)msg.targetType, (uint32_t)msg.targetInstance);
             hdr.setStatus( SBE_PRI_INVALID_DATA,
                            SBE_SEC_INVALID_TARGET_TYPE_PASSED );
@@ -507,7 +507,7 @@ uint32_t sbePutHWReg(uint8_t *i_pArg)
         }
         else
         {
-            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]",
                       (uint32_t)msg.hwRegMsg.targetType, (uint32_t)msg.hwRegMsg.targetInstance);
             hdr.setStatus( SBE_PRI_INVALID_DATA,
                                SBE_SEC_INVALID_TARGET_TYPE_PASSED );
@@ -580,7 +580,7 @@ uint32_t sbePsuGetHWReg(uint8_t *i_pArg)
         }
         else
         {
-            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]"
+            SBE_ERROR(SBE_FUNC "Invalid target type[0x%04X] target instance[0x%02X]",
                       (uint32_t)req.targetType, (uint32_t)req.targetInstance);
             SBE_GLOBAL->sbeSbe2PsuRespHdr.setStatus(SBE_PRI_INVALID_DATA,
                                                     SBE_SEC_INVALID_TARGET_TYPE_PASSED );

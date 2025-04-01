@@ -401,7 +401,7 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
 #endif
             else // SBE_INTERFACE_FIFO_RESET or SBE_INTERFACE_UNKNOWN
             {
-                SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the "
+                SBE_ERROR(SBE_FUNC"Unexpected interrupt communicated to the " \
                    "processor thread. Interrupt source: 0x%02X 0x%02X",
                    SBE_GLOBAL->sbeIntrSource.intrSource, SBE_GLOBAL->sbeIntrSource.rxThrIntrSource);
                 assert(false);
@@ -411,13 +411,14 @@ void sbeSyncCommandProcessor_routine(void *i_pArg)
             // PK API failure
             if (l_rcPk != PK_OK)
             {
-                SBE_ERROR(SBE_FUNC"pk_semaphore_pend failed, "
+                uint32_t count =SBE_GLOBAL->sbeSemCmdRecv.count;
+                SBE_ERROR(SBE_FUNC"pk_semaphore_pend failed"\
                           "l_rcPk=%d, SBE_GLOBAL->sbeSemCmdRecv.count=%d",
-                           l_rcPk, SBE_GLOBAL->sbeSemCmdRecv.count);
+                           l_rcPk, count);
 
                 // If it's a semphore_pend error then update the same to show
                 // internal failure
-                l_rc         = SBE_SEC_OS_FAILURE;
+                l_rc = SBE_SEC_OS_FAILURE;
             }
 
             // Check for error which Receiver thread might have set

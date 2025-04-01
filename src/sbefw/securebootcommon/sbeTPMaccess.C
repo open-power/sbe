@@ -201,7 +201,7 @@ fapi2::ReturnCode tpmPollForCommandReady(SpiControlHandle &handle)
 
         if((rc == fapi2::FAPI2_RC_SUCCESS) && (!status.fields.isCommandReady))
         {
-            SBE_DEBUG(SBE_FUNC "isCommandReady Bit is not set. Set and poll");
+            SBEM_INFO(SBEM_FUNC "isCommandReady Bit is not set. Set and poll");
             // The first write to command ready may have just aborted
             // an outstanding command, we will write it again and poll once
             // more
@@ -580,7 +580,7 @@ fapi2::ReturnCode tpmWriteFifo(SpiControlHandle &handle,
     {
         if((rc == fapi2::FAPI2_RC_SUCCESS) && (delay >= TPM_TIMEOUT_D))
         {
-            SBE_ERROR(SBE_FUNC "TPM has timed out");
+            SBE_ERROR(SBEM_FUNC "TPM has timed out");
             rc = fapi2::FAPI2_RC_FALSE;
             break;
         }

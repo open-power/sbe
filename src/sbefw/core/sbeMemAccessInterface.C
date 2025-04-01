@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -24,6 +24,7 @@
 /* IBM_PROLOG_END_TAG                                                     */
 
 #include "sbeMemAccessInterface.H"
+#include "sbetrace.H"
 
 #ifdef HOST_INTERFACE_AVAILABLE
 
@@ -31,6 +32,8 @@ using namespace fapi2;
 
 void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,bool &io_is_last_access)
 {
+    #define SBE_FUNC "MEM_AVAILABLE_CHECK"
+    SBE_ENTER(SBE_FUNC);
     if(io_len_to_send > io_available_len)
     {
         SBE_INFO(SBE_FUNC" Allocated memory is less, truncating the access");
@@ -38,6 +41,8 @@ void MEM_AVAILABLE_CHECK(uint32_t &io_available_len,uint32_t &io_len_to_send,boo
         io_is_last_access = true;
     }
     io_available_len -= io_len_to_send;
+    SBE_EXIT(SBE_FUNC);
+    #undef SBE_FUNC
 }
 
 ReturnCode sbeMemAccessInterface::setup()

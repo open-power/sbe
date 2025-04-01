@@ -362,9 +362,10 @@ void sbeCommandReceiver_routine(void *i_pArg)
 
                 // Add Error trace, collect FFDC and
                 // continue wait for the next interrupt
-                SBE_ERROR(SBE_FUNC"Unexpected failure, "
+                uint32_t count = SBE_GLOBAL->sbeSemCmdProcess.count;
+                SBE_ERROR(SBE_FUNC"Unexpected failure"\
                     "l_rcPk=[%d], SBE_GLOBAL->sbeSemCmdProcess.count=[%d], l_rc=[%d]",
-                    l_rcPk, SBE_GLOBAL->sbeSemCmdProcess.count, l_rc);
+                    l_rcPk, count, l_rc);
                 __wait_for_s1();
             }
             if ( SBE_INTERFACE_PSU == curInterface )

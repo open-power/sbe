@@ -61,7 +61,7 @@ fapi2::ReturnCode tpmSequenceToReadDIDAndVendor()
         uint8_t  rbuf[8];
         uint32_t readBytes = 2;
 
-        SBEM_INFO(SBE_FUNC " Read TPM_DID_VID_0 (Vendor and device ID offset xF00)");
+        SBEM_INFO(SBEM_FUNC " Read TPM_DID_VID_0 (Vendor and device ID offset xF00)");
         rc = spi_tpm_read_secure(handle, tpmLocality, offsetAddr, readBytes, (uint8_t *)&rbuf);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
@@ -96,7 +96,7 @@ fapi2::ReturnCode tpmSequenceToAccessLocality0()
         uint8_t tpmData = 0x02;
         uint8_t *buf = &tpmData;
 
-        SBEM_INFO(SBE_FUNC "Write 002h to TPM_ACCESS_0 (0000h) to request access to locality 0");
+        SBEM_INFO(SBEM_FUNC "Write 002h to TPM_ACCESS_0 (0000h) to request access to locality 0");
         rc = spi_tpm_write_with_wait(handle, tpmLocality, offsetAddr, readBytes, buf);
         if( rc != fapi2::FAPI2_RC_SUCCESS )
         {
@@ -280,7 +280,7 @@ fapi2::ReturnCode performTPMSequences(uint32_t sbeRole)
     {
         if(sbeRole == SBE_ROLE_SLAVE)
         {
-            SBEM_INFO(SBE_FUNC "Current Proc is slave. Do not access TPM");
+            SBEM_INFO(SBEM_FUNC "Current Proc is slave. Do not access TPM");
             rc = setTPMDeconfigBit();
             if( rc != fapi2::FAPI2_RC_SUCCESS )
             {
