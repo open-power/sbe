@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -147,6 +147,7 @@ class sbeMemAccessInterface
                         iv_iterator(0),
                         iv_currGranule(0),
                         iv_granuleSize(i_granuleSize),
+                        iv_buffer{},
                         iv_intfCleanedUp(true)
         {
             SBE_DEBUG("sbeMemAccessInterface() constructor,iv_addr=0x%.8x%.8x",

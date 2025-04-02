@@ -813,7 +813,9 @@ namespace fapi2
     {
         #define SBE_FUNC "platGetI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
-        FAPI_IMP(SBE_FUNC "Input target passed is 0x%08x", target.get());
+
+        uint32_t getTarget =  target.get();
+        FAPI_IMP(SBE_FUNC "Input target passed is 0x%08x",getTarget);
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);
@@ -909,7 +911,8 @@ namespace fapi2
         #define SBE_FUNC "platPutI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
 
-        FAPI_IMP(SBE_FUNC "Input OCMB target passed is 0x%08x", target.get());
+        uint32_t getTarget =  target.get();
+        FAPI_IMP(SBE_FUNC "Input OCMB target passed is 0x%08x", getTarget);
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);

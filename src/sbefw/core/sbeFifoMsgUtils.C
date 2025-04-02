@@ -5,8 +5,9 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
+/* [+] Justin.Ginn@ibm.com                                                */
 /*                                                                        */
 /*                                                                        */
 /* Licensed under the Apache License, Version 2.0 (the "License");        */
@@ -358,7 +359,8 @@ uint32_t sbeDsSendRespHdr(const sbeRespGenHdr_t &i_hdr,
         // If no ffdc , exit;
         if( (i_ffdc != NULL) && (i_ffdc->getRc() != FAPI2_RC_SUCCESS))
         {
-            SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", i_ffdc->getRc());
+            uint32_t l_faprRc = i_ffdc->getRc();
+            SBE_ERROR( SBE_FUNC" FAPI RC: 0x%08X", l_faprRc);
             // making sure ffdc length is multiples of uint32_t
             assert((g_FfdcData.ffdcLength % sizeof(uint32_t)) == 0);
             uint32_t ffdcDataLenInWords = g_FfdcData.ffdcLength

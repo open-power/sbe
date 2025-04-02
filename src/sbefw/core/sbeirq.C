@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -115,8 +115,10 @@ void sbe_interrupt_handler (void *i_pArg, PkIrqId i_irq)
     {
         // If we received an error while posting the semaphore,
         // unmask the interrupt back and assert
+        // The assert here is intended to always fail in debug when l_rc in non-zero.
         SBE_ERROR(SBE_FUNC"pk_semaphore_post failed, rc=[%d]", l_rc);
         pk_irq_enable(i_irq);
+        // This assertion is intentional to catch the error condition.
         assert(!l_rc);
     }
     #undef SBE_FUNC

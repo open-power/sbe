@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2019                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,7 +78,7 @@ uint32_t sbeReadPsu2SbeMbxReg (uint32_t       i_addr,
             break;
         }
 
-        SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]", 
+        SBE_DEBUG(SBE_FUNC"l_data=[0x%08X%08X]",
                     SBE::higher32BWord(o_pData[l_count]),
                     SBE::lower32BWord(o_pData[l_count]));
         ++l_count;
@@ -240,7 +240,8 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
         // If no ffdc , exit;
         sbeResponseFfdc_t l_ffdc;
         l_ffdc.setRc(i_fapiRc);
-        if(l_ffdc.getRc() != fapi2::FAPI2_RC_SUCCESS)
+        uint32_t l_fapiRc = l_ffdc.getRc();
+        if(l_fapiRc != fapi2::FAPI2_RC_SUCCESS)
         {
             // Clear global fapi2::current_err so that
             // FFDC can be sent over PBA interface.
@@ -252,8 +253,8 @@ void sbePSUSendResponse(sbeSbe2PsuRespHdr_t &i_sbe2PsuRespHdr,
                                       SBE_SEC_GENERIC_FAILURE_IN_EXECUTION);
             l_internal_ffdc_present = true;
 
-            SBE_ERROR( SBE_FUNC" FAPI RC:0x%08X", l_ffdc.getRc());
-            SBE_INFO(SBE_FUNC" FFDC memory - addr[0x%08X%08X] size[%d]bytes",
+            SBE_ERROR( SBE_FUNC" FAPI RC:0x%08x", l_fapiRc);
+            SBE_INFO(SBE_FUNC" FFDC memory - addr[0x%08x%08x] size[%d]bytes",
                      static_cast<uint32_t>(SBE::higher32BWord(SBE_GLOBAL->hostFFDCAddr.addr)),
                      static_cast<uint32_t>(SBE::lower32BWord(SBE_GLOBAL->hostFFDCAddr.addr)),
                      SBE_GLOBAL->hostFFDCAddr.size);

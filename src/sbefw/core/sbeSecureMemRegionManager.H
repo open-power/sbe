@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -70,7 +70,8 @@ class SBESecureMemRegionManager
     SBESecureMemRegionManager(secureMemRegion_t *i_regions,
                               size_t i_maxRegions):
                               iv_memRegions(i_regions),
-                              iv_maxRegions(i_maxRegions)
+                              iv_maxRegions(i_maxRegions),
+                              iv_regionsOpenCnt(0)
     {
     }
 

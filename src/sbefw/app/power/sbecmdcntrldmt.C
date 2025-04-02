@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -219,17 +219,19 @@ uint32_t sbeStartCntlDmt()
         }
         if(fuseMode)
         {
-           if(l_core_targets.size() != 2)
+            size_t l_coreTargetsSize = l_core_targets.size();
+           if(l_coreTargetsSize != 2)
            {
-               SBE_ERROR("Failed to get the fused core targets % d", l_core_targets.size());
+               SBE_ERROR(SBE_FUNC "Failed to get the fused core targets %zu", l_coreTargetsSize);
                break;
            }
         }
         else
         {
-           if(l_core_targets.size() != 1)
+            size_t l_coreTargetsSize = l_core_targets.size();
+           if(l_coreTargetsSize != 1)
            {
-               SBE_ERROR("Failed to get the master core target % d", l_core_targets.size());
+               SBE_ERROR(SBE_FUNC "Failed to get the master core target %zu", l_coreTargetsSize);
                break;
            }
 

@@ -127,16 +127,18 @@ static int valid_ver1_alg(ROM_version_raw* ver_alg, uint8_t sig_alg)
     SBEV_ENTER(SBEV_FUNC);
 
     //Validate header version
-    SBEV_INFO("Hdr: Version : %d", get16(&ver_alg->version));
-    if(get16(&ver_alg->version) != SECURE_HDR_V1_HEADER_VERSION)
+    uint16_t version = get16(&ver_alg->version);
+    SBEV_INFO("Hdr: Version : %d", version);
+    if(version != SECURE_HDR_V1_HEADER_VERSION)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad header version");
         return 0;
     }
 
     //Validate header hash algo version
-    SBEV_INFO("Hdr: hash algo : %d", get8(&ver_alg->hash_alg));
-    if(get8(&ver_alg->hash_alg) != HASH_ALG_SHA2_512)
+    uint8_t hashalg = get8(&ver_alg->hash_alg);
+    SBEV_INFO("Hdr: hash algo : %d", hashalg);
+    if(hashalg != HASH_ALG_SHA2_512)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad algorithm version");
         return 0;
@@ -148,8 +150,9 @@ static int valid_ver1_alg(ROM_version_raw* ver_alg, uint8_t sig_alg)
     }
 
     //Validate header sign algo version
-    SBEV_INFO("Hdr: Sign Algo : %d", get8(&ver_alg->sig_alg));
-    if(get8(&ver_alg->sig_alg) != sig_alg)
+    uint8_t sigAlg = get8(&ver_alg->sig_alg);
+    SBEV_INFO("Hdr: Sign Algo : %d", sigAlg);
+    if(sigAlg != sig_alg)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad algorithm version");
         return 0;
@@ -181,24 +184,27 @@ static int valid_ver3_alg(ROM_version_raw* ver_alg)
     SBEV_ENTER(SBEV_FUNC);
 
     //Validate header version
-    SBEV_INFO("Hdr: Version : %d", get16(&ver_alg->version));
-    if(get16(&ver_alg->version) != SECURE_HDR_V3_HEADER_VERSION)
+    uint16_t version = get16(&ver_alg->version);
+    SBEV_INFO("Hdr: Version : %d", version);
+    if(version != SECURE_HDR_V3_HEADER_VERSION)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad header version");
         return 0;
     }
 
     //Validate header hash algo version
-    SBEV_INFO("Hdr: hash algo : %d", get8(&ver_alg->hash_alg));
-    if(get8(&ver_alg->hash_alg) != HASH_ALG_SHA3_512)
+    uint8_t hashalg = get8(&ver_alg->hash_alg);
+    SBEV_INFO("Hdr: hash algo : %d", hashalg);
+    if(hashalg != HASH_ALG_SHA3_512)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad algorithm version");
         return 0;
     }
 
     //Validate header sign algo version
-    SBEV_INFO("Hdr: Sign Algo : %d", get8(&ver_alg->sig_alg));
-    if(get8(&ver_alg->sig_alg) != SIG_ALG_ECDSA521_MLDSA)
+    uint8_t sigAlg = get8(&ver_alg->sig_alg);
+    SBEV_INFO("Hdr: Sign Algo : %d", sigAlg);
+    if(sigAlg != SIG_ALG_ECDSA521_MLDSA)
     {
         SBEV_ERROR(SBEV_FUNC "FAILED: bad signature algorithm version");
         return 0;

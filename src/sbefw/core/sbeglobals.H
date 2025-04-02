@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -164,10 +164,20 @@ class SBEGlobalsSingleton
             sbeSemCmdRecv(),
             sbeSemCmdProcess(),
             sbeSemAsyncProcess(),
+            #ifdef SBE_CONSOLE_SUPPORT
+            sbeUartBinSem(),
+            #endif
             SBERole(SBE_ROLE_MASTER),
             sbefreq(( 133 * 1000 * 1000)/SBE::SBE_TO_NEST_FREQ_FACTOR),
+            hostPassThroughCmdAddr(),
+            hostFFDCAddr(),
             sbeFWSecurityEnabled(1),
-            sbeDmtStateComplete(0)
+            deadmanCore(0),
+            asyncFfdcRC(0),
+            sbeDmtStateComplete(0),
+            sbeCommandReceiver_thread(),
+            sbeSyncCommandProcessor_thread(),
+            sbeAsyncCommandProcessor_thread()
         {
         }
 };
@@ -239,7 +249,7 @@ typedef struct sbe_scratch_reg13 {
 }sbe_scratch_reg13;
 
 // This is the struct definition for scratch register 13, to be reused in the
-// hreset path to support Mpipl related use-case. 
+// hreset path to support Mpipl related use-case.
 typedef struct sbe_scratch_reg13_reuse {
     uint32_t unused :16;                  // unused
     uint32_t pau_freq_in_mhz :16;         // PAU frequency in MHz
@@ -287,6 +297,7 @@ typedef struct mailbox2_cmdhdr_spics_screen_reg0 {
     {
         boot_seeprom_pri_screen_freq = 0;
         boot_seeprom_sec_screen_freq = 0;
+        reserved = 0;
     }
 } mailbox2_cmdhdr_spics_screen_reg0;
 
@@ -303,6 +314,7 @@ typedef struct mailbox2_cmdhdr_spics_screen_reg1 {
     {
         meas_seeprom_pri_screen_freq = 0;
         meas_seeprom_sec_screen_freq = 0;
+        reserved = 0;
     }
 } mailbox2_cmdhdr_spics_screen_reg1;
 

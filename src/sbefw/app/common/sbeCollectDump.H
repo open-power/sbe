@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -108,6 +108,7 @@ typedef struct __attribute__((packed)) dumpHeader
         ecMajor = (ecMajarMinor & 0xF0)>>4;
         ecMinor = (ecMajarMinor & 0x0F);
         reserved          = 0x00;
+        hdctVer = 0;
     }
 
 }dumpHeader_t;
@@ -177,7 +178,11 @@ class sbeCollectDump
          sbeCollectDump( uint8_t i_dumpID, uint8_t i_clockState, uint8_t i_collectFastArray,
                          sbeFifoType i_type, uint64_t i_hbMemAddr = 0x00 ):
                          iv_oStream(i_type, false, i_hbMemAddr),
-                         iv_clockState(i_clockState), iv_fifoType(i_type), iv_collectFastArray(i_collectFastArray)
+                         iv_clockState(i_clockState), iv_fifoType(i_type),
+                         iv_collectFastArray(i_collectFastArray),
+                         iv_OCMBInstance(0), iv_hdctRow(nullptr),
+                         iv_tocRow(), iv_EQScanState{}
+
          {
              iv_clockState = i_clockState;
              iv_dumpType = i_dumpID;
@@ -433,6 +438,6 @@ class sbeCollectDump
  */
 uint32_t collectMpiplHwDump( uint64_t i_hbMemAddr,
                              uint32_t &o_length );
- 
+
 #endif /* __SBEFW_SBECOLLECTDUMP_H */
 

@@ -567,7 +567,7 @@ typedef struct sbeCapability2RespMsg : sbeCapabilityRespMsg
 {
     uint32_t capability_2[SBE_MAX_CAPABILITIES_2 - SBE_MAX_CAPABILITIES];
     // ctor. constructor will initialise all values.
-    sbeCapability2RespMsg() : sbeCapabilityRespMsg()
+    sbeCapability2RespMsg() : sbeCapabilityRespMsg(), capability_2{}
     {
     }
 }sbeCapability2RespMsg_t;

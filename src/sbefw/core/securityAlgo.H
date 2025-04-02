@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -30,9 +30,9 @@
 
 /*
     Allowlist , Denylist and Partialwriteallowlist  are part of the Security validation
-    of any register. Each list has been sub divided into 3 tables [t1, t2 and t3] as 
-    mentioned bellow. Table data will be used on security algorithm to validates 
-    register address is part of Allowlist, Denylist and Partialwriteallowlist or not. 
+    of any register. Each list has been sub divided into 3 tables [t1, t2 and t3] as
+    mentioned bellow. Table data will be used on security algorithm to validates
+    register address is part of Allowlist, Denylist and Partialwriteallowlist or not.
 
     # -----------------------------------------------------------------#
     # Step 1:             [register list]                              #
@@ -222,7 +222,15 @@
 
     typedef struct GenSecurityListTables
     {
-        GenSecurityListTables(){}
+        // Initialize all struct members
+        GenSecurityListTables()
+        : wl_t1{0, 0, nullptr},
+          wl_t2{0, 0, nullptr},
+          wl_t3{0, 0, nullptr},
+          bl_t1{0, 0, nullptr},
+          bl_t2{0, 0, nullptr},
+          bl_t3{0, 0, nullptr},
+          gl_t1{0, 0, nullptr} {}
         _t1_table_t  wl_t1;
         _t2_table_t  wl_t2;
         _t3_table_t  wl_t3;
@@ -253,7 +261,7 @@
      *
      bool _isAllowed(const uint32_t i_addr, const uint64_t i_mask,
                      accessType i_type);
- 
+
      * @brief _is_present     - Look up tables to find if the given
      *                          address ii present
      * @param[in] table1      - table 1 - map with a range and running count

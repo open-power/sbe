@@ -318,7 +318,7 @@ void get_hash(const string& i_str, const unsigned int salt_num, string& hash32, 
 
 	hash16 = "";
     hash32 = "";
-	dprintf(">get_hash(\"%s\",%d)\n", str.c_str(), salt_num);
+	dprintf(">get_hash(\"%s\",%u)\n", str.c_str(), salt_num);
 
 	// Call jhash function to get the hash value
 	hash_num = jhash((void*)str.c_str(), str.length(), salt_num);
@@ -355,7 +355,7 @@ void get_hash(const string& i_str, const unsigned int salt_num, string& hash32, 
 	}
 #endif
 
-	dprintf("<get_hash(\"%s\",%d) returned hash: %s\n", str.c_str(), salt_num, hash32.c_str());
+	dprintf("<get_hash(\"%s\",%u) returned hash: %s\n", str.c_str(), salt_num, hash32.c_str());
 }
 
 //*****************************************************************************
