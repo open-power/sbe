@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016                             */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #include "pk_trace.h"
 
 #define MAX_INPUT_SIZE 0x2040       //8k
-#define MAX_OUTPUT_SIZE (4 * MAX_INPUT_SIZE) 
+#define MAX_OUTPUT_SIZE (4 * MAX_INPUT_SIZE)
 
 char* inbuf[MAX_INPUT_SIZE];
 char* outbuf[MAX_OUTPUT_SIZE];
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
                 break;
             }
         }
-    
+
         if(argc < 2)
         {
             in = stdin;
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
                 break;
             }
         }
-    
+
         //read the input stream until we reach EOF or the max size
         input_size = fread(inbuf, 1, MAX_INPUT_SIZE, in);
         if(!feof(in))
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
                 perror("Failed to write output stream");
                 break;
             }
-            fprintf(stderr, "Failure: Only able to write %d of %d bytes to output stream\n", bytes_written, output_size);
+            fprintf(stderr, "Failure: Only able to write %zu of %zu bytes to output stream\n", bytes_written, output_size);
             break;
         }
 
@@ -132,8 +132,8 @@ int main(int argc, char** argv)
     return rc;
 }
 
-    
-    
-    
-    
+
+
+
+
 

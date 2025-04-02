@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2018                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -179,7 +179,7 @@ bool chop_up_line(string& in_line, string& prefix, string& strings, string& salt
 	pos3 = line.find("\"", pos2);
 	if (pos3 == string::npos) { return(false); }
 	dprintf("--------\nchop_up_line: Passed basic checks. line= %s\n", line.c_str());
-	dprintf("pos1=%d, pos2=%d, pos3=%d\n", pos1, pos2, pos3);
+	dprintf("pos1=%zu, pos2=%zu, pos3=%zu\n", pos1, pos2, pos3);
 	if ((pos1 != (pos2-1)) && (line.find_first_not_of(" \t", pos1, (pos2-pos1)+1) != string::npos)) { return(false); } //non-whitespace?
 	if ((pos2 != pos3) && (line.find_first_not_of(" \t", pos2, (pos3-pos2)) != string::npos)) { return(false); } //non-whitespace?
 
@@ -219,7 +219,7 @@ bool chop_up_line(string& in_line, string& prefix, string& strings, string& salt
 	pos = strings.find_last_not_of(" \t\n");
 	if ((pos != string::npos) && (pos < (strings.length()-1)))
 	{
-		strings = strings.substr(0, pos+1);				
+		strings = strings.substr(0, pos+1);
 	}
 
 	dprintf("    strings>%s<\n", strings.c_str());
@@ -265,7 +265,7 @@ int get_format_string(const string& in_str, string& format)
 	format = "";
 	while(!str.empty())
 	{
-		pos = str.find("%");		
+		pos = str.find("%");
 		if (pos == string::npos) { break; }
 		if (pos == (str.length()-1)) { break; } // last char in string?  just skip it
 		if (str[pos+1] == '%') // double percent sign?  just skip first one
@@ -338,7 +338,7 @@ void get_hash(const string& i_str, const unsigned int salt_num, string& hash32, 
 	}
 
 //removing this since it doesn't seem to have any affect on the output
-#if 0 
+#if 0
 	// If hash is empty, use the sum of the ord values in the original string
 	if ((hash == "")||(hash == "0"))
 	{
@@ -434,14 +434,14 @@ void parse_line(map<string,string>& rhash, string& line, string& out_line)
             // Not breaking the compilation here. This is same as if we get hash
             // collision across files. As in SBE we are using mirroring, these
             // hash collisions will take some time to resolve. Till that time,
-            // let us allow compilation of procedures. 
+            // let us allow compilation of procedures.
 			//return;
 		}
 		rhash[hash32] = strings;
 
 		// add the modified line to the output
 		tmp = prefix;
-		tmp += "(";	
+		tmp += "(";
 		tmp += hashtype;
 		tmp += " ";
 		tmp += hash16;
