@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -100,6 +100,8 @@ p10_hcd_core_startclocks(
     fapi2::buffer<buffer_t> l_mmioData = 0;
     uint32_t                l_timeout  = 0;
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
+    uint32_t l_run_cond = 0;
+    fapi2::ATTR_RUNN_MODE_Type l_attr_runn_mode;
 
 #ifndef __PPE_QME
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
@@ -117,7 +119,6 @@ p10_hcd_core_startclocks(
     fapi2::Target < fapi2::TARGET_TYPE_PROC_CHIP> l_proc = eq_target.getParent <fapi2::TARGET_TYPE_PROC_CHIP> ();
 #endif
 #ifdef USE_RUNN
-    fapi2::ATTR_RUNN_MODE_Type l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
 #endif
 
@@ -149,11 +150,13 @@ p10_hcd_core_startclocks(
     }
     while( (--l_timeout) != 0 );
 
-    HCD_ASSERT4( (
 #ifdef USE_RUNN
-                     l_attr_runn_mode ? ( SCOM_GET(33) == 1 ) :
+    l_run_cond = ( SCOM_GET(33) == 0 ) ? true : false;
+#else
+    l_attr_runn_mode = false;
 #endif
-                     (l_timeout != 0) ),
+
+    HCD_ASSERT4( ( l_attr_runn_mode ? l_run_cond : (l_timeout != 0) ),
                  ECL2_CLK_SYNC_DONE_TIMEOUT,
                  set_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS, HCD_ECL2_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS,
                  set_CPMS_CGCSR, l_scomData,

@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -831,9 +831,9 @@ fapi2::ReturnCode verifyHeader( const fapi2::Target<fapi2::TARGET_TYPE_ALL_MC>& 
 #if defined(__PPE__) && !defined(__PPE_QME__)
         {
             fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> sys;
-            fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
-            fapi2::ATTR_CONTAINED_LOAD_PATH_Type load_type;
-            fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+            fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type = fapi2::ENUM_ATTR_CONTAINED_IPL_TYPE_CACHE;
+            fapi2::ATTR_CONTAINED_LOAD_PATH_Type load_type = fapi2::ENUM_ATTR_CONTAINED_LOAD_PATH_L2SQ;
+            fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase = fapi2::ENUM_ATTR_SYSTEM_IPL_PHASE_HB_IPL;
 
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, sys, ipl_type));
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_LOAD_PATH, sys, load_type));
@@ -987,7 +987,7 @@ fapi2::ReturnCode cleanupClockController(
     const uint64_t i_scanRegion,
     const struct restoreOpcgRegisters& i_OPCGData)
 {
-    fapi2::ATTR_CHIP_EC_FEATURE_HW520842_Type l_hw520842;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW520842_Type l_hw520842 = 0;
     bool l_toggle_vitl_clockgating = false;
     auto l_proc_target = i_target.template getParent<fapi2::TARGET_TYPE_PROC_CHIP>();
     fapi2::buffer<uint64_t> l_net_ctrl0_vitl_clkgate = 0x0002000000000000ULL;

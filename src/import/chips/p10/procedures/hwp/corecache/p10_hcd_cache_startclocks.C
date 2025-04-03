@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -87,6 +87,9 @@ p10_hcd_cache_startclocks(
     fapi2::buffer<uint64_t> l_scomData = 0;
     fapi2::buffer<buffer_t> l_mmioData = 0;
     uint32_t                l_timeout  = 0;
+    fapi2::ATTR_RUNN_MODE_Type l_attr_runn_mode;
+    uint32_t l_run_mode_cond = 0;
+
 #ifndef __PPE_QME
     const fapi2::Target < fapi2::TARGET_TYPE_CORE | fapi2::TARGET_TYPE_MULTICAST > l_target =
         i_target;//getChildren w/o and/or
@@ -101,7 +104,6 @@ p10_hcd_cache_startclocks(
 
 #ifdef USE_RUNN
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-    fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
 #endif
 
@@ -133,17 +135,19 @@ p10_hcd_cache_startclocks(
     }
     while( (--l_timeout) != 0 );
 
-    HCD_ASSERT4( (
 #ifdef USE_RUNN
-                     l_attr_runn_mode ? ( SCOM_GET(32) == 1 ) :
+    l_run_mode_cond = ( SCOM_GET(32) == 1 ) ? true : false;
+#else
+    l_attr_runn_mode = false;
 #endif
-                     (l_timeout != 0) ),
+
+    HCD_ASSERT4( ( l_attr_runn_mode ? l_run_mode_cond : (l_timeout != 0) ),
                  L3_CLK_SYNC_DONE_TIMEOUT,
                  set_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DONE_POLL_TIMEOUT_HW_NS,
                  set_CPMS_CGCSR, l_scomData,
                  set_MC_CORE_TARGET, i_target,
                  set_CORE_SELECT, i_target.getCoreSelect(),
-                 "ERROR: L3 Clock Sync Done Timeout");
+                 "ERROR: L3 Clock Sync Done Timeout" );
 
     FAPI_TRY( p10_hcd_corecache_clock_control(eq_target, l_regions, HCD_CLK_START ) );
 

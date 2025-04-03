@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,6 +76,8 @@ p10_hcd_cache_stopgrid(
     fapi2::buffer<buffer_t> l_mmioData = 0;
     fapi2::buffer<uint64_t> l_scomData = 0;
     uint32_t                l_timeout  = 0;
+    fapi2::ATTR_RUNN_MODE_Type l_attr_runn_mode;
+    uint32_t l_run_mode_cond = 0;
 
 #ifndef __PPE_QME
     fapi2::ATTR_ZERO_CORE_CHIP_Type l_zero_core_chip = 0;
@@ -84,7 +86,6 @@ p10_hcd_cache_stopgrid(
 
 #ifdef USE_RUNN
     fapi2::Target < fapi2::TARGET_TYPE_SYSTEM > l_sys;
-    fapi2::ATTR_RUNN_MODE_Type                  l_attr_runn_mode;
     FAPI_TRY( FAPI_ATTR_GET( fapi2::ATTR_RUNN_MODE, l_sys, l_attr_runn_mode ) );
 #endif
 
@@ -127,17 +128,19 @@ p10_hcd_cache_stopgrid(
     }
     while( (--l_timeout) != 0 );
 
-    HCD_ASSERT4( (
 #ifdef USE_RUNN
-                     l_attr_runn_mode ? ( SCOM_GET(32) == 0 ) :
+    l_run_mode_cond = ( SCOM_GET(32) == 0 ) ? true : false;
+#else
+    l_attr_runn_mode = false;
 #endif
-                     (l_timeout != 0) ),
+
+    HCD_ASSERT4( ( l_attr_runn_mode ? l_run_mode_cond : (l_timeout != 0) ),
                  L3_CLK_SYNC_DROP_TIMEOUT,
                  set_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS, HCD_L3_CLK_SYNC_DROP_POLL_TIMEOUT_HW_NS,
                  set_CPMS_CGCSR, l_scomData,
                  set_MC_CORE_TARGET, i_target,
                  set_CORE_SELECT, i_target.getCoreSelect(),
-                 "ERROR: L3 Clock Sync Drop Timeout");
+                 "ERROR: L3 Clock Sync Drop Timeout" );
 
     FAPI_DBG("Switch glsmux to refclk to save clock grid power via CPMS_CGCSR[7]");
     FAPI_TRY( HCD_PUTMMIO_S( i_target, CPMS_CGCSR_WO_CLEAR, BIT64(7) ) );
