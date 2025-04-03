@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -1014,15 +1014,22 @@ fapi2::ReturnCode RamCore::ram_opcode(const uint32_t i_opcode,
 
 #ifndef __PPE__
     FAPI_ASSERT(iv_ram_mode_enable[iv_target] != 0,
-#else
-    FAPI_ASSERT(iv_ram_mode_enable,
-#endif
                 fapi2::P10_RAM_NOT_SETUP_OPCODE_ERR()
                 .set_CORE_TARGET(iv_target)
                 .set_THREAD(iv_thread)
                 .set_OPCODE(i_opcode)
                 .set_ALLOW_MULT(i_allow_mult),
                 "Attempting to ram opcode without enable RAM mode before");
+#else
+    FAPI_ASSERT(iv_ram_mode_enable,
+                fapi2::P10_RAM_NOT_SETUP_OPCODE_ERR()
+                .set_CORE_TARGET(iv_target)
+                .set_THREAD(iv_thread)
+                .set_OPCODE(i_opcode)
+                .set_ALLOW_MULT(i_allow_mult),
+                "Attempting to ram opcode without enable RAM mode before");
+#endif
+
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_EC_FEATURE_HW533775,
                            iv_target.getParent<fapi2::TARGET_TYPE_PROC_CHIP>(),
