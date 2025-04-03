@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -480,16 +480,21 @@ fapi2::ReturnCode p10_sbe_scominit_core_lpar(const fapi2::Target<fapi2::TARGET_T
     FAPI_TRY(fapi2::getScom(i_target, TP_TPCHIP_PIB_OTP_OTPC_M_EXPORT_REGL_STATUS, l_export_regl_status));
     l_smt8_act = l_export_regl_status.getBit<TP_TPCHIP_PIB_OTP_OTPC_M_EXPORT_REGL_STATUS_TP_EX_FUSE_SMT8_CTYPE_EN_DC>();
 
+#ifdef __PPE__
     FAPI_ASSERT(l_smt8_req == l_smt8_act,
                 fapi2::P10_SBE_SCOMINIT_FUSED_CORE_MISMATCH_ERR()
                 .set_TARGET_CHIP(i_target)
                 .set_FUSED_CORE_REQ(l_smt8_req)
                 .set_FUSED_CORE_ACT(l_smt8_act),
-#ifdef __PPE__
                 "HW export regulation status fused core state (%d) does not match mailbox request (%d)!",
                 ((l_smt8_act) ? 1 : 0),
                 ((l_smt8_req) ? 1 : 0));
 #else
+    FAPI_ASSERT(l_smt8_req == l_smt8_act,
+                fapi2::P10_SBE_SCOMINIT_FUSED_CORE_MISMATCH_ERR()
+                .set_TARGET_CHIP(i_target)
+                .set_FUSED_CORE_REQ(l_smt8_req)
+                .set_FUSED_CORE_ACT(l_smt8_act),
                 "HW export regulation status fused core state (%s) does not match mailbox request (%s)!",
                 ((l_smt8_act) ? ("fused") : ("normal")),
                 ((l_smt8_req) ? ("fused") : ("normal")));
