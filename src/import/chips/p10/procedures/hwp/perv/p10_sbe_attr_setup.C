@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -100,7 +100,7 @@ p10_sbe_attr_update_eq_pg_from_mvpd(
             fapi2::TARGET_STATE_PRESENT))
     {
         // read MVPD attribute for that eq and write it to PG attribute.
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG via ATTR_PG_MVPD: 0x%08X  Inverse:  0x%08X", l_pg, ~l_pg);
         FAPI_TRY(FAPI_ATTR_SET(fapi2::ATTR_PG, l_perv, l_pg));
@@ -160,7 +160,7 @@ p10_sbe_scratch_regs_write_eq_pg_from_scratch(
         FAPI_DBG("EQ%d, core gard mask: 0x%08X", l_unit_num, l_gard_mask);
 
         // shift into position in partial good attribute
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG via ATTR_PG_MVPD: 0x%08X  Inverse:  0x%08X", l_pg, ~l_pg);
 
@@ -232,7 +232,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             (fapi2::TARGET_FILTER_TP),
             fapi2::TARGET_STATE_PRESENT))
     {
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_DBG("TP");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG: 0x%08X", l_pg);
@@ -244,7 +244,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             (fapi2::TARGET_FILTER_NEST_NORTH),
             fapi2::TARGET_STATE_PRESENT))
     {
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_DBG("N0");
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
         FAPI_DBG("  PG: 0x%08X", l_pg);
@@ -257,7 +257,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             fapi2::TARGET_STATE_PRESENT))
     {
         uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_PEC);
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_DBG("PCI%d, gard mask: 0x%X",
                  l_unit_num,
                  i_scratch2_reg.getBit(static_cast<uint32_t>(PCI_GARD_STARTBIT) + l_unit_num));
@@ -288,7 +288,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         for (const auto& l_perv : l_mc_chiplets)
         {
             uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
-            fapi2::ATTR_PG_Type l_pg;
+            fapi2::ATTR_PG_Type l_pg = 0xFFFF;
             bool l_garded = i_scratch2_reg.getBit(static_cast<uint32_t>(MC_GARD_STARTBIT) + l_unit_num);
 
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
@@ -312,7 +312,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         for (const auto& l_perv : l_mc_chiplets)
         {
             uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_MC);
-            fapi2::ATTR_PG_Type l_pg;
+            fapi2::ATTR_PG_Type l_pg = 0xFFFF;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG_MVPD, l_perv, l_pg));
 
             if (l_preserve_first_good && l_good_mcs.getBit(l_unit_num))
@@ -342,7 +342,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
         {
             uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_PAUC);
             uint32_t l_gard_mask = 0x0;
-            fapi2::ATTR_PG_Type l_pg;
+            fapi2::ATTR_PG_Type l_pg = 0xFFFF;
 
             // extract bits associated with the pau logic units
             i_scratch2_reg.extractToRight<PAU_GARD_STARTBIT, PAU_GARD_LENGTH>(l_gard_mask);
@@ -393,7 +393,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
                 (fapi2::TARGET_FILTER_NEST_SOUTH),
                 fapi2::TARGET_STATE_PRESENT))
         {
-            fapi2::ATTR_PG_Type l_pg;
+            fapi2::ATTR_PG_Type l_pg = 0xFFFF;
 
 #ifndef __PPE__
             FAPI_DBG("N1, NMMU1 region %s required", (l_nmmu1_needed) ? ("") : ("NOT"));
@@ -427,7 +427,7 @@ p10_sbe_scratch_regs_write_noneq_pg_from_scratch(
             fapi2::TARGET_STATE_PRESENT))
     {
         uint8_t l_unit_num = p10_sbe_scratch_regs_get_unit_num(l_perv, fapi2::TARGET_TYPE_IOHS);
-        fapi2::ATTR_PG_Type l_pg;
+        fapi2::ATTR_PG_Type l_pg = 0xFFFF;
         FAPI_DBG("IOHS%d, chiplet gard mask: 0x%X",
                  l_unit_num,
                  i_scratch2_reg.getBit(static_cast<uint32_t>(IOHS_GARD_STARTBIT) + l_unit_num));
@@ -465,7 +465,7 @@ p10_sbe_update_eq_pg_for_fusedcore(
     const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target_chip)
 {
     FAPI_DBG("Entering ...");
-    fapi2::ATTR_FUSED_CORE_MODE_Type fused_core_mode;
+    fapi2::ATTR_FUSED_CORE_MODE_Type fused_core_mode = 0x0;
     fapi2::buffer<uint32_t> temp_pg = 0;
     fapi2::buffer<uint64_t> scratch1_reg = 0;
 
@@ -486,7 +486,7 @@ p10_sbe_update_eq_pg_for_fusedcore(
               (fapi2::TARGET_FILTER_ALL_EQ),
               fapi2::TARGET_STATE_PRESENT))
         {
-            fapi2::ATTR_PG_Type pg;
+            fapi2::ATTR_PG_Type pg = 0xFFFF;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_PG, perv, pg));
             uint8_t unit_num = p10_sbe_scratch_regs_get_unit_num(perv, fapi2::TARGET_TYPE_EQ);
             FAPI_DBG("Eq[%d] PG before: 0x%08X", unit_num, pg);
@@ -538,7 +538,7 @@ p10_sbe_scratch_regs_resource_recovery_flow(
     uint32_t l_num_active = 0;
     uint32_t l_num_backing = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type = 0x0;
     uint32_t l_fused_core_num_base = 0;
     bool b_fused = false;
     bool b_fused_first_half = false;
@@ -546,7 +546,7 @@ p10_sbe_scratch_regs_resource_recovery_flow(
     auto l_core_functional_vector = i_target_chip.getChildren<fapi2::TARGET_TYPE_CORE>
                                     (fapi2::TARGET_STATE_FUNCTIONAL);
 
-    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode;
+    fapi2::ATTR_FUSED_CORE_MODE_Type l_attr_fused_mode = 0x0;
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_FUSED_CORE_MODE,
                            FAPI_SYSTEM,
                            l_attr_fused_mode));
@@ -576,7 +576,7 @@ p10_sbe_scratch_regs_resource_recovery_flow(
 
         l_eq_target = core.getParent<fapi2::TARGET_TYPE_EQ>();
 
-        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode = 0x0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, core, l_eco_mode));
 
         bool b_skip_active = l_eco_mode;
