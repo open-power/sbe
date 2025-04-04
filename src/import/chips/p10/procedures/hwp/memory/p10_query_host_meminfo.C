@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2020,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2020,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -52,7 +52,7 @@ fapi2::ReturnCode p10_query_host_meminfo(
     FAPI_INF("p10_query_host_meminfo: Entering ...");
 
     fapi2::buffer<uint64_t> l_data64;
-    fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+    fapi2::ATTR_ECO_MODE_Type l_eco_mode = 0x0;
     // size of host memory in MB
     o_sizeHostMem = 0x0;
     o_hrmor = 0x0;
