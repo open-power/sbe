@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2024                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -86,7 +86,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_select_cores(
 
     for (auto l_core_target : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
     {
-        fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num;
+        fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num = 0x0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core_target, l_core_num),
                  "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
@@ -111,7 +111,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_select_cores(
 
         for (auto l_core_target : i_target.getChildren<fapi2::TARGET_TYPE_CORE>())
         {
-            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num;
+            fapi2::ATTR_CHIP_UNIT_POS_Type l_core_num = 0x0;
             FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CHIP_UNIT_POS, l_core_target, l_core_num),
                      "Error from FAPI_ATTR_GET (ATTR_CHIP_UNIT_POS)");
 
@@ -132,7 +132,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup_select_cores(
 
     for (const auto& l_core_target : o_core_targets)
     {
-        fapi2::ATTR_ECO_MODE_Type l_eco_mode;
+        fapi2::ATTR_ECO_MODE_Type l_eco_mode = 0x0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_ECO_MODE, l_core_target, l_eco_mode));
 
         FAPI_ASSERT(l_eco_mode == fapi2::ENUM_ATTR_ECO_MODE_DISABLED,
@@ -269,7 +269,7 @@ fapi2::ReturnCode p10_sbe_core_spr_setup(
 {
     FAPI_DBG("Entering ...");
 
-    fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe;
+    fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe = 0x0;
     fapi2::ATTR_FUSED_CORE_MODE_Type l_fused_core_mode;
     std::vector<fapi2::Target<fapi2::TARGET_TYPE_CORE>> l_core_targets;
     fapi2::ATTR_MASTER_CORE_Type l_master_core_num;
