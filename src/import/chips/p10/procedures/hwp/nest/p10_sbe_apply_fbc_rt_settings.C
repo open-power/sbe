@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019                             */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -50,9 +50,9 @@ p10_sbe_apply_fbc_rt_settings(
     const void* i_pxscomInit)
 {
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type;
-    fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe;
-    fapi2::ATTR_IS_MPIPL_Type l_is_mpipl;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type = 0x0;
+    fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe = 0x0;
+    fapi2::ATTR_IS_MPIPL_Type l_is_mpipl = 0x0;
 
     FAPI_DBG("Start");
 
