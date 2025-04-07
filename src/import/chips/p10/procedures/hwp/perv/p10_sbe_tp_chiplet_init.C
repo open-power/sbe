@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -88,11 +88,11 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_init(const
     using namespace scomt::proc;
 
     fapi2::buffer<uint64_t> l_data64, l_buffer64;
-    uint8_t pre_divider;
-    uint32_t l_attr_pau_freq_mhz, l_pau_multiplier, l_real_pau_frequency;
+    uint8_t pre_divider = 0;
+    uint32_t l_attr_pau_freq_mhz = 0, l_pau_multiplier = 0, l_real_pau_frequency = 0;
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
-    uint8_t l_cp_refclck_select;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type = 0x0;
+    uint8_t l_cp_refclck_select = 0;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet = i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>
             (fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
