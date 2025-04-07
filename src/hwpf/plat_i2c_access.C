@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2023                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -756,7 +756,7 @@ ReturnCode i2cLockEngine(misc_args_t i_args)
 
     do
     {
-        // Clearing the current RC, which might be set in 
+        // Clearing the current RC, which might be set in
         // previous loop, while accessing locked resource
         fapi2::current_err = fapi2::FAPI2_RC_SUCCESS;
 
@@ -813,7 +813,7 @@ namespace fapi2
     {
         #define SBE_FUNC "platGetI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
-        FAPI_IMP(SBE_FUNC "Input target passed is 0x%08X", target.get());
+        FAPI_IMP(SBE_FUNC "Input target passed is 0x%08x", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);
@@ -909,7 +909,7 @@ namespace fapi2
         #define SBE_FUNC "platPutI2c "
         ReturnCode rc = FAPI2_RC_SUCCESS;
 
-        FAPI_IMP(SBE_FUNC "Input OCMB target passed is 0x%08X", target.get());
+        FAPI_IMP(SBE_FUNC "Input OCMB target passed is 0x%08x", target.get());
         misc_args_t args;
         // Derive the port, engine and deviceaddress from input target.
         args.port = (uint8_t)(target.get().fields.port);

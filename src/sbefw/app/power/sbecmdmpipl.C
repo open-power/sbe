@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2016,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2016,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -49,7 +49,7 @@
 #include "p10_hcd_cache_stopclocks.H"
 #include "sbearchregdump.H"
 #include "fapi2.H"
-#include "core/ipl.H"
+#include "ipl.H"
 #include "sberegaccess.H"
 #include "chipop_handler.H"
 #include "sbearchregdump.H"
@@ -192,7 +192,7 @@ ReturnCode collectMPIPLHWDumpEntries()
             pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
             sbeMemAccessInterface PBAInterForMetadata(
                     SBE_MEM_ACCESS_PBA,
-                    metaDataAddr, 
+                    metaDataAddr,
                     &pbaFlag,
                     SBE_MEM_ACCESS_READ,
                     sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
@@ -240,7 +240,7 @@ ReturnCode collectMPIPLHWDumpEntries()
             pbaFlag.setOperationType(p10_PBA_oper_flag::INJ);
             sbeMemAccessInterface PBAInterForMetadata(
                     SBE_MEM_ACCESS_PBA,
-                    metaDataAddr, 
+                    metaDataAddr,
                     &pbaFlag,
                     SBE_MEM_ACCESS_WRITE,
                     sbeMemAccessInterface::PBA_GRAN_SIZE_BYTES);
@@ -518,9 +518,9 @@ ReturnCode stopClockS0()
     uint32_t fapiRc = FAPI2_RC_SUCCESS;
     p10_stopclocks_flags flags;
     flags.clearAll();
-    flags.stop_core_clks = true; 
+    flags.stop_core_clks = true;
     flags.stop_cache_clks = true;
-    
+
     SBE_EXEC_HWP(fapiRc, p10_stopclocks_hwp,
                  plat_getChipTarget(), flags);
     if(fapiRc != FAPI2_RC_SUCCESS)
@@ -896,7 +896,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                 // Clear the fapiRc, incase of scom failure.
                 // PHYP may have put the core ins stop states.
                 // Successfuls scoms does not set the fapi2 current error.
-                // Do it explicitly. 
+                // Do it explicitly.
                 fapiRc = FAPI2_RC_SUCCESS;
                 fapi2::current_err = FAPI2_RC_SUCCESS;
                 continue;
@@ -910,7 +910,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                 // Clear the fapiRc, incase of scom failure.
                 // PHYP may have put the core ins stop states.
                 // Successfuls scoms does not set the fapi2 current error.
-                // Do it explicitly. 
+                // Do it explicitly.
                 fapiRc = FAPI2_RC_SUCCESS;
                 fapi2::current_err = FAPI2_RC_SUCCESS;
                 continue;
@@ -930,7 +930,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
                     // Clear the fapiRc, incase of scom failure.
                     // PHYP may have put the core ins stop states.
                     // Successfuls scoms does not set the fapi2 current error.
-                    // Do it explicitly. 
+                    // Do it explicitly.
                     fapiRc = FAPI2_RC_SUCCESS;
                     fapi2::current_err = FAPI2_RC_SUCCESS;
                     continue;
@@ -990,7 +990,7 @@ uint32_t sbeGetTIInfo (uint8_t *i_pArg)
     }while(0);
     // Create the Response to caller
     // If there was a FIFO error, will skip sending the response,
-    // instead give the control back to the command processor thread   
+    // instead give the control back to the command processor thread
     do
     {
         // Build the response header packet

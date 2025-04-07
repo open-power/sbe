@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2017,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2017,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -34,7 +34,7 @@
 #include "sbecmdcntrldmt.H"
 #include "sbeglobals.H"
 
-#include "core/ipl.H"
+#include "ipl.H"
 
 extern sbeRole g_sbeRole;
 static const uint8_t SLAVE_LAST_MINOR_ISTEP = 22;

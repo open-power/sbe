@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -45,8 +45,8 @@
 #include "sbestates.H"
 #include "fapi2.H"
 #include "sbeglobals.H"
-#include "core/chipop_handler.H"
-#include "core/ipl.H"
+#include "chipop_handler.H"
+#include "ipl.H"
 #include "sbeFFDC.H"
 #include "sbehandleresponse.H"
 #include "sbeXipUtils.H"
@@ -57,9 +57,6 @@
 #include "sbes0handler.H"
 #endif
 
-#if PERIODIC_IO_TOGGLE_SUPPORTED
-#include "p9_sbe_io_eol_toggle.H"
-#endif
 
 const uint64_t PERIODIC_TIMER_INTERVAL_SECONDS = 24*60*60; // 24 hours
 

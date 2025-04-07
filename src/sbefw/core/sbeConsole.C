@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2018,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2018,2025                        */
 /* [+] International Business Machines Corp.                              */
 /* [+] Stewart Smith                                                      */
 /*                                                                        */
@@ -28,11 +28,6 @@
 #include "sbes1handler.H"
 
 #include "sbeConsole.H"
-
-#include "p9_perv_scom_addresses.H"
-#include "p9_perv_scom_addresses_fld.H"
-#include "p9_misc_scom_addresses.H"
-#include "p9_misc_scom_addresses_fld.H"
 
 #include "sberegaccess.H"
 #include "sbeglobals.H"

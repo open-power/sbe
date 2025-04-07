@@ -31,10 +31,6 @@
 
 #include "plat_hw_access.H"
 #include "assert.h"
-
-// Nest frequency array
-#include "p9_frequency_buckets.H"
-
 namespace SBE
 {
     bool isSimics() __attribute__((alias("__isSimicsRunning")));

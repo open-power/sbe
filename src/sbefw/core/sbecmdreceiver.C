@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2015,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2015,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -48,7 +48,7 @@
 #include "sbes0handler.H"
 #endif
 
-#include "core/chipop_handler.H"
+#include "chipop_handler.H"
 
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////

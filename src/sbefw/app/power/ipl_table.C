@@ -22,7 +22,7 @@
 /* permissions and limitations under the License.                         */
 /*                                                                        */
 /* IBM_PROLOG_END_TAG                                                     */
-#include "core/ipl.H"
+#include "ipl.H"
 
 #include "sbecmdiplcontrol.H"
 #include "sbefifo.H"
