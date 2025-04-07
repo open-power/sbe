@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -122,8 +122,8 @@ fapi2::ReturnCode p10_sbe_chiplet_reset(const
     using namespace scomt;
     using namespace scomt::perv;
 
-    uint8_t l_attr_nest_dpll_bypass;
-    uint8_t l_attr_pau_dpll_bypass;
+    uint8_t l_attr_nest_dpll_bypass = 0;
+    uint8_t l_attr_pau_dpll_bypass = 0;
     fapi2::buffer<uint32_t> l_read_attr_pg;
     fapi2::buffer<uint64_t> l_data64_nc0, l_data64;
     fapi2::ATTR_CLOCK_MUX_PCI_LCPLL_INPUT_Type l_clock_mux_pci_lcpll_input;
