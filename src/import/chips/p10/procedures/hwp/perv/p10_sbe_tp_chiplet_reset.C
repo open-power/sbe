@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -78,7 +78,7 @@ fapi2::ReturnCode p10_sbe_tp_chiplet_reset(const
     fapi2::buffer<uint16_t> l_regions;
     fapi2::buffer<uint64_t> l_data64, l_data64_root_ctrl0;
     fapi2::buffer<uint32_t> l_read_attr_pg, l_read_attr_pg_n1;
-    fapi2::ATTR_CHIP_EC_FEATURE_HW541221_Type l_hw541221;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW541221_Type l_hw541221 = 0x0;
 
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
