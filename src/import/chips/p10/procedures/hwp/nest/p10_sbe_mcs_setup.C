@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2022                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -201,9 +201,9 @@ p10_sbe_mcs_setup(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
     FAPI_INF("Start");
 
     fapi2::ATTR_PROC_SBE_MASTER_CHIP_Type l_is_master_sbe = 0x0;
-    fapi2::ATTR_IS_MPIPL_Type l_is_mpipl;
-    fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type;
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_contained_type;
+    fapi2::ATTR_IS_MPIPL_Type l_is_mpipl = 0x0;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type l_ipl_type = 0x0;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_contained_type = 0x0;
 
     auto l_mc_chiplets = i_target.getChildren<fapi2::TARGET_TYPE_MC>();
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
