@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -121,9 +121,9 @@ fapi2::ReturnCode p10_sbe_initf(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP
     const auto* l_eq_func_rings_mc = &ISTEP3_EQ_FUNC_RINGS_MULTICAST;
     const auto* l_eq_inex_rings_mc = &ISTEP3_EQ_INEX_RINGS_MULTICAST;
 
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
-    fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
-    fapi2::ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX_Type l_scan_eq_inex;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type = 0x0;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase = 0x0;
+    fapi2::ATTR_CHIP_EC_FEATURE_SCAN_EQ_INEX_Type l_scan_eq_inex = 0x0;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYS, ipl_type));
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SYSTEM_IPL_PHASE, FAPI_SYS, ipl_phase));
