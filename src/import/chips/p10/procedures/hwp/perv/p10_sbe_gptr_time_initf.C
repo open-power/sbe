@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -347,9 +347,9 @@ fapi2::ReturnCode p10_sbe_gptr_time_initf(const
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYS;
     const auto* l_eq_gptr_time_rings_mc = &ISTEP3_EQ_GPTR_TIME_RINGS_MULTICAST;
 
-    fapi2::ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP_Type l_pau_dts_swap;
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type;
-    fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase;
+    fapi2::ATTR_CHIP_EC_FEATURE_PAU_DTS_SWAP_Type l_pau_dts_swap = 0x0;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type ipl_type = 0x0;
+    fapi2::ATTR_SYSTEM_IPL_PHASE_Type ipl_phase = 0x0;
 
     FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CONTAINED_IPL_TYPE, FAPI_SYS,
                            ipl_type));
