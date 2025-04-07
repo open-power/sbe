@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -803,11 +803,11 @@ fapi2::ReturnCode p10_sbe_rcs_setup(const
     using namespace scomt::perv;
     using namespace scomt::proc;
 
-    fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133;
-    fapi2::ATTR_CHIP_EC_FEATURE_HW545231_Type l_rcs_hw545231;
+    fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133 = 0x0;
+    fapi2::ATTR_CHIP_EC_FEATURE_HW545231_Type l_rcs_hw545231 = 0x0;
     fapi2::buffer<uint64_t> l_data64_rc5, l_data64_rc3, l_pll_expect, l_pll_status, l_rcs_status, buffer64;
     fapi2::ReturnCode l_rc;
-    uint8_t l_cp_refclck_select;
+    uint8_t l_cp_refclck_select = 0;
     bool skipClkCheck = false;
     // variable for creating clock pos ffdc
     uint8_t l_callout_clock;
