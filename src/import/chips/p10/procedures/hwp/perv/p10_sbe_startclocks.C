@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -142,7 +142,7 @@ fapi2::ReturnCode p10_sbe_startclocks(const
 
     {
         uint32_t l_qme_cycle_repro_compare_value;
-        fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_boot_freq_mhz;
+        fapi2::ATTR_FREQ_CORE_BOOT_MHZ_Type l_attr_boot_freq_mhz = 0x0;
 
         FAPI_DBG("Set the QME Cycle Repro Compare Value");
         // From PM Hardware Specification: CEILING((31.25 * Core Frequency in Ghz)-0.125)
