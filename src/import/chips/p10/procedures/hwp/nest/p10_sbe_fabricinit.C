@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -58,8 +58,8 @@ p10_sbe_fabricinit(const fapi2::Target<fapi2::TARGET_TYPE_PROC_CHIP>& i_target)
 
     FAPI_INF("Entering...");
 
-    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type;
-    fapi2::ATTR_CONTAINED_LOAD_PATH_Type l_attr_contained_load_path;
+    fapi2::ATTR_CONTAINED_IPL_TYPE_Type l_attr_contained_ipl_type = 0x0;
+    fapi2::ATTR_CONTAINED_LOAD_PATH_Type l_attr_contained_load_path = 0x0;
     fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
     fapi2::buffer<uint64_t> l_data;
     adu_operationFlag l_aduFlags;
