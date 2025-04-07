@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -240,7 +240,7 @@ static fapi2::ReturnCode p10_sbe_fastarray_row(
     fapi2::hwp_bit_istream&                       i_bits_of_interest,
     fapi2::hwp_bit_ostream&                       o_array_bits)
 {
-    fapi2::buffer<uint64_t> l_data;
+    fapi2::buffer<uint64_t> l_data = 0;
     uint32_t                l_extra_rotate = 0;
 
     /* Set up scan region & type */
