@@ -132,13 +132,13 @@ calc_image_footprint(
     bool& o_load_exception_vector)
 {
     const fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
-    uint64_t l_drawer_base_address_nm0;
-    uint64_t l_drawer_base_address_nm1;
-    uint64_t l_drawer_base_address_m;
-    uint64_t l_drawer_base_address_mmio;
-    uint64_t l_bootloader_offset;
-    uint64_t l_hostboot_hrmor_offset;
-    uint32_t l_exception_instruction;
+    uint64_t l_drawer_base_address_nm0 = 0;
+    uint64_t l_drawer_base_address_nm1 = 0;
+    uint64_t l_drawer_base_address_m = 0;
+    uint64_t l_drawer_base_address_mmio = 0;
+    uint64_t l_bootloader_offset = 0;
+    uint64_t l_hostboot_hrmor_offset = 0;
+    uint32_t l_exception_instruction = 0;
 
     FAPI_DBG("Start");
 
@@ -381,7 +381,7 @@ get_bootloader_config_data(
     else if(i_cacheline == 1)
     {
         // Read the HW Key Hash
-        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr;
+        fapi2::ATTR_SBE_HW_KEY_HASH_ADDR_Type hashKeyAddr = 0x0;
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_SBE_HW_KEY_HASH_ADDR,
                                FAPI_SYSTEM,
                                hashKeyAddr),
@@ -444,7 +444,7 @@ get_exception_vector_data(
     uint8_t* io_data)
 {
     uint8_t l_index = 0;
-    uint32_t l_exception_instruction;
+    uint32_t l_exception_instruction = 0;
 
     FAPI_DBG("Start");
 
@@ -480,11 +480,11 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
     fapi2::ATTR_SBE_LOAD_BOOTLOADER_CHUNK_OFFSET_Type l_offset = 0;
     p10_PBA_oper_flag l_pba_flags;
     uint8_t l_data[FABRIC_CACHELINE_SIZE];
-    uint64_t l_target_address;
-    uint64_t l_end_address;
-    uint64_t l_load_base_address;
-    uint64_t l_load_size;
-    bool l_load_exception_vector;
+    uint64_t l_target_address = 0;
+    uint64_t l_end_address = 0;
+    uint64_t l_load_base_address = 0;
+    uint64_t l_load_size = 0;
+    bool l_load_exception_vector = 0;
 
     FAPI_DBG("Start");
 
