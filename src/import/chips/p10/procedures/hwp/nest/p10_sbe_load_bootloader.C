@@ -473,7 +473,7 @@ fapi2::ReturnCode p10_sbe_load_bootloader(
     uint8_t* i_payload_data)
 {
     bool l_first_access = true;
-    uint32_t l_num_cachelines_to_roll;
+    uint32_t l_num_cachelines_to_roll = 0;
     uint32_t l_cacheline_num = 0;
     fapi2::ATTR_IS_MPIPL_Type l_is_mpipl = fapi2::ENUM_ATTR_IS_MPIPL_FALSE;
     fapi2::ATTR_ECO_MODE_Type l_eco_mode = fapi2::ENUM_ATTR_ECO_MODE_DISABLED;
