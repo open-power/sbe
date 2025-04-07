@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2020                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -51,8 +51,8 @@ fapi2::ReturnCode p10_sbe_npll_initf(
     fapi2::buffer<uint64_t> l_data64;
     fapi2::Target<fapi2::TARGET_TYPE_PERV> l_tpchiplet =
         i_target_chip.getChildren<fapi2::TARGET_TYPE_PERV>(fapi2::TARGET_FILTER_TP, fapi2::TARGET_STATE_FUNCTIONAL)[0];
-    fapi2::ATTR_FILTER_PLL_BUCKET_Type l_filter_pll_bucket;
-    fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133;
+    fapi2::ATTR_FILTER_PLL_BUCKET_Type l_filter_pll_bucket = 0x0;
+    fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133 = 0x0;
 
     static const RingID perv_pll_bndy_ring_id[P10_MAX_FILTER_PLL_BUCKETS] = { perv_pll_bndy_bucket_0,
                                                                               perv_pll_bndy_bucket_1,
@@ -88,10 +88,10 @@ fapi2::ReturnCode p10_sbe_npll_initf(
         // HW540133 requires that we release the filter PLLs from reset in order to sample resolved BANDSEL &
         // write back adjusted value to CCALBANDSEL.  Shift code which releases PLL reset from p10_sbe_npll_setup
         // to this HWP, as we can't read the bndy ring after switch gears flips the nest grid to 2:1
-        fapi2::ATTR_CP_PLLTODFLT_BYPASS_Type l_attr_plltodflt_bypass;
-        fapi2::ATTR_CP_PLLNESTFLT_BYPASS_Type l_attr_pllnestflt_bypass;
-        fapi2::ATTR_CP_PLLIOFLT_BYPASS_Type l_attr_pllioflt_bypass;
-        fapi2::ATTR_CP_PLLIOSSFLT_BYPASS_Type l_attr_plliossflt_bypass;
+        fapi2::ATTR_CP_PLLTODFLT_BYPASS_Type l_attr_plltodflt_bypass = 0x0;
+        fapi2::ATTR_CP_PLLNESTFLT_BYPASS_Type l_attr_pllnestflt_bypass = 0x0;
+        fapi2::ATTR_CP_PLLIOFLT_BYPASS_Type l_attr_pllioflt_bypass = 0x0;
+        fapi2::ATTR_CP_PLLIOSSFLT_BYPASS_Type l_attr_plliossflt_bypass = 0x0;
         fapi2::Target<fapi2::TARGET_TYPE_SYSTEM> FAPI_SYSTEM;
 
         FAPI_TRY(FAPI_ATTR_GET(fapi2::ATTR_CP_PLLTODFLT_BYPASS,  i_target_chip, l_attr_plltodflt_bypass));
