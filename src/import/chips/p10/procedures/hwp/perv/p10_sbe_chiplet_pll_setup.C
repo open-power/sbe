@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -76,7 +76,7 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
     using namespace scomt;
     using namespace scomt::perv;
 
-    uint8_t l_bypass;
+    uint8_t l_bypass = 0;
     fapi2::buffer<uint64_t> l_data64;
     fapi2::ReturnCode l_rc;
 
@@ -87,8 +87,8 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_setup(const
 
     if (!l_bypass)
     {
-        fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133;
-        fapi2::ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133_Type l_tank_pll_hw540133;
+        fapi2::ATTR_CHIP_EC_FEATURE_FILTER_PLL_HW540133_Type l_filter_pll_hw540133 = 0;
+        fapi2::ATTR_CHIP_EC_FEATURE_TANK_PLL_HW540133_Type l_tank_pll_hw540133 = 0;
 
         auto l_mc_iohs = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_IOHS);
         auto l_mc_pci = i_target_chip.getMulticast<fapi2::TARGET_TYPE_PERV>(fapi2::MCGROUP_GOOD_PCI);
