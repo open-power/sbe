@@ -5,7 +5,7 @@
 /*                                                                        */
 /* OpenPOWER sbe Project                                                  */
 /*                                                                        */
-/* Contributors Listed Below - COPYRIGHT 2019,2021                        */
+/* Contributors Listed Below - COPYRIGHT 2019,2025                        */
 /* [+] International Business Machines Corp.                              */
 /*                                                                        */
 /*                                                                        */
@@ -44,9 +44,9 @@ fapi2::ReturnCode p10_sbe_chiplet_pll_initf(const
 {
     FAPI_INF("p10_sbe_chiplet_pll_initf: Entering ...");
 
-    fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket;
-    fapi2::ATTR_IOHS_PLL_BUCKET_Type l_iohs_pll_bucket;
-    fapi2::ATTR_PCI_PLL_BUCKET_Type l_pci_pll_bucket;
+    fapi2::ATTR_MC_PLL_BUCKET_Type l_mc_pll_bucket = { 0 };
+    fapi2::ATTR_IOHS_PLL_BUCKET_Type l_iohs_pll_bucket = { 0 };
+    fapi2::ATTR_PCI_PLL_BUCKET_Type l_pci_pll_bucket = { 0 };
 
     // This variable (mc_ring_id/iohs_ring_id) is getting assigned to ro data
     // section per the map file, which is by default 8byte aligned.
