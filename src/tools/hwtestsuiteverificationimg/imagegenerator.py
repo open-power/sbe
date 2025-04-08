@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2024
+# Contributors Listed Below - COPYRIGHT 2024,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -205,6 +205,9 @@ class imgTool:
         cmd = f"{self.tool} {self.img} append .sbh_hbbl {hbblSection}"
         executeCommand(cmd)
 
+    def deletehbbl(self) -> None:
+        cmd = f"{self.tool} {self.img} delete .hbbl"
+        executeCommand(cmd)
 
 class shv3Parser:
     """
@@ -294,6 +297,7 @@ def imageGeneration(args):
 
                 # Seeprom Image name
                 seepromImageName = imagePath + "/sbe_seeprom_tid" + key + ".bin"
+                sbhhbblcorupt = imagePath + "/HBBL_V3.header_tid" + key + ".bin"
 
                 # Copy Seeprom for create corrupt seeprom image
                 tempSeeprom = tempPath + "/tempseeprom_bin.bin"
@@ -304,6 +308,7 @@ def imageGeneration(args):
                 # Temporary secure boot header corrupt binary name
                 tempSbhCorruptBin = tempPath + "/sbh_corrupt_" + header + field + ".bin"
 
+
                 # TODO have to remove
                 if (section == ".sbh_hbbl") and (args.skipHbbl == "True"):
                     print ("Skipping .hbbl Section found, Not execute HBBL test case")
@@ -313,16 +318,19 @@ def imageGeneration(args):
                 if section == ".sbh_firmware":
                     sbhCorruptFw.corrupt(header, field, tempSbhCorruptBin)
                     tmpImgtool.deleteSbhFwSection()
+                    tmpImgtool.deleteSbhHbblSection()
                     tmpImgtool.appendSbhFwSection(tempSbhCorruptBin)
 
                 elif section == ".sbh_hbbl":
                     sbhCorruptHbbl.corrupt(header, field, tempSbhCorruptBin)
                     tmpImgtool.deleteSbhHbblSection()
-                    tmpImgtool.appendSbhHbblSection(tempSbhCorruptBin)
-
+                    cmd = "tail -c +1289 " + tempSbhCorruptBin + " > " + sbhhbblcorupt
+                    os.system(cmd)
                 else:
                     print ("Error: Invalid Section")
                     continue
+
+                tmpImgtool.deletehbbl()
 
                 fwMeasurementData   = sbhCorruptFw.get("fw", "hash_protected_payload")
 
