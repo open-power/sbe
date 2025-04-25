@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2017,2022
+# Contributors Listed Below - COPYRIGHT 2017,2025
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -50,7 +50,7 @@ export MEASUREMENT_IMAGE_SUPPORTED = 0
 #This is a terminology used in this makefile that only means the compilation of verification
 #image is blocked. But the over-all support of verification image is still there from the
 #locked/golden verification image already present in the PPE repository
-export VERIFICATION_IMAGE_SUPPORTED = 1
+export VERIFICATION_IMAGE_SUPPORTED = 0
 
 AWAN_NMZ_MODEL = 1
 
