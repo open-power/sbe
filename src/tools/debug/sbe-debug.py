@@ -41,7 +41,7 @@ import ctypes
 err = False
 
 pibmemBaseAddr = 0xfff80000
-syms = {};
+syms = {}
 SBE_TOOLS_PATH = os.getcwd()
 if 'SBE_TOOLS_PATH' in os.environ:
     SBE_TOOLS_PATH = os.environ['SBE_TOOLS_PATH'];
@@ -183,8 +183,15 @@ def collectTrace(string_file,tracMERG_file):
     print("\n String File: [" + stringFile + "]")
     invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
             output_path +"sbetrace.bin " )
-    invokeOsCmd( getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
-            output_path + tracMERG_file )
+    # If the endianness char is '<' then it is BMC system
+    if(endianChar == "<"):
+        invokeOsCmd( getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
+                output_path + tracMERG_file )
+    # Jail command is required for FSP based systems
+    else:
+        invokeOsCmd( "x86_64-yocto42-jail " + getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
+                output_path + tracMERG_file )
+
     invokeOsCmd( "mv " + output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
@@ -236,8 +243,15 @@ def forcedCollectTrace(string_file,tracMERG_file):
     invokeOsCmd( getFilePath("ppe2fsp")+ " " + output_path + "DumpPIBMEM "+\
             output_path +"sbetrace.bin " )
 
-    invokeOsCmd( getTraceFilePath() + " -s " + stringFile +" "+ output_path +"sbetrace.bin > "+\
-            output_path + tracMERG_file )
+    # If the endianness char is '<' then it is BMC system
+    if(endianChar == "<"):
+        invokeOsCmd( getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
+                output_path + tracMERG_file )
+    # Jail command is required for FSP based systems
+    else:
+        invokeOsCmd( "x86_64-yocto42-jail " + getTraceFilePath() + " -s " + stringFile + " "+ output_path +"sbetrace.bin > "+\
+                output_path + tracMERG_file )
+
     invokeOsCmd( "mv "+ output_path +"DumpPIBMEM "+\
             output_path +"dumpPibMem_trace" )
 
