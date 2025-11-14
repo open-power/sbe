@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2019
+# Contributors Listed Below - COPYRIGHT 2015,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -45,7 +45,7 @@ include img_defs.mk
 # link with are 32-bit only so we need to force 32-bit mode.
 
 ifeq ($(wildcard /etc/ldap.conf), )
-  GSACELL     = ausgsa
+  GSACELL     = rchgsa
 else
   GSACELL     = $(shell cat /etc/ldap.conf | grep "host " | \
         cut -d" " -f2 | cut -d. -f1)
