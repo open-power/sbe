@@ -389,7 +389,7 @@ endif
 ifndef CROSS_COMPILER_PATH
 export ARCH=`uname -m`
 $(warning The CROSS_COMPILER_PATH variable is not defined; Defaulting to IBM CTE tools path)
-export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/${ARCH}_prod
+export CROSS_COMPILER_PATH = /afs/rchland.ibm.com/projects/cte/tools/ppetools/${ARCH}_prod
 endif
 
 ifndef GCC-TOOL-PREFIX
