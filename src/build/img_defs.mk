@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2023
+# Contributors Listed Below - COPYRIGHT 2015,2025
 # [+] International Business Machines Corp.
 # [+] Justin.Ginn@ibm.com
 #
@@ -384,7 +384,7 @@ endif
 
 ifndef CROSS_COMPILER_PATH
 $(warning The CROSS_COMPILER_PATH variable is not defined; Defaulting to IBM CTE tools path)
-export CROSS_COMPILER_PATH = /afs/awd/projects/cte/tools/ppetools/prod
+export CROSS_COMPILER_PATH = /afs/rchland.ibm.com/projects/cte/tools/ppetools/prod
 endif
 
 ifndef GCC-TOOL-PREFIX
