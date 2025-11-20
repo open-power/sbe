@@ -63,7 +63,7 @@
         "src/sbefw/app/power_dft/"
     ],
     "includeHeaders": [
-        "/afs/awd/projects/cte/tools/ppetools/x86_64_prod/lib/gcc/powerpc-eabi/4.9.2/include/",
+        "/afs/rchland.ibm.com/projects/cte/tools/ppetools/x86_64_prod/lib/gcc/powerpc-eabi/4.9.2/include/",
         "src/hwpf/",
         "src/sbefw/securebootcommon/",
         "src/sbefw/verification/",
