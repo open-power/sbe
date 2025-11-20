@@ -5,7 +5,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -55,7 +55,7 @@ fi
 
 # Set CTE path if not already set
 if [ -z "${CTEPATH}" ]; then
-    export CTEPATH=/afs/apd.pok.ibm.com/projects/cte
+    export CTEPATH=/afs/rchland.ibm.com/projects/cte
 fi
 
 # set path for Python 3

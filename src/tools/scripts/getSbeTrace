@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -184,7 +184,7 @@ else
 
 fi
 
-export PATH=$PATH:/afs/apd.pok.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/bin
+export PATH=$PATH:/afs/rchland.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/bin
 
 #SBE symbol file will be searched/fetched from below path.
 export SBE_TOOLS_PATH=$SBE_IMAGE_PATH
@@ -193,7 +193,7 @@ export SBE_TOOLS_PATH=$SBE_IMAGE_PATH
 SBE_DEBUG_TOOL_PATH=${SBE_DEBUG_TOOL}
 
 #Default cronus settings for fetching SBE traces
-setconfig HW_PROCEDURE_PATH /afs/apd.pok.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/lib/
+setconfig HW_PROCEDURE_PATH /afs/rchland.ibm.com/projects/eclipz/lab/p10/ekb_master/ekb/output/lib/
 setconfig GLOBAL_DEBUG none
 
 #Run sbe-debug.py tool

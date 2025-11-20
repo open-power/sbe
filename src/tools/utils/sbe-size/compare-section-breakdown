@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018
+# Contributors Listed Below - COPYRIGHT 2018,2025
 # [+] International Business Machines Corp.
 #
 #
@@ -32,7 +32,7 @@ if [ -z "$1" ]; then
 fi
 
 MYDIR=$(dirname $0)
-CROSS_COMPILER_PATH=${CROSS_COMPILER_PATH:-/afs/awd/projects/cte/tools/ppetools/prod}
+CROSS_COMPILER_PATH=${CROSS_COMPILER_PATH:-/afs/rchland.ibm.com/projects/cte/tools/ppetools/prod}
 OBJDUMP=$CROSS_COMPILER_PATH/powerpc-eabi/bin/objdump
 DIFF=${DIFF:-tkdiff}
 TMPFILEa=$(mktemp)
