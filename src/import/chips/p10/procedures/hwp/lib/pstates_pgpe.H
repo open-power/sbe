@@ -30,6 +30,7 @@
 // *HWP Team            : PM
 // *HWP Level           : 1
 // *HWP Consumed by     : PGPE:HS
+/* CI_TEST_20260128 */
 
 #ifndef __PSTATES_PGPE_H__
 #define __PSTATES_PGPE_H__
