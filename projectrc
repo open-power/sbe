@@ -6,7 +6,7 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2025
+# Contributors Listed Below - COPYRIGHT 2015,2026
 # [+] International Business Machines Corp.
 #
 #
@@ -38,7 +38,7 @@ export SANDBOXNAME=test_sb
 export MACHINE=NIMBUS
 export SIMICSOPTIONS="-nre"
 export SIMICS_TAR=/gsa/rchgsa/projects/s/simics_published_builds/p10/LATEST/
-export MCP_PATH=/opt/mcp/shared/fr_FLD9-DEV-20190320/
+export MCP_PATH=/opt/mcp/shared/fr_FLD9-P5-20251023/
 
 # RH Machine version
 export RH_MACHINE_VERSION=$(cat /etc/redhat-release 2>&1 | grep -Po '(?<=release )(.)')
