@@ -58,7 +58,7 @@ def exportFiles(sbe_simdata_dir, img_dir):
     os.system('cp '+img_dir+'/../src/tools/utils/ecc'+' '+sbe_simdata_dir+'/')
 
     #Copy the fsp-trace file to the sbe_simdata_dir
-    os.system('cp $MCP_PATH/opt/fsp/usr/bin/fsp-trace ' +sbe_simdata_dir+'/')
+    os.system('cp /opt/mcp/shared/fr_FLD9-P5-20251023/opt/fsp/usr/bin/fsp-trace ' +sbe_simdata_dir+'/')
 
     #Copy the simic scripts to the sbe_simdata_dir
     os.system('cp '+img_dir+'/../src/tools/debug/simics-debug-framework_rainier.py'+' '+sbe_simdata_dir+'/')
