@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2020
+# Contributors Listed Below - COPYRIGHT 2018,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +33,7 @@ err = False
 import testScomUtil
 from sim_commands import *
 
-simicsProcObj = simics.SIM_run_command("get-component-list -all proc_p10")
+simicsProcObj = simics.SIM_run_command("list-components -all proc_p10")
 for proc in simicsProcObj:
     if(proc !=  "backplane0.dcm[0].chip[0]"):
         print(proc)

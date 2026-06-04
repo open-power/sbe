@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2021
+# Contributors Listed Below - COPYRIGHT 2016,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,7 @@ import testPSUUserUtil
 import sys
 from sim_commands import *
 
-simicsObj = simics.SIM_run_command("get-master-procs")
+simicsObj = simics.SIM_run_command("list-objects -all proc_p10")
 
 #-------------------------
 # Macros constants

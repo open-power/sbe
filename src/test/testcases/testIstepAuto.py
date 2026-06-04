@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2024
+# Contributors Listed Below - COPYRIGHT 2016,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +27,10 @@ from __future__ import print_function
 import sys
 import copy
 from sim_commands import *
-import imp
+import importlib.util
 
 err = False
-simicsObj = simics.SIM_run_command("get-master-procs")
+simicsObj = simics.SIM_run_command("list-objects -all proc_p10")
 
 def collectFFDC():
     simics.SIM_run_command('sbe-trace 0')
@@ -40,7 +41,11 @@ def collectFFDC():
     simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->downstream_hw_fifo')
 
 SBE_TOOLS_PATH = simenv.sbe_scripts_path
-testUtil = imp.load_source("testUtil", SBE_TOOLS_PATH + "/testUtil.py")
+# Load module using importlib instead of deprecated imp
+spec = importlib.util.spec_from_file_location("testUtil", SBE_TOOLS_PATH + "/testUtil.py")
+testUtil = importlib.util.module_from_spec(spec)
+sys.modules["testUtil"] = testUtil
+spec.loader.exec_module(testUtil)
 EXPDATA = [0xc0,0xde,0xa1,0x01,
            0x0,0x0,0x0,0x0,
            0x00,0x0,0x0,0x03]
