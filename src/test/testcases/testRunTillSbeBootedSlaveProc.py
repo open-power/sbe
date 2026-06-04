@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2020
+# Contributors Listed Below - COPYRIGHT 2018,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ err = False
 
 import testScomUtil
 
-simicsObj = simics.SIM_run_command("get-component-list -all proc_p10")
+simicsObj = simics.SIM_run_command("list-components -all proc_p10")
 
 from sim_commands import *
 

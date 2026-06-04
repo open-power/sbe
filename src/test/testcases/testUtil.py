@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2015,2021
+# Contributors Listed Below - COPYRIGHT 2015,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,7 @@ import conf
 from sim_commands import *
 import functools
 
-simicsObj = simics.SIM_run_command("get-component-list -all proc_p10")
+simicsObj = simics.SIM_run_command("list-components -all proc_p10")
 
 waitItrCount = 10000000;
 cyclesPerIter = 20000;
@@ -304,12 +305,12 @@ def checkEqual( data, expdata ):
         raise Exception('data mistmach');
 
 def collectFFDC():
-        simics.SIM_run_command('sbe-trace 0')
-        simics.SIM_run_command('sbe-stack 0')
-        simics.SIM_run_command('sbe-regffdc 0')
-        simics.SIM_run_command(simicsObj[0] + '.pib_cmp.sbe_ppe->ppe_state')
-        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->upstream_hw_fifo')
-        simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->downstream_hw_fifo')
+    simics.SIM_run_command('sbe-trace 0')
+    simics.SIM_run_command('sbe-stack 0')
+    simics.SIM_run_command('sbe-regffdc 0')
+    simics.SIM_run_command(simicsObj[0] + '.pib_cmp.sbe_ppe->ppe_state')
+    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->upstream_hw_fifo')
+    simics.SIM_run_command(simicsObj[0] + '.cfam_cmp.sbe_fifo[0]->downstream_hw_fifo')
 
 def getUsFifoDataAddrToWrite(i_fifoType):
     if i_fifoType == 0:

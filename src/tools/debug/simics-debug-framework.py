@@ -5,8 +5,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2016,2022
+# Contributors Listed Below - COPYRIGHT 2016,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +30,9 @@ import subprocess
 import re
 import random
 import sys
-import imp
+import importlib.util
 import struct
+import sys
 
 SBE_SEEPROM_IMG = simenv.sbe_seeprom_img
 print("SBE_SEEPROM_IMG = %s" %  SBE_SEEPROM_IMG)
@@ -42,13 +44,62 @@ print("SBE_TOOLS_PATH = " +  SBE_TOOLS_PATH)
 # "Export SBE_TOOL_PATH" as OS environment variable.
 os.environ['SBE_TOOLS_PATH'] = SBE_TOOLS_PATH
 
-testIstepAuto = imp.load_source("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
-sbeDebug = imp.load_source("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
-sbeUpdateAttrPG = imp.load_source("sbeUpdateAttrPG", SBE_TOOLS_PATH + "/sbeModifyPGvalue.py")
+# Load modules using importlib instead of deprecated imp
+try:
+    spec = importlib.util.spec_from_file_location("testIstepAuto", SBE_TOOLS_PATH + "/testIstepAuto.py")
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Failed to create spec for testIstepAuto from {SBE_TOOLS_PATH}/testIstepAuto.py")
+    testIstepAuto = importlib.util.module_from_spec(spec)
+    sys.modules["testIstepAuto"] = testIstepAuto
+    spec.loader.exec_module(testIstepAuto)
+    print("Successfully loaded testIstepAuto")
+except Exception as e:
+    print(f"ERROR loading testIstepAuto: {e}")
+    import traceback
+    traceback.print_exc()
+    raise
+
+try:
+    spec = importlib.util.spec_from_file_location("sbeDebug", SBE_TOOLS_PATH + "/sbe-debug.py")
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Failed to create spec for sbeDebug from {SBE_TOOLS_PATH}/sbe-debug.py")
+    sbeDebug = importlib.util.module_from_spec(spec)
+    sys.modules["sbeDebug"] = sbeDebug
+    spec.loader.exec_module(sbeDebug)
+    print("Successfully loaded sbeDebug")
+except Exception as e:
+    print(f"ERROR loading sbeDebug: {e}")
+    import traceback
+    traceback.print_exc()
+    raise
+
+try:
+    spec = importlib.util.spec_from_file_location("sbeUpdateAttrPG", SBE_TOOLS_PATH + "/sbeModifyPGvalue.py")
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Failed to create spec for sbeUpdateAttrPG from {SBE_TOOLS_PATH}/sbeModifyPGvalue.py")
+    sbeUpdateAttrPG = importlib.util.module_from_spec(spec)
+    sys.modules["sbeUpdateAttrPG"] = sbeUpdateAttrPG
+    spec.loader.exec_module(sbeUpdateAttrPG)
+    print("Successfully loaded sbeUpdateAttrPG")
+except Exception as e:
+    print(f"ERROR loading sbeUpdateAttrPG: {e}")
+    import traceback
+    traceback.print_exc()
+    raise
 err = False
-simicsPrcObj = simics.SIM_run_command("get-component-list -all proc_p10_pib")
-simicsObjForPrimarySeeprom = simics.SIM_run_command("get-seeprom 0 0 0")
-simicsObjForBackupSeeprom = simics.SIM_run_command("get-seeprom 0 0 1")
+simicsPrcObj = simics.SIM_run_command("list-components -all proc_p10_pib")
+
+# Get SEEPROM objects - try to find them by component path
+try:
+    # Try to get seeprom objects directly by their expected paths
+    simicsObjForPrimarySeeprom = "backplane0.dcm[0].chip[0].seeprom[0]"
+    simicsObjForBackupSeeprom = "backplane0.dcm[0].chip[0].seeprom[1]"
+    print(f"Using SEEPROM paths: Primary={simicsObjForPrimarySeeprom}, Backup={simicsObjForBackupSeeprom}")
+except Exception as e:
+    print(f"ERROR setting up SEEPROM objects: {e}")
+    import traceback
+    traceback.print_exc()
+    raise
 
 syms = {};
 bootSyms = {};
