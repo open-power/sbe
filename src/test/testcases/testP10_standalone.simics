@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2024
+# Contributors Listed Below - COPYRIGHT 2018,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,7 @@
 # IBM_PROLOG_END_TAG
 
 $procNr = -1
-foreach $proc in (get-component-list -all proc_p10) {
+foreach $proc in (list-components -all class = proc_p10) {
 
     $procNr = $procNr + 1
     echo "**************** Run sbe testcases for " + $proc + "****************"
@@ -53,15 +54,15 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         echo "*******************Run testRunTillSbeBooted.py************************"
 
-        run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
+        run-script targets/p10_standalone/sbeTest/testRunTillSbeBooted.py
 
         echo "*******************Run testIstepInvalidFenced.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+        run-script targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
         echo "*******************Run testPSUSetStashPair.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUSetStashPair.py
+        run-script targets/p10_standalone/sbeTest/testPSUSetStashPair.py
 
     }
 
@@ -70,11 +71,11 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         echo "*******************sbe-start-slaveProc.py************************"
 
-        run-python-file targets/p10_standalone/sbeTest/sbe-start-slaveProc.py
+        run-script targets/p10_standalone/sbeTest/sbe-start-slaveProc.py
 
         echo "*******************Run testRunTillSbeBootedSlaveProc.py****************"
 
-        run-python-file targets/p10_standalone/sbeTest/testRunTillSbeBootedSlaveProc.py
+        run-script targets/p10_standalone/sbeTest/testRunTillSbeBootedSlaveProc.py
     }
 
     echo "*******************Run SBE-ISTEPS ******************"
@@ -94,147 +95,147 @@ foreach $proc in (get-component-list -all proc_p10) {
 
         echo "*******************Run testMatchStashPair.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testMatchStashPair.py
+        run-script targets/p10_standalone/sbeTest/testMatchStashPair.py
 
         sbe-istep 5.2 5.3
 
         echo "*******************Run testGetDump.py*******************"
         # TODO: Enable testGetDump.py along with all DUMP util scripts
-        #run-python-file targets/p10_standalone/sbeTest/testGetDump.py
+        #run-script targets/p10_standalone/sbeTest/testGetDump.py
 
         echo "*******************Run testSram.py *******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testSram.py
+        run-script targets/p10_standalone/sbeTest/testSram.py
 
         echo "**Run testIstepInvalid.py and testIstepInvalidFenced.py **"
 
-        run-python-file targets/p10_standalone/sbeTest/testIstepInvalid.py
+        run-script targets/p10_standalone/sbeTest/testIstepInvalid.py
 
-        run-python-file targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
+        run-script targets/p10_standalone/sbeTest/testIstepInvalidFenced.py
 
         echo "*******************Run testGetCapabilities.py******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testGetCapabilities.py
-        run-python-file targets/p10_standalone/sbeTest/testGetCapabilities2.py
+        run-script targets/p10_standalone/sbeTest/testGetCapabilities.py
+        run-script targets/p10_standalone/sbeTest/testGetCapabilities2.py
 
         echo "*******************Run testSbeDump.py******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testSbeDump.py
+        run-script targets/p10_standalone/sbeTest/testSbeDump.py
 
         echo "*******************Run testPSUGetCapabilities.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
+        run-script targets/p10_standalone/sbeTest/testPSUGetCapabilities.py
 
         echo "*******************Run testSuspendIO.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testSuspendIO.py
+        run-script targets/p10_standalone/sbeTest/testSuspendIO.py
 
         echo "*******************Run testStopInstruction.py******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testStopInstruction.py
+        run-script targets/p10_standalone/sbeTest/testStopInstruction.py
 
         echo "*******************Run testPutGetRegGpr.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPutGetRegGpr.py
+        run-script targets/p10_standalone/sbeTest/testPutGetRegGpr.py
 
         echo "*******************Run testPutGetRegFpr.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPutGetRegFpr.py
+        run-script targets/p10_standalone/sbeTest/testPutGetRegFpr.py
 
         echo "*******************Run testPutGetRegSpr.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPutGetRegSpr.py
+        run-script targets/p10_standalone/sbeTest/testPutGetRegSpr.py
 
         echo "*******************Run testStartInstruction.py******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testStartInstruction.py
+        run-script targets/p10_standalone/sbeTest/testStartInstruction.py
 
         echo "*******************Run testAduMem_ecc.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testAduMem_ecc.py
+        run-script targets/p10_standalone/sbeTest/testAduMem_ecc.py
 
         echo "*******************Run testAduMem_itag.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testAduMem_itag.py
+        run-script targets/p10_standalone/sbeTest/testAduMem_itag.py
 
         echo "*******************Run testAduMem_withEccItag.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
+        run-script targets/p10_standalone/sbeTest/testAduMem_withEccItag.py
 
         echo "*******************Run testAduMem_noEccNoItag.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
+        run-script targets/p10_standalone/sbeTest/testAduMem_noEccNoItag.py
 
         echo "*******************Run testAduMem_124B.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testAduMem_124B.py
+        run-script targets/p10_standalone/sbeTest/testAduMem_124B.py
 
         echo "*******************Run testExitCacheContainedMode.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
+        run-script targets/p10_standalone/sbeTest/testExitCacheContainedMode.py
 
         echo "*******************Run testHResetIpl.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testHResetIpl.py
+        run-script targets/p10_standalone/sbeTest/testHResetIpl.py
 
         echo "*******************Run testGetTIInfo.py*******************"
 
-        #run-python-file targets/p10_standalone/sbeTest/testGetTIInfo.py
+        #run-script targets/p10_standalone/sbeTest/testGetTIInfo.py
 
         #echo "*******************Run testFifoReset.py*******************"
 
-        #run-python-file targets/p10_standalone/sbeTest/testFifoReset.py
+        #run-script targets/p10_standalone/sbeTest/testFifoReset.py
 
         # echo "*******************Run testEnterMpipl.py*******************"
         # TODO: As the changes enable the MPIPL flow , this will fail the CI
-        # run-python-file targets/p10_standalone/sbeTest/testEnterMpipl.py
+        # run-script targets/p10_standalone/sbeTest/testEnterMpipl.py
 
         echo "*******************Run testPutGetScom.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPutGetScom.py
+        run-script targets/p10_standalone/sbeTest/testPutGetScom.py
 
         echo "*******************Run testUpdateOCMBTargets.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testUpdateOCMBTargets.py
+        run-script targets/p10_standalone/sbeTest/testUpdateOCMBTargets.py
 
         echo "*******************Run testInvalidScom.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testInvalidScom.py
+        run-script targets/p10_standalone/sbeTest/testInvalidScom.py
 
         echo "*******************Run testPutGetHWReg.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPutGetHWReg.py
+        run-script targets/p10_standalone/sbeTest/testPutGetHWReg.py
 
         echo "*******************Run testPSUSyncTargetState.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUSyncTargetState.py
+        run-script targets/p10_standalone/sbeTest/testPSUSyncTargetState.py
 
         echo "*******************Run testPSUGetHwReg.py****************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUGetHwReg.py
+        run-script targets/p10_standalone/sbeTest/testPSUGetHwReg.py
 
 
         echo "*******************Run testPSUSetFFDCAddr.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
+        run-script targets/p10_standalone/sbeTest/testPSUSetFFDCAddr.py
 
         echo "*******************Run testPsuHostPassThrough.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
+        run-script targets/p10_standalone/sbeTest/testPsuHostPassThrough.py
 
         echo "*******************Run testPsuMemConfig.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPsuMemConfig.py
+        run-script targets/p10_standalone/sbeTest/testPsuMemConfig.py
 
         echo "*******************Run testPSUTPMExtendMode.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testPSUTPMExtendMode.py
+        run-script targets/p10_standalone/sbeTest/testPSUTPMExtendMode.py
 
         # note after testQuesce the SBE will be in the quiesce state
 
         echo "*******************Run testQuiesce.py*******************"
 
-        run-python-file targets/p10_standalone/sbeTest/testQuiesce.py
+        run-script targets/p10_standalone/sbeTest/testQuiesce.py
 
     }
 }
@@ -243,58 +244,58 @@ exit 0
 
 echo "*******************Run testHostFFDC.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testHostFFDC.py
+run-script targets/p10_standalone/sbeTest/testHostFFDC.py
 
 echo "*******************Run testPSUReadSbeMem.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testPSUReadSbeMem.py
+run-script targets/p10_standalone/sbeTest/testPSUReadSbeMem.py
 
 echo "*******************Run testUnsecureMemRegions.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testUnsecureMemRegions.py
+run-script targets/p10_standalone/sbeTest/testUnsecureMemRegions.py
 
 echo "*******************Run testMemPBA.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testMemPBA.py
+run-script targets/p10_standalone/sbeTest/testMemPBA.py
 
 echo "*******************Run testSram.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testSram.py
+run-script targets/p10_standalone/sbeTest/testSram.py
 
 echo "*******************Run istep 5.2*******************"
 sbe-istep 5 2
 
 echo "*******************Run testSystemFabricMap.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testSystemFabricMap.py
+run-script targets/p10_standalone/sbeTest/testSystemFabricMap.py
 
 echo "*******************Run testExecutorCntrlTimer.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testExecutorCntrlTimer.py
+run-script targets/p10_standalone/sbeTest/testExecutorCntrlTimer.py
 
 echo "*******************Run testExecutorStopTimer.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testExecutorStopTimer.py
+run-script targets/p10_standalone/sbeTest/testExecutorStopTimer.py
 
 echo "*******************Run testSecurity.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testSecurity.py
+run-script targets/p10_standalone/sbeTest/testSecurity.py
 
 echo "*******************Run testStopClocks.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testStopClocks.py
+run-script targets/p10_standalone/sbeTest/testStopClocks.py
 
 echo "*******************Run testGetRing.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testGetRing.py
+run-script targets/p10_standalone/sbeTest/testGetRing.py
 
 echo "*******************Run testExecutorPutRing.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testExecutorPutRing.py
+run-script targets/p10_standalone/sbeTest/testExecutorPutRing.py
 
 echo "*******************Run testFastArray.py*******************"
 
-run-python-file targets/p10_standalone/sbeTest/testFastArray.py
+run-script targets/p10_standalone/sbeTest/testFastArray.py
 
 echo "*******************Run sbe-trace*******************"
 

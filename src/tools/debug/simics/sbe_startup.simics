@@ -7,9 +7,9 @@ if defined sbe_scripts_path {
 try {
 
     if($machine_name == "p10_standalone" or $machine_name == "bonito") {
-        run-python-file (lookup-file "%script%/simics-debug-framework.py")
+        run-script (lookup-file "%script%/simics-debug-framework.py")
     } else {
-        run-python-file (lookup-file "%script%/simics-debug-framework_rainier.py")
+        run-script (lookup-file "%script%/simics-debug-framework_rainier.py")
     }
     # Set mailbox scratch registers so that the SBE starts in plck mode
     # p9Proc0.proc_chip.invoke parallel_store SCOM 0x5003F "20000000_00000000" 64
@@ -21,7 +21,7 @@ try {
 if defined dimm_type {
     if $dimm_type == "ody" {
         try {
-            run-command-file (lookup-file "pozsbeinitstandalone.simics")
+            run-script (lookup-file "pozsbeinitstandalone.simics")
         } except {
             echo "ERROR: Failed to call pozsbeinitstandalone simics script for ody setup"
             local $error_msg = (get-error-message)

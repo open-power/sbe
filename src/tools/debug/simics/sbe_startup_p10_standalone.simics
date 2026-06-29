@@ -6,8 +6,9 @@
 #
 # OpenPOWER sbe Project
 #
-# Contributors Listed Below - COPYRIGHT 2018,2021
+# Contributors Listed Below - COPYRIGHT 2018,2026
 # [+] International Business Machines Corp.
+# [+] sandeep.kumar.yadav@ibm.com
 #
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +71,7 @@ if $sbe_ci_script != NIL {
 ###################################
 echo "Enable the SBE"
 
-foreach $proc in (get-component-list -all proc_p10) {
+foreach $proc in (list-components -all class = proc_p10) {
     # Set security enabled bit
     #(get-master-cec-chips)[0].invoke parallel_store SCOM 0x00050001 "0C000002_00000000" 64
     #$proc.cfam_cmp.lbus_map.write 0x2800 + 0x1*4 0x00000002 4 -b
@@ -112,7 +113,7 @@ foreach $proc in (get-component-list -all proc_p10) {
 echo "Attempting to register SBE Tools"
 # Load SBE debug tools.
 try {
-    run-python-file (lookup-file "%script%/simics-debug-framework.py")
+    run-script (lookup-file "%script%/simics-debug-framework.py")
 } except { echo "ERROR: Failed to load SBE debug tools." }
 
 # Changing the base of HRMOR to 4GB - 512MB for all procs
@@ -131,7 +132,7 @@ if $sbe_ci == TRUE {
         stop
         wait-for-simulation-stopped
         try {
-            run-command-file $sbe_ci_script
+            run-script $sbe_ci_script
         } except{
             echo " Debug ::SBE CI Script error"
             q 1

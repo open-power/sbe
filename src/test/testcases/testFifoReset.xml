@@ -5,8 +5,9 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016,2019                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2026                        -->
 <!-- [+] International Business Machines Corp.                              -->
+<!-- [+] sandeep.kumar.yadav@ibm.com                                        -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -26,11 +27,11 @@
 
       <!-- SBE FIFO reset Test case -->
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testFifoReset.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testFifoReset.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- An istep chip-op should succeed post the FIFO reset  -->
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalidFenced.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testIstepInvalidFenced.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>

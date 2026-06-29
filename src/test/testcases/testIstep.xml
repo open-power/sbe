@@ -5,8 +5,9 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2015,2018                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2015,2026                        -->
 <!-- [+] International Business Machines Corp.                              -->
+<!-- [+] sandeep.kumar.yadav@ibm.com                                        -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -31,16 +32,16 @@
       </testcase>
       <!-- Stash address test case -->
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testMatchStashPair.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testMatchStashPair.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- Invalid Istep Test case -->
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testIstepInvalid.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
       <!-- Invalid Istep Test case -->
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testIstepInvalidFenced.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testIstepInvalidFenced.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>

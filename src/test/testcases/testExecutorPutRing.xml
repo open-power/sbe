@@ -5,8 +5,9 @@
 <!--                                                                        -->
 <!-- OpenPOWER sbe Project                                                  -->
 <!--                                                                        -->
-<!-- Contributors Listed Below - COPYRIGHT 2016,2019                        -->
+<!-- Contributors Listed Below - COPYRIGHT 2016,2026                        -->
 <!-- [+] International Business Machines Corp.                              -->
+<!-- [+] sandeep.kumar.yadav@ibm.com                                        -->
 <!--                                                                        -->
 <!--                                                                        -->
 <!-- Licensed under the Apache License, Version 2.0 (the "License");        -->
@@ -26,7 +27,7 @@
 <!--TODO: Uncomment the fifo reset test case once simics fixes the issue -->
 <!--
       <testcase>
-          <simcmd>run-python-file targets/p9_nimbus/sbeTest/testExecutorPutRing.py</simcmd>
+          <simcmd>run-script targets/p9_nimbus/sbeTest/testExecutorPutRing.py</simcmd>
           <exitonerror>yes</exitonerror>
       </testcase>
 -->
